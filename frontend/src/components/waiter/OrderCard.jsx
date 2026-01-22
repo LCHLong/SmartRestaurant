@@ -41,7 +41,7 @@ const OrderCard = ({ order, onAccept, onReject, onComplete, onServed, onConfirmP
                         isPaid ? 'bg-green-500' : 'bg-blue-500'
                         }`}></div>
                     <span className="font-extrabold text-base sm:text-lg text-gray-800">
-                        {t('waiter.table')} {order.table?.table_number || 'N/A'}
+                        {t('waiter.table')} {(Array.isArray(order.tables) ? order.tables[0] : (order.tables || order.table))?.table_number || 'N/A'}
                     </span>
                 </div>
                 <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-end">
