@@ -141,12 +141,7 @@ exports.getOrders = async (req, res) => {
       count = result.count;
     }
 
-    // --- DEBUG LOG ---
-    if (data && data.length > 0) {
-      console.log("DEBUG: First Order Tables Data:", JSON.stringify(data[0].tables, null, 2));
-      console.log("DEBUG: First Order Full Keys:", Object.keys(data[0]));
-    }
-    // -----------------
+
 
     res.status(200).json({
       success: true,

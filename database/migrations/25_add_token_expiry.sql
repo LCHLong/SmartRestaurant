@@ -1,0 +1,11 @@
+-- Migration: 25_add_token_expiry.sql
+-- Purpose: Add verification_token_expires to users table
+DO $$ 
+BEGIN 
+    IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_enum e ON t.oid = e.enumtypid WHERE t.typname = 'user_role' AND e.enumlabel = 'super_admin') THEN
+        ALTER TYPE user_role ADD VALUE 'super_admin';
+    END IF;
+END $$;
+
+ALTER TABLE users 
+ADD COLUMN IF NOT EXISTS verification_token_expires TIMESTAMPTZ;

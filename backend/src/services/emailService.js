@@ -1,12 +1,10 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com', 
-    port: 465, 
-    secure: true, 
+    service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS 
+        pass: process.env.EMAIL_PASS
     },
 });
 
@@ -30,7 +28,7 @@ const sendEmail = async (to, subject, htmlContent) => {
 // Template 1: Gửi email Reset Password
 const sendResetPasswordEmail = async (email, token) => {
     const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-    
+
     const html = `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px;">
             <h2 style="color: #d32f2f;">Yêu cầu đặt lại mật khẩu</h2>
@@ -41,7 +39,7 @@ const sendResetPasswordEmail = async (email, token) => {
             <p style="margin-top: 20px; font-size: 12px; color: #666;">Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.</p>
         </div>
     `;
-    
+
     return await sendEmail(email, "Đặt lại mật khẩu - Smart Restaurant", html);
 };
 
@@ -61,7 +59,7 @@ const sendWelcomeEmail = async (email, name) => {
 const sendVerificationEmail = async (email, token) => {
     // Link này sẽ dẫn về Frontend, Frontend sẽ gọi API verify
     const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-    
+
     const html = `
         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #ddd; border-radius: 5px;">
             <h2 style="color: #1976d2;">Xác thực tài khoản</h2>
@@ -76,7 +74,7 @@ const sendVerificationEmail = async (email, token) => {
 
 const sendStaffInvitation = async (email, full_name, password, token) => {
     const verifyLink = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
-    
+
     const html = `
         <div style="font-family: Arial, sans-serif; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
             <h2 style="color: #2e7d32;">Lời mời tham gia hệ thống</h2>
