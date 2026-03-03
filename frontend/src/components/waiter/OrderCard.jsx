@@ -41,7 +41,7 @@ const OrderCard = ({ order, onAccept, onReject, onComplete, onServed, onConfirmP
                         isPaid ? 'bg-green-500' : 'bg-blue-500'
                         }`}></div>
                     <span className="font-extrabold text-base sm:text-lg text-gray-800">
-                        {t('waiter.table')} {(Array.isArray(order.tables) ? order.tables[0] : (order.tables || order.table))?.table_number || 'N/A'}
+                        {t('waiter.table')} {(order.table || order.tables)?.table_number || 'N/A'}
                     </span>
                 </div>
                 <div className="flex items-center gap-1 sm:gap-2 flex-wrap justify-end">
@@ -95,14 +95,21 @@ const OrderCard = ({ order, onAccept, onReject, onComplete, onServed, onConfirmP
                                 )}
 
                                 {/* Hiển thị trạng thái từng món nhỏ */}
-                                <span className={`ml-1 sm:ml-2 text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded border font-bold uppercase tracking-tighter ${item.status === 'pending' ? 'bg-red-100 text-red-600 border-red-200 animate-pulse' :
-                                    item.status === 'ready' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
-                                        item.status === 'preparing' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                                            item.status === 'served' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                                                'bg-gray-50 text-gray-500 border-gray-100'
-                                    }`}>
-                                    {item.status === 'pending' ? t('waiter.new_badge') : t(`waiter.status.${item.status}`)}
-                                </span>
+                                {(() => {
+                                    // Nếu đơn đã thanh toán hoặc đã được phục vụ, mặc định coi như món đã được phục vụ (trừ món bị hủy)
+                                    const effectiveStatus = ((isPaid || isServed) && ['pending', 'preparing', 'ready'].includes(item.status)) ? 'served' : item.status;
+
+                                    return (
+                                        <span className={`ml-1 sm:ml-2 text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded border font-bold uppercase tracking-tighter ${effectiveStatus === 'pending' ? 'bg-red-100 text-red-600 border-red-200 animate-pulse' :
+                                            effectiveStatus === 'ready' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                                                effectiveStatus === 'preparing' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                                                    effectiveStatus === 'served' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                                                        'bg-gray-50 text-gray-500 border-gray-100'
+                                            }`}>
+                                            {effectiveStatus === 'pending' ? t('waiter.new_badge') : t(`waiter.status.${effectiveStatus}`)}
+                                        </span>
+                                    );
+                                })()}
                             </div>
                         </li>
                     ))}

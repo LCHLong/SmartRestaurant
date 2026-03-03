@@ -43,6 +43,7 @@ const OrderDetailModal = ({ order, onClose, onOrderUpdated }) => {
         iframeDoc.write('.pt-3 { padding-top: 12px; }');
         iframeDoc.write('.text-gray-600 { color: #4b5563; }');
         iframeDoc.write('.text-emerald-600 { color: #059669; }');
+        iframeDoc.write('.no-print { display: none !important; }'); // ✅ Ẩn khi in
         iframeDoc.write('</style>');
         iframeDoc.write('</head><body>');
         iframeDoc.write(printContent);
@@ -112,39 +113,46 @@ const OrderDetailModal = ({ order, onClose, onOrderUpdated }) => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-dashed divide-gray-200">
-                                {order.items?.map((item, idx) => (
-                                    <tr key={idx}>
-                                        <td className="py-2">
-                                            <div className="flex flex-col">
-                                                <div className="flex items-center gap-2">
-                                                    <span>{item.menu_item?.name}</span>
-                                                    {/* Status Badge */}
-                                                    <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${item.status === 'pending' ? 'bg-red-100 text-red-600 animate-pulse' :
-                                                        item.status === 'preparing' ? 'bg-yellow-100 text-yellow-700' :
-                                                            item.status === 'ready' ? 'bg-green-100 text-green-700' :
-                                                                item.status === 'served' ? 'bg-gray-100 text-gray-500 line-through' :
-                                                                    'bg-gray-100'
-                                                        }`}>
-                                                        {item.status === 'pending' ? t('waiter.new_badge') : item.status}
-                                                    </span>
-                                                </div>
-                                                {/* Modifiers List in Detail Modal */}
-                                                {item.order_item_modifiers && item.order_item_modifiers.length > 0 && (
-                                                    <div className="flex flex-wrap gap-1 mt-1">
-                                                        {item.order_item_modifiers.map(mod => (
-                                                            <span key={mod.id} className="text-[10px] text-gray-500 italic">
-                                                                + {mod.modifier_name}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </div>
+                                {(() => {
+                                    const isPaid = order.payment_status === 'paid';
+                                    const isServed = order.is_served;
+                                    return order.items?.map((item, idx) => {
+                                        const effectiveStatus = ((isPaid || isServed) && ['pending', 'preparing', 'ready'].includes(item.status)) ? 'served' : item.status;
 
-                                        </td>
-                                        <td className="py-2 text-center align-top">{item.quantity}</td>
-                                        <td className="py-2 text-right align-top">{parseInt(item.total_price).toLocaleString()}</td>
-                                    </tr>
-                                ))}
+                                        return (
+                                            <tr key={idx}>
+                                                <td className="py-2">
+                                                    <div className="flex flex-col">
+                                                        <div className="flex items-center gap-2">
+                                                            <span>{item.menu_item?.name}</span>
+                                                            {/* Status Badge */}
+                                                            <span className={`no-print text-[10px] uppercase font-bold px-1.5 py-0.5 rounded ${effectiveStatus === 'pending' ? 'bg-red-100 text-red-600 animate-pulse' :
+                                                                effectiveStatus === 'preparing' ? 'bg-yellow-100 text-yellow-700' :
+                                                                    effectiveStatus === 'ready' ? 'bg-green-100 text-green-700' :
+                                                                        effectiveStatus === 'served' ? 'bg-gray-100 text-gray-500 line-through' :
+                                                                            'bg-gray-100'
+                                                                }`}>
+                                                                {effectiveStatus === 'pending' ? t('waiter.new_badge') : t(`waiter.status.${effectiveStatus}`)}
+                                                            </span>
+                                                        </div>
+                                                        {/* Modifiers List in Detail Modal */}
+                                                        {item.order_item_modifiers && item.order_item_modifiers.length > 0 && (
+                                                            <div className="no-print flex flex-wrap gap-1 mt-1">
+                                                                {item.order_item_modifiers.map(mod => (
+                                                                    <span key={mod.id} className="text-[10px] text-gray-500 italic">
+                                                                        + {mod.modifier_name}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                                <td className="py-2 text-center align-top">{item.quantity}</td>
+                                                <td className="py-2 text-right align-top">{parseInt(item.total_price).toLocaleString()}</td>
+                                            </tr>
+                                        );
+                                    });
+                                })()}
                             </tbody>
                         </table>
 

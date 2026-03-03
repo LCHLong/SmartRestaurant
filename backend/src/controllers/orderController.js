@@ -58,6 +58,7 @@ exports.getOrders = async (req, res) => {
       .from('orders')
       .select(`
                 *,
+                payment_status,
                 table:tables(id, table_number),
                 customer:users(id, full_name, phone),
                 items:order_items(
@@ -336,6 +337,16 @@ exports.updateOrderServedStatus = async (req, res) => {
       .single();
 
     if (updateError) throw updateError;
+
+    // --- 🟢 FIX: Update all order_items to served if is_served is true ---
+    if (is_served) {
+      await supabase
+        .from('order_items')
+        .update({ status: 'served' })
+        .eq('order_id', id)
+        .in('status', ['pending', 'preparing', 'ready']); // Chỉ cập nhật các món chưa served/rejected
+    }
+    // --------------------------------------------------------------------
 
     // Socket Emit (Real-time updates)
     const io = getIO();
@@ -633,6 +644,7 @@ exports.getOrder = async (req, res) => {
       .from('orders')
       .select(`
         *,
+        payment_status,
         table:tables(id, table_number, capacity),
         items:order_items(
           id,

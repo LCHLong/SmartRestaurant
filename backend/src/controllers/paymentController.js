@@ -25,10 +25,15 @@ exports.createPaymentIntent = async (req, res) => {
                 .single();
 
             // Update DB
-            await supabase.from('orders').update({
+            const { error: updateError } = await supabase.from('orders').update({
                 payment_status: 'waiting_payment',
                 needs_invoice: requestInvoice
             }).eq('id', orderId);
+
+            if (updateError) {
+                console.error("⚠️ Lỗi cập nhật trạng thái thanh toán (Có thể thiếu cột payment_status):", updateError);
+                // Vẫn tiếp tục bắn socket để nhân viên biết có yêu cầu
+            }
 
             const io = getIO();
 
@@ -97,7 +102,12 @@ exports.mockPayment = async (req, res) => {
         const { data: order } = await supabase.from('orders').select('table_id').eq('id', orderId).single();
 
         // Update DB
-        await supabase.from('orders').update({ payment_status: 'paid', status: 'completed' }).eq('id', orderId);
+        const { error: updateError } = await supabase.from('orders').update({
+            payment_status: 'paid',
+            status: 'completed'
+        }).eq('id', orderId);
+
+        if (updateError) throw updateError;
 
         // Bắn socket
         const io = getIO();
@@ -106,6 +116,12 @@ exports.mockPayment = async (req, res) => {
         io.to('kitchen').emit('order_paid', { orderId });
         if (order && order.table_id) {
             await supabase.from('tables').update({ status: 'available' }).eq('id', order.table_id);
+
+            // ✅ Tự động chuyển tất cả món sang 'served' khi hoàn tất đơn
+            await supabase.from('order_items')
+                .update({ status: 'served' })
+                .eq('order_id', orderId)
+                .in('status', ['pending', 'preparing', 'ready']);
 
             io.to(`table_${order.table_id}`).emit('payment_success', { orderId, status: 'paid' });
 
@@ -133,10 +149,12 @@ exports.confirmPayment = async (req, res) => {
 
         if (paymentIntent.status === 'succeeded') {
             // Update DB ngay lập tức
-            await supabase.from('orders').update({
+            const { error: updateError } = await supabase.from('orders').update({
                 payment_status: 'paid',
                 status: 'completed' // ✅ THÊM DÒNG NÀY
             }).eq('id', orderId);
+
+            if (updateError) throw updateError;
 
             // Lưu lịch sử
             await supabase.from('payments').insert([{
@@ -158,13 +176,19 @@ exports.confirmPayment = async (req, res) => {
                 // --- 🟢 FIX: Giải phóng bàn ---
                 await supabase.from('tables').update({ status: 'available' }).eq('id', order.table_id);
 
+                // ✅ Tự động chuyển tất cả món sang 'served' khi hoàn tất đơn
+                await supabase.from('order_items')
+                    .update({ status: 'served' })
+                    .eq('order_id', orderId)
+                    .in('status', ['pending', 'preparing', 'ready']);
+
                 io.to(`table_${order.table_id}`).emit('payment_success', { orderId, status: 'paid' });
 
                 io.to('waiter').emit('table_status_update', {
                     table_id: order.table_id,
                     status: 'available'
                 });
-            }   
+            }
 
             return res.json({ success: true });
         } else {
@@ -217,11 +241,16 @@ exports.handleWebhook = async (req, res) => {
         io.to('waiter').emit('order_paid', { orderId });
         io.to('kitchen').emit('order_paid', { orderId });
 
-        // --- 🟢 FIX: Giải phóng bàn ---
-        const { data: orderInfo } = await supabase.from('orders').select('table_id').eq('id', orderId).single();
         if (orderInfo?.table_id) {
             await supabase.from('tables').update({ status: 'available' }).eq('id', orderInfo.table_id);
         }
+
+        // --- 🟢 FIX: Update all order_items to served upon payment ---
+        await supabase
+            .from('order_items')
+            .update({ status: 'served' })
+            .eq('order_id', orderId)
+            .in('status', ['pending', 'preparing', 'ready']);
     }
 
     res.json({ received: true });
@@ -243,10 +272,12 @@ exports.confirmCashPayment = async (req, res) => {
         }
 
         // 2. Update DB
-        await supabase.from('orders').update({
+        const { error: updateError } = await supabase.from('orders').update({
             payment_status: 'paid',
             status: 'completed'
         }).eq('id', orderId);
+
+        if (updateError) throw updateError;
 
         // 3. Lưu lịch sử với số tiền thực
         await supabase.from('payments').insert([{
@@ -265,6 +296,13 @@ exports.confirmCashPayment = async (req, res) => {
                 .eq('id', order.table_id);
         }
 
+        // --- 🟢 FIX: Update all order_items to served upon cash payment ---
+        await supabase
+            .from('order_items')
+            .update({ status: 'served' })
+            .eq('order_id', orderId)
+            .in('status', ['pending', 'preparing', 'ready']);
+
         // 5. Bắn socket
         const io = getIO();
 
@@ -276,6 +314,12 @@ exports.confirmCashPayment = async (req, res) => {
                 orderId,
                 status: 'paid'
             });
+
+            // ✅ Tự động chuyển tất cả món sang 'served' khi hoàn tất đơn
+            await supabase.from('order_items')
+                .update({ status: 'served' })
+                .eq('order_id', orderId)
+                .in('status', ['pending', 'preparing', 'ready']);
         }
 
         io.to('waiter').emit('table_status_update', {
