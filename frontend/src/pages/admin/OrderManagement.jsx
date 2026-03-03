@@ -251,11 +251,11 @@ const OrderManagement = () => {
                                             {new Date(order.created_at).toLocaleTimeString('vi-VN')} ({getElapsedTime(order.created_at)})
                                         </div>
                                     </div>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-bold ${badge.bg} ${badge.text}`}>
+                                    <span className={`inline-block px-2 py-1 rounded-full text-xs font-bold whitespace-nowrap ${badge.bg} ${badge.text}`}>
                                         {badge.label}
                                     </span>
                                 </div>
-                                
+
                                 <div className="flex justify-between items-center text-sm">
                                     <div className="flex items-center gap-2 text-gray-700">
                                         <span className="material-symbols-outlined text-lg text-gray-400">table_restaurant</span>
@@ -341,12 +341,12 @@ const OrderManagement = () => {
                                                 <div className="text-xs text-gray-400">{getElapsedTime(order.created_at)}</div>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${badge.bg} ${badge.text}`}>
+                                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${badge.bg} ${badge.text}`}>
                                                     {badge.label}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4">
-                                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${paymentBadge.bg} ${paymentBadge.text}`}>
+                                                <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap ${paymentBadge.bg} ${paymentBadge.text}`}>
                                                     {paymentBadge.label}
                                                 </span>
                                             </td>
@@ -433,14 +433,14 @@ const OrderManagement = () => {
             </div>
 
             {/* Pagination for Mobile Card View (if needed separate, using the same one for now inside hidden block above... wait, the pagination was inside the table div. I should move it out or duplicate it. Moving it out is cleaner.) */}
-             {/* Note: I moved pagination inside the desktop block in the original code. 
+            {/* Note: I moved pagination inside the desktop block in the original code. 
                 But for mobile, we need pagination too. 
                 Let's make pagination a shared component or just place it outside the view containers.
              */}
-             <div className="md:hidden">
-                 {totalPages > 1 && (
+            <div className="md:hidden">
+                {totalPages > 1 && (
                     <div className="flex flex-col items-center gap-4 py-4">
-                         <div className="flex gap-2">
+                        <div className="flex gap-2">
                             <button
                                 onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                                 disabled={currentPage === 1}
@@ -458,10 +458,10 @@ const OrderManagement = () => {
                             >
                                 Next →
                             </button>
-                         </div>
+                        </div>
                     </div>
                 )}
-             </div>
+            </div>
 
 
             {/* Detail Modal */}
@@ -552,7 +552,7 @@ const OrderManagement = () => {
                                             {item.order_item_modifiers?.length > 0 && (
                                                 <div className="flex flex-wrap gap-1 mt-2">
                                                     {item.order_item_modifiers.map(m => (
-                                                        <span key={m.id} className="text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                                        <span key={m.id} className="inline-block text-[10px] bg-blue-100 text-blue-700 px-2 py-1 rounded whitespace-nowrap">
                                                             + {m.modifier_name}
                                                         </span>
                                                     ))}

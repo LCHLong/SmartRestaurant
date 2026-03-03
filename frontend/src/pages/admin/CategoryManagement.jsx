@@ -174,7 +174,7 @@ const CategoryManagement = () => {
                         {categories.map(cat => (
                             <tr key={cat.id} className={`border-b hover:bg-gray-50 transition-colors last:border-b-0 ${editingId === cat.id ? 'bg-amber-50' : ''}`}>
                                 <td className="p-4 border-b border-gray-100 text-left font-bold text-gray-500">
-                                    <span className="bg-gray-100 px-3 py-1 rounded-lg">#{cat.sort_order}</span>
+                                    <span className="inline-block bg-gray-100 px-3 py-1 rounded-lg whitespace-nowrap">#{cat.sort_order}</span>
                                 </td>
                                 <td className="p-4 border-b border-gray-100 font-bold text-gray-800 text-lg">{cat.name}</td>
                                 <td className="p-4 border-b border-gray-100">

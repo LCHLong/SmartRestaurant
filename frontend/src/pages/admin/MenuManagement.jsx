@@ -627,7 +627,7 @@ const MenuManagement = () => {
                                 </td>
                                 <td className="p-4 border-b border-gray-100 font-bold text-gray-800 text-lg">{item.name}</td>
                                 <td className="p-4 border-b border-gray-100 text-center">
-                                    <span className="bg-gray-100 text-gray-600 py-1 px-3 rounded-full text-sm font-medium">
+                                    <span className="inline-block bg-gray-100 text-gray-600 py-1 px-3 rounded-full text-sm font-medium whitespace-nowrap">
                                         {item.category?.name || '-'}
                                     </span>
                                 </td>
@@ -635,7 +635,7 @@ const MenuManagement = () => {
                                     {item.price.toLocaleString()}đ
                                 </td>
                                 <td className="p-4 border-b border-gray-100 text-center">
-                                    <span className={`px-3 py-1 text-xs font-bold rounded-full ${item.status === 'available' ? 'bg-green-100 text-green-700' :
+                                    <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full whitespace-nowrap ${item.status === 'available' ? 'bg-green-100 text-green-700' :
                                         item.status === 'sold_out' ? 'bg-red-100 text-red-700' :
                                             'bg-gray-100 text-gray-500'
                                         }`}>
@@ -646,7 +646,7 @@ const MenuManagement = () => {
                                 </td>
                                 <td className="p-4 border-b border-gray-100 text-center">
                                     {item.is_chef_recommendation ? (
-                                        <span className="px-3 py-1 text-xs font-bold rounded-full bg-gradient-to-r from-yellow-100 to-amber-100 text-amber-700 flex items-center gap-1 justify-center">
+                                        <span className="inline-block px-3 py-1 text-xs font-bold rounded-full bg-gradient-to-r from-yellow-100 to-amber-100 text-amber-700 flex items-center gap-1 justify-center whitespace-nowrap">
                                             <span>{t('common.yes')}</span>
                                         </span>
                                     ) : (
@@ -818,7 +818,7 @@ const MenuManagement = () => {
                         <div className="p-6 md:p-8 flex-1 overflow-y-auto bg-white flex flex-col relative">
                             {/* Status and Details */}
                             <div className="flex items-center gap-4 mb-6 md:mb-8">
-                                <div className={`flex items-center gap-2 px-4 py-2 rounded-full border ${viewItem.is_available ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border whitespace-nowrap ${viewItem.is_available ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
                                     <span className={`w-2.5 h-2.5 rounded-full ${viewItem.is_available ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
                                     <span className="font-bold text-sm uppercase tracking-wide">
                                         {viewItem.is_available ? t('menu.modal_available') : t('menu.modal_unavailable')}

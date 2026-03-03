@@ -142,7 +142,7 @@ const ModifierManagement = () => {
                         <div className="flex justify-between items-start mb-4">
                             <div>
                                 <h3 className="text-lg font-bold text-gray-800">{group.name}</h3>
-                                <p className="text-xs text-gray-500 font-medium bg-white px-2 py-1 rounded-md border border-gray-100 inline-block mt-1">
+                                <p className="text-xs text-gray-500 font-medium bg-white px-2 py-1 rounded-md border border-gray-100 inline-block mt-1 whitespace-nowrap">
                                     {t('modifiers.selection_hint', { min: group.min_selection, max: group.max_selection })}
                                 </p>
                             </div>
@@ -174,7 +174,7 @@ const ModifierManagement = () => {
                                             <span className={`w-2 h-2 rounded-full ${mod.is_available ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]'}`}></span>
                                             <span className="font-semibold text-gray-700 text-sm">{mod.name}</span>
                                             {mod.price_modifier > 0 && (
-                                                <span className="px-1.5 py-0.5 rounded-md text-[10px] bg-emerald-50 text-emerald-600 font-bold">
+                                                <span className="inline-block px-1.5 py-0.5 rounded-md text-[10px] bg-emerald-50 text-emerald-600 font-bold whitespace-nowrap">
                                                     +{mod.price_modifier.toLocaleString()}đ
                                                 </span>
                                             )}
