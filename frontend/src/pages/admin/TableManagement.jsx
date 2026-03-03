@@ -706,7 +706,7 @@ const TableManagement = () => {
             {/* Modal Add Table */}
             {
                 isAddModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                         <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl scale-in-center">
                             <h2 className="text-2xl font-bold text-gray-800 mb-6">{t('table.modal_add_title')}</h2>
                             <form onSubmit={handleCreateTable} className="space-y-4">
@@ -778,7 +778,7 @@ const TableManagement = () => {
             {/* Modal Edit Table */}
             {
                 isEditModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                         <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl scale-in-center">
                             <h2 className="text-2xl font-bold text-gray-800 mb-6">{t('table.modal_edit_title')}</h2>
                             <form onSubmit={handleUpdateTable} className="space-y-4">
@@ -873,7 +873,7 @@ const TableManagement = () => {
             {/* Modal View Table Details */}
             {
                 isViewModalOpen && selectedTable && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
                         <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl scale-in-center">
                             <div className="flex justify-between items-start mb-6">
                                 <h2 className="text-2xl font-bold text-gray-800">{t('table.modal_view_title')}</h2>

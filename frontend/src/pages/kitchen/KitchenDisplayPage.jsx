@@ -86,7 +86,7 @@ export default function KitchenDisplayPage() {
                 // Cập nhật status cho món trong đơn
                 return {
                     ...order,
-                    order_items: order.order_items.map(item =>
+                    items: order.items.map(item =>
                         // 🟢 FIX LỖI Ở ĐÂY: Dùng data.itemId thay vì itemId
                         item.id === data.itemId ? { ...item, status: data.status } : item
                     )
@@ -119,7 +119,7 @@ export default function KitchenDisplayPage() {
             // 1. Cập nhật UI ngay lập tức (Optimistic Update)
             setOrders(prev => prev.map(order => ({
                 ...order,
-                order_items: order.order_items.map(item =>
+                items: order.items.map(item =>
                     item.id === itemId ? { ...item, status: newStatus } : item
                 )
             })));
@@ -146,9 +146,9 @@ export default function KitchenDisplayPage() {
     const summaryData = useMemo(() => {
         const summary = {};
         orders.forEach(order => {
-            order.order_items.forEach(item => {
+            order.items.forEach(item => {
                 if (item.status === 'ready' || item.status === 'served') return;
-                const key = item.menu_items?.name || 'Unknown';
+                const key = item.menu_item?.name || 'Unknown';
                 if (!summary[key]) {
                     summary[key] = { count: 0, notes: [], modifiers: [], preparing: 0, pending: 0 };
                 }
@@ -223,7 +223,7 @@ export default function KitchenDisplayPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {orders.map(order => {
-                    const allReady = order.order_items.every(item => item.status === 'ready');
+                    const allReady = order.items.every(item => item.status === 'ready');
                     return (
                         <div
                             key={order.id}
@@ -233,7 +233,7 @@ export default function KitchenDisplayPage() {
                                 <div>
                                     <h3 className="text-lg font-bold flex items-center gap-2">
                                         <span className="material-symbols-outlined text-lg">table_restaurant</span>
-                                        {t('kitchen.table')} {order.tables?.table_number}
+                                        {t('kitchen.table')} {order.table?.table_number}
                                     </h3>
                                     <p className="text-xs opacity-90 font-mono mt-0.5">#{order.id.slice(0, 8)}</p>
                                 </div>
@@ -248,7 +248,7 @@ export default function KitchenDisplayPage() {
                             </div>
 
                             <div className="p-4 flex-1 space-y-4">
-                                {order.order_items.map(item => {
+                                {order.items.map(item => {
                                     const badge = getStatusBadge(item.status);
 
                                     return (
@@ -264,7 +264,7 @@ export default function KitchenDisplayPage() {
                                                             {item.quantity}x
                                                         </span>
                                                         <span className="font-semibold text-gray-800 leading-tight">
-                                                            {item.menu_items?.name}
+                                                            {item.menu_item?.name}
                                                         </span>
                                                     </div>
 

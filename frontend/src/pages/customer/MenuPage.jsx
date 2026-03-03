@@ -474,6 +474,7 @@ export default function MenuPage() {
                         <ItemDetailModal
                             item={selectedItem}
                             onClose={() => setSelectedItem(null)}
+                            onItemClick={handleItemClick}
                             isReadOnly={isReadOnly}
                         />
                     )}

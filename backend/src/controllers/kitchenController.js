@@ -10,15 +10,14 @@ exports.getKitchenItems = async (req, res) => {
         id, 
         created_at, 
         status, 
-        payment_status,
-        tables (table_number),
-        order_items (
+        table:tables (table_number),
+        items:order_items (
           id, 
           quantity, 
           notes, 
           status, 
           created_at,
-          menu_items (id, name, image_url),
+          menu_item:menu_items (id, name, image_url),
           order_item_modifiers (id, modifier_name)
         )
       `)
@@ -28,15 +27,15 @@ exports.getKitchenItems = async (req, res) => {
     if (error) throw error;
 
     const filteredOrders = orders.map(order => {
-      const activeItems = order.order_items.filter(item =>
+      const activeItems = (order.items || []).filter(item =>
         ['pending', 'preparing', 'ready'].includes(item.status)
       );
 
       return {
         ...order,
-        order_items: activeItems
+        items: activeItems
       };
-    }).filter(order => order.order_items.length > 0);
+    }).filter(order => order.items && order.items.length > 0);
 
     res.status(200).json({ success: true, data: filteredOrders });
 

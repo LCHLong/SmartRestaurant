@@ -58,16 +58,16 @@ exports.getOrders = async (req, res) => {
       .from('orders')
       .select(`
                 *,
-                tables(id, table_number),
-                users(id, full_name, phone),
-                order_items(
+                table:tables(id, table_number),
+                customer:users(id, full_name, phone),
+                items:order_items(
                     id, 
                     quantity, 
                     unit_price, 
                     total_price, 
                     notes, 
                     status,
-                    menu_items(id, name, image_url),
+                    menu_item:menu_items(id, name, image_url),
                     order_item_modifiers(id, modifier_name)
                 )
             `, { count: 'exact' })
@@ -634,7 +634,7 @@ exports.getOrder = async (req, res) => {
       .select(`
         *,
         table:tables(id, table_number, capacity),
-        order_items(
+        items:order_items(
           id,
           quantity,
           unit_price,
@@ -853,6 +853,16 @@ const addItemsToExistingOrder = async (req, res, orderId, items) => {
       message: `Bàn ${tableInfo?.table_number || currentOrder.table_id} vừa gọi thêm ${orderItemsData.length} món`,
       is_additional: true // Flag to indicate this is adding to existing order
     });
+
+    // Notify kitchen if order is already processing
+    if (currentOrder.status === 'processing') {
+      console.log(`📢 Emit new_order to Kitchen for addition to Order #${orderId}`);
+      io.to('kitchen').emit('new_order', {
+        message: `Bàn ${tableInfo?.table_number || currentOrder.table_id} gọi thêm món`,
+        order_id: orderId,
+        table_number: tableInfo?.table_number
+      });
+    }
 
     if (currentOrder.table_id) {
       io.to(`table_${currentOrder.table_id}`).emit('order_items_added', {

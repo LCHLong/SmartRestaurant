@@ -4,7 +4,7 @@ import { useCart } from '../contexts/CartContext';
 import ReviewSection from './ReviewSection';
 import RecommendedItems from './RecommendedItems';
 
-export default function ItemDetailModal({ item, onClose, isReadOnly }) {
+export default function ItemDetailModal({ item, onClose, onItemClick, isReadOnly }) {
     const { t } = useTranslation();
     const { addToCart } = useCart();
     const [quantity, setQuantity] = useState(1);
@@ -53,6 +53,10 @@ export default function ItemDetailModal({ item, onClose, isReadOnly }) {
     useEffect(() => {
         // Reset image index when item changes
         setCurrentImageIndex(0);
+        // Reset state for new item
+        setQuantity(1);
+        setNotes('');
+        setSelectedModifiers({});
     }, [item]);
 
     const handleAddToCart = () => {
@@ -283,9 +287,7 @@ export default function ItemDetailModal({ item, onClose, isReadOnly }) {
                     <div className="mt-8 pt-8 border-t border-gray-200">
                         <RecommendedItems
                             menuItemId={item.id}
-                            onItemClick={(newItem) => {
-                                console.log('Clicked recommended item:', newItem);
-                            }}
+                            onItemClick={onItemClick}
                         />
                     </div>
 
