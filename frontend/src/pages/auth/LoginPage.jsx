@@ -137,7 +137,7 @@ export default function LoginPage() {
                 </div>
 
                 <button
-                    onClick={() => window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5001'}/api/auth/google`}
+                    onClick={() => window.location.href = `${import.meta.env.VITE_API_URL || (import.meta.env.PROD ? window.location.origin : 'http://localhost:5001')}/api/auth/google`}
                     className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 py-2.5 px-4 rounded-lg hover:bg-gray-50 transition duration-200 font-medium text-sm"
                 >
                     <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="h-5 w-5" />

@@ -36,7 +36,7 @@ const MenuManagement = () => {
     const [editingId, setEditingId] = useState(null); // ID being edited
     const formRef = useRef(null);
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+    const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/' : 'http://localhost:5001');
 
     const getAuthHeader = () => {
         const token = localStorage.getItem('token');
