@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import io from 'socket.io-client';
 // 1. Import useAuth để theo dõi trạng thái đăng nhập
-import { useAuth } from './AuthContext'; 
+import { useAuth } from './AuthContext';
 
 const SocketContext = createContext();
 
@@ -9,18 +9,23 @@ export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
-    
+
     // 2. Lấy token từ AuthContext (Thay vì lấy trực tiếp từ localStorage)
     // Điều này giúp Socket biết khi nào user đăng nhập/đăng xuất
-    const { token } = useAuth(); 
+    const { token } = useAuth();
 
     useEffect(() => {
         // Nếu không có token và bạn muốn Guest cũng dùng được (ví dụ khách hàng scan QR)
         // thì vẫn connect. Nhưng nếu muốn chắc chắn, có thể check token ở đây.
-        
+
         const currentToken = token || localStorage.getItem('token');
-        
-        const newSocket = io(import.meta.env.VITE_API_URL || 'http://localhost:5001', {
+
+        // Cấu hình Socket URL linh hoạt: 
+        // Trong production (onrender), dùng window.location.origin (mặc định của io())
+        // Trong dev, dùng localhost:5001
+        const socketUrl = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? window.location.origin : 'http://localhost:5001');
+
+        const newSocket = io(socketUrl, {
             withCredentials: true,
             transports: ['websocket', 'polling'],
             // 3. Quan trọng: Luôn gửi token mới nhất
@@ -37,11 +42,11 @@ export const SocketProvider = ({ children }) => {
 
         newSocket.on('connect', () => {
             console.log('✅ WebSocket connected:', newSocket.id);
-            
+
             // 4. Nếu là Admin/Kitchen, tự động rejoin room khi connect lại
             // Logic này hỗ trợ cho việc reload trang hoặc rớt mạng
             if (currentToken) {
-               // Bạn có thể emit sự kiện để backend biết user này là ai ngay lập tức nếu cần
+                // Bạn có thể emit sự kiện để backend biết user này là ai ngay lập tức nếu cần
             }
         });
 
@@ -57,9 +62,9 @@ export const SocketProvider = ({ children }) => {
             newSocket.disconnect();
         };
 
-    // 5. QUAN TRỌNG NHẤT: Thêm [token] vào dependency array
-    // Để mỗi khi đăng nhập/đăng xuất, socket sẽ tự khởi động lại với quyền mới
-    }, [token]); 
+        // 5. QUAN TRỌNG NHẤT: Thêm [token] vào dependency array
+        // Để mỗi khi đăng nhập/đăng xuất, socket sẽ tự khởi động lại với quyền mới
+    }, [token]);
 
     return (
         <SocketContext.Provider value={socket}>
