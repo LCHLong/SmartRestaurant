@@ -73,7 +73,6 @@ app.use('/api/coupons', require('./routes/couponRoutes'));
 app.use('/api', testEmailRouter);
 
 // --- SERVE FRONTEND IN PRODUCTION ---
-const path = require('path');
 const frontendDistPath = path.join(__dirname, '../../frontend/dist');
 
 app.use(express.static(frontendDistPath));
