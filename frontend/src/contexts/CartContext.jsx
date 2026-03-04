@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react';
+import api from '../services/api';
 
 const CartContext = createContext();
 
@@ -16,6 +17,28 @@ export const CartProvider = ({ children }) => {
         const savedCart = localStorage.getItem('cart');
         return savedCart ? JSON.parse(savedCart) : [];
     });
+
+    const [existingOrderCount, setExistingOrderCount] = useState(0);
+
+    useEffect(() => {
+        const addingToOrder = localStorage.getItem('addToOrderId');
+        if (addingToOrder) {
+            const fetchExistingOrder = async () => {
+                try {
+                    const response = await api.get(`/api/orders/${addingToOrder}`);
+                    if (response.data.success && response.data.data.items) {
+                        const count = response.data.data.items.reduce((sum, item) => sum + item.quantity, 0);
+                        setExistingOrderCount(count);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch existing order count:', error);
+                }
+            };
+            fetchExistingOrder();
+        } else {
+            setExistingOrderCount(0);
+        }
+    }, [cart]); // Refresh if cart changes or component mounts
 
     // Save cart to localStorage whenever it changes
     useEffect(() => {
@@ -81,7 +104,7 @@ export const CartProvider = ({ children }) => {
     };
 
     const getCartCount = () => {
-        return cart.reduce((count, item) => count + item.quantity, 0);
+        return cart.reduce((count, item) => count + item.quantity, 0) + existingOrderCount;
     };
 
     return (
@@ -92,7 +115,9 @@ export const CartProvider = ({ children }) => {
             updateQuantity,
             clearCart,
             getCartTotal,
-            getCartCount
+            getCartCount,
+            existingOrderCount,
+            setExistingOrderCount
         }}>
             {children}
         </CartContext.Provider>

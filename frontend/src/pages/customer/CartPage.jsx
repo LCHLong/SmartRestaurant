@@ -308,12 +308,30 @@ export default function CartPage() {
                     <div className="text-5xl sm:text-6xl mb-4">🛒</div>
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">{t('customer.cart.empty_title')}</h2>
                     <p className="text-sm sm:text-base text-gray-600 mb-6">{t('customer.cart.empty_desc')}</p>
-                    <button
-                        onClick={() => navigate('/menu')}
-                        className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-green-600 transition-all shadow-md hover:shadow-lg w-full sm:w-auto"
-                    >
-                        {t('customer.cart.view_menu')}
-                    </button>
+
+                    {existingOrderId ? (
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={() => navigate('/menu')}
+                                className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-green-600 transition-all shadow-md hover:shadow-lg w-full"
+                            >
+                                {t('customer.cart.add_new_items')}
+                            </button>
+                            <button
+                                onClick={() => navigate(`/orders/${existingOrderId}`)}
+                                className="px-6 py-3 bg-white border-2 border-emerald-500 text-emerald-600 rounded-xl font-semibold hover:bg-emerald-50 transition-all shadow-sm w-full"
+                            >
+                                {t('customer.cart.return_to_order')}
+                            </button>
+                        </div>
+                    ) : (
+                        <button
+                            onClick={() => navigate('/menu')}
+                            className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl font-semibold hover:from-emerald-600 hover:to-green-600 transition-all shadow-md hover:shadow-lg w-full sm:w-auto"
+                        >
+                            {t('customer.cart.view_menu')}
+                        </button>
+                    )}
                 </div>
             </div>
         );
@@ -330,9 +348,15 @@ export default function CartPage() {
                         </h1>
                         <p className="text-sm sm:text-base text-gray-600 mt-1">{cart.length} {t('customer.cart.items_count')}</p>
                     </div>
-                    <div className="flex gap-2">
-                        {/* Desktop Language Switcher */}
-
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        {existingOrderId && (
+                            <button
+                                onClick={() => navigate(`/orders/${existingOrderId}`)}
+                                className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white border-2 border-emerald-500 text-emerald-600 rounded-lg sm:rounded-xl font-semibold hover:bg-emerald-50 transition-all text-sm sm:text-base w-full sm:w-auto justify-center h-[40px] sm:h-[44px]"
+                            >
+                                <span>{t('customer.cart.return_to_order')}</span>
+                            </button>
+                        )}
                         <button
                             onClick={() => navigate('/menu')}
                             className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-gray-100 text-gray-700 rounded-lg sm:rounded-xl font-semibold hover:bg-gray-200 transition-all text-sm sm:text-base w-full sm:w-auto justify-center h-[40px] sm:h-[44px]"

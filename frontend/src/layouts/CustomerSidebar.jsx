@@ -12,6 +12,9 @@ const CustomerSidebar = () => {
     const { t, i18n } = useTranslation();
     const { getCartCount } = useCart();
 
+    // Check if adding to an existing order
+    const addingToOrder = localStorage.getItem('addToOrderId');
+
     const toggleLanguage = () => {
         const newLang = i18n.language === 'vi' ? 'en' : 'vi';
         i18n.changeLanguage(newLang);
@@ -45,15 +48,20 @@ const CustomerSidebar = () => {
 
                 {/* Cart Button for Mobile */}
                 <Link
-                    to="/cart"
-                    className="relative p-2 text-gray-600 hover:text-emerald-600 hover:bg-gray-100 rounded-md transition-colors"
+                    to={addingToOrder && getCartCount() === 0 ? `/orders/${addingToOrder}` : "/cart"}
+                    className={`relative p-2 rounded-md transition-colors ${addingToOrder ? 'text-amber-600 hover:bg-amber-50' : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-100'}`}
                 >
-                    <span className="material-symbols-outlined text-2xl">shopping_cart</span>
-                    {getCartCount() > 0 && (
+                    <span className={`material-symbols-outlined text-2xl ${addingToOrder && getCartCount() === 0 ? 'animate-pulse' : ''}`}>shopping_cart</span>
+                    {getCartCount() > 0 ? (
                         <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm animate-pulse">
                             {getCartCount()}
                         </span>
-                    )}
+                    ) : addingToOrder ? (
+                        <span className="absolute -top-0 -right-0 flex h-2.5 w-2.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                        </span>
+                    ) : null}
                 </Link>
             </div>
 
