@@ -77,11 +77,11 @@ const frontendDistPath = path.join(__dirname, '../../frontend/dist');
 
 app.use(express.static(frontendDistPath));
 
-app.get('/api/:splat*', (req, res) => {
+app.get(/^\/api\/.*/, (req, res) => {
   res.status(404).json({ success: false, message: 'API route not found' });
 });
 
-app.get('/:splat*', (req, res) => {
+app.get(/.*/, (req, res) => {
   res.sendFile(path.join(frontendDistPath, 'index.html'));
 });
 // --------------------------------------
