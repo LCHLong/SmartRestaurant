@@ -37,7 +37,7 @@ const TableManagement = () => {
     const [stats, setStats] = useState({ total: 0, available: 0, occupied: 0 }); // [NEW] Global stats
     const itemsPerPage = 12;
 
-    const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/' : 'http://localhost:5001');
+    const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
 
     const getAuthHeader = () => ({
         headers: { Authorization: `Bearer ${localStorage.getItem('token')} ` }

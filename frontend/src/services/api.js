@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 const api = axios.create({
   // Nếu có biến môi trường VITE_API_URL thì dùng, nếu không thì dùng relative path '/' trong production
   // hoặc localhost:5001 trong môi trường dev.
-  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/' : 'http://localhost:5001'),
+  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001'),
   headers: {
     'Content-Type': 'application/json',
   },

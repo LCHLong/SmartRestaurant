@@ -11,7 +11,7 @@ const TableMapPage = () => {
     const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 20;
 
-    const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '/' : 'http://localhost:5001');
+    const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
 
     const fetchTables = async (page = currentPage) => {
         try {
