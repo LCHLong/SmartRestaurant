@@ -195,24 +195,6 @@ export default function OrderTrackingPage() {
                             {new Date(order.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                         </p>
                     </div>
-
-                    {/* Only show "Add More Items" button if order is not completed and not paid */}
-                    {order.status !== 'completed' &&
-                        order.status !== 'cancelled' &&
-                        order.payment_status !== 'paid' &&
-                        order.payment_status !== 'success' && (
-                            <button
-                                onClick={() => {
-                                    localStorage.setItem('addToOrderId', order.id);
-                                    localStorage.setItem('addToTableId', order.table_id);
-                                    navigate('/menu');
-                                }}
-                                className="px-5 py-3 bg-gray-900 text-white rounded-xl font-bold hover:bg-gray-800 transition-all shadow-lg shadow-gray-200 active:scale-95 flex items-center gap-2"
-                            >
-                                <span className="material-symbols-outlined text-xl">add_shopping_cart</span>
-                                {t('customer.tracking.add_more')}
-                            </button>
-                        )}
                 </header>
 
                 {/* Status Timeline */}
