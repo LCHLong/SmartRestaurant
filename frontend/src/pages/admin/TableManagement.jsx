@@ -457,33 +457,35 @@ const TableManagement = () => {
                         <p className="text-gray-500 text-sm">{t('table.subtitle')}</p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3 w-full xl:w-auto">
-                        <div className="flex gap-2 w-full sm:w-auto">
+                        <div className="flex flex-wrap gap-2 w-full xl:w-auto">
                             <button
                                 onClick={handleDownloadAll}
-                                className="flex-1 sm:flex-none px-4 py-2.5 bg-emerald-50 text-emerald-600 rounded-xl font-bold hover:bg-emerald-100 transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+                                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl font-bold hover:bg-emerald-100 transition-all flex items-center justify-center gap-2 whitespace-nowrap min-w-[80px]"
                                 title={t('table.batch_zip')}
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                <span className="hidden sm:inline">{t('table.batch_zip')}</span>
-                                <span className="sm:hidden">ZIP</span>
+                                <span className="hidden md:inline">{t('table.batch_zip')}</span>
+                                <span className="md:hidden">ZIP</span>
                             </button>
                             <button
                                 onClick={handleDownloadAllPDF}
-                                className="flex-1 sm:flex-none px-4 py-2.5 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 transition-all flex items-center justify-center gap-2 whitespace-nowrap"
+                                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-50 text-blue-600 rounded-xl font-bold hover:bg-blue-100 transition-all flex items-center justify-center gap-2 whitespace-nowrap min-w-[80px]"
                                 title={t('table.batch_pdf')}
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                <span className="hidden sm:inline">{t('table.batch_pdf')}</span>
-                                <span className="sm:hidden">PDF</span>
+                                <span className="hidden md:inline">{t('table.batch_pdf')}</span>
+                                <span className="md:hidden">PDF</span>
                             </button>
                             <button
                                 onClick={handleRegenerateAllQR}
-                                className="flex-1 sm:flex-none px-4 py-2.5 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-all border border-red-100 text-sm flex items-center justify-center gap-2 whitespace-nowrap"
+                                className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-red-50 text-red-600 rounded-xl font-bold hover:bg-red-100 transition-all border border-red-100 text-sm flex items-center justify-center gap-2 whitespace-nowrap min-w-[80px]"
                             >
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                {t('table.qr_all')}
+                                <span className="hidden md:inline">{t('table.qr_all')}</span>
+                                <span className="md:hidden">Ref</span>
                             </button>
                         </div>
+
                         <button
                             onClick={() => {
                                 setNewTable({ table_number: '', capacity: 2, location: 'Indoor', description: '' });
@@ -520,11 +522,11 @@ const TableManagement = () => {
                         </button>
                     </div>
 
-                    <div className="flex gap-3 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide">
+                    <div className="flex gap-2 sm:gap-3 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide w-full lg:w-auto">
                         <select
                             value={filterLocation}
                             onChange={(e) => setFilterLocation(e.target.value)}
-                            className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer whitespace-nowrap min-w-[140px]"
+                            className="flex-1 lg:flex-none px-2 sm:px-4 py-2 sm:py-2.5 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm font-medium text-gray-600 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer whitespace-nowrap min-w-[110px] sm:min-w-[140px]"
                         >
                             <option value="">{t('table.all_locations')}</option>
                             <option value="Indoor">{t('table.location_indoor')}</option>
@@ -536,13 +538,14 @@ const TableManagement = () => {
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer whitespace-nowrap min-w-[140px]"
+                            className="flex-1 lg:flex-none px-2 sm:px-4 py-2 sm:py-2.5 bg-white border border-gray-200 rounded-xl text-xs sm:text-sm font-medium text-gray-600 focus:ring-2 focus:ring-emerald-500 outline-none cursor-pointer whitespace-nowrap min-w-[110px] sm:min-w-[140px]"
                         >
                             <option value="table_number">{t('table.sort_number')}</option>
                             <option value="capacity">{t('table.sort_capacity')}</option>
                             <option value="created_at">{t('table.sort_newest')}</option>
                         </select>
                     </div>
+
                 </div>
             </div>
 
@@ -707,7 +710,8 @@ const TableManagement = () => {
             {
                 isAddModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                        <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl scale-in-center">
+                        <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl scale-in-center">
+
                             <h2 className="text-2xl font-bold text-gray-800 mb-6">{t('table.modal_add_title')}</h2>
                             <form onSubmit={handleCreateTable} className="space-y-4">
                                 <div>
@@ -779,7 +783,8 @@ const TableManagement = () => {
             {
                 isEditModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                        <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl scale-in-center">
+                        <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl scale-in-center">
+
                             <h2 className="text-2xl font-bold text-gray-800 mb-6">{t('table.modal_edit_title')}</h2>
                             <form onSubmit={handleUpdateTable} className="space-y-4">
                                 <div>
@@ -874,7 +879,8 @@ const TableManagement = () => {
             {
                 isViewModalOpen && selectedTable && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                        <div className="bg-white rounded-3xl w-full max-w-md p-8 shadow-2xl scale-in-center">
+                        <div className="bg-white rounded-3xl w-full max-w-md max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl scale-in-center">
+
                             <div className="flex justify-between items-start mb-6">
                                 <h2 className="text-2xl font-bold text-gray-800">{t('table.modal_view_title')}</h2>
                                 <button onClick={() => setIsViewModalOpen(false)} className="text-gray-400 hover:text-gray-600">✕</button>

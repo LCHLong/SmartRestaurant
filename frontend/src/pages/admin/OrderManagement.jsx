@@ -260,8 +260,9 @@ const OrderManagement = () => {
                                     <div className="flex items-center gap-2 text-gray-700">
                                         <span className="material-symbols-outlined text-lg text-gray-400">table_restaurant</span>
                                         <span className="font-semibold">
-                                            {order.tables?.table_number ? `Bàn ${order.tables.table_number}` : 'N/A'}
+                                            {order.table?.table_number ? `Bàn ${order.table.table_number}` : 'N/A'}
                                         </span>
+
                                     </div>
                                     <div className="flex items-center gap-2 text-gray-700">
                                         <span className="material-symbols-outlined text-lg text-gray-400">person</span>
@@ -329,8 +330,9 @@ const OrderManagement = () => {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 text-gray-700 font-semibold">
-                                                {order.tables?.table_number ? `Bàn ${order.tables.table_number}` : 'N/A'}
+                                                {order.table?.table_number ? `Bàn ${order.table.table_number}` : 'N/A'}
                                             </td>
+
                                             <td className="px-6 py-4 text-gray-600">
                                                 {order.users?.full_name || t('admin.order_guest')}
                                             </td>

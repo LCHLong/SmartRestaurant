@@ -1,0 +1,19 @@
+# Node.js
+node_modules
+npm-debug.log
+
+# Build outputs
+dist
+build
+
+# Project specific
+.git
+.vscode
+.env
+*.md
+Dockerfile
+docker-compose.yml
+deploy.sh
+
+# OS files
+.DS_Store

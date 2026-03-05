@@ -119,9 +119,11 @@ const DashboardPage = () => {
                         {t('common.export')}
                     </button>
 
-                    <div className="flex flex-col sm:flex-row items-center bg-gray-50 rounded-xl border border-gray-200 w-full sm:w-auto min-h-[46px]">
+                    <div className="flex flex-col sm:flex-row items-center bg-gray-50 rounded-xl border border-gray-200 w-full md:w-auto overflow-hidden">
+
                         {range === 'custom' && (
-                            <div className="flex flex-col sm:flex-row items-center gap-3 px-4 border-b sm:border-b-0 sm:border-r border-gray-200 w-full sm:w-auto py-3 sm:py-0 animate-in fade-in slide-in-from-left-2 transition-all">
+                            <div className="flex flex-col sm:flex-row items-center gap-3 px-4 border-b sm:border-b-0 sm:border-r border-gray-200 w-full sm:w-auto py-3 sm:py-0 bg-gray-50/50 animate-in fade-in slide-in-from-left-2 transition-all">
+
                                 <div className="flex items-center gap-2">
                                     <span className="text-[10px] uppercase font-bold text-gray-400">{t('revenue.from')}</span>
                                     <input
@@ -148,7 +150,8 @@ const DashboardPage = () => {
                             <select
                                 value={range}
                                 onChange={(e) => setRange(e.target.value)}
-                                className="appearance-none bg-transparent text-gray-700 h-full pl-5 pr-10 font-bold focus:outline-none transition-all cursor-pointer w-full sm:min-w-[140px] text-center border-l border-gray-100"
+                                className="appearance-none bg-transparent text-gray-700 h-full pl-5 pr-10 font-bold focus:outline-none transition-all cursor-pointer w-full sm:min-w-[140px] text-center border-none"
+
                                 style={{ textAlign: 'center', textAlignLast: 'center' }}
                             >
                                 <option value="today">{t('revenue.today')}</option>
