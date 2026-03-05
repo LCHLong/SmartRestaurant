@@ -119,32 +119,32 @@ const DashboardPage = () => {
                         {t('common.export')}
                     </button>
 
-                    <div className="flex flex-wrap items-center gap-0 bg-gray-50 rounded-xl border border-gray-200 w-full sm:w-auto overflow-hidden h-[46px]">
+                    <div className="flex flex-col sm:flex-row items-center bg-gray-50 rounded-xl border border-gray-200 w-full sm:w-auto min-h-[46px]">
                         {range === 'custom' && (
-                            <div className="flex flex-wrap items-center gap-2 px-3 border-r border-gray-200 mr-0 h-full animate-in fade-in slide-in-from-left-2 transition-all">
-                                <div className="flex items-center gap-1">
+                            <div className="flex flex-col sm:flex-row items-center gap-3 px-4 border-b sm:border-b-0 sm:border-r border-gray-200 w-full sm:w-auto py-3 sm:py-0 animate-in fade-in slide-in-from-left-2 transition-all">
+                                <div className="flex items-center gap-2">
                                     <span className="text-[10px] uppercase font-bold text-gray-400">{t('revenue.from')}</span>
                                     <input
                                         type="date"
                                         value={customStart}
                                         max={getLocalDateString()}
                                         onChange={(e) => setCustomStart(e.target.value)}
-                                        className="bg-transparent border-none text-sm font-bold text-gray-700 focus:ring-0 p-0 cursor-pointer w-[110px]"
+                                        className="bg-transparent border-none text-sm font-bold text-gray-700 focus:ring-0 p-0 cursor-pointer w-[120px]"
                                     />
                                 </div>
-                                <div className="flex items-center gap-1">
+                                <div className="flex items-center gap-2">
                                     <span className="text-[10px] uppercase font-bold text-gray-400">{t('revenue.to')}</span>
                                     <input
                                         type="date"
                                         value={customEnd}
                                         max={getLocalDateString()}
                                         onChange={(e) => setCustomEnd(e.target.value)}
-                                        className="bg-transparent border-none text-sm font-bold text-gray-700 focus:ring-0 p-0 cursor-pointer w-[110px]"
+                                        className="bg-transparent border-none text-sm font-bold text-gray-700 focus:ring-0 p-0 cursor-pointer w-[120px]"
                                     />
                                 </div>
                             </div>
                         )}
-                        <div className="relative flex-1 sm:flex-none h-full bg-white">
+                        <div className="relative w-full sm:w-auto h-[46px] bg-white">
                             <select
                                 value={range}
                                 onChange={(e) => setRange(e.target.value)}
@@ -284,14 +284,14 @@ const DashboardPage = () => {
                                     ) : (
                                         stats.map((row, index) => (
                                             <tr key={index} className="group hover:bg-gray-50/50 transition-colors">
-                                                <td className="py-4 font-semibold text-gray-700">
+                                                <td className="py-4 font-semibold text-gray-700 whitespace-nowrap">
                                                     {row.date}
                                                 </td>
                                                 <td className="py-4 text-center text-gray-500 font-medium">
                                                     {row.count}
                                                 </td>
                                                 <td className="py-4 text-right">
-                                                    <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg font-bold">
+                                                    <span className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg font-bold whitespace-nowrap">
                                                         {parseInt(row.total).toLocaleString()}đ
                                                     </span>
                                                 </td>

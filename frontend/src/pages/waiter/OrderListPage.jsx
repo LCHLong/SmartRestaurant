@@ -270,11 +270,11 @@ const OrderListPage = () => {
 
             {/* Pagination Controls */}
             {totalPages > 1 && (
-                <div className="mt-12 flex flex-wrap justify-center items-center gap-2 md:gap-4 py-6 border-t border-gray-50 bg-gray-50/30 rounded-b-2xl">
+                <div className="mt-8 sm:mt-12 flex justify-center items-center gap-1.5 sm:gap-4 py-4 sm:py-6 border-t border-gray-50 bg-gray-50/30 rounded-b-2xl">
                     <button
                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                         disabled={currentPage === 1}
-                        className={`p-2.5 rounded-xl border transition-all ${currentPage === 1
+                        className={`p-2 sm:p-2.5 rounded-xl border transition-all ${currentPage === 1
                             ? 'text-gray-300 border-gray-100 cursor-not-allowed bg-white'
                             : 'text-emerald-600 border-emerald-100 bg-white hover:bg-emerald-50 hover:shadow-sm active:scale-95'}`}
                     >
@@ -283,7 +283,7 @@ const OrderListPage = () => {
                         </svg>
                     </button>
 
-                    <div className="flex items-center gap-1.5 md:gap-2">
+                    <div className="flex items-center gap-1 sm:gap-2">
                         {(() => {
                             const pages = [];
                             const delta = 1; // Number of pages to show around current page
@@ -303,12 +303,12 @@ const OrderListPage = () => {
 
                             return pages.map((page, idx) => (
                                 page === '...' ? (
-                                    <span key={`dots-${idx}`} className="px-2 text-gray-400 font-bold select-none">...</span>
+                                    <span key={`dots-${idx}`} className="px-1 text-gray-400 font-bold select-none">...</span>
                                 ) : (
                                     <button
                                         key={page}
                                         onClick={() => setCurrentPage(page)}
-                                        className={`w-9 h-9 md:w-11 md:h-11 rounded-xl font-bold transition-all flex items-center justify-center text-sm md:text-base ${currentPage === page
+                                        className={`w-8 h-8 sm:w-11 sm:h-11 rounded-xl font-bold transition-all flex items-center justify-center text-xs sm:text-base ${currentPage === page
                                             ? 'bg-emerald-500 text-white shadow-lg scale-110'
                                             : 'bg-white text-gray-600 border border-gray-100 hover:border-emerald-200 hover:text-emerald-600 hover:shadow-sm'
                                             }`}
@@ -323,7 +323,7 @@ const OrderListPage = () => {
                     <button
                         onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                         disabled={currentPage === totalPages}
-                        className={`p-2.5 rounded-xl border transition-all ${currentPage === totalPages
+                        className={`p-2 sm:p-2.5 rounded-xl border transition-all ${currentPage === totalPages
                             ? 'text-gray-300 border-gray-100 cursor-not-allowed bg-white'
                             : 'text-emerald-600 border-emerald-100 bg-white hover:bg-emerald-50 hover:shadow-sm active:scale-95'}`}
                     >
