@@ -24,8 +24,6 @@ services:
   frontend:
     build: ./frontend
     container_name: smart-restaurant-frontend
-    ports:
-      - "5173:5173"
     env_file:
       - ./frontend/.env
     networks:
