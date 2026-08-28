@@ -4,3 +4,8 @@ build/
 .env
 .DS_Store
 .vscode/tree.txt
+
+# Local secret notes & accounts
+ACCOUNTS_NOTE.md
+accounts_note.txt
+*.local.md
