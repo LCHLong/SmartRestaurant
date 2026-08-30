@@ -4,3 +4,4 @@ build/
 .env
 .DS_Store
 .vscode/tree.txt
+ACCOUNTS_NOTE.md
