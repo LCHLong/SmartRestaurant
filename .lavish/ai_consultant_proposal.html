@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="emerald">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đề Xuất AI Consultant "Aria" — SmartRestaurant</title>
+  
+  <!-- Lavish CDN & Theme Stack -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/daisyui.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daisyui@5.5.19/themes.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.2.4/dist/index.global.js"></script>
+
+  <!-- Layout Safety Snippet -->
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :where(.grid, .flex, .layout-grid, .layout-flex) > *,
+    :where([style*="display: grid"], [style*="display:grid"], [style*="display: flex"], [style*="display:flex"]) > * {
+      min-width: 0;
+    }
+    :where(p, h1, h2, h3, h4, h5, h6, li, dd, blockquote, figcaption, td, th, .badge, .label) {
+      overflow-wrap: anywhere;
+    }
+    :where(img, svg, video, canvas, iframe) {
+      max-width: 100%;
+      height: auto;
+    }
+    .chat-bubble-custom {
+      box-shadow: 0 4px 15px -2px rgba(0, 0, 0, 0.08);
+    }
+    .glass-card {
+      backdrop-filter: blur(12px);
+      background-color: rgba(255, 255, 255, 0.85);
+    }
+    [data-theme="night"] .glass-card, [data-theme="dark"] .glass-card, [data-theme="luxury"] .glass-card {
+      background-color: rgba(24, 28, 38, 0.85);
+    }
+  </style>
+
+  <!-- Mermaid Whiteboard Integration -->
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11.15.0/dist/mermaid.esm.min.mjs";
+
+    const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const paint = document.createElement("canvas").getContext("2d");
+    function toRgba(color) {
+      paint.clearRect(0, 0, 1, 1);
+      paint.fillStyle = "#000";
+      paint.fillStyle = color;
+      paint.fillRect(0, 0, 1, 1);
+      return paint.getImageData(0, 0, 1, 1).data;
+    }
+
+    function compositeRgba(foreground, background) {
+      const foregroundAlpha = foreground[3] / 255;
+      const backgroundAlpha = background[3] / 255;
+      const alpha = foregroundAlpha + backgroundAlpha * (1 - foregroundAlpha);
+      if (alpha === 0) return [0, 0, 0, 0];
+      return [
+        (foreground[0] * foregroundAlpha + background[0] * backgroundAlpha * (1 - foregroundAlpha)) / alpha,
+        (foreground[1] * foregroundAlpha + background[1] * backgroundAlpha * (1 - foregroundAlpha)) / alpha,
+        (foreground[2] * foregroundAlpha + background[2] * backgroundAlpha * (1 - foregroundAlpha)) / alpha,
+        alpha * 255,
+      ];
+    }
+
+    function pageIsDark() {
+      const root = document.documentElement;
+      const rootBackground = toRgba(getComputedStyle(root).backgroundColor);
+      const bodyBackground = document.body ? toRgba(getComputedStyle(document.body).backgroundColor) : [0, 0, 0, 0];
+      const [r, g, b, a] = compositeRgba(bodyBackground, rootBackground);
+      if (a > 0) {
+        return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.5;
+      }
+      const colorScheme = getComputedStyle(root).colorScheme;
+      if (colorScheme.includes("dark") && !colorScheme.includes("light")) return true;
+      if (colorScheme.includes("light") && !colorScheme.includes("dark")) return false;
+      return darkQuery.matches;
+    }
+
+    const diagrams = [...document.querySelectorAll(".mermaid")].map((el) => ({ el, src: el.innerHTML }));
+    let applied;
+    let rendering = false;
+    let queued = false;
+    function queueRender() {
+      queued = true;
+      if (rendering) return;
+      void render();
+    }
+    async function render() {
+      rendering = true;
+      try {
+        while (queued) {
+          queued = false;
+          const theme = pageIsDark() ? "dark" : "default";
+          if (theme === applied) continue;
+          mermaid.initialize({ startOnLoad: false, theme, securityLevel: "strict" });
+          for (const { el, src } of diagrams) {
+            el.removeAttribute("data-processed");
+            el.innerHTML = src;
+          }
+          try {
+            await mermaid.run({ nodes: diagrams.map((d) => d.el) });
+          } catch (error) {
+            console.error("Mermaid render error:", error);
+            return;
+          }
+          applied = theme;
+        }
+      } finally {
+        rendering = false;
+        if (queued) queueRender();
+      }
+    }
+
+    if (document.readyState === "complete") queueRender();
+    else window.addEventListener("load", queueRender, { once: true });
+    const themeObserver = new MutationObserver(queueRender);
+    for (const el of [document.documentElement, document.body]) {
+      if (!el) continue;
+      themeObserver.observe(el, {
+        attributes: true,
+        attributeFilter: ["data-theme", "class", "style"],
+      });
+    }
+    document.addEventListener("change", queueRender, true);
+    darkQuery.addEventListener("change", queueRender);
+  </script>
+</head>
+<body class="bg-base-200 text-base-content min-h-screen font-sans antialiased pb-20">
+
+  <!-- Sticky Top Navigation Bar -->
+  <header class="sticky top-0 z-50 bg-base-100/90 backdrop-blur-md border-b border-base-content/10 shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary text-xl font-bold shadow-xs">
+          🤖
+        </div>
+        <div>
+          <h1 class="text-lg font-black tracking-tight flex items-center gap-2">
+            SmartRestaurant <span class="text-primary font-normal">| AI Consultant "Aria"</span>
+          </h1>
+          <p class="text-xs text-base-content/60">Proposal v1.0 • Kế Hoạch Kỹ Thuật & Review Tương Tác</p>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-3">
+        <!-- Theme Toggle -->
+        <label class="flex cursor-pointer gap-2 items-center text-xs">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"/></svg>
+          <input type="checkbox" value="night" class="toggle toggle-sm toggle-primary" onchange="document.documentElement.setAttribute('data-theme', this.checked ? 'night' : 'emerald')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </label>
+        
+        <a href="#decision-section" class="btn btn-sm btn-primary shadow-xs">
+          Xác Nhận & Duyệt Đề Xuất
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+    <!-- 1. Hero & Business Impact Summary -->
+    <section class="hero bg-gradient-to-br from-primary/10 via-base-100 to-base-100 rounded-3xl border border-primary/20 p-8 shadow-sm">
+      <div class="hero-content flex-col lg:flex-row gap-8 w-full justify-between items-start">
+        <div class="max-w-2xl space-y-4">
+          <div class="flex items-center gap-2">
+            <span class="badge badge-primary font-medium">Tính năng Mới</span>
+            <span class="badge badge-soft badge-accent">Google Gemini API</span>
+            <span class="badge badge-outline">React 19 + Express + Socket.io</span>
+          </div>
+          <h2 class="text-3xl lg:text-4xl font-black tracking-tight leading-tight">
+            Tích Hợp Trợ Lý Ẩm Thực AI <span class="text-primary underline decoration-wavy decoration-primary/40">"Aria"</span>
+          </h2>
+          <p class="text-base text-base-content/80 leading-relaxed">
+            Biến mỗi lần quét mã QR tại bàn thành một trải nghiệm phục vụ riêng biệt. Aria đóng vai trò một sommelier kiêm chuyên viên tư vấn món ăn: hiểu khẩu vị, cảnh báo dị ứng chính xác và tự động gợi ý món ăn kèm đồ uống tăng doanh thu bàn ăn.
+          </p>
+          <div class="flex flex-wrap gap-2 pt-2">
+            <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 bg-success/15 text-success rounded-full">
+              ✓ Không đổi kiến trúc core
+            </span>
+            <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 bg-info/15 text-info rounded-full">
+              ✓ Tận dụng 100% Redis & Socket.io sẵn có
+            </span>
+            <span class="inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 bg-warning/15 text-warning rounded-full">
+              ✓ Thêm món vào giỏ 1-Click
+            </span>
+          </div>
+        </div>
+
+        <!-- Metric KPI Cards -->
+        <div class="w-full lg:w-auto">
+          <div class="grid grid-cols-2 gap-3 sm:gap-4 w-full">
+            <div class="stat bg-base-100 rounded-2xl border border-base-content/10 shadow-xs p-4">
+              <div class="stat-figure text-primary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
+              </div>
+              <div class="stat-title text-xs font-semibold">Tăng AOV (Giá trị đơn)</div>
+              <div class="stat-value text-2xl text-primary font-black">+15–25%</div>
+              <div class="stat-desc text-xs text-base-content/60">Nhờ upsell tự nhiên</div>
+            </div>
+
+            <div class="stat bg-base-100 rounded-2xl border border-base-content/10 shadow-xs p-4">
+              <div class="stat-figure text-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+              </div>
+              <div class="stat-title text-xs font-semibold">Thời gian chọn món</div>
+              <div class="stat-value text-2xl text-secondary font-black">−30%</div>
+              <div class="stat-desc text-xs text-base-content/60">Từ 4p xuống ~2.5p</div>
+            </div>
+
+            <div class="stat bg-base-100 rounded-2xl border border-base-content/10 shadow-xs p-4">
+              <div class="stat-figure text-accent">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+              </div>
+              <div class="stat-title text-xs font-semibold">Tỷ lệ khách quay lại</div>
+              <div class="stat-value text-2xl text-accent font-black">+10%</div>
+              <div class="stat-desc text-xs text-base-content/60">Nhờ ghi nhớ khẩu vị</div>
+            </div>
+
+            <div class="stat bg-base-100 rounded-2xl border border-base-content/10 shadow-xs p-4">
+              <div class="stat-figure text-info">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+              </div>
+              <div class="stat-title text-xs font-semibold">Giảm tải nhân viên</div>
+              <div class="stat-value text-2xl text-info font-black">−20%</div>
+              <div class="stat-desc text-xs text-base-content/60">Tự giải đáp câu hỏi món</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. Interactive Product Mockup & User Flow -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-2xl font-bold tracking-tight">Trải Nghiệm Khách Hàng Trực Quan</h3>
+          <p class="text-sm text-base-content/70">Mô phỏng màn hình trò chuyện thực tế giữa khách hàng tại Bàn 04 và Trợ lý Aria</p>
+        </div>
+        <span class="badge badge-outline">Live Prototype Demo</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- Phone Simulator Mockup -->
+        <div class="lg:col-span-5 flex justify-center">
+          <div class="mockup-phone border-primary/40 shadow-2xl">
+            <div class="camera"></div>
+            <div class="display">
+              <div class="artboard artboard-demo phone-1 bg-base-100 flex flex-col justify-between p-3 overflow-hidden text-left relative">
+                
+                <!-- App Header inside Phone -->
+                <div class="w-full pb-2 border-b border-base-content/10 flex items-center justify-between pt-5">
+                  <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-sm">
+                      A
+                    </div>
+                    <div>
+                      <div class="font-bold text-xs flex items-center gap-1">
+                        Aria AI
+                        <span class="w-2 h-2 rounded-full bg-success inline-block animate-ping"></span>
+                      </div>
+                      <div class="text-[10px] text-base-content/60">Bàn 04 • Trợ lý ẩm thực</div>
+                    </div>
+                  </div>
+                  <span class="badge badge-xs badge-primary">Online</span>
+                </div>
+
+                <!-- Chat Stream Area inside Phone -->
+                <div class="flex-1 w-full overflow-y-auto py-2 space-y-3 text-xs pr-1">
+                  <!-- Bot message 1 -->
+                  <div class="chat chat-start">
+                    <div class="chat-image avatar placeholder">
+                      <div class="w-6 rounded-full bg-primary text-primary-content text-[10px]">🤖</div>
+                    </div>
+                    <div class="chat-header text-[10px] text-base-content/50 mb-0.5">Aria • 19:42</div>
+                    <div class="chat-bubble chat-bubble-primary text-xs leading-snug">
+                      Dạ em chào anh/chị tại <strong>Bàn 04</strong>! Buổi tối nay mình muốn dùng bữa theo khẩu vị như thế nào để em gợi ý ạ?
+                    </div>
+                  </div>
+
+                  <!-- User message -->
+                  <div class="chat chat-end">
+                    <div class="chat-header text-[10px] text-base-content/50 mb-0.5">Khách</div>
+                    <div class="chat-bubble chat-bubble-neutral text-xs leading-snug">
+                      Mình đi 2 người, muốn ăn món gì thanh đạm, hơi cay nhẹ một chút và không có hành tây nhé!
+                    </div>
+                  </div>
+
+                  <!-- Bot response with item recommendation -->
+                  <div class="chat chat-start">
+                    <div class="chat-image avatar placeholder">
+                      <div class="w-6 rounded-full bg-primary text-primary-content text-[10px]">🤖</div>
+                    </div>
+                    <div class="chat-header text-[10px] text-base-content/50 mb-0.5">Aria • 19:43</div>
+                    <div class="chat-bubble chat-bubble-primary text-xs leading-snug space-y-2">
+                      <p>Dạ vậy em gợi ý ngay 2 món cực kỳ hợp khẩu vị của 2 anh chị:</p>
+                      
+                      <!-- Mini Dish Card Item 1 -->
+                      <div class="bg-base-100 text-base-content rounded-xl p-2.5 shadow-sm border border-base-content/10 space-y-1.5">
+                        <div class="flex justify-between items-start">
+                          <div>
+                            <div class="font-bold text-xs text-primary">Gà Hấp Lá Chanh Cay Nhẹ</div>
+                            <div class="text-[10px] text-base-content/60">Thanh ngọt, ớt hiểm dịu nhẹ, không hành tây</div>
+                          </div>
+                          <div class="font-bold text-xs text-emerald-600">145.000đ</div>
+                        </div>
+                        <div class="flex items-center justify-between pt-1">
+                          <span class="badge badge-xs badge-soft badge-success">Ít dầu mỡ</span>
+                          <button class="btn btn-xs btn-primary gap-1" onclick="alert('Đã thêm Gà Hấp Lá Chanh vào giỏ hàng Bàn 04!')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5v14"/></svg>
+                            Thêm vào giỏ
+                          </button>
+                        </div>
+                      </div>
+
+                      <!-- Mini Dish Card Item 2 -->
+                      <div class="bg-base-100 text-base-content rounded-xl p-2.5 shadow-sm border border-base-content/10 space-y-1.5">
+                        <div class="flex justify-between items-start">
+                          <div>
+                            <div class="font-bold text-xs text-primary">Trà Hoa Cúc Mật Ong Hạt Sen</div>
+                            <div class="text-[10px] text-base-content/60">Upsell kèm: Thanh nhiệt, giải cay êm dịu</div>
+                          </div>
+                          <div class="font-bold text-xs text-emerald-600">45.000đ</div>
+                        </div>
+                        <div class="flex items-center justify-between pt-1">
+                          <span class="badge badge-xs badge-soft badge-info">Uống kèm lý tưởng</span>
+                          <button class="btn btn-xs btn-outline btn-primary gap-1" onclick="alert('Đã thêm Trà Hoa Cúc vào giỏ hàng!')">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5v14"/></svg>
+                            Thêm
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Input area inside phone -->
+                <div class="w-full pt-2 border-t border-base-content/10 flex gap-1.5">
+                  <input type="text" placeholder="Hỏi Aria về món ăn, dị ứng..." class="input input-xs input-bordered flex-1 rounded-full text-[11px]" value="Có món tráng miệng nào ít ngọt không em?">
+                  <button class="btn btn-xs btn-circle btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flow Description and Trigger Rules -->
+        <div class="lg:col-span-7 space-y-6">
+          <div class="card card-border bg-base-100 shadow-sm">
+            <div class="card-body">
+              <h4 class="card-title text-lg flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-primary"></span>
+                Luồng Trải Nghiệm Khách Hàng (Customer Journey)
+              </h4>
+              <ul class="steps steps-vertical mt-2">
+                <li class="step step-primary text-left">
+                  <div class="text-left py-1">
+                    <span class="font-bold">1. Quét QR & Nhận diện bàn</span>
+                    <p class="text-xs text-base-content/60">Khách ngồi vào bàn, quét QR mở MenuPage. Socket client join vào room <code>table_{tableId}</code>.</p>
+                  </div>
+                </li>
+                <li class="step step-primary text-left">
+                  <div class="text-left py-1">
+                    <span class="font-bold">2. Aria tự chào hỏi (Trigger 5s)</span>
+                    <p class="text-xs text-base-content/60">Widget hiển thị badge nhấp nháy, chào hỏi thân thiện theo buổi (trưa/tối) và giới thiệu 1 món signature.</p>
+                  </div>
+                </li>
+                <li class="step step-primary text-left">
+                  <div class="text-left py-1">
+                    <span class="font-bold">3. Tư vấn & Trích xuất món thông minh</span>
+                    <p class="text-xs text-base-content/60">AI stream từng từ (token-by-token). Backend trích xuất tên món và map chính xác với ID thực đơn.</p>
+                  </div>
+                </li>
+                <li class="step step-primary text-left">
+                  <div class="text-left py-1">
+                    <span class="font-bold">4. Thêm vào giỏ 1-Click & Upsell</span>
+                    <p class="text-xs text-base-content/60">Khách bấm [+ Thêm vào giỏ] trực tiếp trong chat. Giỏ hàng cập nhật tức thì, Aria gợi ý đồ uống/tráng miệng kèm theo.</p>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Feature Comparison MVP vs Phase 2 -->
+          <div class="card card-border bg-base-100 shadow-sm">
+            <div class="card-body p-5">
+              <div class="flex justify-between items-center mb-2">
+                <h4 class="card-title text-base">Phạm Vi Tính Năng Theo Giai Đoạn</h4>
+                <div class="badge badge-neutral">2 Pha Triển Khai</div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="table table-xs table-zebra">
+                  <thead>
+                    <tr>
+                      <th>Tính năng</th>
+                      <th>Mô tả</th>
+                      <th>Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td class="font-semibold text-primary">F1. Chat Widget</td>
+                      <td>Floating Bubble trên MenuPage & CartPage, glassmorphism</td>
+                      <td><span class="badge badge-xs badge-success">Giai đoạn 1 (MVP)</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold text-primary">F2. Chào hỏi thông minh</td>
+                      <td>Mặc định click-only, hỗ trợ cấu hình tự xuất hiện sau 5s</td>
+                      <td><span class="badge badge-xs badge-success">Giai đoạn 1 (MVP)</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold text-primary">F3. Tư vấn theo ngữ cảnh</td>
+                      <td>Hiểu khẩu vị tự do → gợi ý 2–3 món khớp 100% trong DB</td>
+                      <td><span class="badge badge-xs badge-success">Giai đoạn 1 (MVP)</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold text-primary">F4. 1-Click Thêm giỏ</td>
+                      <td>Render mini-card món kèm nút thêm trực tiếp trong hội thoại</td>
+                      <td><span class="badge badge-xs badge-success">Giai đoạn 1 (MVP)</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold text-primary">F5. Upsell tự nhiên</td>
+                      <td>Gợi ý đồ uống / tráng miệng khi giỏ hàng thay đổi</td>
+                      <td><span class="badge badge-xs badge-success">Giai đoạn 1 (MVP)</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold text-primary">F6. Tư vấn dị ứng</td>
+                      <td>Tra nguyên liệu, cảnh báo chất dị ứng và gợi ý thay thế</td>
+                      <td><span class="badge badge-xs badge-success">Giai đoạn 1 (MVP)</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold">F7. Cá nhân hóa lịch sử</td>
+                      <td>Dùng <code>order_history</code> của tài khoản khách quen</td>
+                      <td><span class="badge badge-xs badge-ghost">Giai đoạn 2</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold">F8. Session Memory</td>
+                      <td>Redis lưu ngữ cảnh cuộc thoại 30 phút xuyên suốt phiên ăn</td>
+                      <td><span class="badge badge-xs badge-ghost">Giai đoạn 2</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold">F9. Admin Analytics AI</td>
+                      <td>Báo cáo xu hướng sở thích khách và đề xuất tối ưu menu</td>
+                      <td><span class="badge badge-xs badge-ghost">Giai đoạn 2</span></td>
+                    </tr>
+                    <tr>
+                      <td class="font-semibold">F10. Trending Badges</td>
+                      <td>Hiển thị "🔥 Trending hôm nay" dựa trên phân tích AI</td>
+                      <td><span class="badge badge-xs badge-ghost">Giai đoạn 2</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. System Architecture & Whiteboard Diagram -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-2xl font-bold tracking-tight">Kiến Trúc Kỹ Thuật & Luồng Dữ Liệu</h3>
+          <p class="text-sm text-base-content/70">Tận dụng trọn vẹn hạ tầng Redis và Socket.io có sẵn mà không cần dịch vụ trung gian phức tạp</p>
+        </div>
+        <span class="badge badge-soft badge-primary">Mermaid Whiteboard Editable</span>
+      </div>
+
+      <!-- Mermaid Diagram Card -->
+      <div class="card card-border bg-base-100 shadow-sm overflow-hidden">
+        <div class="card-body p-6">
+          <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor Customer as 👤 Thực khách (MenuPage)
+    participant Socket as ⚡ Socket.io Room (table_X)
+    participant Controller as ⚙️ AI Controller
+    participant Redis as 🔴 Redis Cache
+    participant DB as 🐘 Supabase (PostgreSQL)
+    participant Gemini as 🧠 Gemini 1.5 Flash API
+
+    Customer->>Controller: POST /api/ai/consult (message, cartItems, tableId)
+    Controller->>Redis: GET menu:restaurantId (Cache Check)
+    alt Cache Miss
+        Redis-->>Controller: null
+        Controller->>DB: SELECT * FROM menu_items WHERE is_available=true
+        DB-->>Controller: menu_items[]
+        Controller->>Redis: SETEX menu:restaurantId 300 (TTL 5m)
+    else Cache Hit
+        Redis-->>Controller: Cached Menu JSON
+    end
+    Controller->>Controller: Build Dynamic Prompt (System + Menu + Cart + Message)
+    Controller->>Gemini: Stream Chat Completion (streaming mode)
+    loop Token Streaming
+        Gemini-->>Controller: Stream Token Chunk
+        Controller->>Socket: emit("ai_stream_token", { token })
+        Socket-->>Customer: Hiển thị chữ nhấp nháy theo thời gian thực
+    end
+    Controller->>Controller: Parse Item Names & Map Supabase IDs
+    Controller->>Socket: emit("ai_response", { suggestedItems: [{id, name, price}] })
+    Socket-->>Customer: Render Card Món ăn + Nút [+ Thêm vào giỏ]
+          </div>
+        </div>
+      </div>
+
+      <!-- Infrastructure Matrix -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="card card-border bg-base-100 p-4">
+          <div class="font-bold text-sm text-red-600 flex items-center gap-2 mb-2">
+            <span class="w-3 h-3 rounded-full bg-red-500"></span> Redis Caching & Rate-limit
+          </div>
+          <p class="text-xs text-base-content/70 leading-relaxed">
+            - Menu Cache: <code>menu:{id}</code> (TTL 5m)<br>
+            - Session Context: <code>ai_session:{id}</code> (TTL 30m)<br>
+            - Rate Limiter: 10 requests / phút / session phòng chống spam token.
+          </p>
+        </div>
+
+        <div class="card card-border bg-base-100 p-4">
+          <div class="font-bold text-sm text-yellow-600 flex items-center gap-2 mb-2">
+            <span class="w-3 h-3 rounded-full bg-yellow-500"></span> Socket.io Real-time Rooms
+          </div>
+          <p class="text-xs text-base-content/70 leading-relaxed">
+            - Định tuyến phản hồi qua room <code>table_{tableId}</code> đã có sẵn.<br>
+            - Phản hồi dạng Stream Token giúp thời gian phản hồi đầu tiên (TTFT) chỉ <strong>&lt; 1.5s</strong>.
+          </p>
+        </div>
+
+        <div class="card card-border bg-base-100 p-4">
+          <div class="font-bold text-sm text-emerald-600 flex items-center gap-2 mb-2">
+            <span class="w-3 h-3 rounded-full bg-emerald-500"></span> Supabase (PostgreSQL)
+          </div>
+          <p class="text-xs text-base-content/70 leading-relaxed">
+            - Bổ sung các cột: <code>ingredients</code>, <code>allergens</code>, <code>spice_level</code>, <code>calories</code>.<br>
+            - Tất cả cột mới đều cho phép <code>NULL</code>, đảm bảo 0% rủi ro đứt gãy dữ liệu cũ.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. Prompt Engineering & 3-Layer Architecture -->
+    <section class="space-y-6">
+      <h3 class="text-2xl font-bold tracking-tight">Thiết Kế Cấu Trúc AI & Kỹ Thuật Prompt</h3>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Layer 1 -->
+        <div class="card card-border bg-base-100 shadow-sm border-t-4 border-t-primary">
+          <div class="card-body p-5">
+            <div class="badge badge-primary badge-sm">Layer 1</div>
+            <h4 class="font-bold text-base">System Prompt (Tĩnh)</h4>
+            <p class="text-xs text-base-content/70">
+              Được lưu tách biệt tại <code>ariaSystemPrompt.js</code> giúp dễ dàng hiệu chỉnh và A/B test không đụng chạm logic code.
+            </p>
+            <div class="mockup-code text-[11px] bg-base-200 text-base-content mt-2 p-3">
+              <pre><code>- Vai trò: Trợ lý gọi món SmartRestaurant
+- Giọng văn: Ấm áp, lịch sự, súc tích (<150 từ)
+- Format: [Tên món] · [Giá] · [Lý do 1 câu]
+- Guardrail: Không cam kết giờ bếp, disclaimer dị ứng</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Layer 2 -->
+        <div class="card card-border bg-base-100 shadow-sm border-t-4 border-t-secondary">
+          <div class="card-body p-5">
+            <div class="badge badge-secondary badge-sm">Layer 2</div>
+            <h4 class="font-bold text-base">Dynamic Context (Động)</h4>
+            <p class="text-xs text-base-content/70">
+              Backend ghép động theo từng request nhằm cung cấp thông tin sát sườn nhất cho mô hình.
+            </p>
+            <div class="mockup-code text-[11px] bg-base-200 text-base-content mt-2 p-3">
+              <pre><code>- Menu JSON: Các món đang `is_available: true`
+- Vị trí: Bàn số {tableId}
+- Thời điểm: Buổi sáng / trưa / tối
+- Giỏ hiện tại: {cartItems} (tránh gợi ý trùng)
+- Lịch sử: 3 món khách từng gọi gần nhất</code></pre>
+            </div>
+          </div>
+        </div>
+
+        <!-- Layer 3 -->
+        <div class="card card-border bg-base-100 shadow-sm border-t-4 border-t-accent">
+          <div class="card-body p-5">
+            <div class="badge badge-accent badge-sm">Layer 3</div>
+            <h4 class="font-bold text-base">User Message & Entity Match</h4>
+            <p class="text-xs text-base-content/70">
+              Xử lý bảo mật đầu vào và cơ chế khớp món chính xác trước khi hiển thị nút thao tác.
+            </p>
+            <div class="mockup-code text-[11px] bg-base-200 text-base-content mt-2 p-3">
+              <pre><code>1. Sanitize input chống Prompt Injection
+2. Parse Regex tên món từ phản hồi
+3. Đối chiếu `name` với Supabase `id`
+4. Khớp thành công: Hiện nút [+ Thêm giỏ]
+5. Không khớp: Chỉ hiển thị văn bản thuần</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5.1. [Kỹ Thuật Bổ Sung Thêm] Lightweight RAG Token Optimization & Fallback -->
+    <section class="card card-border bg-base-100 shadow-sm p-6 space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="badge badge-accent">Kỹ Thuật Bổ Sung Thêm</span>
+            <span class="text-xs text-base-content/60">Tối ưu chi phí & khả năng thích ứng linh hoạt</span>
+          </div>
+          <h3 class="text-2xl font-bold tracking-tight mt-1">[Bổ Sung Thêm] Giải Pháp RAG Tinh Gọn (Lightweight RAG) — Giảm 85% Token Input</h3>
+          <p class="text-sm text-base-content/70">
+            Khắc phục triệt để nguy cơ đội chi phí và tăng độ trễ khi nhà hàng có thực đơn lớn (80–200 món).
+          </p>
+        </div>
+        <span class="badge badge-success font-bold">Tiết kiệm 85% Token</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Comparison Table -->
+        <div class="overflow-x-auto rounded-xl border border-base-content/10">
+          <table class="table table-xs table-zebra w-full">
+            <thead>
+              <tr class="bg-base-200/60">
+                <th>Tiêu chí so sánh</th>
+                <th class="text-error">Cách truyền thống (Bơm hết Menu)</th>
+                <th class="text-success font-bold">Lightweight RAG (2-Stage)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-semibold">Token Input / Request</td>
+                <td class="text-error font-mono">~2.500 – 3.500 token</td>
+                <td class="text-success font-mono font-bold">~200 – 350 token (-85%)</td>
+              </tr>
+              <tr>
+                <td class="font-semibold">Thời gian phản hồi (TTFT)</td>
+                <td class="text-error font-mono">~1.6 – 2.2 giây</td>
+                <td class="text-success font-mono font-bold">&lt; 0.8 giây (-50%)</td>
+              </tr>
+              <tr>
+                <td class="font-semibold">Chi phí ước tính / 100 chat</td>
+                <td class="font-mono">~$0.04 (1.000đ/ngày)</td>
+                <td class="text-success font-mono font-bold">~$0.008 (&lt; 250đ/ngày)</td>
+              </tr>
+              <tr>
+                <td class="font-semibold">Độ tập trung (Attention)</td>
+                <td>Dễ loãng ngữ cảnh khi menu dài</td>
+                <td class="text-success font-semibold">Tập trung 100% vào món liên quan</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- How 2-Stage RAG works -->
+        <div class="bg-base-200/40 rounded-xl p-4 border border-base-content/10 space-y-3">
+          <h4 class="font-bold text-sm flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-accent"></span>
+            Cơ chế hoạt động của 2-Stage Retrieval
+          </h4>
+          <ul class="space-y-2 text-xs text-base-content/80">
+            <li class="flex items-start gap-2">
+              <strong class="text-primary">Giai đoạn 1 (Lọc nhanh tại Database):</strong>
+              <span>Khi khách hỏi <em>"Có món lẩu hoặc bò nào cay không?"</em>, Backend chạy query lọc sơ bộ qua Category/Tags hoặc gọi hàm <code>match_menu_items()</code> qua pgvector trong Supabase để chỉ rút ra <strong>Top 6–8 món</strong> khớp nhất.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <strong class="text-primary">Giai đoạn 2 (Bơm vào Gemini Context):</strong>
+              <span>Thay vì gửi 100 món, Backend chỉ nhúng đúng 6–8 món đã lọc kèm giỏ hàng hiện tại vào Prompt. Gemini đóng vai trò sommelier so sánh tinh tế giữa các lựa chọn này.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Graceful Degradation / 3-Tier Fallback -->
+      <div class="rounded-2xl border border-warning/40 bg-warning/5 p-5 space-y-3">
+        <div class="flex items-center gap-2">
+          <span class="badge badge-warning font-bold text-xs">Cơ Chế Dự Phòng (Graceful Fallback)</span>
+          <span class="font-bold text-xs text-base-content">Khi RAG không lọc được món phù hợp hoặc kết quả rỗng thì xử lý thế nào?</span>
+        </div>
+        <p class="text-xs text-base-content/75">
+          Để không bao giờ để khách hàng nhận được câu trả lời cụt lủn hoặc bịa đặt món ngoài menu, hệ thống kích hoạt chu trình xử lý 3 tầng:
+        </p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs pt-1">
+          <div class="bg-base-100 p-3 rounded-xl border border-base-content/10 space-y-1">
+            <div class="font-bold text-warning flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-warning/20 flex items-center justify-center text-[10px]">1</span>
+              Tầng 1: Nới Lỏng Ràng Buộc (Relax Filter)
+            </div>
+            <p class="text-base-content/70">Nếu bộ lọc quá chặt (VD: "món chay không nấm không đậu phụ &lt; 30k" trả về 0 món), Backend tự động gỡ bỏ các tiêu chí phụ, giữ Category chính để lấy tập món rộng hơn.</p>
+          </div>
+
+          <div class="bg-base-100 p-3 rounded-xl border border-base-content/10 space-y-1">
+            <div class="font-bold text-primary flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-[10px]">2</span>
+              Tầng 2: Best-Seller / Trending Fallback (Redis)
+            </div>
+            <p class="text-base-content/70">Nếu câu hỏi quá xa lạ, Backend lập tức lấy Top 5 món Best-Seller & Trending trong Redis nạp vào prompt để AI thành thật: <em>"Dạ quán chưa có món đúng 100% yêu cầu, nhưng Aria xin gợi ý các món được yêu thích nhất..."</em></p>
+          </div>
+
+          <div class="bg-base-100 p-3 rounded-xl border border-base-content/10 space-y-1">
+            <div class="font-bold text-error flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-error/20 flex items-center justify-center text-[10px]">3</span>
+              Tầng 3: Human Handoff (Gọi Nhân Viên)
+            </div>
+            <p class="text-base-content/70">Nếu khách yêu cầu điều chỉnh công thức đặc thù ngoài khả năng AI, Aria chủ động phản hồi lịch sự kèm nút bấm hành động <strong>[🔔 Nhấn để gọi nhân viên phục vụ]</strong> hỗ trợ tại bàn.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. Component Architecture & Code Structure -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="badge badge-primary">Mục 6 • Cấu Trúc Mã Nguồn</span>
+            <span class="text-xs text-base-content/60">Tổ chức module rõ ràng, tách biệt trách nhiệm</span>
+          </div>
+          <h3 class="text-2xl font-bold tracking-tight mt-1">Cấu Trúc Các Thành Phần Cần Xây Dựng</h3>
+          <p class="text-sm text-base-content/70">
+            Phân chia chi tiết các file Backend và Frontend cần bổ sung hoặc chỉnh sửa trong dự án SmartRestaurant.
+          </p>
+        </div>
+        <span class="badge badge-outline">Backend & Frontend Specs</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Backend Tree -->
+        <div class="card card-border bg-base-100 shadow-sm p-5 space-y-3">
+          <h4 class="font-bold text-sm text-primary flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+            Backend (Node.js / Express 5)
+          </h4>
+          <div class="mockup-code text-[11px] bg-base-200 text-base-content p-3">
+            <pre><code>backend/src/
+├── routes/
+│   └── aiRoutes.js             ← Khai báo POST /api/ai/consult (optionalAuth)
+├── controllers/
+│   └── aiController.js         ← Validate payload, rate-limit, điều phối Socket
+└── services/
+    ├── aiService.js            ← Logic gọi Gemini API, cache Redis, entity match
+    └── prompts/
+        └── ariaSystemPrompt.js ← System prompt template (tách riêng dễ A/B test)</code></pre>
+          </div>
+          <ul class="text-xs text-base-content/70 space-y-1">
+            <li>• <strong>aiRoutes:</strong> Gắn middleware <code>optionalAuth</code> cho phép cả khách vãng lai và thành viên.</li>
+            <li>• <strong>aiController:</strong> Phản hồi HTTP 200 sớm, chuyển luồng token qua Socket.io room <code>table_{id}</code>.</li>
+            <li>• <strong>aiService:</strong> Quản lý cache menu Redis 5m, RAG filtering, entity parsing.</li>
+          </ul>
+        </div>
+
+        <!-- Frontend Tree -->
+        <div class="card card-border bg-base-100 shadow-sm p-5 space-y-3">
+          <h4 class="font-bold text-sm text-secondary flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            Frontend (React 19 + Vite + Tailwind)
+          </h4>
+          <div class="mockup-code text-[11px] bg-base-200 text-base-content p-3">
+            <pre><code>frontend/src/
+├── components/
+│   └── AriaChatWidget/
+│       ├── index.jsx           ← Floating Bubble + Slide-up Chat Panel
+│       ├── ChatMessage.jsx     ← Render Markdown, mini card món + nút [+ Thêm]
+│       └── AriaChatWidget.css  ← Hiệu ứng glassmorphism, pulse, responsive
+├── pages/customer/
+│   ├── MenuPage.jsx            ← [MODIFY] Nhúng &lt;AriaChatWidget /&gt;
+│   └── CartPage.jsx            ← [MODIFY] Nhúng widget + trigger upsell
+└── contexts/
+    └── AiChatContext.jsx       ← Quản lý session ID, socket stream listener</code></pre>
+          </div>
+          <ul class="text-xs text-base-content/70 space-y-1">
+            <li>• <strong>AriaChatWidget:</strong> Hỗ trợ chế độ thu gọn bubble và mở rộng trượt mượt mà.</li>
+            <li>• <strong>ChatMessage:</strong> Render trực quan thẻ món ăn kèm nút <code>[+ Thêm vào giỏ]</code>.</li>
+            <li>• <strong>AiChatContext:</strong> Lắng nghe event Socket, gom lịch sử tin nhắn trong session.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7. API Endpoint & Socket.io Events -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="badge badge-primary">Mục 7 • Thiết Kế Giao Tiếp</span>
+            <span class="text-xs text-base-content/60">Định dạng Payload HTTP & Sự kiện Real-time</span>
+          </div>
+          <h3 class="text-2xl font-bold tracking-tight mt-1">Thiết Kế API Endpoint & Socket.io Events</h3>
+          <p class="text-sm text-base-content/70">
+            Endpoint <code>POST /api/ai/consult</code> tiếp nhận yêu cầu và trả về dữ liệu stream trực tiếp qua Socket.io room bàn ăn.
+          </p>
+        </div>
+        <span class="badge badge-accent font-mono">POST /api/ai/consult</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- HTTP Request Payload Table -->
+        <div class="overflow-x-auto rounded-xl border border-base-content/10 bg-base-100 shadow-sm p-4 space-y-3">
+          <div class="font-bold text-xs flex items-center justify-between">
+            <span>Request Payload (JSON Body)</span>
+            <span class="badge badge-xs badge-neutral">HTTP POST</span>
+          </div>
+          <table class="table table-xs table-zebra w-full">
+            <thead>
+              <tr class="bg-base-200/60">
+                <th>Trường</th>
+                <th>Kiểu</th>
+                <th>Bắt buộc</th>
+                <th>Mô tả</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>tableId</code></td>
+                <td>string</td>
+                <td><span class="text-success font-bold">✅ Có</span></td>
+                <td>Số bàn định danh từ mã QR</td>
+              </tr>
+              <tr>
+                <td><code>sessionId</code></td>
+                <td>string</td>
+                <td><span class="text-success font-bold">✅ Có</span></td>
+                <td>Session ID client tự sinh (UUID v4)</td>
+              </tr>
+              <tr>
+                <td><code>message</code></td>
+                <td>string</td>
+                <td><span class="text-success font-bold">✅ Có</span></td>
+                <td>Nội dung câu hỏi/yêu cầu của khách</td>
+              </tr>
+              <tr>
+                <td><code>cartItems</code></td>
+                <td>array</td>
+                <td><span class="text-success font-bold">✅ Có</span></td>
+                <td>Danh sách món trong giỏ (để upsell/tránh trùng)</td>
+              </tr>
+              <tr>
+                <td><code>userId</code></td>
+                <td>string</td>
+                <td><span class="text-base-content/40">❌ Không</span></td>
+                <td>ID khách quen (tự động lấy từ JWT nếu có)</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="text-[11px] text-base-content/60 pt-1">
+            <strong>Mã phản hồi:</strong> HTTP 200 (tiếp nhận), HTTP 429 (Rate limit: 10 req/phút/session), HTTP 400 (Payload không hợp lệ).
+          </div>
+        </div>
+
+        <!-- Socket.io Events Table -->
+        <div class="overflow-x-auto rounded-xl border border-base-content/10 bg-base-100 shadow-sm p-4 space-y-3">
+          <div class="font-bold text-xs flex items-center justify-between">
+            <span>Sự Kiện Socket.io Real-time</span>
+            <span class="badge badge-xs badge-warning">Room: table_{tableId}</span>
+          </div>
+          <table class="table table-xs table-zebra w-full">
+            <thead>
+              <tr class="bg-base-200/60">
+                <th>Event</th>
+                <th>Hướng</th>
+                <th>Dữ liệu payload</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>ai_stream_token</code></td>
+                <td>Server → Client</td>
+                <td><code>{ sessionId, token }</code> (Stream từng từ)</td>
+              </tr>
+              <tr>
+                <td><code>ai_response</code></td>
+                <td>Server → Client</td>
+                <td><code>{ sessionId, content, suggestedItems[] }</code></td>
+              </tr>
+              <tr>
+                <td><code>ai_error</code></td>
+                <td>Server → Client</td>
+                <td><code>{ sessionId, message }</code></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="text-[11px] text-base-content/60 pt-1">
+            <strong>Bảo mật Socket:</strong> Định tuyến chính xác theo phòng <code>table_{tableId}</code>, các bàn khác không thể xem trộm nội dung chat của nhau.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 8. Database Schema Migration -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="badge badge-primary">Mục 8 • Cơ Sở Dữ Liệu</span>
+            <span class="text-xs text-base-content/60">Supabase / PostgreSQL</span>
+          </div>
+          <h3 class="text-2xl font-bold tracking-tight mt-1">Thay Đổi Schema Cơ Sở Dữ Liệu</h3>
+          <p class="text-sm text-base-content/70">
+            Bổ sung thêm 6 trường chuyên dụng vào bảng <code>menu_items</code> để AI có đủ thông tin tư vấn khẩu vị, dị ứng và calo.
+          </p>
+        </div>
+        <span class="badge badge-success">0% Breaking Change (All Nullable)</span>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-base-content/10 bg-base-100 shadow-sm">
+        <table class="table table-zebra table-sm w-full">
+          <thead>
+            <tr class="bg-base-200/60">
+              <th>Cột mới</th>
+              <th>Kiểu dữ liệu</th>
+              <th>Mục đích nghiệp vụ</th>
+              <th>Ví dụ giá trị</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>ingredients</code></td>
+              <td><code>TEXT[]</code></td>
+              <td>Danh sách nguyên liệu chính (phục vụ tra cứu dị ứng & khẩu vị)</td>
+              <td><code>['thịt gà', 'lá chanh', 'ớt hiểm']</code></td>
+            </tr>
+            <tr>
+              <td><code>allergens</code></td>
+              <td><code>TEXT[]</code></td>
+              <td>Các chất gây dị ứng phổ biến (hải sản, gluten, đậu phộng, lactose...)</td>
+              <td><code>['seafood', 'peanuts']</code></td>
+            </tr>
+            <tr>
+              <td><code>spice_level</code></td>
+              <td><code>INTEGER (0–5)</code></td>
+              <td>Thang độ cay để lọc chính xác theo yêu cầu khách</td>
+              <td><code>1</code> (cay nhẹ)</td>
+            </tr>
+            <tr>
+              <td><code>calories</code></td>
+              <td><code>INTEGER</code></td>
+              <td>Lượng calo ước tính để hỗ trợ tư vấn ăn kiêng / healthy</td>
+              <td><code>380</code> kcal</td>
+            </tr>
+            <tr>
+              <td><code>ai_description</code></td>
+              <td><code>TEXT</code></td>
+              <td>Mô tả súc tích, giàu thông tin cảm quan dành riêng cho AI đọc</td>
+              <td><em>"Thịt gà ta giòn da, thơm hương lá chanh Tây Bắc..."</em></td>
+            </tr>
+            <tr>
+              <td><code>is_trending</code></td>
+              <td><code>BOOLEAN</code></td>
+              <td>Cờ đánh dấu hiển thị huy hiệu "🔥 Trending hôm nay" (F10)</td>
+              <td><code>true / false</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="alert alert-info alert-soft text-xs">
+        💡 <strong>Ghi chú an toàn:</strong> Tất cả 6 cột mới đều có giá trị mặc định là <code>NULL</code>, hệ thống hiện tại của nhà hàng vẫn hoạt động bình thường 100% trong suốt quá trình migration.
+      </div>
+    </section>
+
+    <!-- 9. UX Chat Widget States -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="badge badge-primary">Mục 9 • Trải Nghiệm Người Dùng</span>
+            <span class="text-xs text-base-content/60">Giao diện trực quan & State Machine</span>
+          </div>
+          <h3 class="text-2xl font-bold tracking-tight mt-1">Thiết Kế UX & Các Trạng Thái Chat Widget</h3>
+          <p class="text-sm text-base-content/70">
+            Quản lý vòng đời hiển thị của Aria từ dạng bong bóng thu gọn đến khung chat toàn màn hình trên di động.
+          </p>
+        </div>
+        <span class="badge badge-outline">7 UI States</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="card card-border bg-base-100 p-4 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-primary">1. Idle (Nghỉ)</span>
+            <span class="badge badge-xs">Default</span>
+          </div>
+          <p class="text-xs text-base-content/70">Bong bóng tròn nổi ở góc dưới phải, nhịp thở (pulse) nhẹ mỗi 10 giây, không che thực đơn.</p>
+        </div>
+
+        <div class="card card-border bg-base-100 p-4 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-primary">2. Opening (Mở)</span>
+            <span class="badge badge-xs">300ms</span>
+          </div>
+          <p class="text-xs text-base-content/70">Hiệu ứng trượt lên (slide-up) mượt mà, khung chat mở rộng 380px (desktop) hoặc full-sheet (mobile).</p>
+        </div>
+
+        <div class="card card-border bg-base-100 p-4 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-secondary">3. Typing (Khách nhập)</span>
+            <span class="badge badge-xs">Focus</span>
+          </div>
+          <p class="text-xs text-base-content/70">Khung input kích hoạt, hiển thị các tag gợi ý nhanh: "Ăn thanh đạm", "Món cay", "Tráng miệng".</p>
+        </div>
+
+        <div class="card card-border bg-base-100 p-4 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-secondary">4. Loading (AI nghĩ)</span>
+            <span class="badge badge-xs">&lt; 0.8s</span>
+          </div>
+          <p class="text-xs text-base-content/70">Hiển thị 3 chấm động (skeleton dots) mượt mà trong lúc backend xử lý RAG & gọi Gemini.</p>
+        </div>
+
+        <div class="card card-border bg-base-100 p-4 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-accent">5. Streaming (Chữ ra)</span>
+            <span class="badge badge-xs">Real-time</span>
+          </div>
+          <p class="text-xs text-base-content/70">Từng cụm từ xuất hiện kèm con trỏ nhấp nháy ▌ mang lại cảm giác đối thoại người thật.</p>
+        </div>
+
+        <div class="card card-border bg-base-100 p-4 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-success">6. Suggestion (Gợi ý)</span>
+            <span class="badge badge-xs">Actionable</span>
+          </div>
+          <p class="text-xs text-base-content/70">Card món ăn mini render kèm ảnh, giá và nút bấm <strong>[+ Thêm vào giỏ hàng 1-Click]</strong>.</p>
+        </div>
+
+        <div class="card card-border bg-base-100 p-4 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-warning">7. Minimized (Thu nhỏ)</span>
+            <span class="badge badge-xs">Compact</span>
+          </div>
+          <p class="text-xs text-base-content/70">Khi khách vuốt xuống đóng chat, bubble hiển thị badge đỏ thông báo tin nhắn chưa đọc (nếu có).</p>
+        </div>
+
+        <div class="card card-border bg-base-100 p-4 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-error">8. Error / Fallback</span>
+            <span class="badge badge-xs">Resilient</span>
+          </div>
+          <p class="text-xs text-base-content/70">Khi mất mạng hoặc quá tải, hiển thị thông báo thân thiện và nút bấm <em>"Gọi phục vụ bàn"</em>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10. AI Model Selection & Cost Comparison -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="badge badge-primary">Mục 10 • Lựa Chọn Mô Hình</span>
+            <span class="text-xs text-base-content/60">So sánh chi phí & hiệu năng</span>
+          </div>
+          <h3 class="text-2xl font-bold tracking-tight mt-1">Lựa Chọn Mô Hình AI & Dự Toán Chi Phí</h3>
+          <p class="text-sm text-base-content/70">Ước tính trên quy mô 100 lượt tư vấn/ngày kết hợp kỹ thuật Lightweight RAG</p>
+        </div>
+        <span class="badge badge-success font-bold">Chi Phí Cực Thấp</span>
+      </div>
+
+      <div class="overflow-x-auto rounded-2xl border border-base-content/10 bg-base-100 shadow-sm">
+        <table class="table table-zebra w-full">
+          <thead>
+            <tr class="bg-base-200/50">
+              <th>Mô hình</th>
+              <th>Tốc độ xử lý</th>
+              <th>Chất lượng tư vấn ẩm thực</th>
+              <th>Chi phí ước tính / ngày</th>
+              <th>Đánh giá & Khuyến nghị</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="bg-primary/5 font-semibold">
+              <td class="flex items-center gap-2">
+                <span class="badge badge-primary badge-sm">Lựa chọn #1</span>
+                <span>Gemini 1.5 Flash</span>
+              </td>
+              <td>⚡ Rất nhanh (&lt; 1.2s first token)</td>
+              <td>⭐⭐⭐⭐ (Rất tốt cho ngữ cảnh menu ngắn & tiếng Việt)</td>
+              <td class="text-success font-bold font-mono">~$0.04 (~1.000đ/ngày)</td>
+              <td><span class="badge badge-success badge-sm">Khuyên dùng cho MVP</span></td>
+            </tr>
+            <tr>
+              <td class="font-semibold">Gemini 2.0 Flash</td>
+              <td>⚡⚡ Siêu nhanh (&lt; 0.8s)</td>
+              <td>⭐⭐⭐⭐⭐ (Khả năng suy luận & upsell tự nhiên vượt trội)</td>
+              <td class="font-mono">~$0.06 (~1.500đ/ngày)</td>
+              <td>Nâng cấp cho Giai đoạn 2</td>
+            </tr>
+            <tr>
+              <td class="font-semibold">GPT-4o-mini (OpenAI)</td>
+              <td>⚡ Nhanh (~1.4s)</td>
+              <td>⭐⭐⭐⭐ (Chính xác, ổn định)</td>
+              <td class="font-mono">~$0.08 (~2.000đ/ngày)</td>
+              <td>Phương án dự phòng (Fallback)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 11. Project Roadmap & Implementation Timeline -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="badge badge-primary">Mục 11 • Kế Hoạch Triển Khai</span>
+            <span class="text-xs text-base-content/60">Lộ trình 3 tuần từ Backend đến Production</span>
+          </div>
+          <h3 class="text-2xl font-bold tracking-tight mt-1">Kế Hoạch Triển Khai Chi Tiết (3 Tuần)</h3>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Week 1 -->
+        <div class="card card-border bg-base-100 shadow-sm">
+          <div class="card-body p-5">
+            <div class="flex items-center justify-between">
+              <span class="badge badge-primary font-bold">Tuần 1</span>
+              <span class="text-xs text-base-content/50">Backend Foundation</span>
+            </div>
+            <h4 class="font-bold text-base mt-2">Hạ Tầng Backend & Gemini API</h4>
+            <ul class="space-y-2 text-xs text-base-content/80 mt-2">
+              <li class="flex items-start gap-1.5">
+                <span class="text-success font-bold">✓</span>
+                <span>Cài đặt <code>@google/generative-ai</code> & cấu hình API Key</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span class="text-success font-bold">✓</span>
+                <span>Viết <code>aiService.js</code> (Cache menu Redis + build dynamic prompt)</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span class="text-success font-bold">✓</span>
+                <span>Định nghĩa <code>POST /api/ai/consult</code> + streaming qua Socket.io</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span class="text-success font-bold">✓</span>
+                <span>Viết template <code>ariaSystemPrompt.js</code> & guardrails</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Week 2 -->
+        <div class="card card-border bg-base-100 shadow-sm">
+          <div class="card-body p-5">
+            <div class="flex items-center justify-between">
+              <span class="badge badge-secondary font-bold">Tuần 2</span>
+              <span class="text-xs text-base-content/50">Frontend Experience</span>
+            </div>
+            <h4 class="font-bold text-base mt-2">Giao Diện Widget & Khớp Món</h4>
+            <ul class="space-y-2 text-xs text-base-content/80 mt-2">
+              <li class="flex items-start gap-1.5">
+                <span class="text-secondary font-bold">✓</span>
+                <span>Xây dựng Component <code>AriaChatWidget</code> (Floating & Slide-up)</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span class="text-secondary font-bold">✓</span>
+                <span>Tích hợp <code>AiChatContext</code> lắng nghe Socket stream token</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span class="text-secondary font-bold">✓</span>
+                <span>Component <code>ChatMessage</code> render Card món ăn + nút [+ Thêm]</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span class="text-secondary font-bold">✓</span>
+                <span>Nhúng vào <code>MenuPage.jsx</code> và kích hoạt Auto-trigger 5 giây</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- Week 3 -->
+        <div class="card card-border bg-base-100 shadow-sm">
+          <div class="card-body p-5">
+            <div class="flex items-center justify-between">
+              <span class="badge badge-accent font-bold">Tuần 3</span>
+              <span class="text-xs text-base-content/50">Optimization & Rollout</span>
+            </div>
+            <h4 class="font-bold text-base mt-2">Upsell Giỏ Hàng & Tối Ưu Hóa</h4>
+            <ul class="space-y-2 text-xs text-base-content/80 mt-2">
+              <li class="flex items-start gap-1.5">
+                <span class="text-accent font-bold">✓</span>
+                <span>Tích hợp trigger upsell thông minh tại <code>CartPage.jsx</code></span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span class="text-accent font-bold">✓</span>
+                <span>Database migration thêm cột <code>ingredients</code>, <code>allergens</code></span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span class="text-accent font-bold">✓</span>
+                <span>Rate-limiting 10 req/phút & xử lý lỗi mất kết nối mượt mà</span>
+              </li>
+              <li class="flex items-start gap-1.5">
+                <span class="text-accent font-bold">✓</span>
+                <span>Kiểm thử E2E, bảo mật Prompt Injection và đo benchmark Lighthouse</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 12. Risk Management Matrix -->
+    <section class="space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="badge badge-error">Mục 12 • Quản Trị Rủi Ro</span>
+            <span class="text-xs text-base-content/60">Nhận diện & giải pháp giảm thiểu</span>
+          </div>
+          <h3 class="text-2xl font-bold tracking-tight mt-1">Phân Tích & Biện Pháp Giảm Thiểu Rủi Ro</h3>
+        </div>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="alert alert-error alert-soft flex items-start gap-3 p-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <div>
+            <div class="font-bold text-sm">Rủi ro: AI gợi ý sai tên hoặc tự "bịa" giá món (Hallucination)</div>
+            <div class="text-xs mt-1 text-base-content/80">
+              <strong>Giải pháp:</strong> Backend trích xuất tên món và đối chiếu cứng với ID thực tế trong Supabase. Nếu không khớp chính xác 100%, chỉ hiển thị text và tuyệt đối KHÔNG hiển thị nút thêm giỏ hàng.
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-error alert-soft flex items-start gap-3 p-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <div>
+            <div class="font-bold text-sm">Rủi ro: Thông tin dị ứng thực phẩm không chính xác</div>
+            <div class="text-xs mt-1 text-base-content/80">
+              <strong>Giải pháp:</strong> Bắt buộc có disclaimer y tế trong mọi câu trả lời về dị ứng. Nếu món ăn chưa có dữ liệu nguyên liệu chi tiết trong DB, Aria sẽ chủ động hướng dẫn khách gọi nhân viên bàn.
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-warning alert-soft flex items-start gap-3 p-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div>
+            <div class="font-bold text-sm">Rủi ro: Prompt Injection từ khách cố tình thử thách AI</div>
+            <div class="text-xs mt-1 text-base-content/80">
+              <strong>Giải pháp:</strong> Sanitize sạch ký tự đặc biệt ở đầu vào, system prompt có nguyên tắc bất biến: chỉ đóng vai trò tư vấn món ăn của quán, từ chối mọi yêu cầu nằm ngoài thực đơn.
+            </div>
+          </div>
+        </div>
+
+        <div class="alert alert-info alert-soft flex items-start gap-3 p-4">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div>
+            <div class="font-bold text-sm">Rủi ro: Widget nặng làm giảm tốc độ tải trang trên di động</div>
+            <div class="text-xs mt-1 text-base-content/80">
+              <strong>Giải pháp:</strong> Code splitting với <code>React.lazy()</code>. Widget chỉ được tải sau khi MenuPage đã hoàn thành render khung nhìn chính, giữ điểm Lighthouse ≥ 90.
+            </div>
+          </div>
+        </div>
+
+        <!-- Risk 5: User Prompt Leaking & Data Exfiltration -->
+        <div class="alert alert-error alert-soft flex items-start gap-3 p-4 md:col-span-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+          <div>
+            <div class="font-bold text-sm text-error">Rủi ro: Khách cố tình hỏi bẫy nhằm khai thác thông tin người dùng khác & xâm nhập hệ thống (Jailbreak / Data Exfiltration / Prompt Leaking)</div>
+            <div class="text-xs mt-1.5 text-base-content/80 space-y-1.5">
+              <div>
+                <strong>1. Kiến trúc Zero-PII Context (AI không biết điều bí mật):</strong> Ngữ cảnh gửi cho Gemini <strong>tuyệt đối KHÔNG bao giờ chứa</strong> doanh thu quán, mật khẩu, database connection string, thông tin cá nhân (PII) hay lịch sử gọi món của các bàn khác. AI chỉ được cấp duy nhất: <code>{ menu, currentTableCart, tableNumber }</code>. Kẻ tấn công dù bẻ khóa (jailbreak) thành công cũng không thể đánh cắp thứ mà AI không hề có trong ngữ cảnh.
+              </div>
+              <div>
+                <strong>2. Regex Pre-filter chặn đứng từ Middleware:</strong> Bắt các cụm từ tấn công điển hình (<em>"ignore previous instructions"</em>, <em>"system prompt"</em>, <em>"show schema"</em>, <em>"SELECT * FROM"</em>) ngay tại Backend và ngắt kết nối lập tức, không gửi request tới Gemini.
+              </div>
+              <div>
+                <strong>3. Quy tắc Hardened Guardrail:</strong> System Prompt nghiêm cấm tuyệt đối việc thảo luận về chính trị, công nghệ, code backend, hoặc nội quy vận hành kỹ thuật của nhà hàng.
+              </div>
+              <div>
+                <strong>4. Room-level Socket Isolation:</strong> Sự kiện Socket chỉ broadcast riêng biệt trong room <code>table_{id}</code> của bàn đó, các bàn khác hoàn toàn cô lập, không thể nghe lén tin nhắn qua mạng.
+              </div>
+              <div>
+                <strong>5. Rate-limit & Tạm khóa phiên (Auto-ban):</strong> Nếu phát hiện cố tình injection/spam liên tiếp 3 lần, hệ thống tự động khóa tương tác của bàn đó trong 5 phút.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Phụ Lục Chuyên Đề Kỹ Thuật Chuyên Sâu (Deep-Dive Appendix) -->
+    <section class="space-y-6 pt-4 border-t-2 border-dashed border-base-content/20">
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="badge badge-neutral">Phụ Lục Kỹ Thuật</span>
+            <span class="text-xs text-base-content/60">Các phân tích cơ chế chuyên sâu</span>
+          </div>
+          <h3 class="text-2xl font-bold tracking-tight mt-1">Chuyên Đề Kỹ Thuật Chuyên Sâu (Deep-Dive)</h3>
+          <p class="text-sm text-base-content/70">
+            Chi tiết các giải pháp chống ảo giác dữ liệu và xử lý đồng thời khi upsell giỏ hàng.
+          </p>
+        </div>
+        <span class="badge badge-outline">2 Chuyên Đề Bổ Sung</span>
+      </div>
+
+      <!-- Chuyên đề 12.A: Anti-Hallucination -->
+      <div class="card card-border bg-gradient-to-br from-base-100 to-base-200 shadow-sm border-info/30 p-6 space-y-6">
+        <div class="flex items-start justify-between">
+          <div class="space-y-1">
+            <div class="flex items-center gap-2">
+              <span class="badge badge-info font-bold">Chuyên Đề 12.A</span>
+              <span class="text-xs text-base-content/60">Bảo Mật & Độ Tin Cậy</span>
+            </div>
+            <h4 class="text-xl font-bold tracking-tight">Cơ Chế Đảm Bảo AI Hiểu Đúng Database & Chống Tri Thức Ngoài (Anti-Hallucination)</h4>
+            <p class="text-sm text-base-content/70">
+              Làm thế nào để Gemini <strong>chỉ tư vấn đúng 100% món có trong quán</strong> và không bị ảnh hưởng bởi tri thức bên ngoài mà model đã học trước đó?
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-base-100 rounded-2xl p-4 border border-base-content/10 shadow-xs space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-info/20 text-info flex items-center justify-center font-bold text-sm">1</div>
+            <h5 class="font-bold text-sm">Context Injection (RAG Đóng)</h5>
+            <p class="text-xs text-base-content/70 leading-relaxed">
+              Gemini <strong>không tự nhớ database</strong> qua trọng số train. Mỗi lần khách gửi câu hỏi, Backend truy vấn Supabase/Redis và "bơm" toàn bộ danh mục món đang <code>is_available: true</code> (kèm giá, nguyên liệu, dị ứng) trực tiếp vào ngữ cảnh của request đó.
+            </p>
+          </div>
+
+          <div class="bg-base-100 rounded-2xl p-4 border border-base-content/10 shadow-xs space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-warning/20 text-warning flex items-center justify-center font-bold text-sm">2</div>
+            <h5 class="font-bold text-sm">Khóa Ràng Buộc "Thế Giới Đóng"</h5>
+            <p class="text-xs text-base-content/70 leading-relaxed">
+              System Prompt thiết lập quy tắc cưỡng chế (Hard Constraint): <em>"Bạn CHỈ ĐƯỢC gợi ý các món có tên nguyên văn trong JSON. TUYỆT ĐỐI KHÔNG dùng kiến thức ẩm thực bên ngoài để bịa ra món không có trong thực đơn quán."</em>
+            </p>
+          </div>
+
+          <div class="bg-base-100 rounded-2xl p-4 border border-base-content/10 shadow-xs space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-success/20 text-success flex items-center justify-center font-bold text-sm">3</div>
+            <h5 class="font-bold text-sm">Kiểm Tra Thực Thể 2 Chiều (Code Chặn)</h5>
+            <p class="text-xs text-base-content/70 leading-relaxed">
+              <strong>Không bao giờ tin tưởng 100% văn bản của AI:</strong> Backend sẽ parse tên món trong câu trả lời và đối chiếu cứng với ID thực tế trong Supabase. Nếu món không tồn tại trong DB, Frontend <strong>tuyệt đối không sinh nút bấm thêm vào giỏ</strong>.
+            </p>
+          </div>
+
+          <div class="bg-base-100 rounded-2xl p-4 border border-base-content/10 shadow-xs space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-error/20 text-error flex items-center justify-center font-bold text-sm">4</div>
+            <h5 class="font-bold text-sm">Fail-safe Dị Ứng & Dữ Liệu Khuyết</h5>
+            <p class="text-xs text-base-content/70 leading-relaxed">
+              Nếu trường <code>ingredients</code> hoặc <code>allergens</code> trong DB đang <code>NULL</code>, AI bắt buộc phản hồi: <em>"Món này chưa có dữ liệu nguyên liệu kiểm định trong hệ thống, xin vui lòng hỏi nhân viên phục vụ"</em> — không được tự đoán công thức.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chuyên đề 12.B: Upsell & Race Condition -->
+      <div class="card card-border bg-base-100 shadow-sm p-6 space-y-6 border-warning/30">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="badge badge-warning font-bold">Chuyên Đề 12.B</span>
+              <span class="text-xs text-base-content/60">State Concurrency tại CartPage</span>
+            </div>
+            <h4 class="text-xl font-bold tracking-tight mt-1">Kịch Bản Trigger Upsell & 5 Lớp Chống Race Condition</h4>
+            <p class="text-sm text-base-content/70">
+              Loại bỏ hoàn toàn xung đột trạng thái khi khách bấm tăng/giảm món liên tục hoặc khi mạng chập chờn.
+            </p>
+          </div>
+          <span class="badge badge-outline">Zero Race Condition</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-xs">
+          <div class="card card-border bg-base-100 p-3 space-y-1">
+            <div class="font-bold text-primary flex items-center gap-1"><span>1</span> Debounce 800ms</div>
+            <p class="text-base-content/70">Khi giỏ hàng thay đổi, frontend hoãn 800ms. Khách bấm liên tục sẽ reset bộ đếm, chỉ gửi 1 request khi khách đã dừng tay.</p>
+          </div>
+
+          <div class="card card-border bg-base-100 p-3 space-y-1">
+            <div class="font-bold text-secondary flex items-center gap-1"><span>2</span> AbortController</div>
+            <p class="text-base-content/70">Khi có thao tác mới, frontend hủy ngay (abort) request upsell cũ đang bay trên đường truyền, không để kết quả cũ quay về.</p>
+          </div>
+
+          <div class="card card-border bg-base-100 p-3 space-y-1">
+            <div class="font-bold text-accent flex items-center gap-1"><span>3</span> Cart Versioning</div>
+            <p class="text-base-content/70">Gửi kèm <code>cartVersion: N</code>. Nếu kết quả AI trả về có version cũ hơn giỏ hàng hiện tại ở client, client tự động hủy bỏ.</p>
+          </div>
+
+          <div class="card card-border bg-base-100 p-3 space-y-1">
+            <div class="font-bold text-warning flex items-center gap-1"><span>4</span> Client Exclude</div>
+            <p class="text-base-content/70">Lọc sạch trước khi render: <code>suggestions.filter(dish => !cart.some(c => c.id === dish.id))</code> đảm bảo không gợi ý món đã chọn.</p>
+          </div>
+
+          <div class="card card-border bg-base-100 p-3 space-y-1">
+            <div class="font-bold text-success flex items-center gap-1"><span>5</span> Cooldown 45s</div>
+            <p class="text-base-content/70">Sau khi hiển thị 1 gợi ý upsell, khóa trigger trong 45 giây để tránh làm phiền khi khách hàng đang chuẩn bị thanh toán.</p>
+          </div>
+        </div>
+
+        <!-- Upsell Business Rules -->
+        <div class="bg-base-200/50 rounded-xl p-4 border border-base-content/10">
+          <div class="font-bold text-xs mb-2 text-base-content">Quy Tắc Heuristics Gợi Ý Món Kèm Theo:</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="bg-base-100 p-2.5 rounded-lg border border-base-content/10">
+              <div class="font-semibold text-primary">1. Có món ăn nhưng CHƯA có nước</div>
+              <p class="text-base-content/60 mt-1">Aria ưu tiên gợi ý 1 loại trà/nước trái cây thanh nhiệt phù hợp vị món chính.</p>
+            </div>
+            <div class="bg-base-100 p-2.5 rounded-lg border border-base-content/10">
+              <div class="font-semibold text-secondary">2. Đã có món ăn + đồ uống</div>
+              <p class="text-base-content/60 mt-1">Aria gợi ý món tráng miệng thanh nhẹ ít ngọt (chè sen, kem, sữa chua trái cây).</p>
+            </div>
+            <div class="bg-base-100 p-2.5 rounded-lg border border-base-content/10">
+              <div class="font-semibold text-accent">3. Giỏ hàng đã đầy đủ combo</div>
+              <p class="text-base-content/60 mt-1">Hệ thống hoàn toàn im lặng, không spam pop-up để khách yên tâm tiến hành đặt bàn.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 13. Interactive Decision Form (Input Playbook) -->
+    <section id="decision-section" class="card card-border bg-base-100 shadow-md border-primary/30">
+      <div class="card-body p-6 sm:p-8 space-y-6">
+        <div class="border-b border-base-content/10 pb-4">
+          <div class="flex items-center gap-2">
+            <span class="badge badge-primary">Mục 13 • Phê Duyệt Thiết Kế</span>
+            <span class="text-xs text-base-content/60">Biểu mẫu xác nhận tương tác với AI Agent</span>
+          </div>
+          <h3 class="text-2xl font-black tracking-tight mt-1">Các Quyết Định Thiết Kế Đã Được Xác Nhận</h3>
+          <p class="text-sm text-base-content/70">
+            Trạng thái hiện tại: <strong>ĐÃ ĐƯỢC DUYỆT BỞI USER</strong>. Bạn có thể xem lại cấu hình đã chốt hoặc điều chỉnh thêm nếu cần.
+          </p>
+        </div>
+
+        <!-- Approval Confirmation Banner -->
+        <div class="alert alert-success alert-soft p-4 rounded-2xl flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-success/20 text-success flex items-center justify-center font-bold text-lg">✓</div>
+            <div>
+              <div class="font-bold text-sm text-success">Kế Hoạch Triển Khai Đã Được Phê Duyệt</div>
+              <div class="text-xs text-base-content/70">
+                <strong>Model:</strong> Gemini 1.5 Flash • <strong>Trigger:</strong> Click-only • <strong>Ngôn ngữ:</strong> Auto-detect • <strong>Menu Strategy:</strong> Lightweight 2-Stage RAG
+              </div>
+            </div>
+          </div>
+          <span class="badge badge-success font-semibold text-xs">Ready to Build</span>
+        </div>
+
+        <form id="proposal-feedback-form" onsubmit="handleFeedbackSubmit(event)" class="space-y-6">
+          
+          <!-- Question 1: AI Provider -->
+          <div class="space-y-2">
+            <label class="font-bold text-sm text-base-content flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs">1</span>
+              Mô hình AI dự kiến sử dụng cho giai đoạn MVP:
+            </label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-8">
+              <label class="label cursor-pointer justify-start gap-3 p-3 rounded-xl border border-primary bg-primary/5">
+                <input type="radio" name="ai_provider" value="gemini-1.5-flash" class="radio radio-primary" checked>
+                <div>
+                  <div class="font-bold text-xs">Google Gemini 1.5 Flash (Đã chọn ✅)</div>
+                  <div class="text-[11px] text-base-content/60">Siêu nhanh, chi phí ~$0.04/ngày, xử lý tiếng Việt rất tự nhiên</div>
+                </div>
+              </label>
+
+              <label class="label cursor-pointer justify-start gap-3 p-3 rounded-xl border border-base-content/10 hover:border-primary bg-base-200/50">
+                <input type="radio" name="ai_provider" value="openai-gpt-4o-mini" class="radio radio-primary">
+                <div>
+                  <div class="font-bold text-xs">OpenAI GPT-4o-mini</div>
+                  <div class="text-[11px] text-base-content/60">Chính xác cao, chi phí ~$0.08/ngày, cần OpenAI API Key</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Question 2: Auto Trigger Behavior -->
+          <div class="space-y-2">
+            <label class="font-bold text-sm text-base-content flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs">2</span>
+              Cơ chế mở Widget Aria trên màn hình MenuPage:
+            </label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-8">
+              <label class="label cursor-pointer justify-start gap-3 p-3 rounded-xl border border-base-content/10 hover:border-primary bg-base-200/50">
+                <input type="radio" name="trigger_mode" value="auto-5s" class="radio radio-primary">
+                <div>
+                  <div class="font-bold text-xs">Tự động bung lời chào sau 5 giây</div>
+                  <div class="text-[11px] text-base-content/60">Chủ động thu hút khách, kèm âm thanh nhẹ hoặc nhịp rung pulse</div>
+                </div>
+              </label>
+
+              <label class="label cursor-pointer justify-start gap-3 p-3 rounded-xl border border-primary bg-primary/5">
+                <input type="radio" name="trigger_mode" value="click-only" class="radio radio-primary" checked>
+                <div>
+                  <div class="font-bold text-xs">Chỉ mở khi khách chủ động click vào Bubble (Đã chọn ✅)</div>
+                  <div class="text-[11px] text-base-content/60">Tránh làm phiền những khách thích tự lướt thực đơn truyền thống</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Question 3: Language & Localization -->
+          <div class="space-y-2">
+            <label class="font-bold text-sm text-base-content flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center text-xs">3</span>
+              Ngôn ngữ mặc định cho Trợ lý Aria:
+            </label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pl-8">
+              <label class="label cursor-pointer justify-start gap-3 p-3 rounded-xl border border-base-content/10 hover:border-primary bg-base-200/50">
+                <input type="radio" name="language_mode" value="auto-detect" class="radio radio-primary" checked>
+                <div>
+                  <div class="font-bold text-xs">Tự động theo i18n & ngôn ngữ khách nhập (Khuyến nghị)</div>
+                  <div class="text-[11px] text-base-content/60">Hệ thống đã có sẵn <code>i18n.js</code>, Aria tự đối thoại theo ngôn ngữ của khách</div>
+                </div>
+              </label>
+
+              <label class="label cursor-pointer justify-start gap-3 p-3 rounded-xl border border-base-content/10 hover:border-primary bg-base-200/50">
+                <input type="radio" name="language_mode" value="vietnamese-fixed" class="radio radio-primary">
+                <div>
+                  <div class="font-bold text-xs">Cố định Tiếng Việt cho giai đoạn 1</div>
+                  <div class="text-[11px] text-base-content/60">Tối ưu prompt đơn giản, ít phân mảnh kịch bản tư vấn</div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Question 4: Additional Notes / Custom Feedback -->
+          <div class="space-y-2 pl-8">
+            <label class="font-bold text-xs text-base-content">
+              Yêu cầu hoặc dặn dò bổ sung (Tùy chọn):
+            </label>
+            <textarea name="custom_notes" rows="2" placeholder="Ví dụ: Ưu tiên làm phần tư vấn dị ứng trước, hoặc tích hợp thêm âm thanh thông báo..." class="textarea textarea-bordered w-full text-xs"></textarea>
+          </div>
+
+          <!-- Submit Button & Feedback Status -->
+          <div class="pt-4 border-t border-base-content/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div id="feedback-status" class="text-xs text-base-content/60">
+              Chọn các mục trên và bấm Gửi để duyệt kế hoạch.
+            </div>
+            <div class="flex gap-3">
+              <button type="button" onclick="window.print()" class="btn btn-sm btn-ghost">
+                In Bản Kế Hoạch
+              </button>
+              <button type="submit" class="btn btn-sm btn-primary shadow-sm px-6">
+                🚀 Gửi Phản Hồi Cho Agent
+              </button>
+            </div>
+          </div>
+
+        </form>
+
+      </div>
+    </section>
+
+    <!-- 14. Definition of Done Checklist -->
+    <section class="card card-border bg-base-100 shadow-sm p-6 space-y-4">
+      <div class="flex items-center gap-2">
+        <span class="badge badge-primary">Mục 14 • Nghiệm Thu</span>
+        <span class="text-xs text-base-content/60">Definition of Done (DoD)</span>
+      </div>
+      <h4 class="font-bold text-lg">Tiêu Chí Hoàn Thành (Definition of Done)</h4>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked disabled class="checkbox checkbox-xs checkbox-primary">
+          <span>Khách quét QR → Aria phản hồi chào hỏi trong vòng <strong>2 giây</strong></span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked disabled class="checkbox checkbox-xs checkbox-primary">
+          <span>Khách nhập yêu cầu → first token xuất hiện trong <strong>&lt; 1.5 giây</strong></span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked disabled class="checkbox checkbox-xs checkbox-primary">
+          <span>Gợi ý món → bấm [+ Thêm vào giỏ] → cập nhật ngay vào CartPage</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked disabled class="checkbox checkbox-xs checkbox-primary">
+          <span>Hỏi dị ứng → nhận thông tin chính xác hoặc kèm disclaimer y tế rõ ràng</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked disabled class="checkbox checkbox-xs checkbox-primary">
+          <span>Widget không làm giảm điểm hiệu năng Lighthouse (Target ≥ 90)</span>
+        </label>
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked disabled class="checkbox checkbox-xs checkbox-primary">
+          <span>Rate limiting hoạt động chuẩn xác (10 requests / phút / session)</span>
+        </label>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Script to queue and send feedback to Lavish Agent -->
+  <script>
+    function handleFeedbackSubmit(event) {
+      event.preventDefault();
+      const form = event.currentTarget;
+      const formData = new FormData(form);
+      
+      const aiProvider = formData.get('ai_provider');
+      const triggerMode = formData.get('trigger_mode');
+      const languageMode = formData.get('language_mode');
+      const customNotes = formData.get('custom_notes') || 'Không có';
+
+      const promptText = `Tôi đã duyệt kế hoạch AI Consultant Aria với các lựa chọn sau:\n` +
+        `- AI Provider: ${aiProvider}\n` +
+        `- Trigger Mode: ${triggerMode}\n` +
+        `- Ngôn ngữ: ${languageMode}\n` +
+        `- Ghi chú thêm: ${customNotes}\n\n` +
+        `Hãy bắt đầu triển khai theo cấu trúc này!`;
+
+      const statusEl = document.getElementById('feedback-status');
+      
+      if (window.lavish && typeof window.lavish.queuePrompt === 'function') {
+        window.lavish.queuePrompt(promptText, {
+          tag: 'choice',
+          text: `Duyệt Proposal: ${aiProvider} | ${triggerMode}`,
+          element: form,
+          data: { aiProvider, triggerMode, languageMode, customNotes }
+        });
+        
+        if (typeof window.lavish.sendQueuedPrompts === 'function') {
+          window.lavish.sendQueuedPrompts();
+        }
+        
+        statusEl.innerHTML = `<span class="text-success font-bold">✓ Đã gửi phản hồi thành công đến AI Agent!</span>`;
+      } else {
+        // Fallback when opened without lavish runner
+        statusEl.innerHTML = `<span class="text-info font-bold">Đã lưu lựa chọn cục bộ: ${aiProvider}, ${triggerMode}. (Mở qua lavish-axi để gửi tự động)</span>`;
+        console.log('User Feedback Prompt:', promptText);
+      }
+    }
+  </script>
+
+</body>
+</html>
