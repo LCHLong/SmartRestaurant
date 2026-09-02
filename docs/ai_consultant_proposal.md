@@ -228,6 +228,26 @@ Sau khi Gemini trả về văn bản, backend cần thực hiện thêm bước:
 
 > Nếu tên món không khớp → không hiển thị nút thêm, chỉ hiển thị văn bản thuần.
 
+### 5.6 [Bổ sung thêm] Kiến trúc Lightweight RAG (2-Stage Retrieval) & Fallback 3 Tầng
+
+Nhằm giải quyết nguy cơ đội chi phí token và tăng độ trễ khi nhà hàng có thực đơn lớn (80–200 món), hệ thống áp dụng kỹ thuật RAG 2 giai đoạn tinh gọn:
+
+| Tiêu chí so sánh | Cách truyền thống (Bơm toàn bộ Menu) | Lightweight RAG (2-Stage) |
+|---|---|---|
+| **Token Input / Request** | ~2.500 – 3.500 token | **~200 – 350 token (-85%)** |
+| **Thời gian phản hồi (TTFT)** | ~1.6 – 2.2 giây | **< 0.8 giây (-50%)** |
+| **Chi phí ước tính / 100 chat** | ~$0.04 (1.000đ/ngày) | **~$0.008 (< 250đ/ngày)** |
+| **Độ tập trung (Attention)** | Dễ loãng ngữ cảnh khi menu dài | **Tập trung 100% vào món liên quan** |
+
+**Cơ chế vận hành:**
+- **Giai đoạn 1 (Lọc nhanh tại Database):** Khi khách gửi yêu cầu (ví dụ: *"Có món lẩu bò nào cay không?"*), Backend truy vấn sơ bộ qua Category/Tags hoặc hàm `match_menu_items()` (pgvector trong Supabase) để rút ra **Top 6–8 món** khớp nhất.
+- **Giai đoạn 2 (Bơm vào Context Gemini):** Thay vì gửi cả menu 100 món, Backend chỉ nhúng 6–8 món này kèm giỏ hàng hiện tại vào dynamic prompt.
+
+**Cơ chế Dự phòng Fallback 3 Tầng (Khi RAG không tìm ra món phù hợp hoặc kết quả rỗng):**
+1. **Tầng 1 - Nới lỏng ràng buộc (Relax Filters):** Nếu bộ lọc quá chặt (ví dụ: "món chay không nấm không đậu phụ < 30k" trả về 0 món), Backend tự động gỡ bỏ các tiêu chí phụ, giữ Category chính để lấy danh sách món rộng hơn.
+2. **Tầng 2 - Best-Seller & Trending Fallback (Redis):** Nếu câu hỏi quá xa lạ hoặc ngoài tầm, Backend tự động lấy Top 5 món Best-Seller & Trending trong Redis nạp vào prompt để AI thành thật: *"Dạ quán chưa có món đúng 100% yêu cầu, nhưng Aria xin gợi ý các món đang được yêu thích nhất hôm nay..."*
+3. **Tầng 3 - Human Handoff (Chuyển giao nhân viên):** Nếu khách có yêu cầu đặc biệt ngoài khả năng của AI, Aria phản hồi lịch sự kèm nút bấm **[🔔 Gọi nhân viên bàn]** để phục vụ hỗ trợ trực tiếp tại bàn.
+
 ---
 
 ## 6. Cấu trúc Các Thành phần Cần Xây dựng
@@ -369,6 +389,7 @@ Món vào giỏ → Toast notification → Badge giỏ hàng +1
 | **Streaming** | Text xuất hiện dần, con trỏ nhấp nháy |
 | **Suggestion** | Card món mini với nút [+ Thêm] |
 | **Minimized** | Thu về bubble, badge số tin nhắn chưa đọc |
+| **Fallback / Error** | Hiển thị thông báo thân thiện khi mất kết nối + nút "Gọi phục vụ bàn" |
 
 ---
 
@@ -421,24 +442,47 @@ Món vào giỏ → Toast notification → Badge giỏ hàng +1
 | Rủi ro | Mức độ | Biện pháp giảm thiểu |
 |--------|--------|----------------------|
 | AI gợi ý sai tên/giá món | 🔴 Cao | Validate output — chỉ extract món có trong DB; không tin tuyệt đối văn bản AI |
-| Latency cao (> 3 giây) | 🟡 Trung bình | Streaming response + skeleton loading; Redis cache menu |
+| Latency cao (> 3 giây) | 🟡 Trung bình | Streaming response + skeleton loading; Redis cache menu; Lightweight 2-Stage RAG |
 | Prompt injection từ khách | 🟡 Trung bình | Sanitize input; system prompt có guardrail rõ ràng |
-| Chi phí API vượt ngân sách | 🟢 Thấp | Rate limit per session; max token per request; monitor monthly |
+| Chi phí API vượt ngân sách | 🟢 Thấp | Rate limit per session; max token per request; monitor monthly; 2-Stage RAG giảm 85% token |
 | Thông tin dị ứng không chính xác | 🔴 Cao | Luôn thêm disclaimer; thiếu data → escalate sang nhân viên |
 | Widget ảnh hưởng performance trang | 🟢 Thấp | Lazy load widget; code splitting; Lighthouse target ≥ 90 |
+| Khai thác dữ liệu & Prompt Leaking (Jailbreak) | 🔴 Cao | Zero-PII Context (không cấp thông tin nhạy cảm cho AI) + Regex Pre-filter tại middleware + Hardened Guardrails + Cô lập Socket room theo bàn + Rate-limit auto-ban 5 phút |
+
+### Phụ Lục Kỹ Thuật Chuyên Sâu
+
+#### Chuyên đề 12.A: Cơ Chế Đảm Bảo AI Hiểu Đúng Database & Chống Tri Thức Ngoài (Anti-Hallucination)
+Nhằm đảm bảo Gemini **chỉ tư vấn đúng 100% món có trong quán** mà không bị ảnh hưởng bởi tri thức bên ngoài:
+1. **Context Injection (RAG Đóng):** Gemini không tự nhớ menu qua trọng số pre-train. Mỗi request, Backend truy vấn Supabase/Redis và bơm danh mục món đang `is_available: true` vào prompt động.
+2. **Khóa Ràng Buộc "Thế Giới Đóng" (System Prompt):** Quy tắc cưỡng chế: *"Bạn CHỈ ĐƯỢC gợi ý các món có tên nguyên văn trong JSON. TUYỆT ĐỐI KHÔNG dùng kiến thức ẩm thực bên ngoài để bịa ra món không có trong thực đơn quán."*
+3. **Kiểm Tra Thực Thể 2 Chiều (Code Chặn):** Backend regex tên món trong câu trả lời và đối chiếu ID thực tế trong Supabase. Nếu không khớp chính xác 100%, Frontend **tuyệt đối không sinh nút bấm [+ Thêm vào giỏ]**.
+4. **Fail-safe Dị Ứng & Dữ Liệu Khuyết:** Nếu `ingredients` hoặc `allergens` trong DB đang `NULL`, AI bắt buộc phản hồi: *"Món này chưa có dữ liệu nguyên liệu kiểm định trong hệ thống, xin vui lòng hỏi nhân viên phục vụ"*, không được tự phỏng đoán công thức.
+
+#### Chuyên đề 12.B: Kịch Bản Trigger Upsell & 5 Lớp Chống Race Condition Tại CartPage
+Nhằm loại bỏ hoàn toàn xung đột trạng thái khi khách hàng thao tác tăng/giảm món liên tục trên giỏ hàng:
+1. **Debounce 800ms:** Khi giỏ hàng thay đổi, frontend hoãn 800ms. Thao tác liên tục sẽ reset bộ đếm, chỉ gửi request khi khách đã dừng tay.
+2. **AbortController:** Hủy ngay request upsell cũ đang bay trên đường truyền khi có thao tác giỏ hàng mới.
+3. **Cart Versioning (`cartVersion: N`):** Gửi kèm version giỏ hàng. Nếu kết quả AI trả về có version cũ hơn giỏ hiện tại, client tự động drop payload.
+4. **Client Exclude Filter:** Lọc sạch trước khi render: `suggestions.filter(dish => !cart.some(c => c.id === dish.id))` tránh gợi ý món khách vừa thêm.
+5. **Cooldown 45s:** Khóa trigger trong 45 giây sau mỗi lần hiển thị upsell để không làm phiền khách.
+6. **Quy Tắc Heuristics:**
+   - *Có món ăn nhưng CHƯA có nước:* Ưu tiên gợi ý 1 loại trà/nước trái cây thanh nhiệt.
+   - *Đã có món ăn + nước:* Gợi ý món tráng miệng thanh nhẹ ít ngọt.
+   - *Đã đủ combo:* Giữ im lặng, không spam pop-up.
 
 ---
 
-## 13. Câu hỏi Cần Xác nhận
+## 13. Các Quyết Định Thiết Kế Đã Được Duyệt
 
-> [!IMPORTANT]
-> Các điểm sau cần được xác nhận trước khi bắt đầu triển khai:
+Toàn bộ các phương án kỹ thuật cốt lõi đã được thống nhất và phê duyệt:
 
-1. **API Provider**: Dùng **Gemini** (Google) hay **OpenAI** (GPT-4o-mini)? Đã có API key chưa?
-2. **Multi-tenant**: Hệ thống có hỗ trợ nhiều nhà hàng riêng biệt không? Nếu có, menu cache cần scope theo `restaurant_id`.
-3. **Schema hiện tại**: Bảng `menu_items` trong Supabase đã có cột `ingredients` / `allergens` chưa?
-4. **Ngôn ngữ mặc định**: Widget dùng Tiếng Việt mặc định hay tự động theo i18n đã cấu hình (hệ thống đang có `i18n.js`)?
-5. **Auto-trigger**: Aria tự động mở sau 5 giây hay chờ khách chủ động click vào bubble?
+| Hạng mục quyết định | Lựa chọn đã chốt | Rationale & Ghi chú |
+|---|---|---|
+| **AI Provider** | **Google Gemini 1.5 Flash** | Phản hồi siêu nhanh (TTFT < 1.2s), chi phí ~$0.04/ngày, khả năng xử lý tiếng Việt ẩm thực tự nhiên. |
+| **Cơ chế Trigger Widget** | **Click-only** | Widget hiển thị dưới dạng Floating Bubble nhỏ gọn (glassmorphism), chỉ mở khi khách chủ động click để không làm gián đoạn trải nghiệm xem menu truyền thống. |
+| **Ngôn ngữ Tư vấn** | **Tự động theo i18n & ngôn ngữ khách nhập (`auto-detect`)** | Tận dụng hạ tầng `i18n.js` có sẵn của dự án, Aria tự động chào và phản hồi song ngữ Anh - Việt linh hoạt. |
+| **Chiến lược Menu Input** | **Lightweight 2-Stage RAG + Redis Cache** | Rút gọn từ 3.000 xuống ~250 token/request (tiết kiệm 85% chi phí), kết hợp cơ chế Fallback 3 Tầng khi không tìm thấy món. |
+| **Database Migration** | **Bổ sung 6 cột `NULLable` vào `menu_items`** | Thêm `ingredients`, `allergens`, `spice_level`, `calories`, `ai_description`, `is_trending` với giá trị mặc định `NULL`, an toàn 100% không ảnh hưởng hệ thống đang chạy. |
 
 ---
 
