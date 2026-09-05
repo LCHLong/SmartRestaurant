@@ -3,5 +3,6 @@ dist/
 build/
 .env
 .DS_Store
-.vscode/tree.txt
+.vscode/
 ACCOUNTS_NOTE.md
+.lavish/
