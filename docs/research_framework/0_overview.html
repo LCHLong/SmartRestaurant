@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tìm hiểu 3 framework Voice AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2430;
+    --ink-soft:#4a5568;
+    --paper:#f6f4ef;
+    --panel:#ffffff;
+    --line:#dcd6c8;
+    --wave:#3a5a78;      /* deep audio-blue accent */
+    --wave-soft:#e7edf2;
+    --pulse:#e0a72e;     /* recording-level amber */
+    --pulse-soft:#fbf1dc;
+    --good:#3f7a5c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.6;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:0 24px 80px;}
+
+  /* ---------- Waveform hero ---------- */
+  header.hero{
+    padding:56px 24px 40px;
+    border-bottom:1px solid var(--line);
+  }
+  .bars{
+    display:flex;
+    align-items:flex-end;
+    gap:4px;
+    height:40px;
+    margin-bottom:22px;
+  }
+  .bars span{
+    display:block;
+    width:5px;
+    background:var(--wave);
+    border-radius:2px;
+    opacity:.85;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:2.5rem;
+    line-height:1.15;
+    margin:0 0 12px;
+    max-width:600px;
+  }
+  .hero p{
+    max-width:520px;
+    color:var(--ink-soft);
+    font-size:1.05rem;
+    margin:0;
+  }
+
+  main{padding-top:36px;}
+
+  h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.5rem;
+    margin:52px 0 6px;
+    padding-left:14px;
+    border-left:3px solid var(--pulse);
+  }
+  h2 + .lede{
+    color:var(--ink-soft);
+    margin:0 0 22px;
+    padding-left:17px;
+    font-size:.98rem;
+  }
+  h3{
+    font-family:'Fraunces', serif;
+    font-size:1.15rem;
+    font-weight:600;
+    margin:0 0 6px;
+  }
+  p{margin:0 0 14px;}
+
+  /* ---------- Glossary ---------- */
+  .glossary{
+    background:var(--wave-soft);
+    border-radius:10px;
+    padding:20px 24px;
+    margin:18px 0 8px;
+  }
+  .glossary h3{color:var(--wave); margin-bottom:12px; font-size:1.05rem;}
+  .glossary dl{margin:0; display:grid; gap:10px;}
+  .glossary dt{font-weight:600; color:var(--ink);}
+  .glossary dd{margin:2px 0 0; color:var(--ink-soft); font-size:.94rem;}
+
+  /* ---------- Framework cards ---------- */
+  .fw-card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:24px 26px;
+    margin-bottom:18px;
+  }
+  .fw-card .tag{
+    display:inline-block;
+    font-size:.78rem;
+    font-weight:600;
+    color:var(--wave);
+    background:var(--wave-soft);
+    padding:3px 10px;
+    border-radius:100px;
+    margin-bottom:10px;
+  }
+  .fw-card ul{margin:10px 0 0; padding-left:20px;}
+  .fw-card li{margin-bottom:6px; color:var(--ink-soft);}
+  .fw-card li b{color:var(--ink); font-weight:600;}
+  .best-for{
+    margin-top:14px;
+    padding:10px 14px;
+    background:var(--pulse-soft);
+    border-radius:8px;
+    font-size:.92rem;
+  }
+  .best-for b{color:#8a6113;}
+
+  /* ---------- Comparison table ---------- */
+  table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:.92rem;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  th,td{
+    padding:12px 14px;
+    text-align:left;
+    border-bottom:1px solid var(--line);
+    vertical-align:top;
+  }
+  th{
+    background:var(--wave-soft);
+    color:var(--wave);
+    font-weight:600;
+    font-size:.85rem;
+  }
+  tr:last-child td{border-bottom:none;}
+  td:first-child{font-weight:600; white-space:nowrap;}
+
+  /* ---------- Plan tabs ---------- */
+  .tabs{display:flex; gap:8px; margin:18px 0 20px;}
+  .tab-btn{
+    font-family:inherit;
+    font-size:.92rem;
+    font-weight:600;
+    padding:9px 18px;
+    border-radius:100px;
+    border:1px solid var(--line);
+    background:var(--panel);
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .tab-btn.active{
+    background:var(--wave);
+    border-color:var(--wave);
+    color:#fff;
+  }
+  .plan{display:none;}
+  .plan.active{display:block;}
+
+  .step{
+    display:flex;
+    gap:16px;
+    padding:16px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .step:last-child{border-bottom:none;}
+  .step .time{
+    flex:0 0 92px;
+    font-weight:600;
+    color:var(--wave);
+    font-size:.9rem;
+    padding-top:2px;
+  }
+  .step .content h4{
+    margin:0 0 4px;
+    font-size:.98rem;
+    font-weight:600;
+  }
+  .step .content p{
+    margin:0;
+    color:var(--ink-soft);
+    font-size:.92rem;
+  }
+  .step .content .goal{
+    margin-top:6px;
+    font-size:.85rem;
+    color:var(--good);
+  }
+  .step .content .goal::before{content:"✓ Mục tiêu: ";font-weight:600;}
+
+  /* ---------- Questions ---------- */
+  .qlist{list-style:none; margin:0; padding:0;}
+  .qlist li{
+    display:flex;
+    gap:12px;
+    padding:12px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .qlist li:last-child{border-bottom:none;}
+  .qnum{
+    flex:0 0 26px;
+    height:26px;
+    border-radius:50%;
+    background:var(--pulse);
+    color:#fff;
+    font-size:.82rem;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  footer{
+    margin-top:60px;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    color:var(--ink-soft);
+    font-size:.85rem;
+  }
+  footer a{color:var(--wave);}
+  footer ul{padding-left:18px; margin:8px 0 0;}
+
+  @media (max-width:560px){
+    h1{font-size:2rem;}
+    .fw-card{padding:18px;}
+    .step{flex-direction:column; gap:4px;}
+    .step .time{padding-top:0;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap" style="padding:0;">
+    <div class="bars" id="bars"></div>
+    <h1>Bắt đầu với Voice AI: Pipecat, LiveKit, TEN</h1>
+    <p>Một bản hướng dẫn dễ hiểu, không cần biết trước thuật ngữ chuyên ngành — để bạn nắm được 3 công cụ dùng xây trợ lý AI biết nói chuyện, trong 2–4 giờ.</p>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <h2>Trước tiên: vài từ hay gặp</h2>
+  <p class="lede">Đọc phần này trước — các mục sau sẽ dùng lại những từ này mà không giải thích lại.</p>
+  <div class="glossary">
+    <h3>Từ điển nhanh</h3>
+    <dl>
+      <div>
+        <dt>Voice AI agent</dt>
+        <dd>Một chương trình AI có thể nghe bạn nói, hiểu, và trả lời lại bằng giọng nói — giống như gọi điện cho một trợ lý ảo biết suy nghĩ.</dd>
+      </div>
+      <div>
+        <dt>STT → LLM → TTS</dt>
+        <dd>Ba bước để máy "nghe hiểu và nói lại": STT = biến giọng nói thành chữ; LLM = "bộ não" xử lý và nghĩ ra câu trả lời (giống ChatGPT); TTS = biến chữ trả lời thành giọng nói.</dd>
+      </div>
+      <div>
+        <dt>Pipeline (dây chuyền xử lý)</dt>
+        <dd>Giống dây chuyền lắp ráp trong nhà máy: âm thanh đi qua từng trạm (nghe → hiểu → nghĩ → nói) theo thứ tự, mỗi trạm làm một việc.</dd>
+      </div>
+      <div>
+        <dt>WebRTC</dt>
+        <dd>Công nghệ truyền âm thanh/video qua mạng gần như tức thời — chính là công nghệ đứng sau Zoom, Google Meet.</dd>
+      </div>
+      <div>
+        <dt>Room / participant (phòng / người tham gia)</dt>
+        <dd>Một số framework coi AI như "một người tham gia" bước vào "phòng họp ảo" giống người thật, cùng nói chuyện với người dùng.</dd>
+      </div>
+      <div>
+        <dt>Self-host vs. Cloud</dt>
+        <dd>Self-host = bạn tự chạy trên máy chủ của mình. Cloud = dùng dịch vụ có sẵn của nhà cung cấp, không cần tự lo hạ tầng.</dd>
+      </div>
+    </dl>
+  </div>
+
+  <h2>3 framework, hiểu trong 1 phút mỗi cái</h2>
+  <p class="lede">Cả ba đều dùng để xây trợ lý AI nói chuyện được — khác nhau ở cách "lắp ráp" các bước nghe-nghĩ-nói.</p>
+
+  <div class="fw-card">
+    <span class="tag">Pipecat</span>
+    <h3>Giống một dây chuyền lắp ráp gọn nhẹ</h3>
+    <p>Bạn nối các "trạm xử lý" lại với nhau: nghe → hiểu → nghĩ → nói. Nhẹ, dễ chạy thử trên máy cá nhân trước, muốn đưa lên đâu cũng được (không bị buộc phải dùng dịch vụ của một hãng cụ thể).</p>
+    <ul>
+      <li><b>Ai làm ra:</b> công ty Daily.co, mã nguồn mở miễn phí</li>
+      <li><b>Ngôn ngữ code:</b> chủ yếu Python</li>
+      <li><b>Điểm mạnh:</b> tài liệu dễ đọc, cộng đồng đông, khởi động nhanh</li>
+    </ul>
+    <div class="best-for"><b>Hợp nhất khi:</b> bạn muốn dựng thử nhanh, tự chủ nơi triển khai, không muốn phụ thuộc một nhà cung cấp cụ thể.</div>
+  </div>
+
+  <div class="fw-card">
+    <span class="tag">LiveKit Agents</span>
+    <h3>Giống AI "bước vào phòng họp" cùng người dùng</h3>
+    <p>AI được coi như một người tham gia thật sự trong một "phòng họp ảo" (dùng công nghệ WebRTC — giống Zoom). Framework này vốn được xây trên hạ tầng gọi video/audio thật sự bền vững, nên rất mạnh khi cần nhiều người tham gia cùng lúc.</p>
+    <ul>
+      <li><b>Ai làm ra:</b> công ty LiveKit</li>
+      <li><b>Ngôn ngữ code:</b> Python hoặc Node.js</li>
+      <li><b>Điểm mạnh:</b> hạ tầng ổn định, dễ mở rộng khi có nhiều người dùng cùng lúc, có dịch vụ đám mây sẵn dùng ngay</li>
+    </ul>
+    <div class="best-for"><b>Hợp nhất khi:</b> ứng dụng cần nhiều người/nhiều phiên nói chuyện cùng lúc ở quy mô lớn, cần hạ tầng thật sự đáng tin cậy.</div>
+  </div>
+
+  <div class="fw-card">
+    <span class="tag">TEN Framework</span>
+    <h3>Giống lắp ráp bằng sơ đồ khối, kéo-thả được</h3>
+    <p>Thay vì viết code nối từng bước, bạn vẽ một sơ đồ: khối này nối khối kia (nghe, nói, nhìn hình ảnh, nhớ...). Có cả công cụ kéo-thả không cần viết code. Mạnh nhất trong 3 framework về việc xử lý cùng lúc giọng nói + hình ảnh + video (avatar biết cử động môi theo lời nói).</p>
+    <ul>
+      <li><b>Ai làm ra:</b> công ty Agora</li>
+      <li><b>Ngôn ngữ code:</b> nhiều ngôn ngữ (C++, Go, Python...)</li>
+      <li><b>Điểm mạnh:</b> xử lý đa phương tiện (giọng nói + hình ảnh + video cùng lúc), có công cụ không-cần-code</li>
+    </ul>
+    <div class="best-for"><b>Hợp nhất khi:</b> bạn cần AI vừa nói chuyện vừa hiện hình (avatar), hoặc kết hợp giọng nói với hình ảnh/video.</div>
+  </div>
+
+  <h2>So sánh nhanh</h2>
+  <p class="lede">Nhìn lướt để thấy khác biệt cốt lõi.</p>
+  <table>
+    <tr><th>Tiêu chí</th><th>Pipecat</th><th>LiveKit Agents</th><th>TEN Framework</th></tr>
+    <tr><td>Cách "lắp ráp"</td><td>Dây chuyền nối tiếp</td><td>AI vào "phòng họp ảo"</td><td>Sơ đồ khối, kéo-thả</td></tr>
+    <tr><td>Ngôn ngữ chính</td><td>Python</td><td>Python / Node.js</td><td>C++, Go, Python...</td></tr>
+    <tr><td>Có bị buộc theo 1 hãng?</td><td>Không, khá tự do</td><td>Gắn với hạ tầng LiveKit</td><td>Gắn với hệ sinh thái Agora</td></tr>
+    <tr><td>Thế mạnh riêng</td><td>Nhẹ, dễ thử nhanh</td><td>Ổn định khi nhiều người dùng cùng lúc</td><td>Giọng nói + hình ảnh + avatar</td></tr>
+    <tr><td>Tài liệu / cộng đồng</td><td>Đầy đủ, lớn</td><td>Đầy đủ, lớn</td><td>Còn mới hơn, đang phát triển</td></tr>
+  </table>
+
+  <h2>Kế hoạch học theo thời gian bạn có</h2>
+  <p class="lede">Chọn phương án phù hợp với quỹ thời gian của bạn.</p>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-plan="p2">Tôi có 2 giờ</button>
+    <button class="tab-btn" data-plan="p4">Tôi có 4 giờ</button>
+  </div>
+
+  <div class="plan active" id="p2">
+    <div class="step">
+      <div class="time">0:00–0:30</div>
+      <div class="content">
+        <h4>Đọc phần giới thiệu chính thức của cả 3</h4>
+        <p>Không cần đọc kỹ — chỉ đọc phần "Overview" trên trang chủ tài liệu của mỗi framework.</p>
+        <p class="goal">Nắm được framework nào "lắp ráp" theo cách nào (dây chuyền / phòng họp / sơ đồ khối).</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="time">0:30–0:50</div>
+      <div class="content">
+        <h4>Xem 1 đoạn code mẫu của mỗi framework (không cần chạy)</h4>
+        <p>Tìm đoạn code có 3 bước nghe → hiểu → nói trong ví dụ mẫu trên GitHub của mỗi framework.</p>
+        <p class="goal">Thấy được sự khác nhau ở mức code thật, không chỉ lý thuyết.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="time">0:50–1:20</div>
+      <div class="content">
+        <h4>Tự lập bảng so sánh theo bài toán của bạn</h4>
+        <p>Dùng bảng so sánh ở trên làm khung, thêm cột "bài toán của tôi cần gì" để đối chiếu.</p>
+        <p class="goal">Có bảng so sánh cá nhân hóa, không chỉ so sánh chung chung.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="time">1:20–1:45</div>
+      <div class="content">
+        <h4>Đọc thêm phần "nhiều AI phối hợp cùng lúc"</h4>
+        <p>Mỗi framework có tài liệu riêng về việc ghép nhiều "trợ lý AI" làm việc cùng nhau — đọc lướt phần này.</p>
+        <p class="goal">Biết framework nào dễ mở rộng nếu sau này cần nhiều AI hơn.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="time">1:45–2:00</div>
+      <div class="content">
+        <h4>Chốt lựa chọn</h4>
+        <p>Viết 2–3 câu: chọn framework nào và lý do.</p>
+        <p class="goal">Có quyết định rõ ràng, sẵn sàng bắt tay vào làm.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="plan" id="p4">
+    <div class="step">
+      <div class="time">0:00–0:30</div>
+      <div class="content">
+        <h4>Đọc nhanh phần giới thiệu của cả 3 (rút gọn)</h4>
+        <p>Giống bước đầu của phương án 2 giờ, nhưng đọc nhanh hơn để dành thời gian thực hành.</p>
+        <p class="goal">Nắm ý chính về cách "lắp ráp" của từng framework.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="time">0:30–1:30</div>
+      <div class="content">
+        <h4>Tự chạy thử Pipecat</h4>
+        <p>Cài công cụ dòng lệnh của Pipecat, làm theo hướng dẫn "bắt đầu nhanh" để dựng 1 trợ lý giọng nói đơn giản chạy trên máy bạn.</p>
+        <p class="goal">Trải nghiệm thật sự cách dây chuyền xử lý hoạt động.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="time">1:30–2:30</div>
+      <div class="content">
+        <h4>Tự chạy thử LiveKit Agents</h4>
+        <p>Làm theo hướng dẫn "bắt đầu nhanh" của LiveKit (thường mất dưới 10 phút để có bản chạy đầu tiên) để dựng 1 trợ lý giọng nói tương tự.</p>
+        <p class="goal">So sánh trực tiếp cảm giác lập trình giữa Pipecat và LiveKit.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="time">2:30–3:15</div>
+      <div class="content">
+        <h4>Đọc kỹ code mẫu của TEN</h4>
+        <p>TEN cần cài nhiều thành phần hơn nên có thể chỉ đọc code mẫu thay vì tự chạy. Nếu còn thời gian, thử công cụ kéo-thả (không cần viết code) của TEN.</p>
+        <p class="goal">Hiểu cách tư duy "sơ đồ khối" qua ví dụ thực tế.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="time">3:15–3:45</div>
+      <div class="content">
+        <h4>Thử phác thảo bài toán thực tế của bạn bằng cả 3 cách tư duy</h4>
+        <p>Viết ra giấy: nếu dùng Pipecat thì bài toán của bạn trông như thế nào, dùng LiveKit thì sao, dùng TEN thì sao.</p>
+        <p class="goal">Kiểm chứng framework nào "vừa vặn" tự nhiên nhất với bài toán của bạn.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="time">3:45–4:00</div>
+      <div class="content">
+        <h4>Chốt lựa chọn và ghi chú rủi ro</h4>
+        <p>Viết kết luận kèm 1–2 điều cần theo dõi thêm (ví dụ: chi phí, độ ổn định khi mở rộng).</p>
+        <p class="goal">Quyết định có căn cứ, sẵn sàng trình bày cho người khác.</p>
+      </div>
+    </div>
+  </div>
+
+  <h2>Câu hỏi nên tự trả lời được sau khi học xong</h2>
+  <ul class="qlist">
+    <li><span class="qnum">1</span><span>Bài toán của tôi có cần AI hiện hình (avatar, video) cùng lúc với nói chuyện không?</span></li>
+    <li><span class="qnum">2</span><span>Bài toán có cần nhiều người dùng nói chuyện với AI cùng lúc, ở quy mô lớn không?</span></li>
+    <li><span class="qnum">3</span><span>Tôi có muốn tự chủ hoàn toàn nơi triển khai, không phụ thuộc một hãng cụ thể không?</span></li>
+    <li><span class="qnum">4</span><span>Framework nào tôi thấy dễ đọc code, dễ debug nhất khi thử qua ví dụ?</span></li>
+    <li><span class="qnum">5</span><span>Tài liệu và cộng đồng hỗ trợ có đủ tốt để tôi không bị kẹt giữa chừng không?</span></li>
+  </ul>
+
+  <footer>
+    Nguồn tham khảo chính thức:
+    <ul>
+      <li><a href="https://docs.pipecat.ai" target="_blank">docs.pipecat.ai</a></li>
+      <li><a href="https://github.com/pipecat-ai/pipecat" target="_blank">github.com/pipecat-ai/pipecat</a></li>
+      <li><a href="https://docs.livekit.io/agents" target="_blank">docs.livekit.io/agents</a></li>
+      <li><a href="https://github.com/TEN-framework/ten-framework" target="_blank">github.com/TEN-framework/ten-framework</a></li>
+    </ul>
+  </footer>
+
+</main>
+
+<script>
+  // Waveform hero bars
+  var barsEl = document.getElementById('bars');
+  var heights = [10,22,14,34,18,28,12,40,20,16,30,14,24,10];
+  heights.forEach(function(h){
+    var s = document.createElement('span');
+    s.style.height = h + 'px';
+    barsEl.appendChild(s);
+  });
+
+  // Plan tabs
+  document.querySelectorAll('.tab-btn').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+      document.querySelectorAll('.plan').forEach(function(p){p.classList.remove('active');});
+      btn.classList.add('active');
+      document.getElementById(btn.dataset.plan).classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bộ tiêu chí lựa chọn: Pipecat, LiveKit hay TEN?</title>
+<style>
+  :root{
+    --ink:#161a1f; --ink-soft:#4b5560; --paper:#eef0ee; --panel:#ffffff; --line:#d7dbd6;
+    --pipecat:#1f8a70; --pipecat-bg:#e7f4ef;
+    --livekit:#2a5fc9; --livekit-bg:#e8eefb;
+    --ten:#c97223; --ten-bg:#faeee0;
+    --amber:#c97223;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Space Grotesk', 'IBM Plex Sans', sans-serif;
+    --body: 'IBM Plex Sans', Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink); font-family:var(--body); line-height:1.6; font-size:16px;
+    background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:100% 42px, 42px 100%; background-attachment:fixed; background-position:0 90px, 0 0;
+  }
+  a{color:inherit;}
+  header.hero{background:var(--ink); color:#f3f3ee; padding:60px 24px 44px; border-bottom:6px solid var(--amber); position:relative; overflow:hidden;}
+  .hero-inner{max-width:1020px; margin:0 auto; position:relative; z-index:2;}
+  .kicker{font-family:var(--mono); font-size:13px; color:#9fe6c9; margin:0 0 14px;}
+  h1.title{font-family:var(--sans); font-weight:700; font-size:clamp(28px,4vw,44px); line-height:1.12; margin:0 0 18px; max-width:22ch;}
+  h1.title em{font-style:normal; color:#ffcf9e;}
+  .hero-desc{max-width:68ch; color:#c9cdc6; font-size:16.5px;}
+
+  nav.toc{position:sticky; top:0; z-index:10; background:rgba(238,240,238,.94); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  nav.toc ul{max-width:1020px; margin:0 auto; padding:0 24px; list-style:none; display:flex; gap:20px; overflow-x:auto; font-family:var(--mono); font-size:12.5px;}
+  nav.toc a{display:block; padding:14px 0; white-space:nowrap; text-decoration:none; color:var(--ink-soft); border-bottom:2px solid transparent;}
+  nav.toc a:hover{color:var(--ink); border-color:var(--amber);}
+
+  main{max-width:1020px; margin:0 auto; padding:0 24px;}
+  section{padding:52px 0; border-bottom:1px solid var(--line);}
+  section:last-of-type{border-bottom:none;}
+  h2.section-title{font-family:var(--sans); font-size:28px; font-weight:700; margin:0 0 8px; display:flex; align-items:baseline; gap:12px;}
+  .section-num{font-family:var(--mono); font-size:13px; color:var(--ink-soft);}
+  p.section-lede{color:var(--ink-soft); max-width:74ch; margin:0 0 26px;}
+
+  .group-head{
+    display:flex; align-items:center; gap:12px; margin:34px 0 6px;
+  }
+  .group-head:first-child{margin-top:0;}
+  .group-tag{
+    font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:.04em;
+    background:var(--ink); color:#f0f0ea; padding:5px 10px; border-radius:2px; flex-shrink:0;
+  }
+  .group-head h3{font-family:var(--sans); font-size:19px; margin:0;}
+  p.group-desc{color:var(--ink-soft); font-size:14px; margin:0 0 14px; max-width:70ch;}
+
+  .table-wrap{overflow-x:auto; margin:14px 0 30px; border:1px solid var(--line); border-radius:2px;}
+  table{border-collapse:collapse; width:100%; font-size:13.3px; min-width:760px;}
+  thead th{background:var(--ink); color:#f0f0ea; font-family:var(--mono); text-transform:uppercase; font-size:10.6px; letter-spacing:.03em; text-align:left; padding:11px 13px;}
+  tbody th{text-align:left; font-family:var(--body); font-weight:600; font-size:13.3px; color:var(--ink); background:#f4f4f0; padding:11px 13px; vertical-align:top; width:230px;}
+  tbody td{padding:11px 13px; border-top:1px solid var(--line); vertical-align:top; font-size:13px;}
+  tbody tr:nth-child(even) td, tbody tr:nth-child(even) th{background:#fafaf7;}
+  td.c-pipecat{border-left:3px solid var(--pipecat);}
+  td.c-livekit{border-left:3px solid var(--livekit);}
+  td.c-ten{border-left:3px solid var(--ten);}
+
+  .diagram-wrap{background:#12151a; border-radius:3px; padding:16px; margin:18px 0 10px; overflow-x:auto;}
+  .diagram-wrap svg{display:block; min-width:640px; width:100%; height:auto;}
+  .diagram-caption{font-family:var(--mono); font-size:12px; color:var(--ink-soft); margin:0 0 26px; text-align:center;}
+
+  .fit-grid{display:grid; grid-template-columns:1fr; gap:16px; margin-top:10px;}
+  @media(min-width:720px){ .fit-grid{grid-template-columns:1fr 1fr 1fr;} }
+  .fit-card{background:var(--panel); border:1px solid var(--line); border-top:5px solid var(--c); border-radius:2px; padding:18px 18px 20px;}
+  .fit-card h4{font-family:var(--sans); font-size:16.5px; margin:0 0 12px; color:var(--c);}
+  .fit-card ul{margin:0; padding-left:18px; font-size:13.5px;}
+  .fit-card li{margin-bottom:8px;}
+
+  .scenario{display:grid; grid-template-columns:1fr; gap:2px; margin-top:8px;}
+  .scen-row{
+    display:grid; grid-template-columns: 1fr 130px; gap:16px; align-items:center;
+    background:var(--panel); border:1px solid var(--line); padding:14px 16px; border-radius:2px; margin-bottom:8px;
+  }
+  .scen-row p{margin:0; font-size:14px;}
+  .scen-pick{
+    font-family:var(--mono); font-size:12px; text-align:center; padding:8px 6px; border-radius:2px; color:#fff; font-weight:600;
+  }
+  .pick-pipecat{background:var(--pipecat);}
+  .pick-livekit{background:var(--livekit);}
+  .pick-ten{background:var(--ten);}
+
+  .callout{display:flex; gap:12px; background:#fff; border:1px solid var(--line); padding:14px 16px; border-radius:2px; margin-top:18px; font-size:14px;}
+  .callout .mark{font-family:var(--mono); font-weight:700; color:var(--amber); flex-shrink:0;}
+
+  footer{background:var(--ink); color:#c9cdc6; padding:36px 24px 46px; font-size:13.5px;}
+  footer .inner{max-width:1020px; margin:0 auto;}
+  footer h5{color:#f0f0ea; font-family:var(--sans); margin:0 0 10px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="kicker">// TÀI LIỆU TỔNG HỢP CUỐI CÙNG</p>
+    <h1 class="title">Bộ tiêu chí lựa chọn: <em>framework nào phù hợp?</em></h1>
+    <p class="hero-desc">
+      Gộp toàn bộ tiêu chí đã bàn ở hai tài liệu trước — tính năng/kinh doanh và cơ chế vận hành — thành một bộ tiêu chí
+      duy nhất để đưa ra quyết định: 20 tiêu chí chia thành 4 nhóm, một sơ đồ quyết định nhanh, và các kịch bản điển hình
+      ánh xạ thẳng sang khuyến nghị.
+    </p>
+  </div>
+</header>
+
+<nav class="toc">
+  <ul>
+    <li><a href="#tieu-chi">20 tiêu chí</a></li>
+    <li><a href="#so-do">Sơ đồ quyết định</a></li>
+    <li><a href="#chon-khi">Chọn framework nếu…</a></li>
+    <li><a href="#kich-ban">Kịch bản điển hình</a></li>
+    <li><a href="#ket-luan">Kết luận</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- 20 TIÊU CHÍ -->
+  <section id="tieu-chi">
+    <h2 class="section-title"><span class="section-num">01</span> Toàn bộ tiêu chí, theo 4 nhóm</h2>
+    <p class="section-lede">
+      Nhóm A–B lấy từ góc độ <strong>chức năng &amp; vận hành kỹ thuật</strong>; nhóm C lấy từ góc độ <strong>ràng buộc kinh doanh/pháp lý</strong>;
+      nhóm D lấy từ góc độ <strong>năng lực đội ngũ &amp; rủi ro dài hạn</strong> — phần lớn nhóm B và D đến từ phân tích cơ chế vận hành ở tài liệu trước.
+    </p>
+
+    <!-- NHÓM A -->
+    <div class="group-head"><span class="group-tag">Nhóm A</span><h3>Yêu cầu sản phẩm / chức năng</h3></div>
+    <p class="group-desc">Xuất phát từ việc ứng dụng thực sự cần làm gì — độc lập với việc bạn thích framework nào.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tiêu chí</th><th style="color:#9fe6c9">Pipecat</th><th style="color:#aebff2">LiveKit</th><th style="color:#f2c898">TEN</th></tr></thead>
+        <tbody>
+          <tr><th>1. Số người trong một phiên</th>
+            <td class="c-pipecat">Tối ưu cho 1-1 (bot ↔ người dùng).</td>
+            <td class="c-livekit">Tối ưu cho đa người (hội nghị, nhiều người tham gia thật).</td>
+            <td class="c-ten">Không có SFU sẵn — multi-party phải tự xây thêm.</td></tr>
+          <tr><th>2. Phương thức cần xử lý</th>
+            <td class="c-pipecat">Chủ yếu giọng nói; video/đa phương thức còn sơ khai.</td>
+            <td class="c-livekit">Mạnh cả audio và video, có sẵn track/room cho cả hai.</td>
+            <td class="c-ten">Mạnh nhất khi cần audio + video + dữ liệu chạy song song thật.</td></tr>
+          <tr><th>3. Yêu cầu độ trễ phản hồi</th>
+            <td class="c-pipecat">Chấp nhận được ~500–800ms round-trip.</td>
+            <td class="c-livekit">Thấp hơn cho phần media (~100–250ms end-to-end).</td>
+            <td class="c-ten">Thấp nhất có thể đạt được nếu đường nóng chạy native (VAD ~10ms hop).</td></tr>
+          <tr><th>4. Tích hợp điện thoại (SIP/PSTN)</th>
+            <td class="c-pipecat">Có, qua tích hợp bên thứ ba (Twilio…).</td>
+            <td class="c-livekit">Có sẵn, tích hợp trực tiếp (LiveKit Phone/SIP).</td>
+            <td class="c-ten">Chưa có adapter dựng sẵn, phải tự bổ sung qua extension.</td></tr>
+          <tr><th>5. Cần chạy trên thiết bị biên/IoT</th>
+            <td class="c-pipecat">Không phải thế mạnh — chạy Python cần tài nguyên tương đối.</td>
+            <td class="c-livekit">Không hướng tới edge — SFU/Agent thường chạy server.</td>
+            <td class="c-ten">Thiết kế riêng cho cloud–edge, có ví dụ chạy trên vi mạch (ESP32).</td></tr>
+          <tr><th>6. Cần đổi nhà cung cấp AI thường xuyên</th>
+            <td class="c-pipecat">Rất mạnh — hơn 150 dịch vụ, đổi qua cấu hình.</td>
+            <td class="c-livekit">Linh hoạt trong Agents Framework nhưng ít tập trung vào đây hơn.</td>
+            <td class="c-ten">Linh hoạt qua extension, nhưng phải tự viết/tuỳ biến nhiều hơn.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- NHÓM B -->
+    <div class="group-head"><span class="group-tag">Nhóm B</span><h3>Yêu cầu kỹ thuật &amp; vận hành</h3></div>
+    <p class="group-desc">Gắn trực tiếp với cơ chế thực thi bên trong mỗi framework — quyết định độ khó vận hành thực tế.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tiêu chí</th><th style="color:#9fe6c9">Pipecat</th><th style="color:#aebff2">LiveKit</th><th style="color:#f2c898">TEN</th></tr></thead>
+        <tbody>
+          <tr><th>7. Ngôn ngữ đội ngũ mạnh nhất</th>
+            <td class="c-pipecat">Thuần Python là đủ.</td>
+            <td class="c-livekit">Cần hiểu Go (SFU) + ngôn ngữ viết Agent (Python/Node…).</td>
+            <td class="c-ten">Cần thoải mái với đa ngôn ngữ: C/C++, Go, Python, TS.</td></tr>
+          <tr><th>8. Kinh nghiệm WebRTC (SFU/TURN/NAT)</th>
+            <td class="c-pipecat">Không bắt buộc — transport được đóng gói sẵn.</td>
+            <td class="c-livekit">Cần thiết — kiến trúc phòng/track đòi hỏi hiểu WebRTC sâu.</td>
+            <td class="c-ten">Không bắt buộc bằng LiveKit, nhưng cần hiểu graph/extension.</td></tr>
+          <tr><th>9. Sẵn sàng vận hành hạ tầng phân tán</th>
+            <td class="c-pipecat">Cần vận hành message bus (Redis/Postgres) khi scale đa node.</td>
+            <td class="c-livekit">Cần vận hành SFU cluster + Job Dispatcher/Worker Pool.</td>
+            <td class="c-ten">Cần tự thiết kế cách nhân bản/điều phối đồ thị (chưa có sẵn).</td></tr>
+          <tr><th>10. Cần cách ly lỗi transport ↔ AI</th>
+            <td class="c-pipecat">Thấp — cùng tiến trình, lỗi AI có thể ảnh hưởng transport.</td>
+            <td class="c-livekit">Cao — SFU và Agent là hai vòng đời độc lập, agent crash không sập phòng.</td>
+            <td class="c-ten">Tùy thiết kế đồ thị — có thể cao nếu tách tiến trình, thấp nếu gộp chung.</td></tr>
+          <tr><th>11. Cần scale transport và AI độc lập</th>
+            <td class="c-pipecat">Không — cả pipeline nhân bản cùng nhau.</td>
+            <td class="c-livekit">Có — đúng thế mạnh cốt lõi của kiến trúc SFU tách Agent.</td>
+            <td class="c-ten">Có thể — nếu đặt extension nặng ở node/server riêng.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- NHÓM C -->
+    <div class="group-head"><span class="group-tag">Nhóm C</span><h3>Ràng buộc kinh doanh &amp; pháp lý</h3></div>
+    <p class="group-desc">Những yếu tố ngoài kỹ thuật nhưng thường quyết định cuối cùng.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tiêu chí</th><th style="color:#9fe6c9">Pipecat</th><th style="color:#aebff2">LiveKit</th><th style="color:#f2c898">TEN</th></tr></thead>
+        <tbody>
+          <tr><th>12. Ngân sách &amp; mô hình chi phí</th>
+            <td class="c-pipecat">Tự host miễn phí; Cloud tính theo phút agent (~$0.01–0.03/phút) + transport.</td>
+            <td class="c-livekit">Tự host miễn phí; Cloud theo phút tham gia (~$0.004–0.016/phút) + gói $50–500+/tháng.</td>
+            <td class="c-ten">Hoàn toàn miễn phí (tự host); không có lựa chọn managed cloud để so giá.</td></tr>
+          <tr><th>13. Yêu cầu tuân thủ (HIPAA/GDPR/SOC2)</th>
+            <td class="c-pipecat">Tự chịu trách nhiệm khi tự host; Cloud có gói tuân thủ theo cấp độ.</td>
+            <td class="c-livekit">Tự host cho toàn quyền dữ liệu; Cloud có SOC2/GDPR tùy gói.</td>
+            <td class="c-ten">Tự chịu trách nhiệm hoàn toàn — phù hợp khi cần tự audit sâu.</td></tr>
+          <tr><th>14. Ràng buộc giấy phép chấp nhận được</th>
+            <td class="c-pipecat">BSD 2-Clause — tự do gần như tuyệt đối.</td>
+            <td class="c-livekit">Apache 2.0 — tự do, không điều khoản hạn chế thêm.</td>
+            <td class="c-ten">Apache 2.0 + điều khoản Agora (hạn chế xây dịch vụ cạnh tranh).</td></tr>
+          <tr><th>15. Có định xây dịch vụ cạnh tranh?</th>
+            <td class="c-pipecat">Không bị hạn chế bởi giấy phép.</td>
+            <td class="c-livekit">Không bị hạn chế bởi giấy phép.</td>
+            <td class="c-ten">Cần rà soát kỹ điều khoản trước khi thương mại hóa quy mô lớn.</td></tr>
+          <tr><th>16. Ưu tiên tốc độ ra thị trường</th>
+            <td class="c-pipecat">Nhanh nếu chỉ cần voice bot cơ bản, dùng Pipecat Cloud.</td>
+            <td class="c-livekit">Nhanh nếu chấp nhận học kiến trúc phòng/track ban đầu, dùng LiveKit Cloud.</td>
+            <td class="c-ten">Chậm hơn — không có managed cloud, cần tự dựng nhiều hơn.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- NHÓM D -->
+    <div class="group-head"><span class="group-tag">Nhóm D</span><h3>Năng lực đội ngũ &amp; rủi ro dài hạn</h3></div>
+    <p class="group-desc">Những câu hỏi dễ bị bỏ qua ở giai đoạn PoC nhưng gây rủi ro thật khi lên production.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Tiêu chí</th><th style="color:#9fe6c9">Pipecat</th><th style="color:#aebff2">LiveKit</th><th style="color:#f2c898">TEN</th></tr></thead>
+        <tbody>
+          <tr><th>17. Khả năng debug hệ thống phức tạp</th>
+            <td class="c-pipecat">Dễ — 1 tiến trình, thứ tự xử lý xác định.</td>
+            <td class="c-livekit">Trung bình — cần trace qua cả SFU lẫn Agent, hai vòng đời khác nhau.</td>
+            <td class="c-ten">Khó nhất — lỗi có thể ở logic, ở extension native, hoặc ở graph engine.</td></tr>
+          <tr><th>18. Mức độ trưởng thành cộng đồng/tài liệu</th>
+            <td class="c-pipecat">Trưởng thành, tài liệu và ví dụ phong phú.</td>
+            <td class="c-livekit">Trưởng thành nhất, hệ sinh thái SDK và cộng đồng lớn.</td>
+            <td class="c-ten">Còn non trẻ hơn, cộng đồng nhỏ hơn (dù có &gt;11k sao GitHub).</td></tr>
+          <tr><th>19. Cần tự audit toàn bộ mã nguồn</th>
+            <td class="c-pipecat">Khả thi — mã nguồn Python dễ đọc, dễ audit.</td>
+            <td class="c-livekit">Khả thi nhưng phức tạp hơn do SFU viết bằng Go và nhiều thành phần.</td>
+            <td class="c-ten">Khả thi và là thế mạnh khi cần kiểm soát tuyệt đối (chính phủ/quốc phòng).</td></tr>
+          <tr><th>20. Kế hoạch mở rộng dài hạn từ PoC</th>
+            <td class="c-pipecat">Tốt nếu vẫn ở quy mô voice bot; giới hạn nếu cần multi-party sau này.</td>
+            <td class="c-livekit">Tốt nhất cho lộ trình mở rộng lên hội nghị/đa người dùng quy mô lớn.</td>
+            <td class="c-ten">Tốt nếu lộ trình hướng tới edge/đa phương thức chuyên sâu, không phải hội nghị đông người.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SƠ ĐỒ QUYẾT ĐỊNH -->
+  <section id="so-do">
+    <h2 class="section-title"><span class="section-num">02</span> Sơ đồ quyết định nhanh</h2>
+    <p class="section-lede">Ba câu hỏi lọc nhanh trước khi đi vào chi tiết 20 tiêu chí ở trên.</p>
+
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 760 420" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrD" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#d7dbd6"/></marker>
+        </defs>
+        <!-- Q1 -->
+        <polygon points="380,10 500,50 380,90 260,50" fill="#1a1e24" stroke="#d7dbd6" stroke-width="1.3"/>
+        <text x="380" y="46" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#f0f0ea">Cần nhiều người</text>
+        <text x="380" y="60" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#f0f0ea">trong 1 phiên?</text>
+
+        <line x1="500" y1="50" x2="620" y2="50" stroke="#d7dbd6" marker-end="url(#arrD)"/>
+        <text x="560" y="42" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#aebff2">Có</text>
+        <rect x="620" y="26" width="120" height="48" rx="4" fill="#101828" stroke="#4a72d6" stroke-width="1.4"/>
+        <text x="680" y="55" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#aebff2">LiveKit</text>
+
+        <line x1="380" y1="90" x2="380" y2="130" stroke="#d7dbd6" marker-end="url(#arrD)"/>
+        <text x="392" y="115" font-family="IBM Plex Mono" font-size="10" fill="#c9cdc6">Không</text>
+
+        <!-- Q2 -->
+        <polygon points="380,130 520,175 380,220 240,175" fill="#1a1e24" stroke="#d7dbd6" stroke-width="1.3"/>
+        <text x="380" y="168" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f0f0ea">Cần độ trễ cực thấp /</text>
+        <text x="380" y="182" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f0f0ea">chạy edge / đa phương thức</text>
+        <text x="380" y="196" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f0f0ea">song song thật?</text>
+
+        <line x1="520" y1="175" x2="620" y2="175" stroke="#d7dbd6" marker-end="url(#arrD)"/>
+        <text x="570" y="167" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f2c898">Có</text>
+        <rect x="620" y="151" width="120" height="48" rx="4" fill="#2a1c0c" stroke="#e08a3c" stroke-width="1.4"/>
+        <text x="680" y="180" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#f2c898">TEN</text>
+
+        <line x1="380" y1="220" x2="380" y2="260" stroke="#d7dbd6" marker-end="url(#arrD)"/>
+        <text x="392" y="245" font-family="IBM Plex Mono" font-size="10" fill="#c9cdc6">Không</text>
+
+        <!-- Q3 -->
+        <polygon points="380,260 520,305 380,350 240,305" fill="#1a1e24" stroke="#d7dbd6" stroke-width="1.3"/>
+        <text x="380" y="298" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f0f0ea">Đội ngũ chủ yếu Python,</text>
+        <text x="380" y="312" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f0f0ea">cần đổi AI provider</text>
+        <text x="380" y="326" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f0f0ea">linh hoạt?</text>
+
+        <line x1="520" y1="305" x2="620" y2="305" stroke="#d7dbd6" marker-end="url(#arrD)"/>
+        <text x="570" y="297" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#9fe6c9">Có</text>
+        <rect x="620" y="281" width="120" height="48" rx="4" fill="#173226" stroke="#2fb894" stroke-width="1.4"/>
+        <text x="680" y="310" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#9fe6c9">Pipecat</text>
+
+        <line x1="380" y1="350" x2="380" y2="380" stroke="#d7dbd6" marker-end="url(#arrD)"/>
+        <text x="392" y="368" font-family="IBM Plex Mono" font-size="10" fill="#c9cdc6">Không</text>
+        <rect x="270" y="380" width="220" height="30" rx="3" fill="none" stroke="#8b8f86" stroke-dasharray="3,3"/>
+        <text x="380" y="400" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#8b8f86">Xem lại 20 tiêu chí chi tiết ở mục 01</text>
+      </svg>
+    </div>
+    <p class="diagram-caption">Sơ đồ chỉ để lọc nhanh — luôn đối chiếu lại với bảng tiêu chí chi tiết trước khi quyết định cuối cùng.</p>
+  </section>
+
+  <!-- CHỌN FRAMEWORK NẾU -->
+  <section id="chon-khi">
+    <h2 class="section-title"><span class="section-num">03</span> Tóm tắt: chọn framework nào nếu…</h2>
+    <div class="fit-grid">
+      <div class="fit-card" style="--c:var(--pipecat)">
+        <h4>Chọn Pipecat nếu</h4>
+        <ul>
+          <li>Sản phẩm chủ yếu là bot thoại 1-1, chưa cần hội nghị đa người.</li>
+          <li>Đội ngũ mạnh Python, muốn dễ debug và dễ đổi nhà cung cấp AI.</li>
+          <li>Muốn ra thị trường nhanh với Pipecat Cloud, ngân sách theo phút vừa phải.</li>
+          <li>Chấp nhận kỷ luật không để bất kỳ bước nào chặn event loop.</li>
+        </ul>
+      </div>
+      <div class="fit-card" style="--c:var(--livekit)">
+        <h4>Chọn LiveKit nếu</h4>
+        <ul>
+          <li>Cần hội nghị/đa người tham gia thật, hoặc muốn mở rộng lên quy mô đó sau này.</li>
+          <li>Cần khả năng chịu lỗi cao (agent crash không được làm sập phòng).</li>
+          <li>Muốn scale phần vận chuyển và phần AI độc lập nhau.</li>
+          <li>Đội ngũ chấp nhận đầu tư học WebRTC/SFU để đổi lấy hệ sinh thái trưởng thành nhất.</li>
+        </ul>
+      </div>
+      <div class="fit-card" style="--c:var(--ten)">
+        <h4>Chọn TEN nếu</h4>
+        <ul>
+          <li>Yêu cầu độ trễ cực thấp là ưu tiên số một, hơn cả tốc độ phát triển.</li>
+          <li>Cần chạy một phần hệ thống trên thiết bị edge/IoT/robot.</li>
+          <li>Cần xử lý audio + video song song thật, không chỉ tuần tự.</li>
+          <li>Đội ngũ đa ngôn ngữ (C++/Go/Python), sẵn sàng tự vận hành toàn bộ hạ tầng.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- KỊCH BẢN ĐIỂN HÌNH -->
+  <section id="kich-ban">
+    <h2 class="section-title"><span class="section-num">04</span> Kịch bản điển hình → khuyến nghị</h2>
+    <p class="section-lede">Ánh xạ trực tiếp từ mô tả bài toán sang framework, dựa trên toàn bộ tiêu chí ở trên.</p>
+    <div class="scenario">
+      <div class="scen-row"><p>Tổng đài chăm sóc khách hàng qua điện thoại, cần đổi nhà cung cấp STT/TTS liên tục để tối ưu chi phí.</p><span class="scen-pick pick-pipecat">Pipecat</span></div>
+      <div class="scen-row"><p>Nền tảng họp trực tuyến có thêm trợ lý AI tham gia như một người dự họp, cần hỗ trợ hàng trăm người.</p><span class="scen-pick pick-livekit">LiveKit</span></div>
+      <div class="scen-row"><p>Thiết bị robot/IoT cần nhận diện giọng nói và hình ảnh đồng thời, xử lý ngay trên phần cứng nhúng.</p><span class="scen-pick pick-ten">TEN</span></div>
+      <div class="scen-row"><p>Ứng dụng telehealth: bác sĩ và bệnh nhân gọi video, có thể có thêm người thân tham gia cùng lúc.</p><span class="scen-pick pick-livekit">LiveKit</span></div>
+      <div class="scen-row"><p>Ứng dụng thông dịch song ngữ thời gian thực, ưu tiên độ trễ dưới 300ms tuyệt đối.</p><span class="scen-pick pick-ten">TEN</span></div>
+      <div class="scen-row"><p>Startup cần MVP voice bot nhanh nhất có thể, đội ngũ 2 kỹ sư Python, ngân sách hạn chế.</p><span class="scen-pick pick-pipecat">Pipecat</span></div>
+      <div class="scen-row"><p>Ngân hàng/y tế cần tự host toàn bộ hệ thống thoại để tuân thủ chính sách nội bộ, không dùng dịch vụ cloud bên thứ ba.</p><span class="scen-pick pick-pipecat">Pipecat</span></div>
+      <div class="scen-row"><p>Nền tảng livestream kết hợp bot tương tác với hàng nghìn người xem cùng lúc.</p><span class="scen-pick pick-livekit">LiveKit</span></div>
+    </div>
+    <div class="callout">
+      <span class="mark">→</span>
+      <span>Nếu một bài toán rơi vào vùng giao giữa hai framework (ví dụ: cần đa người tham gia lẫn độ trễ cực thấp), nên quay lại nhóm tiêu chí
+        B ở mục 01 để xác định tiêu chí nào là ràng buộc cứng (không thể thỏa hiệp) và tiêu chí nào chỉ là ưu tiên.</span>
+    </div>
+  </section>
+
+  <!-- KẾT LUẬN -->
+  <section id="ket-luan">
+    <h2 class="section-title"><span class="section-num">05</span> Kết luận</h2>
+    <p class="section-lede">
+      Không có framework nào thắng tuyệt đối trên cả 20 tiêu chí — mỗi framework được thiết kế đánh đổi khác nhau giữa
+      <strong>tốc độ phát triển</strong> (Pipecat), <strong>khả năng mở rộng đa người &amp; chịu lỗi</strong> (LiveKit), và
+      <strong>kiểm soát hiệu năng tận gốc</strong> (TEN). Quy trình quyết định nên đi theo thứ tự: xác định ràng buộc cứng ở
+      Nhóm A (chức năng) trước, lọc theo Nhóm B (năng lực vận hành) và Nhóm C (kinh doanh/pháp lý), rồi mới cân nhắc Nhóm D
+      (rủi ro dài hạn) để tránh chọn đúng cho hiện tại nhưng sai cho lộ trình 1–2 năm tới.
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  <div class="inner">
+    <h5>Nguồn</h5>
+    <p>Tổng hợp từ hai tài liệu trước trong cùng chuỗi phân tích: bảng so sánh tính năng/kinh doanh và phân tích cơ chế vận hành
+      của Pipecat, LiveKit và TEN Framework.</p>
+  </div>
+</footer>
+
+</body>
+</html>

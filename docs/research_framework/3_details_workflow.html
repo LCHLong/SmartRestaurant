@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bên trong cách vận hành: Pipecat, LiveKit &amp; TEN</title>
+<style>
+  :root{
+    --ink:#161a1f; --ink-soft:#4b5560; --paper:#eef0ee; --panel:#ffffff; --line:#d7dbd6;
+    --pipecat:#1f8a70; --pipecat-bg:#e7f4ef;
+    --livekit:#2a5fc9; --livekit-bg:#e8eefb;
+    --ten:#c97223; --ten-bg:#faeee0;
+    --amber:#c97223;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Space Grotesk', 'IBM Plex Sans', sans-serif;
+    --body: 'IBM Plex Sans', Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink); font-family:var(--body); line-height:1.6; font-size:16px;
+    background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 100% 42px, 42px 100%; background-attachment:fixed; background-position:0 90px, 0 0;
+  }
+  a{color:inherit;}
+  header.hero{background:var(--ink); color:#f3f3ee; padding:60px 24px 44px; border-bottom:6px solid var(--amber); position:relative; overflow:hidden;}
+  .hero-inner{max-width:1000px; margin:0 auto; position:relative; z-index:2;}
+  .kicker{font-family:var(--mono); font-size:13px; color:#9fe6c9; margin:0 0 14px;}
+  h1.title{font-family:var(--sans); font-weight:700; font-size:clamp(28px,4vw,46px); line-height:1.1; margin:0 0 18px; max-width:20ch;}
+  h1.title em{font-style:normal; color:#ffcf9e;}
+  .hero-desc{max-width:66ch; color:#c9cdc6; font-size:16.5px;}
+
+  nav.toc{position:sticky; top:0; z-index:10; background:rgba(238,240,238,.94); backdrop-filter:blur(6px); border-bottom:1px solid var(--line);}
+  nav.toc ul{max-width:1000px; margin:0 auto; padding:0 24px; list-style:none; display:flex; gap:20px; overflow-x:auto; font-family:var(--mono); font-size:12.5px;}
+  nav.toc a{display:block; padding:14px 0; white-space:nowrap; text-decoration:none; color:var(--ink-soft); border-bottom:2px solid transparent;}
+  nav.toc a:hover{color:var(--ink); border-color:var(--amber);}
+
+  main{max-width:1000px; margin:0 auto; padding:0 24px;}
+  section{padding:52px 0; border-bottom:1px solid var(--line);}
+  section:last-of-type{border-bottom:none;}
+  h2.section-title{font-family:var(--sans); font-size:28px; font-weight:700; margin:0 0 8px; display:flex; align-items:baseline; gap:12px;}
+  .section-num{font-family:var(--mono); font-size:13px; color:var(--ink-soft);}
+  p.section-lede{color:var(--ink-soft); max-width:74ch; margin:0 0 28px;}
+
+  .fw-block{background:var(--panel); border:1px solid var(--line); border-top:5px solid var(--c); border-radius:2px; padding:26px 26px 30px; margin-bottom:16px;}
+  .fw-block h3{font-family:var(--sans); font-size:23px; margin:0 0 4px; color:var(--c);}
+  .fw-block .fw-sub{font-family:var(--mono); font-size:12.5px; color:var(--ink-soft); margin:0 0 20px;}
+
+  .diagram-wrap{background:#12151a; border-radius:3px; padding:14px; margin:8px 0 20px; overflow-x:auto;}
+  .diagram-wrap svg{display:block; min-width:640px; width:100%; height:auto;}
+  .diagram-caption{font-family:var(--mono); font-size:12px; color:var(--ink-soft); margin:-10px 0 22px; text-align:center;}
+
+  h4.subhead{font-family:var(--mono); font-size:12.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-soft); margin:24px 0 10px; border-bottom:1px dashed var(--line); padding-bottom:6px;}
+
+  ol.trace{margin:0; padding-left:22px; counter-reset:step;}
+  ol.trace li{margin-bottom:10px; padding-left:4px;}
+  ol.trace li::marker{font-family:var(--mono); color:var(--c); font-weight:700;}
+
+  .pros-cons{display:grid; grid-template-columns:1fr; gap:16px; margin-top:6px;}
+  @media(min-width:680px){ .pros-cons{grid-template-columns:1fr 1fr;} }
+  .pc-card{border:1px solid var(--line); border-radius:2px; padding:16px 18px;}
+  .pc-card.pro{border-left:4px solid #2e8b57; background:#f2f8f4;}
+  .pc-card.con{border-left:4px solid #b23b3b; background:#faf1f1;}
+  .pc-card h5{margin:0 0 10px; font-family:var(--sans); font-size:14.5px;}
+  .pc-card ul{margin:0; padding-left:18px; font-size:14px;}
+  .pc-card li{margin-bottom:8px;}
+  .pc-card li b{display:block; font-family:var(--sans); font-size:14px; margin-bottom:2px;}
+  .pc-card li span{color:var(--ink-soft); font-size:13.3px;}
+
+  .table-wrap{overflow-x:auto; margin-top:20px; border:1px solid var(--line); border-radius:2px;}
+  table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:760px;}
+  thead th{background:var(--ink); color:#f0f0ea; font-family:var(--mono); text-transform:uppercase; font-size:11px; letter-spacing:.03em; text-align:left; padding:12px 14px;}
+  tbody th{text-align:left; font-family:var(--mono); font-size:12px; color:var(--ink-soft); background:#f4f4f0; padding:12px 14px; vertical-align:top; width:170px;}
+  tbody td{padding:12px 14px; border-top:1px solid var(--line); vertical-align:top;}
+  tbody tr:nth-child(even) td, tbody tr:nth-child(even) th{background:#fafaf7;}
+  td.c-pipecat{border-left:3px solid var(--pipecat);}
+  td.c-livekit{border-left:3px solid var(--livekit);}
+  td.c-ten{border-left:3px solid var(--ten);}
+
+  .callout{display:flex; gap:12px; background:#fff; border:1px solid var(--line); padding:14px 16px; border-radius:2px; margin-top:18px; font-size:14px;}
+  .callout .mark{font-family:var(--mono); font-weight:700; color:var(--amber); flex-shrink:0;}
+
+  footer{background:var(--ink); color:#c9cdc6; padding:36px 24px 46px; font-size:13.5px;}
+  footer .inner{max-width:1000px; margin:0 auto;}
+  footer h5{color:#f0f0ea; font-family:var(--sans); margin:0 0 10px;}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="kicker">// PHÂN TÍCH CƠ CHẾ VẬN HÀNH — TÀI LIỆU BỔ SUNG</p>
+    <h1 class="title">Bên trong <em>hộp đen</em>: 3 cách vận hành khác nhau</h1>
+    <p class="hero-desc">
+      Tài liệu trước đã so sánh tính năng của Pipecat, LiveKit và TEN. Tài liệu này đi sâu vào <strong>cơ chế thực thi bên trong</strong> —
+      điều gì thực sự xảy ra khi người dùng nói một câu — để chỉ ra rằng ưu/nhược điểm của mỗi framework không phải ngẫu nhiên,
+      mà là hệ quả trực tiếp của cách nó được xây dựng để chạy.
+    </p>
+  </div>
+</header>
+
+<nav class="toc">
+  <ul>
+    <li><a href="#pipecat">Pipecat</a></li>
+    <li><a href="#livekit">LiveKit</a></li>
+    <li><a href="#ten">TEN</a></li>
+    <li><a href="#khac-biet">Khác biệt cốt lõi</a></li>
+    <li><a href="#tinh-huong">Cùng 1 tình huống</a></li>
+    <li><a href="#ket-luan">Kết luận</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- PIPECAT -->
+  <section id="pipecat">
+    <h2 class="section-title"><span class="section-num">01</span> Pipecat — pipeline tuyến tính trong một tiến trình</h2>
+    <div class="fw-block" style="--c:var(--pipecat)">
+      <h3>Cơ chế: hàng đợi khung xử lý bởi một event loop</h3>
+      <p class="fw-sub">Mô hình thực thi: cooperative concurrency (asyncio) — một luồng, nhiều tác vụ, xử lý luân phiên</p>
+
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 720 300" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrPC" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#9fe6c9"/></marker>
+            <marker id="arrPCd" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#ffcf9e"/></marker>
+          </defs>
+          <rect x="16" y="16" width="688" height="176" rx="4" fill="none" stroke="#2fb894" stroke-width="1.4"/>
+          <text x="30" y="36" font-family="IBM Plex Mono" font-size="11" fill="#9fe6c9">PIPECAT SERVER PROCESS — 1 tiến trình Python, 1 asyncio event loop</text>
+
+          <!-- pipeline boxes -->
+          <g font-family="IBM Plex Mono" font-size="11.5" fill="#e5f4ed">
+            <rect x="34" y="70" width="110" height="50" rx="3" fill="#173226" stroke="#2fb894"/>
+            <text x="89" y="99" text-anchor="middle">Transport</text>
+
+            <rect x="184" y="70" width="100" height="50" rx="3" fill="#173226" stroke="#2fb894"/>
+            <text x="234" y="99" text-anchor="middle">STT</text>
+
+            <rect x="324" y="70" width="100" height="50" rx="3" fill="#173226" stroke="#2fb894"/>
+            <text x="374" y="99" text-anchor="middle">LLM</text>
+
+            <rect x="464" y="70" width="100" height="50" rx="3" fill="#173226" stroke="#2fb894"/>
+            <text x="514" y="99" text-anchor="middle">TTS</text>
+          </g>
+
+          <!-- forward arrows -->
+          <g stroke="#9fe6c9" stroke-width="1.6" marker-end="url(#arrPC)">
+            <line x1="144" y1="95" x2="182" y2="95"/>
+            <line x1="284" y1="95" x2="322" y2="95"/>
+            <line x1="424" y1="95" x2="462" y2="95"/>
+          </g>
+          <!-- loop back audio out -->
+          <path d="M564,70 C 610,40 90,40 34,70" fill="none" stroke="#9fe6c9" stroke-width="1.3" stroke-dasharray="3,3" marker-end="url(#arrPC)"/>
+          <text x="300" y="42" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#9fe6c9">audio phát lại qua cùng transport</text>
+
+          <!-- interrupt control frame -->
+          <rect x="184" y="140" width="380" height="34" rx="3" fill="#3a2410" stroke="#ffcf9e" stroke-dasharray="3,3"/>
+          <text x="374" y="161" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#ffcf9e">Control Frame: "user_started_speaking" (ngắt lời)</text>
+          <path d="M374,140 C 374,130 320,120 320,120" fill="none" stroke="#ffcf9e" stroke-width="1.2" marker-end="url(#arrPCd)"/>
+          <path d="M374,140 C 374,120 234,100 234,100" fill="none" stroke="#ffcf9e" stroke-width="1.2" marker-end="url(#arrPCd)"/>
+          <text x="470" y="192" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#c9cdc6">khung điều khiển "chen ngang" hàng đợi, hủy khung dữ liệu phía sau nó</text>
+
+          <!-- multi-agent scaling -->
+          <rect x="16" y="220" width="220" height="50" rx="3" fill="none" stroke="#5a5f57" stroke-dasharray="4,3"/>
+          <text x="126" y="250" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#c9cdc6">Message Bus (Redis/Postgres)</text>
+          <path d="M236,245 L 330,245" stroke="#5a5f57" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#arrPCd)"/>
+          <rect x="332" y="220" width="220" height="50" rx="3" fill="none" stroke="#5a5f57" stroke-dasharray="4,3"/>
+          <text x="442" y="250" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#c9cdc6">Worker #2 — tiến trình pipeline khác</text>
+          <text x="16" y="292" font-family="IBM Plex Mono" font-size="9.5" fill="#8b8f86">Mở rộng = thêm cả một tiến trình pipeline mới, phối hợp qua bus — không chia sẻ bộ nhớ.</text>
+        </svg>
+      </div>
+      <p class="diagram-caption">Một khung âm thanh đi qua từng bước theo thứ tự cố định; khung điều khiển có thể "chen ngang" để hủy phần đang xử lý phía sau.</p>
+
+      <h4 class="subhead">Diễn biến khi người dùng nói một câu</h4>
+      <ol class="trace">
+        <li><b>Transport</b> nhận audio thô (WebRTC/WebSocket) và đóng gói thành các <em>frame</em> (khung dữ liệu nhỏ, ví dụ 20ms/khung).</li>
+        <li>Mỗi frame được <code>await</code> đẩy tuần tự qua từng <em>FrameProcessor</em>: STT chuyển frame thành văn bản, LLM sinh phản hồi (streaming), TTS chuyển văn bản thành audio — tất cả chạy trên <strong>cùng một event loop</strong>, luân phiên nhường CPU cho nhau.</li>
+        <li>Nếu người dùng chen ngang giữa lúc bot đang nói, một <strong>control frame</strong> được phát ra và chèn vào hàng đợi ngay lập tức — nó không chờ đến lượt như data frame, mà buộc pipeline hủy các frame TTS/LLM đang treo phía sau.</li>
+        <li>Muốn phục vụ nhiều cuộc gọi cùng lúc, Pipecat không chia sẻ một pipeline cho nhiều người dùng — mỗi cuộc gọi là <strong>một tiến trình pipeline riêng</strong>; nhiều tiến trình phối hợp trạng thái qua message bus bên ngoài (Redis/Postgres), không qua bộ nhớ chung.</li>
+      </ol>
+
+      <div class="pros-cons">
+        <div class="pc-card pro">
+          <h5>Ưu điểm — hệ quả trực tiếp từ cơ chế</h5>
+          <ul>
+            <li><b>Dễ suy luận &amp; debug</b><span>Vì mọi thứ chạy tuần tự trên 1 luồng, thứ tự xử lý một khung là xác định — không có race condition giữa các bước trong cùng pipeline.</span></li>
+            <li><b>Ngắt lời tức thời trong cùng tiến trình</b><span>Control frame không cần đi qua mạng hay IPC để hủy phần đang xử lý, vì mọi processor nằm chung một event loop.</span></li>
+            <li><b>Thay processor dễ dàng</b><span>Vì pipeline là chuỗi các đối tượng cùng interface, đổi STT/TTS chỉ là thay một node trong chuỗi.</span></li>
+          </ul>
+        </div>
+        <div class="pc-card con">
+          <h5>Nhược điểm — hệ quả trực tiếp từ cơ chế</h5>
+          <ul>
+            <li><b>Một tác vụ chậm làm nghẽn cả pipeline</b><span>Vì tất cả chia sẻ một event loop, một bước tính toán nặng (không await đúng cách) sẽ chặn luôn STT/TTS của chính khung đó — gây giật/trễ.</span></li>
+            <li><b>Không tận dụng đa lõi trong 1 tiến trình</b><span>Cooperative concurrency không phải song song thật; muốn chạy song song phải tách tiến trình, mất tính đơn giản của mô hình pipeline.</span></li>
+            <li><b>Scale = nhân bản toàn bộ tiến trình</b><span>Không thể scale riêng phần "LLM nặng" tách khỏi phần "transport nhẹ" trong cùng một agent — cả pipeline đi theo nhau.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVEKIT -->
+  <section id="livekit">
+    <h2 class="section-title"><span class="section-num">02</span> LiveKit — tách rời vận chuyển media khỏi tính toán AI</h2>
+    <div class="fw-block" style="--c:var(--livekit)">
+      <h3>Cơ chế: SFU chuyển tiếp gói tin, Agent là một "người tham gia" riêng biệt</h3>
+      <p class="fw-sub">Mô hình thực thi: 2 tiến trình độc lập — SFU (Go, chuyển tiếp) và Agent (Python/Node, tính toán) — nói chuyện với nhau qua chính giao thức WebRTC</p>
+
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 720 320" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrLK" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#aebff2"/></marker>
+            <marker id="arrLKd" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8b8f86"/></marker>
+          </defs>
+
+          <!-- participants -->
+          <circle cx="70" cy="90" r="30" fill="#1a2334" stroke="#aebff2"/>
+          <text x="70" y="94" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#aebff2">User A</text>
+          <circle cx="70" cy="200" r="30" fill="#1a2334" stroke="#aebff2"/>
+          <text x="70" y="204" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#aebff2">User B</text>
+
+          <!-- SFU -->
+          <rect x="230" y="60" width="200" height="160" rx="4" fill="#101828" stroke="#4a72d6" stroke-width="1.4"/>
+          <text x="330" y="82" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#aebff2">LiveKit SFU (Go)</text>
+          <text x="330" y="98" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#8b8f86">Room #42 — chỉ forward gói RTP</text>
+          <rect x="255" y="120" width="60" height="34" rx="2" fill="#1a2334" stroke="#4a72d6"/>
+          <text x="285" y="141" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#aebff2">track A</text>
+          <rect x="345" y="120" width="60" height="34" rx="2" fill="#1a2334" stroke="#4a72d6"/>
+          <text x="375" y="141" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#aebff2">track B</text>
+          <rect x="300" y="165" width="60" height="34" rx="2" fill="#1a2334" stroke="#4a72d6"/>
+          <text x="330" y="186" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#aebff2">track agent</text>
+
+          <!-- connections -->
+          <g stroke="#aebff2" stroke-width="1.4" marker-end="url(#arrLK)">
+            <line x1="100" y1="90" x2="228" y2="120"/>
+            <line x1="100" y1="200" x2="228" y2="150"/>
+          </g>
+          <g stroke="#aebff2" stroke-width="1.4" marker-start="url(#arrLK)">
+            <line x1="228" y1="128" x2="100" y2="98"/>
+            <line x1="228" y1="158" x2="100" y2="208"/>
+          </g>
+          <text x="150" y="70" font-family="IBM Plex Mono" font-size="9" fill="#8b8f86">WebRTC (bidirectional)</text>
+
+          <!-- agent process -->
+          <rect x="500" y="50" width="200" height="120" rx="4" fill="#101828" stroke="#4a72d6" stroke-width="1.4"/>
+          <text x="600" y="70" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#aebff2">Agent Process (Python/Node)</text>
+          <text x="600" y="84" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#8b8f86">tham gia phòng như 1 participant</text>
+          <g font-family="IBM Plex Mono" font-size="9" fill="#e5f4ed">
+            <rect x="512" y="100" width="52" height="30" rx="2" fill="#1a2334" stroke="#4a72d6"/><text x="538" y="119" text-anchor="middle">STT</text>
+            <rect x="574" y="100" width="52" height="30" rx="2" fill="#1a2334" stroke="#4a72d6"/><text x="600" y="119" text-anchor="middle">LLM</text>
+            <rect x="636" y="100" width="52" height="30" rx="2" fill="#1a2334" stroke="#4a72d6"/><text x="662" y="119" text-anchor="middle">TTS</text>
+          </g>
+          <line x1="564" y1="115" x2="574" y2="115" stroke="#aebff2" marker-end="url(#arrLK)"/>
+          <line x1="626" y1="115" x2="636" y2="115" stroke="#aebff2" marker-end="url(#arrLK)"/>
+
+          <path d="M430,140 C 460,140 480,110 498,100" stroke="#aebff2" stroke-width="1.4" fill="none" marker-end="url(#arrLK)"/>
+          <path d="M498,140 C 480,150 460,160 430,155" stroke="#aebff2" stroke-width="1.4" fill="none" marker-end="url(#arrLK)"/>
+          <text x="460" y="95" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#8b8f86">subscribe / publish track</text>
+
+          <!-- dispatcher -->
+          <rect x="500" y="210" width="200" height="54" rx="4" fill="none" stroke="#5a5f57" stroke-dasharray="4,3"/>
+          <text x="600" y="234" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#c9cdc6">Job Dispatcher / Worker Pool</text>
+          <text x="600" y="250" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="#8b8f86">spawn / respawn agent khi cần</text>
+          <line x1="600" y1="210" x2="600" y2="172" stroke="#5a5f57" stroke-dasharray="4,3" marker-end="url(#arrLKd)"/>
+
+          <text x="16" y="300" font-family="IBM Plex Mono" font-size="9.5" fill="#8b8f86">Nếu Agent crash: SFU và User A, User B vẫn giữ nguyên kết nối trong phòng — không mất cuộc gọi.</text>
+        </svg>
+      </div>
+      <p class="diagram-caption">SFU chỉ chuyển tiếp gói tin thời gian thực; toàn bộ "trí tuệ" AI nằm trong một tiến trình Agent hoàn toàn tách biệt, kết nối vào phòng như một participant bình thường.</p>
+
+      <h4 class="subhead">Diễn biến khi người dùng nói một câu</h4>
+      <ol class="trace">
+        <li>User publish audio track lên <strong>SFU</strong>. SFU không hiểu và không xử lý nội dung — nó chỉ nhân bản/chuyển tiếp gói RTP tới các participant khác đã subscribe track đó, bao gồm Agent.</li>
+        <li><strong>Job Dispatcher</strong> đã cấp phát một tiến trình Agent riêng cho phòng này từ trước (hoặc theo yêu cầu); Agent kết nối vào phòng qua WebRTC giống hệt một client bình thường, chỉ khác là chạy headless.</li>
+        <li>Agent subscribe track của User, chạy pipeline nội bộ STT→LLM→TTS (tương tự Pipecat nhưng nằm trong tiến trình riêng), rồi <strong>publish</strong> một track audio mới ngược lại vào phòng.</li>
+        <li>SFU lại chuyển tiếp track mới này tới User — hoàn toàn không biết/không quan tâm nó là audio do AI tạo ra.</li>
+        <li>Nếu Agent gặp lỗi hoặc bị Job Dispatcher khởi động lại, <strong>SFU và phòng vẫn tồn tại nguyên vẹn</strong> vì hai thành phần này độc lập về vòng đời.</li>
+      </ol>
+
+      <div class="pros-cons">
+        <div class="pc-card pro">
+          <h5>Ưu điểm — hệ quả trực tiếp từ cơ chế</h5>
+          <ul>
+            <li><b>Chịu lỗi tốt hơn</b><span>Agent và SFU là hai tiến trình/vòng đời độc lập — crash một bên không kéo sập bên kia, phòng họp vẫn sống.</span></li>
+            <li><b>Scale hai chiều riêng biệt</b><span>SFU (nhẹ, chỉ forward gói tin) và Agent pool (nặng, chạy AI) có thể scale độc lập theo đúng loại tải của từng phần.</span></li>
+            <li><b>Đa người tham gia tự nhiên</b><span>Vì kiến trúc vốn là "nhiều participant trong 1 phòng", thêm người thứ 3, 4... không cần thay đổi mô hình.</span></li>
+          </ul>
+        </div>
+        <div class="pc-card con">
+          <h5>Nhược điểm — hệ quả trực tiếp từ cơ chế</h5>
+          <ul>
+            <li><b>Thêm một chặng mạng/giao thức</b><span>Agent phải "gia nhập phòng" qua WebRTC như client thật — tốn thời gian thiết lập kết nối, thêm một lớp encode/decode media so với việc frame đi thẳng trong 1 tiến trình.</span></li>
+            <li><b>Phức tạp vận hành hơn cho use-case đơn giản</b><span>Một bot thoại 1-1 vẫn phải dựng đủ SFU + Job Dispatcher + Agent pool — nhiều thành phần hơn mức cần thiết.</span></li>
+            <li><b>Trạng thái hội thoại nằm ngoài tầm SFU</b><span>Vì SFU "mù" về nội dung, mọi logic ngắt lời/ngữ cảnh phải tự Agent quản lý và đồng bộ qua data channel/RPC riêng.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEN -->
+  <section id="ten">
+    <h2 class="section-title"><span class="section-num">03</span> TEN — đồ thị extension chạy song song, đa ngôn ngữ</h2>
+    <div class="fw-block" style="--c:var(--ten)">
+      <h3>Cơ chế: graph engine lập lịch cho các nhánh chạy đồng thời, không nhất thiết tuyến tính</h3>
+      <p class="fw-sub">Mô hình thực thi: mỗi extension là một node độc lập (có thể khác tiến trình, khác ngôn ngữ); graph engine định tuyến message giữa các node theo cạnh đã khai báo trong <code>property.json</code></p>
+
+      <div class="diagram-wrap">
+        <svg viewBox="0 0 720 380" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker id="arrTN" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f2c898"/></marker>
+            <marker id="arrTNd" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#8b8f86"/></marker>
+          </defs>
+
+          <rect x="260" y="14" width="200" height="42" rx="4" fill="#2a1c0c" stroke="#e08a3c" stroke-width="1.4"/>
+          <text x="360" y="40" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#f2c898">Graph Engine (property.json)</text>
+
+          <!-- native column -->
+          <text x="130" y="80" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#8b8f86">— native (C/C++) —</text>
+          <rect x="70" y="90" width="120" height="42" rx="3" fill="#2a1c0c" stroke="#e08a3c"/>
+          <text x="130" y="115" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f2c898">VAD (C++)</text>
+
+          <rect x="70" y="220" width="120" height="42" rx="3" fill="#2a1c0c" stroke="#e08a3c"/>
+          <text x="130" y="245" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f2c898">Vision (C++)</text>
+
+          <!-- serialization boundary -->
+          <line x1="230" y1="60" x2="230" y2="320" stroke="#8b8f86" stroke-dasharray="4,3"/>
+          <text x="234" y="72" font-family="IBM Plex Mono" font-size="8.5" fill="#8b8f86">ranh giới ngôn ngữ</text>
+          <text x="234" y="84" font-family="IBM Plex Mono" font-size="8.5" fill="#8b8f86">(chi phí serialize)</text>
+
+          <!-- interpreted column -->
+          <text x="330" y="80" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#8b8f86">— Python / Go —</text>
+          <rect x="260" y="90" width="120" height="42" rx="3" fill="#2a1c0c" stroke="#e08a3c"/>
+          <text x="320" y="115" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f2c898">STT (Python)</text>
+
+          <rect x="260" y="220" width="120" height="42" rx="3" fill="#2a1c0c" stroke="#e08a3c"/>
+          <text x="320" y="245" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f2c898">Turn Detection</text>
+
+          <rect x="470" y="150" width="120" height="42" rx="3" fill="#2a1c0c" stroke="#e08a3c"/>
+          <text x="530" y="175" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f2c898">LLM (Go/Python)</text>
+
+          <rect x="470" y="270" width="120" height="42" rx="3" fill="#2a1c0c" stroke="#e08a3c"/>
+          <text x="530" y="295" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#f2c898">TTS (Go)</text>
+
+          <!-- data edges -->
+          <g stroke="#f2c898" stroke-width="1.4" marker-end="url(#arrTN)" fill="none">
+            <path d="M190,111 L258,111"/>
+            <path d="M190,241 L258,241"/>
+            <path d="M380,111 C 420,111 440,150 468,165"/>
+            <path d="M380,241 C 440,241 440,180 468,175"/>
+            <path d="M530,192 L530,268"/>
+          </g>
+          <text x="230" y="150" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#8b8f86">nhánh AUDIO</text>
+          <text x="230" y="280" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#8b8f86">nhánh VIDEO — chạy song song với nhánh audio</text>
+
+          <!-- scheduling dashed lines from engine -->
+          <g stroke="#8b8f86" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arrTNd)">
+            <path d="M300,56 C 200,70 150,80 130,88"/>
+            <path d="M340,56 C 340,70 320,80 320,88"/>
+            <path d="M420,56 C 480,90 520,120 530,148"/>
+          </g>
+          <text x="360" y="345" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#8b8f86">Graph engine lập lịch song song cho các nhánh độc lập, chỉ đồng bộ tại điểm hội tụ (LLM/TTS)</text>
+        </svg>
+      </div>
+      <p class="diagram-caption">Không phải một đường ống duy nhất: nhiều nhánh (audio, video…) có thể chạy đồng thời trên các extension khác ngôn ngữ, hội tụ tại các node dùng chung.</p>
+
+      <h4 class="subhead">Diễn biến khi người dùng nói một câu (kèm hình ảnh)</h4>
+      <ol class="trace">
+        <li>Audio thô đi vào extension <strong>VAD</strong> viết bằng C++ — chạy native để phát hiện giọng nói với độ trễ cực thấp (hop ~10ms), không qua interpreter.</li>
+        <li>Song song, nếu ứng dụng đa phương thức, một nhánh khác đưa khung hình vào extension <strong>Vision</strong> (cũng native) — hai nhánh audio và video được <strong>graph engine lập lịch chạy đồng thời</strong>, không chờ nhau.</li>
+        <li>Kết quả VAD/STT (Python) và Vision được graph engine định tuyến sang node <strong>LLM</strong> dùng chung — đây là điểm hội tụ, nơi dữ liệu từ hai nhánh phải "gặp nhau".</li>
+        <li>Mỗi lần dữ liệu đi qua ranh giới ngôn ngữ (C++ → Python, Python → Go...), nó phải được <strong>serialize/deserialize</strong> — đây là chi phí không xuất hiện trong Pipecat (thuần Python, cùng object trong bộ nhớ).</li>
+        <li>Extension <strong>Turn Detection</strong> hoạt động như một node riêng trong đồ thị, phát tín hiệu ngắt lời trực tiếp cho graph engine để engine quyết định dừng nhánh TTS đang chạy.</li>
+      </ol>
+
+      <div class="pros-cons">
+        <div class="pc-card pro">
+          <h5>Ưu điểm — hệ quả trực tiếp từ cơ chế</h5>
+          <ul>
+            <li><b>Song song thật, không chỉ luân phiên</b><span>Các nhánh độc lập (audio/video) chạy đồng thời trên node/tiến trình khác nhau — khác hẳn cooperative concurrency của Pipecat.</span></li>
+            <li><b>Đặt đúng công cụ cho đúng việc</b><span>Phần cần tốc độ (VAD, DSP) chạy native C++; phần cần linh hoạt (logic LLM) chạy Python — không phải đánh đổi cả hệ thống theo một ngôn ngữ.</span></li>
+            <li><b>Linh hoạt triển khai cloud/edge</b><span>Vì mỗi extension độc lập, có thể đặt node nhẹ ở edge (thiết bị) và node nặng ở cloud trong cùng một đồ thị.</span></li>
+          </ul>
+        </div>
+        <div class="pc-card con">
+          <h5>Nhược điểm — hệ quả trực tiếp từ cơ chế</h5>
+          <ul>
+            <li><b>Chi phí serialize tại mỗi ranh giới ngôn ngữ</b><span>Mỗi lần frame đi từ C++ sang Python hay Go, phải mã hóa/giải mã dữ liệu — thiết kế đồ thị kém sẽ tích lũy độ trễ ở chính những điểm này.</span></li>
+            <li><b>Debug khó hơn theo cấp số nhân</b><span>Lỗi có thể nằm ở logic Python, ở extension C++, hoặc ở tầng điều phối đồ thị — ba miền lỗi khác ABI/toolchain cần công cụ khác nhau để chẩn đoán.</span></li>
+            <li><b>Không có cơ chế scale phân tán sẵn</b><span>Khác LiveKit (đã có SFU cluster + job dispatcher dựng sẵn), TEN để việc nhân bản/điều phối nhiều instance đồ thị cho người triển khai tự xây.</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- KHÁC BIỆT CỐT LÕI -->
+  <section id="khac-biet">
+    <h2 class="section-title"><span class="section-num">04</span> Khác biệt cốt lõi về cách vận hành</h2>
+    <p class="section-lede">Không so tính năng — so cách mỗi framework "chạy" ở tầng thực thi, vì đây mới là nguồn gốc thật sự của ưu/nhược điểm.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Khía cạnh vận hành</th><th style="color:#9fe6c9">Pipecat</th><th style="color:#aebff2">LiveKit</th><th style="color:#f2c898">TEN</th></tr></thead>
+        <tbody>
+          <tr>
+            <th>Đơn vị thực thi</th>
+            <td class="c-pipecat">Một tiến trình Python chạy toàn bộ pipeline cho một cuộc gọi.</td>
+            <td class="c-livekit">Hai tiến trình tách biệt: SFU (Go) và Agent (Python/Node), giao tiếp qua WebRTC.</td>
+            <td class="c-ten">Nhiều node độc lập (có thể khác tiến trình/ngôn ngữ) trong một đồ thị do graph engine điều phối.</td>
+          </tr>
+          <tr>
+            <th>Mô hình song song</th>
+            <td class="c-pipecat">Cooperative concurrency (asyncio) — luân phiên trên 1 luồng, không song song thật trong 1 tiến trình.</td>
+            <td class="c-livekit">Song song ở tầng tiến trình: SFU xử lý nhiều phòng cùng lúc bằng concurrency native của Go; Agent scale bằng nhiều instance.</td>
+            <td class="c-ten">Song song ở tầng đồ thị: các nhánh không phụ thuộc nhau (audio, video) được lập lịch chạy đồng thời.</td>
+          </tr>
+          <tr>
+            <th>Ghép nối vận chuyển ↔ tính toán</th>
+            <td class="c-pipecat">Chặt: Transport là một bước ngay trong pipeline, cùng vòng đời với AI logic.</td>
+            <td class="c-livekit">Tách rời hoàn toàn: SFU không biết AI, Agent không biết cách route gói tin — nói chuyện qua giao thức chuẩn.</td>
+            <td class="c-ten">Trung gian: transport là một extension như mọi node khác, có thể tách hoặc gộp tùy thiết kế đồ thị.</td>
+          </tr>
+          <tr>
+            <th>Cơ chế ngắt lời</th>
+            <td class="c-pipecat">Control frame chen vào hàng đợi cùng tiến trình — tức thời vì không qua mạng.</td>
+            <td class="c-livekit">Agent tự quản lý turn-taking nội bộ, đồng bộ trạng thái với client qua data channel/RPC riêng.</td>
+            <td class="c-ten">Một extension Turn Detection độc lập phát tín hiệu cho graph engine để engine dừng nhánh liên quan.</td>
+          </tr>
+          <tr>
+            <th>Đơn vị mở rộng (scale)</th>
+            <td class="c-pipecat">Toàn bộ pipeline (transport + AI) nhân bản cùng nhau theo từng cuộc gọi.</td>
+            <td class="c-livekit">SFU và Agent pool scale độc lập — đúng tải của từng phần.</td>
+            <td class="c-ten">Từng extension/node có thể nhân bản hoặc đặt lại vị trí (edge/cloud) riêng lẻ.</td>
+          </tr>
+          <tr>
+            <th>Cách ly lỗi</th>
+            <td class="c-pipecat">Lỗi trong một processor có thể ảnh hưởng cả tiến trình pipeline của cuộc gọi đó.</td>
+            <td class="c-livekit">Agent crash không ảnh hưởng SFU/phòng — cách ly lỗi rõ ràng nhờ tách tiến trình.</td>
+            <td class="c-ten">Tùy triển khai: node cùng tiến trình chia sẻ vùng lỗi; node khác tiến trình được cách ly.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- CÙNG 1 TÌNH HUỐNG -->
+  <section id="tinh-huong">
+    <h2 class="section-title"><span class="section-num">05</span> Cùng một tình huống, ba cách xử lý</h2>
+    <p class="section-lede">
+      Tình huống: bot đang đọc câu trả lời thì người dùng bất ngờ nói chen vào ("barge-in"). Cách mỗi framework xử lý tình huống này
+      bộc lộ rõ nhất sự khác biệt về cơ chế đã nêu ở trên.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Bước</th><th style="color:#9fe6c9">Pipecat</th><th style="color:#aebff2">LiveKit</th><th style="color:#f2c898">TEN</th></tr></thead>
+        <tbody>
+          <tr>
+            <th>Ai phát hiện trước</th>
+            <td class="c-pipecat">Processor VAD/STT trong chính pipeline nhận frame audio mới và tạo control frame.</td>
+            <td class="c-livekit">Logic turn-detection bên trong tiến trình Agent (subscribe track của user liên tục).</td>
+            <td class="c-ten">Extension TEN Turn Detection — một node chuyên trách, tách biệt khỏi STT/LLM.</td>
+          </tr>
+          <tr>
+            <th>Tín hiệu đi đâu</th>
+            <td class="c-pipecat">Control frame chèn thẳng vào hàng đợi của cùng event loop — không rời tiến trình.</td>
+            <td class="c-livekit">Agent tự xử lý nội bộ rồi gửi lệnh dừng track TTS đang publish; có thể báo qua data channel cho client biết.</td>
+            <td class="c-ten">Gửi message tới graph engine; engine tra cạnh đồ thị để biết cần dừng node TTS nào.</td>
+          </tr>
+          <tr>
+            <th>Độ trễ phản ứng</th>
+            <td class="c-pipecat">Rất thấp — cùng tiến trình, không qua mạng.</td>
+            <td class="c-livekit">Thấp nhưng có thêm bước dừng/publish lại track qua WebRTC.</td>
+            <td class="c-ten">Rất thấp nếu Turn Detection và TTS cùng nằm gần nhau trong đồ thị; tăng nếu phải qua ranh giới ngôn ngữ.</td>
+          </tr>
+          <tr>
+            <th>Rủi ro nếu thiết kế sai</th>
+            <td class="c-pipecat">Nếu một processor phía trước chặn event loop, control frame cũng bị delay theo — toàn hệ thống "điếc" tạm thời.</td>
+            <td class="c-livekit">Nếu Agent quá tải hoặc mạng WebRTC trễ, tín hiệu ngắt lời tới muộn hơn so với mô hình 1 tiến trình.</td>
+            <td class="c-ten">Nếu Turn Detection và TTS đặt ở hai node khác ngôn ngữ, chi phí serialize có thể làm mất lợi thế "native = nhanh".</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout">
+      <span class="mark">→</span>
+      <span>Bài học: ưu thế "độ trễ thấp" của TEN chỉ thực sự phát huy nếu người thiết kế đồ thị đặt đúng node cạnh nhau; ưu thế "chịu lỗi" của
+        LiveKit chỉ thực sự phát huy nếu Agent được viết để không giữ trạng thái quan trọng ngoài phạm vi có thể mất khi restart; và tốc độ
+        phản ứng của Pipecat đánh đổi bằng việc không được để bất kỳ processor nào chặn event loop.</span>
+    </div>
+  </section>
+
+  <!-- KẾT LUẬN -->
+  <section id="ket-luan">
+    <h2 class="section-title"><span class="section-num">06</span> Kết luận: chọn theo cơ chế, không chỉ theo tính năng</h2>
+    <p class="section-lede">Vì ưu/nhược điểm bắt nguồn từ cách vận hành, câu hỏi cần đặt ra khi chọn framework không phải "framework nào có nhiều tính năng hơn" mà là:</p>
+    <ol class="trace">
+      <li><b>Hệ thống của bạn có cần song song thật (nhiều lõi/nhiều tiến trình) hay tuần tự đơn giản là đủ?</b> — Nếu chỉ cần 1 cuộc gọi/lần và ưu tiên dễ debug: mô hình pipeline một tiến trình của Pipecat phù hợp. Nếu cần nhiều nhánh xử lý đồng thời (audio + video): mô hình đồ thị song song của TEN phù hợp hơn.</li>
+      <li><b>Việc "vận chuyển dữ liệu" và "tính toán AI" có nên tách rời để mỗi phần scale/fail độc lập không?</b> — Nếu có, mô hình SFU tách Agent của LiveKit cho khả năng chịu lỗi và scale độc lập tốt nhất; nếu không cần độ phức tạp đó, sự ghép chặt của Pipecat/TEN đơn giản hơn để vận hành.</li>
+      <li><b>Đội ngũ có đủ năng lực xử lý chi phí vận hành đi kèm cơ chế đã chọn không?</b> — Pipecat cần kỷ luật không chặn event loop; LiveKit cần hiểu rõ vòng đời SFU/Agent/Job Dispatcher; TEN cần năng lực đa ngôn ngữ và thiết kế đồ thị để tránh chi phí serialize.</li>
+    </ol>
+  </section>
+
+</main>
+
+<footer>
+  <div class="inner">
+    <h5>Ghi chú</h5>
+    <p>Tài liệu này diễn giải cơ chế vận hành dựa trên kiến trúc được mô tả trong tài liệu tổng hợp trước đó (chi tiết pipeline, SFU/Agents
+      Framework, đồ thị extension của Pipecat, LiveKit và TEN). Các sơ đồ là minh họa khái niệm về luồng xử lý và điều phối, không phải sơ đồ
+      triển khai chính xác tuyệt đối từng phiên bản phần mềm.</p>
+  </div>
+</footer>
+
+</body>
+</html>

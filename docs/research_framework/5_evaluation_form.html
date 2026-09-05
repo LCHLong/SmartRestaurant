@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Phiếu đánh giá: chọn Pipecat, LiveKit hay TEN?</title>
+<style>
+  :root{
+    --ink:#161a1f; --ink-soft:#4b5560; --paper:#eef0ee; --panel:#ffffff; --line:#d7dbd6;
+    --pipecat:#1f8a70; --pipecat-bg:#e7f4ef;
+    --livekit:#2a5fc9; --livekit-bg:#e8eefb;
+    --ten:#c97223; --ten-bg:#faeee0;
+    --amber:#c97223;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Space Grotesk', 'IBM Plex Sans', sans-serif;
+    --body: 'IBM Plex Sans', Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink); font-family:var(--body); line-height:1.55; font-size:15.5px;
+    background-image:linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size:100% 42px, 42px 100%; background-attachment:fixed; background-position:0 90px, 0 0;
+  }
+  header.hero{background:var(--ink); color:#f3f3ee; padding:44px 24px 36px; border-bottom:6px solid var(--amber);}
+  .hero-inner{max-width:1040px; margin:0 auto;}
+  .kicker{font-family:var(--mono); font-size:12.5px; color:#9fe6c9; margin:0 0 10px;}
+  h1.title{font-family:var(--sans); font-weight:700; font-size:clamp(24px,3.4vw,36px); line-height:1.14; margin:0 0 12px; max-width:26ch;}
+  .hero-desc{max-width:70ch; color:#c9cdc6; font-size:15px;}
+
+  main{max-width:1040px; margin:0 auto; padding:28px 24px 60px;}
+
+  .toolbar{
+    position:sticky; top:0; z-index:20; background:rgba(238,240,238,.95); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line); padding:12px 24px; margin:0 -24px 24px;
+    display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:space-between;
+  }
+  .toolbar .left{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+  .toolbar input[type="text"]{
+    font-family:var(--sans); font-size:14px; padding:8px 10px; border:1px solid var(--line); border-radius:2px; min-width:220px;
+  }
+  button{
+    font-family:var(--mono); font-size:12.5px; text-transform:uppercase; letter-spacing:.03em;
+    padding:9px 14px; border-radius:2px; border:1px solid var(--ink); background:var(--ink); color:#f0f0ea; cursor:pointer;
+  }
+  button.secondary{background:#fff; color:var(--ink);}
+  button:hover{opacity:.9;}
+  #save-status{font-family:var(--mono); font-size:11.5px; color:var(--ink-soft);}
+
+  .group-head{display:flex; align-items:center; gap:12px; margin:32px 0 4px;}
+  .group-head:first-of-type{margin-top:0;}
+  .group-tag{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; background:var(--ink); color:#f0f0ea; padding:5px 9px; border-radius:2px; flex-shrink:0;}
+  .group-head h3{font-family:var(--sans); font-size:17.5px; margin:0;}
+
+  .table-wrap{overflow-x:auto; margin:12px 0 8px; border:1px solid var(--line); border-radius:2px; background:var(--panel);}
+  table{border-collapse:collapse; width:100%; min-width:820px; font-size:13px;}
+  thead th{background:var(--ink); color:#f0f0ea; font-family:var(--mono); text-transform:uppercase; font-size:10px; letter-spacing:.02em; text-align:left; padding:10px 12px;}
+  thead th.num{text-align:center;}
+  tbody td{padding:9px 12px; border-top:1px solid var(--line); vertical-align:middle;}
+  tbody tr:nth-child(even) td{background:#fafaf7;}
+  td.crit-label{font-size:13px; max-width:260px;}
+  td.num-cell{text-align:center;}
+
+  select{
+    font-family:var(--mono); font-size:12.5px; padding:5px 6px; border:1px solid var(--line); border-radius:2px; background:#fff; color:var(--ink);
+    min-width:56px;
+  }
+  select.score-pipecat{border-left:3px solid var(--pipecat);}
+  select.score-livekit{border-left:3px solid var(--livekit);}
+  select.score-ten{border-left:3px solid var(--ten);}
+
+  .results{margin-top:40px; border-top:1px solid var(--line); padding-top:32px;}
+  .results h2{font-family:var(--sans); font-size:22px; margin:0 0 6px;}
+  .results p.lede{color:var(--ink-soft); margin:0 0 22px; max-width:70ch; font-size:14.5px;}
+
+  .bars{display:grid; gap:14px; margin-bottom:20px;}
+  .bar-row{display:grid; grid-template-columns:110px 1fr 90px; gap:12px; align-items:center;}
+  .bar-row .name{font-family:var(--sans); font-weight:600; font-size:14.5px;}
+  .bar-track{background:#e3e5e0; border-radius:2px; height:22px; overflow:hidden; border:1px solid var(--line);}
+  .bar-fill{height:100%; border-radius:2px 0 0 2px; transition:width .25s ease;}
+  .fill-pipecat{background:var(--pipecat);}
+  .fill-livekit{background:var(--livekit);}
+  .fill-ten{background:var(--ten);}
+  .bar-row .pct{font-family:var(--mono); font-size:13px; text-align:right;}
+
+  #recommendation{
+    background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--amber);
+    padding:16px 18px; border-radius:2px; font-size:14.5px; margin-top:6px;
+  }
+  #recommendation b{font-family:var(--sans);}
+
+  footer{background:var(--ink); color:#c9cdc6; padding:30px 24px 40px; font-size:13px; margin-top:40px;}
+  footer .inner{max-width:1040px; margin:0 auto;}
+
+  @media print{
+    .toolbar{position:static;}
+    button{display:none;}
+    body{background:#fff;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <p class="kicker">// PHIẾU ĐÁNH GIÁ CÓ THỂ LƯU LẠI</p>
+    <h1 class="title">Chấm điểm 20 tiêu chí — Pipecat, LiveKit, TEN</h1>
+    <p class="hero-desc">
+      Điểm (1–5) ở mỗi tiêu chí được điền sẵn theo phân tích trong các tài liệu trước — bạn có thể sửa nếu đánh giá khác.
+      <strong>Mức độ quan trọng</strong> (trọng số) nên được bạn điều chỉnh theo đúng ưu tiên của dự án. Kết quả tổng hợp sẽ tự
+      cập nhật bên dưới, và có thể lưu lại để mở lại sau.
+    </p>
+  </div>
+</header>
+
+<main>
+  <div class="toolbar">
+    <div class="left">
+      <input type="text" id="project-name" placeholder="Tên dự án / phiếu đánh giá (tuỳ chọn)">
+      <span id="save-status">Đang tải phiếu đã lưu…</span>
+    </div>
+    <div class="left">
+      <button class="secondary" id="btn-reset">Khôi phục mặc định</button>
+      <button class="secondary" id="btn-print">In / Xuất PDF</button>
+      <button class="secondary" id="btn-export-json">Tải file JSON</button>
+      <button class="secondary" id="btn-import-json">Nhập file JSON</button>
+      <input type="file" id="file-import" accept="application/json" style="display:none">
+      <button id="btn-save">Lưu phiếu đánh giá</button>
+    </div>
+  </div>
+
+  <div id="criteria-container"></div>
+
+  <div class="results">
+    <h2>Kết quả tổng hợp</h2>
+    <p class="lede">Điểm tổng = tổng (điểm × trọng số) trên toàn bộ 20 tiêu chí, quy về phần trăm so với điểm tối đa có thể đạt.</p>
+    <div class="bars" id="bars"></div>
+    <div id="recommendation"></div>
+  </div>
+</main>
+
+<footer>
+  <div class="inner">
+    Có hai cách lưu kết quả: <b>"Tải file JSON"</b> tải một file <code>.json</code> chứa toàn bộ điểm/trọng số về máy —
+    hoạt động ở mọi trình duyệt, mở lại bằng nút <b>"Nhập file JSON"</b> trên chính file HTML này (hoặc bản sao của nó) để tiếp tục.
+    <b>"Lưu phiếu đánh giá"</b> là lựa chọn nhanh hơn khi mở file trong môi trường Claude, tự động khôi phục lại lần sau không cần
+    tệp rời. Điểm mặc định dựa trên bộ tiêu chí tổng hợp ở tài liệu trước; hãy điều chỉnh trọng số và điểm theo thực tế dự án của
+    bạn trước khi dùng để quyết định.
+  </div>
+</footer>
+
+<script>
+const CRITERIA = [
+  {id:'c1',  group:'A', label:'Số người tham gia đồng thời trong một phiên', pipecat:2, livekit:5, ten:2},
+  {id:'c2',  group:'A', label:'Phương thức cần xử lý (audio / video / đa phương thức)', pipecat:3, livekit:4, ten:5},
+  {id:'c3',  group:'A', label:'Yêu cầu độ trễ phản hồi thấp', pipecat:3, livekit:4, ten:5},
+  {id:'c4',  group:'A', label:'Cần tích hợp điện thoại truyền thống (SIP/PSTN)', pipecat:4, livekit:5, ten:2},
+  {id:'c5',  group:'A', label:'Cần chạy trên thiết bị biên / IoT / robot', pipecat:2, livekit:2, ten:5},
+  {id:'c6',  group:'A', label:'Cần đổi nhà cung cấp AI (STT/LLM/TTS) thường xuyên', pipecat:5, livekit:4, ten:3},
+
+  {id:'c7',  group:'B', label:'Đội ngũ chủ yếu Python, muốn đơn giản', pipecat:5, livekit:3, ten:2},
+  {id:'c8',  group:'B', label:'Không muốn cần kinh nghiệm WebRTC/SFU sâu', pipecat:4, livekit:2, ten:3},
+  {id:'c9',  group:'B', label:'Muốn ít phải tự vận hành hạ tầng phân tán', pipecat:3, livekit:2, ten:3},
+  {id:'c10', group:'B', label:'Cần cách ly lỗi giữa transport và AI (chịu lỗi cao)', pipecat:2, livekit:5, ten:3},
+  {id:'c11', group:'B', label:'Cần scale phần vận chuyển và phần AI độc lập nhau', pipecat:2, livekit:5, ten:3},
+
+  {id:'c12', group:'C', label:'Ưu tiên ngân sách/chi phí thấp khi mở rộng', pipecat:4, livekit:3, ten:5},
+  {id:'c13', group:'C', label:'Yêu cầu tuân thủ sẵn có (HIPAA/GDPR/SOC2)', pipecat:3, livekit:4, ten:2},
+  {id:'c14', group:'C', label:'Cần giấy phép tự do, ít ràng buộc nhất', pipecat:5, livekit:5, ten:3},
+  {id:'c15', group:'C', label:'Không muốn lo ràng buộc cạnh tranh/thương mại hoá', pipecat:5, livekit:5, ten:2},
+  {id:'c16', group:'C', label:'Ưu tiên tốc độ ra thị trường (time-to-market)', pipecat:4, livekit:4, ten:2},
+
+  {id:'c17', group:'D', label:'Cần dễ debug hệ thống', pipecat:5, livekit:3, ten:2},
+  {id:'c18', group:'D', label:'Cần cộng đồng/tài liệu trưởng thành', pipecat:4, livekit:5, ten:3},
+  {id:'c19', group:'D', label:'Cần khả năng tự audit toàn bộ mã nguồn', pipecat:4, livekit:3, ten:5},
+  {id:'c20', group:'D', label:'Cần khả năng mở rộng dài hạn lên quy mô lớn/đa người', pipecat:2, livekit:5, ten:3},
+];
+const GROUP_NAMES = {
+  A: 'Yêu cầu sản phẩm / chức năng',
+  B: 'Yêu cầu kỹ thuật &amp; vận hành',
+  C: 'Ràng buộc kinh doanh &amp; pháp lý',
+  D: 'Năng lực đội ngũ &amp; rủi ro dài hạn'
+};
+const STORAGE_KEY = 'framework-eval-sheet-v1';
+
+let state = { title:'', rows:{} };
+CRITERIA.forEach(c=>{ state.rows[c.id] = { weight:2, pipecat:c.pipecat, livekit:c.livekit, ten:c.ten }; });
+
+function scoreOptions(selected){
+  let html='';
+  for(let i=1;i<=5;i++){ html += `<option value="${i}" ${i===selected?'selected':''}>${i}</option>`; }
+  return html;
+}
+function weightOptions(selected){
+  const labels = {1:'Thấp',2:'Trung bình',3:'Cao'};
+  let html='';
+  for(let i=1;i<=3;i++){ html += `<option value="${i}" ${i===selected?'selected':''}>${labels[i]} (${i})</option>`; }
+  return html;
+}
+
+function render(){
+  const container = document.getElementById('criteria-container');
+  container.innerHTML = '';
+  let currentGroup = null;
+  let table, tbody;
+
+  CRITERIA.forEach(c=>{
+    if(c.group !== currentGroup){
+      currentGroup = c.group;
+      const head = document.createElement('div');
+      head.className = 'group-head';
+      head.innerHTML = `<span class="group-tag">Nhóm ${currentGroup}</span><h3>${GROUP_NAMES[currentGroup]}</h3>`;
+      container.appendChild(head);
+
+      const wrap = document.createElement('div');
+      wrap.className = 'table-wrap';
+      table = document.createElement('table');
+      table.innerHTML = `<thead><tr>
+        <th>Tiêu chí</th>
+        <th class="num">Mức quan trọng</th>
+        <th class="num" style="color:#9fe6c9">Pipecat</th>
+        <th class="num" style="color:#aebff2">LiveKit</th>
+        <th class="num" style="color:#f2c898">TEN</th>
+      </tr></thead>`;
+      tbody = document.createElement('tbody');
+      table.appendChild(tbody);
+      wrap.appendChild(table);
+      container.appendChild(wrap);
+    }
+    const r = state.rows[c.id];
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="crit-label">${c.label}</td>
+      <td class="num-cell"><select data-id="${c.id}" data-field="weight">${weightOptions(r.weight)}</select></td>
+      <td class="num-cell"><select class="score-pipecat" data-id="${c.id}" data-field="pipecat">${scoreOptions(r.pipecat)}</select></td>
+      <td class="num-cell"><select class="score-livekit" data-id="${c.id}" data-field="livekit">${scoreOptions(r.livekit)}</select></td>
+      <td class="num-cell"><select class="score-ten" data-id="${c.id}" data-field="ten">${scoreOptions(r.ten)}</select></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  container.querySelectorAll('select').forEach(sel=>{
+    sel.addEventListener('change', (e)=>{
+      const id = e.target.getAttribute('data-id');
+      const field = e.target.getAttribute('data-field');
+      state.rows[id][field] = parseInt(e.target.value, 10);
+      computeAndRenderResults();
+      markUnsaved();
+    });
+  });
+
+  document.getElementById('project-name').value = state.title || '';
+}
+
+function computeAndRenderResults(){
+  const totals = {pipecat:0, livekit:0, ten:0};
+  let maxPossible = 0;
+  CRITERIA.forEach(c=>{
+    const r = state.rows[c.id];
+    totals.pipecat += r.pipecat * r.weight;
+    totals.livekit += r.livekit * r.weight;
+    totals.ten     += r.ten * r.weight;
+    maxPossible    += 5 * r.weight;
+  });
+
+  const pct = {
+    pipecat: Math.round((totals.pipecat/maxPossible)*100),
+    livekit: Math.round((totals.livekit/maxPossible)*100),
+    ten: Math.round((totals.ten/maxPossible)*100)
+  };
+
+  const bars = document.getElementById('bars');
+  bars.innerHTML = `
+    <div class="bar-row">
+      <div class="name" style="color:var(--pipecat)">Pipecat</div>
+      <div class="bar-track"><div class="bar-fill fill-pipecat" style="width:${pct.pipecat}%"></div></div>
+      <div class="pct">${totals.pipecat} đ · ${pct.pipecat}%</div>
+    </div>
+    <div class="bar-row">
+      <div class="name" style="color:var(--livekit)">LiveKit</div>
+      <div class="bar-track"><div class="bar-fill fill-livekit" style="width:${pct.livekit}%"></div></div>
+      <div class="pct">${totals.livekit} đ · ${pct.livekit}%</div>
+    </div>
+    <div class="bar-row">
+      <div class="name" style="color:var(--ten)">TEN</div>
+      <div class="bar-track"><div class="bar-fill fill-ten" style="width:${pct.ten}%"></div></div>
+      <div class="pct">${totals.ten} đ · ${pct.ten}%</div>
+    </div>
+  `;
+
+  const entries = Object.entries(pct).sort((a,b)=>b[1]-a[1]);
+  const names = {pipecat:'Pipecat', livekit:'LiveKit', ten:'TEN'};
+  const [first, second] = entries;
+  const gap = first[1]-second[1];
+  const rec = document.getElementById('recommendation');
+  if(gap < 4){
+    rec.innerHTML = `<b>${names[first[0]]}</b> và <b>${names[second[0]]}</b> đang rất sát nhau (${first[1]}% so với ${second[1]}%) —
+      nên xem lại các tiêu chí có trọng số "Cao" để chắc chắn chúng phản ánh đúng ưu tiên thực tế trước khi quyết định.`;
+  } else {
+    rec.innerHTML = `Dựa trên phiếu hiện tại, <b>${names[first[0]]}</b> đạt điểm cao nhất (${first[1]}%), tiếp theo là
+      ${names[second[0]]} (${second[1]}%).`;
+  }
+}
+
+function markUnsaved(){
+  document.getElementById('save-status').textContent = 'Có thay đổi chưa lưu';
+}
+
+async function saveState(){
+  state.title = document.getElementById('project-name').value;
+  const status = document.getElementById('save-status');
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(state), false);
+    const now = new Date();
+    status.textContent = 'Đã lưu lúc ' + now.toLocaleTimeString('vi-VN');
+  }catch(err){
+    status.textContent = 'Không thể lưu (trình duyệt không hỗ trợ lưu trữ ở đây)';
+  }
+}
+
+async function loadState(){
+  const status = document.getElementById('save-status');
+  try{
+    const result = await window.storage.get(STORAGE_KEY);
+    if(result && result.value){
+      const parsed = JSON.parse(result.value);
+      CRITERIA.forEach(c=>{
+        if(parsed.rows && parsed.rows[c.id]){
+          state.rows[c.id] = parsed.rows[c.id];
+        }
+      });
+      state.title = parsed.title || '';
+      status.textContent = 'Đã tải phiếu đã lưu trước đó';
+    } else {
+      status.textContent = 'Chưa có phiếu nào được lưu — dùng điểm mặc định';
+    }
+  }catch(err){
+    status.textContent = 'Chưa có phiếu nào được lưu — dùng điểm mặc định';
+  }
+  render();
+  computeAndRenderResults();
+}
+
+function resetDefaults(){
+  CRITERIA.forEach(c=>{ state.rows[c.id] = { weight:2, pipecat:c.pipecat, livekit:c.livekit, ten:c.ten }; });
+  state.title = '';
+  render();
+  computeAndRenderResults();
+  markUnsaved();
+}
+
+function exportJSON(){
+  state.title = document.getElementById('project-name').value;
+  const payload = {
+    savedAt: new Date().toISOString(),
+    ...state
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const safeName = (state.title || 'phieu-danh-gia-framework').trim().replace(/[^a-zA-Z0-9-_ ]/g,'').replace(/\s+/g,'-') || 'phieu-danh-gia-framework';
+  a.href = url;
+  a.download = safeName + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  document.getElementById('save-status').textContent = 'Đã tải file JSON lúc ' + new Date().toLocaleTimeString('vi-VN');
+}
+
+function importJSONFile(file){
+  const status = document.getElementById('save-status');
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const parsed = JSON.parse(e.target.result);
+      CRITERIA.forEach(c=>{
+        if(parsed.rows && parsed.rows[c.id]){
+          state.rows[c.id] = {
+            weight: parsed.rows[c.id].weight ?? 2,
+            pipecat: parsed.rows[c.id].pipecat ?? c.pipecat,
+            livekit: parsed.rows[c.id].livekit ?? c.livekit,
+            ten: parsed.rows[c.id].ten ?? c.ten
+          };
+        }
+      });
+      state.title = parsed.title || '';
+      render();
+      computeAndRenderResults();
+      status.textContent = 'Đã nhập phiếu từ file JSON';
+    }catch(err){
+      status.textContent = 'File JSON không hợp lệ — không thể nhập';
+    }
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('btn-save').addEventListener('click', saveState);
+document.getElementById('btn-reset').addEventListener('click', resetDefaults);
+document.getElementById('btn-print').addEventListener('click', ()=>window.print());
+document.getElementById('btn-export-json').addEventListener('click', exportJSON);
+document.getElementById('btn-import-json').addEventListener('click', ()=>document.getElementById('file-import').click());
+document.getElementById('file-import').addEventListener('change', (e)=>{
+  if(e.target.files && e.target.files[0]){
+    importJSONFile(e.target.files[0]);
+    e.target.value = '';
+  }
+});
+document.getElementById('project-name').addEventListener('input', markUnsaved);
+
+loadState();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tài liệu tra cứu nhanh — Voice AI Frameworks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2430;
+    --ink-soft:#4a5568;
+    --paper:#f6f4ef;
+    --panel:#ffffff;
+    --line:#dcd6c8;
+    --wave:#3a5a78;
+    --wave-soft:#e7edf2;
+    --pulse:#e0a72e;
+    --pulse-soft:#fbf1dc;
+    --good:#3f7a5c;
+    --code-bg:#232b36;
+    --code-text:#e6ebf1;
+    --code-dim:#8b96a6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.6;
+  }
+  .wrap{max-width:820px;margin:0 auto;padding:0 24px 90px;}
+
+  header.hero{padding:48px 24px 32px;border-bottom:1px solid var(--line);}
+  .eyebrow{
+    font-size:.82rem;
+    color:var(--wave);
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:2.2rem;
+    line-height:1.15;
+    margin:0 0 12px;
+    max-width:620px;
+  }
+  .hero p{max-width:560px;color:var(--ink-soft);font-size:1.02rem;margin:0;}
+
+  /* sticky quick nav */
+  nav.jump{
+    position:sticky; top:0; z-index:10;
+    background:rgba(246,244,239,.94);
+    backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+    padding:12px 24px;
+    display:flex; gap:6px; flex-wrap:wrap;
+  }
+  nav.jump a{
+    font-size:.82rem;
+    font-weight:600;
+    color:var(--ink-soft);
+    text-decoration:none;
+    padding:6px 12px;
+    border-radius:100px;
+    border:1px solid var(--line);
+    background:var(--panel);
+  }
+  nav.jump a:hover{color:var(--wave); border-color:var(--wave);}
+
+  main{padding-top:8px;}
+
+  h2{
+    font-family:'Fraunces', serif;
+    font-weight:600;
+    font-size:1.4rem;
+    margin:50px 0 6px;
+    padding-left:14px;
+    border-left:3px solid var(--pulse);
+    scroll-margin-top:64px;
+  }
+  h2 + .lede{color:var(--ink-soft); margin:0 0 20px; padding-left:17px; font-size:.95rem;}
+  h3{font-family:'Fraunces', serif; font-size:1.1rem; font-weight:600; margin:22px 0 8px;}
+  p{margin:0 0 14px;}
+
+  /* decision helper */
+  .decision{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:22px 24px;
+  }
+  .decision .row{
+    display:flex;
+    gap:14px;
+    padding:12px 0;
+    border-bottom:1px solid var(--line);
+    align-items:baseline;
+  }
+  .decision .row:last-child{border-bottom:none;}
+  .decision .q{flex:0 0 260px; font-weight:600; font-size:.94rem;}
+  .decision .a{color:var(--wave); font-weight:600; font-size:.94rem;}
+  .decision .a small{display:block;font-weight:400;color:var(--ink-soft);margin-top:2px;}
+
+  /* framework quickstart blocks */
+  .fw-block{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:24px 26px;
+    margin-bottom:20px;
+    scroll-margin-top:64px;
+  }
+  .fw-block .tag{
+    display:inline-block; font-size:.78rem; font-weight:600;
+    color:var(--wave); background:var(--wave-soft);
+    padding:3px 10px; border-radius:100px; margin-bottom:10px;
+  }
+  .meta-row{display:flex; gap:18px; flex-wrap:wrap; margin:8px 0 16px; font-size:.86rem;}
+  .meta-row span{color:var(--ink-soft);}
+  .meta-row b{color:var(--ink);}
+
+  pre{
+    background:var(--code-bg);
+    color:var(--code-text);
+    border-radius:8px;
+    padding:16px 18px;
+    overflow-x:auto;
+    font-family:'IBM Plex Mono', monospace;
+    font-size:.83rem;
+    line-height:1.55;
+    margin:0 0 14px;
+  }
+  pre .c{color:var(--code-dim);}
+  .step-label{
+    font-size:.78rem;
+    font-weight:600;
+    color:var(--ink-soft);
+    text-transform:none;
+    margin:14px 0 6px;
+  }
+  .time-badge{
+    display:inline-block;
+    font-size:.75rem;
+    font-weight:600;
+    background:var(--pulse-soft);
+    color:#8a6113;
+    padding:2px 9px;
+    border-radius:100px;
+    margin-left:8px;
+  }
+  .fw-block a.doclink{font-size:.85rem;color:var(--wave);}
+
+  /* comparison table */
+  table{
+    width:100%; border-collapse:collapse; font-size:.88rem;
+    background:var(--panel); border:1px solid var(--line);
+    border-radius:10px; overflow:hidden;
+  }
+  th,td{padding:11px 13px; text-align:left; border-bottom:1px solid var(--line); vertical-align:top;}
+  th{background:var(--wave-soft); color:var(--wave); font-weight:600; font-size:.8rem;}
+  tr:last-child td{border-bottom:none;}
+  td:first-child{font-weight:600; white-space:nowrap;}
+
+  /* checklist */
+  .checklist{list-style:none; margin:0; padding:0;}
+  .checklist li{
+    display:flex; gap:10px; align-items:flex-start;
+    padding:9px 0; border-bottom:1px solid var(--line);
+    font-size:.94rem;
+  }
+  .checklist li:last-child{border-bottom:none;}
+  .checklist input{margin-top:4px;}
+
+  footer{
+    margin-top:60px; padding-top:20px; border-top:1px solid var(--line);
+    color:var(--ink-soft); font-size:.85rem;
+  }
+  footer a{color:var(--wave);}
+  footer ul{padding-left:18px; margin:8px 0 0;}
+
+  @media (max-width:560px){
+    h1{font-size:1.8rem;}
+    .fw-block{padding:18px;}
+    .decision .q{flex:0 0 auto;}
+    .decision .row{flex-direction:column; gap:4px;}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap" style="padding:0;">
+    <div class="eyebrow">Tài liệu tra cứu nhanh</div>
+    <h1>Rút gọn thời gian học: lệnh cài đặt, code mẫu và bảng tra cứu</h1>
+    <p>Không đọc lại lý thuyết — tài liệu này gom mọi thứ cần để bắt tay vào thực hành ngay: lệnh cài, code khởi động tối thiểu, và bảng giúp bạn quyết định nhanh.</p>
+  </div>
+</header>
+
+<nav class="jump">
+  <a href="#decision">Chọn framework nhanh</a>
+  <a href="#pipecat">Pipecat</a>
+  <a href="#livekit">LiveKit</a>
+  <a href="#ten">TEN</a>
+  <a href="#compare">Bảng so sánh</a>
+  <a href="#checklist">Checklist học</a>
+</nav>
+
+<main class="wrap">
+
+  <h2 id="decision">1. Chọn framework nhanh trước khi học sâu</h2>
+  <p class="lede">Trả lời câu hỏi bên trái, cột phải gợi ý framework nên học trước — giúp bạn không phải học cả 3 kỹ như nhau.</p>
+  <div class="decision">
+    <div class="row">
+      <div class="q">Bài toán cần AI hiện hình / avatar cùng lúc với giọng nói?</div>
+      <div class="a">TEN Framework <small>Mạnh nhất về xử lý đa phương tiện (voice + video + avatar)</small></div>
+    </div>
+    <div class="row">
+      <div class="q">Cần nhiều người dùng nói chuyện với AI cùng lúc, ở quy mô lớn?</div>
+      <div class="a">LiveKit Agents <small>Hạ tầng WebRTC bền vững, có sẵn dịch vụ đám mây quản lý</small></div>
+    </div>
+    <div class="q">Chỉ cần build nhanh, tự triển khai, không muốn phụ thuộc hãng nào?</div>
+    <div class="row" style="border-top:none;padding-top:0;">
+      <div class="a" style="padding-left:0;">Pipecat <small>Nhẹ, khởi động nhanh, dễ tự host</small></div>
+    </div>
+    <div class="row">
+      <div class="q">Chưa chắc bài toán cụ thể, chỉ muốn học 1 framework để hiểu chung?</div>
+      <div class="a">Pipecat hoặc LiveKit <small>Tài liệu và cộng đồng lớn nhất, ít rủi ro bị kẹt khi tự học</small></div>
+    </div>
+  </div>
+
+  <h2 id="pipecat">2. Pipecat — bắt đầu trong ~15 phút</h2>
+  <div class="fw-block">
+    <span class="tag">Pipecat</span>
+    <div class="meta-row">
+      <span>Ngôn ngữ: <b>Python</b></span>
+      <span>Cần cài: <b>uv (trình quản lý gói Python)</b></span>
+      <span>Chạy ở đâu: <b>máy cá nhân</b></span>
+    </div>
+
+    <div class="step-label">Bước 1 — Cài công cụ dòng lệnh <span class="time-badge">~2 phút</span></div>
+    <pre>curl -LsSf https://astral.sh/uv/install.sh | sh
+uv tool install "pipecat-ai[cli]"</pre>
+
+    <div class="step-label">Bước 2 — Tạo dự án mới <span class="time-badge">~2 phút</span></div>
+    <pre>pipecat init
+<span class="c"># Công cụ sẽ hỏi bạn muốn tạo bot dạng điện thoại hay web/mobile</span></pre>
+
+    <div class="step-label">Bước 3 — Chạy thử bot đầu tiên <span class="time-badge">~5 phút</span></div>
+    <pre>cd ten-du-an-vua-tao
+uv run bot.py
+<span class="c"># Mở trình duyệt theo link được in ra để nói chuyện với bot</span></pre>
+
+    <div class="step-label">Cấu trúc code cốt lõi cần nhìn ra</div>
+    <pre>pipeline = Pipeline([
+    transport.input(),   <span class="c"># nhận âm thanh vào</span>
+    stt,                 <span class="c"># giọng nói → chữ</span>
+    llm,                 <span class="c"># chữ → suy nghĩ → chữ trả lời</span>
+    tts,                 <span class="c"># chữ trả lời → giọng nói</span>
+    transport.output(),  <span class="c"># phát âm thanh ra</span>
+])</pre>
+    <p><a class="doclink" href="https://docs.pipecat.ai" target="_blank">→ docs.pipecat.ai</a></p>
+  </div>
+
+  <h2 id="livekit">3. LiveKit Agents — bắt đầu trong ~10 phút</h2>
+  <div class="fw-block">
+    <span class="tag">LiveKit Agents</span>
+    <div class="meta-row">
+      <span>Ngôn ngữ: <b>Python hoặc Node.js</b></span>
+      <span>Cần cài: <b>pip, tài khoản LiveKit Cloud (miễn phí)</b></span>
+      <span>Chạy ở đâu: <b>terminal máy cá nhân, kết nối cloud</b></span>
+    </div>
+
+    <div class="step-label">Bước 1 — Cài thư viện <span class="time-badge">~2 phút</span></div>
+    <pre>pip install "livekit-agents[openai,deepgram,cartesia]"</pre>
+
+    <div class="step-label">Bước 2 — Cấu hình khóa API <span class="time-badge">~3 phút</span></div>
+    <pre>cp .env.example .env.local
+<span class="c"># Điền LIVEKIT_URL, LIVEKIT_API_KEY, LIVEKIT_API_SECRET
+# lấy từ tài khoản LiveKit Cloud (miễn phí đăng ký)</span></pre>
+
+    <div class="step-label">Bước 3 — Chạy thử trong terminal <span class="time-badge">~3 phút</span></div>
+    <pre>python3 agent.py console</pre>
+
+    <div class="step-label">Cấu trúc code cốt lõi cần nhìn ra</div>
+    <pre>session = AgentSession(
+    stt=inference.STT("deepgram/nova-3"),   <span class="c"># tai nghe</span>
+    llm=inference.LLM("openai/gpt-4o"),     <span class="c"># bộ não</span>
+    tts=inference.TTS("cartesia/sonic-3"),  <span class="c"># giọng nói</span>
+)
+await session.start(room=ctx.room, agent=Agent(
+    instructions="Bạn là trợ lý giọng nói hữu ích."
+))</pre>
+    <p><a class="doclink" href="https://docs.livekit.io/agents/start/voice-ai/" target="_blank">→ docs.livekit.io/agents/start/voice-ai</a></p>
+  </div>
+
+  <h2 id="ten">4. TEN Framework — bắt đầu trong ~30 phút</h2>
+  <div class="fw-block">
+    <span class="tag">TEN Framework</span>
+    <div class="meta-row">
+      <span>Ngôn ngữ: <b>đa ngôn ngữ (chạy qua Docker)</b></span>
+      <span>Cần cài: <b>Docker, pnpm</b></span>
+      <span>Chạy ở đâu: <b>Docker container, hoặc GitHub Codespaces (không cần cài gì)</b></span>
+    </div>
+    <p style="font-size:.88rem;color:var(--ink-soft);">Lưu ý: TEN cần nhiều bước cài đặt hơn 2 framework kia. Nếu muốn thử nhanh không cài gì trên máy, dùng GitHub Codespaces (bước có đánh dấu *).</p>
+
+    <div class="step-label">Bước 1 — Lấy mã nguồn &amp; cấu hình <span class="time-badge">~5 phút</span></div>
+    <pre>git clone https://github.com/TEN-framework/ten-framework.git
+cd ten-framework
+cp .env.example .env
+<span class="c"># Mở file .env, điền API key cho LLM / STT / TTS bạn muốn dùng thử</span></pre>
+
+    <div class="step-label">Bước 2 — Build và chạy server <span class="time-badge">~10-15 phút</span></div>
+    <pre>docker compose up
+task use
+task run</pre>
+
+    <div class="step-label">Bước 3 — Mở giao diện thử nghiệm <span class="time-badge">~2 phút</span></div>
+    <pre><span class="c"># Mở trình duyệt tại</span>
+http://localhost:3000</pre>
+
+    <div class="step-label">*Cách thử không cần cài gì (GitHub Codespaces)</div>
+    <pre><span class="c"># Vào repo TEN-framework trên GitHub → nút "Code"
+# → "Create codespace on main" → làm theo hướng dẫn trong VSCode trình duyệt</span></pre>
+
+    <p><a class="doclink" href="https://github.com/TEN-framework/ten-framework" target="_blank">→ github.com/TEN-framework/ten-framework</a></p>
+  </div>
+
+  <h2 id="compare">5. Bảng so sánh tổng hợp</h2>
+  <table>
+    <tr><th>Tiêu chí</th><th>Pipecat</th><th>LiveKit Agents</th><th>TEN Framework</th></tr>
+    <tr><td>Thời gian dựng bản chạy đầu tiên</td><td>~15 phút</td><td>~10 phút</td><td>~30 phút (hoặc Codespaces)</td></tr>
+    <tr><td>Cách "lắp ráp"</td><td>Dây chuyền nối tiếp</td><td>AI vào "phòng họp ảo"</td><td>Sơ đồ khối, kéo-thả</td></tr>
+    <tr><td>Ngôn ngữ chính</td><td>Python</td><td>Python / Node.js</td><td>C++, Go, Python...</td></tr>
+    <tr><td>Cần Docker?</td><td>Không</td><td>Không</td><td>Có</td></tr>
+    <tr><td>Bị buộc theo 1 hãng?</td><td>Không, khá tự do</td><td>Gắn với hạ tầng LiveKit</td><td>Gắn với hệ sinh thái Agora</td></tr>
+    <tr><td>Thế mạnh riêng</td><td>Nhẹ, dễ thử nhanh</td><td>Ổn định khi nhiều người dùng cùng lúc</td><td>Giọng nói + hình ảnh + avatar</td></tr>
+  </table>
+
+  <h2 id="checklist">6. Checklist rút gọn — 90 phút thay vì 4 giờ</h2>
+  <p class="lede">Nếu thời gian rất eo hẹp, chỉ cần làm đủ các mục sau (không cần đọc lại lý thuyết dài dòng).</p>
+  <ul class="checklist">
+    <li><input type="checkbox"> Dùng bảng ở mục 1 để chọn ra 1 framework ưu tiên học sâu</li>
+    <li><input type="checkbox"> Chạy xong quickstart của framework ưu tiên (mục 2, 3 hoặc 4) — có bot chạy được là đạt</li>
+    <li><input type="checkbox"> Đọc đoạn "Cấu trúc code cốt lõi" của framework đó, hiểu 3 dòng STT / LLM / TTS làm gì</li>
+    <li><input type="checkbox"> Lướt bảng so sánh ở mục 5 để biết 2 framework còn lại khác gì, phòng khi cần đổi hướng sau này</li>
+    <li><input type="checkbox"> Ghi 2–3 câu kết luận: chọn framework nào, vì lý do gì</li>
+  </ul>
+
+  <footer>
+    Nguồn tham khảo chính thức:
+    <ul>
+      <li><a href="https://docs.pipecat.ai" target="_blank">docs.pipecat.ai</a> · <a href="https://github.com/pipecat-ai/pipecat" target="_blank">github.com/pipecat-ai/pipecat</a></li>
+      <li><a href="https://docs.livekit.io/agents/start/voice-ai/" target="_blank">docs.livekit.io/agents/start/voice-ai</a> · <a href="https://github.com/livekit/agents" target="_blank">github.com/livekit/agents</a></li>
+      <li><a href="https://github.com/TEN-framework/ten-framework" target="_blank">github.com/TEN-framework/ten-framework</a> · <a href="https://docs.agora.io/en/ten-agent/get-started/quickstart" target="_blank">docs.agora.io/ten-agent/quickstart</a></li>
+    </ul>
+    <p style="margin-top:14px;">Lệnh cài đặt có thể thay đổi theo phiên bản mới nhất của từng framework — nếu lệnh nào không chạy được, kiểm tra lại trang tài liệu chính thức tương ứng.</p>
+  </footer>
+
+</main>
+
+</body>
+</html>

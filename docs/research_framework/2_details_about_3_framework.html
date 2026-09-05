@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipecat · LiveKit · TEN — So sánh framework AI hội thoại thời gian thực</title>
+<style>
+  :root{
+    --ink:#161a1f;
+    --ink-soft:#4b5560;
+    --paper:#eef0ee;
+    --panel:#ffffff;
+    --line:#d7dbd6;
+    --pipecat:#1f8a70;
+    --pipecat-bg:#e7f4ef;
+    --livekit:#2a5fc9;
+    --livekit-bg:#e8eefb;
+    --ten:#c97223;
+    --ten-bg:#faeee0;
+    --amber:#c97223;
+    --mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --sans: 'Space Grotesk', 'IBM Plex Sans', sans-serif;
+    --body: 'IBM Plex Sans', Arial, sans-serif;
+  }
+  @font-face{font-family:'Space Grotesk';src:local('Space Grotesk');}
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--body); line-height:1.6; font-size:16px;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 100% 42px, 42px 100%;
+    background-attachment: fixed;
+    background-position: 0 90px, 0 0;
+  }
+  a{color:inherit;}
+
+  /* ---------- HEADER ---------- */
+  header.hero{
+    background:var(--ink); color:#f3f3ee;
+    padding:64px 24px 48px;
+    position:relative;
+    overflow:hidden;
+    border-bottom:6px solid var(--amber);
+  }
+  header.hero svg.wave{position:absolute; left:0; right:0; bottom:-2px; width:100%; height:60px; opacity:.55;}
+  .hero-inner{max-width:980px; margin:0 auto; position:relative; z-index:2;}
+  .kicker{
+    font-family:var(--mono); font-size:13px; letter-spacing:.04em;
+    color:#9fe6c9; margin:0 0 14px;
+  }
+  h1.title{
+    font-family:var(--sans); font-weight:700; font-size:clamp(30px,4.4vw,52px);
+    line-height:1.08; margin:0 0 20px; max-width:16ch;
+  }
+  h1.title em{font-style:normal; color:#ffcf9e;}
+  .hero-desc{max-width:62ch; color:#c9cdc6; font-size:17px;}
+  .badge-row{display:flex; gap:10px; margin-top:28px; flex-wrap:wrap;}
+  .badge{
+    font-family:var(--mono); font-size:12.5px; padding:6px 12px;
+    border:1px solid rgba(255,255,255,.28); border-radius:2px; color:#e7e9e3;
+  }
+
+  /* ---------- NAV ---------- */
+  nav.toc{
+    position:sticky; top:0; z-index:10;
+    background:rgba(238,240,238,.94); backdrop-filter:blur(6px);
+    border-bottom:1px solid var(--line);
+  }
+  nav.toc ul{
+    max-width:980px; margin:0 auto; padding:0 24px; list-style:none;
+    display:flex; gap:22px; overflow-x:auto; font-family:var(--mono); font-size:13px;
+  }
+  nav.toc a{display:block; padding:14px 0; white-space:nowrap; text-decoration:none; color:var(--ink-soft); border-bottom:2px solid transparent;}
+  nav.toc a:hover{color:var(--ink); border-color:var(--amber);}
+
+  main{max-width:980px; margin:0 auto; padding:0 24px;}
+
+  section{padding:56px 0; border-bottom:1px solid var(--line);}
+  section:last-of-type{border-bottom:none;}
+
+  h2.section-title{
+    font-family:var(--sans); font-size:30px; font-weight:700; margin:0 0 8px;
+    display:flex; align-items:baseline; gap:12px;
+  }
+  .section-num{font-family:var(--mono); font-size:14px; color:var(--ink-soft);}
+  p.section-lede{color:var(--ink-soft); max-width:70ch; margin:0 0 32px;}
+
+  /* summary */
+  .summary-grid{display:grid; grid-template-columns: 1fr; gap:14px; margin-top:28px;}
+  .summary-card{
+    background:var(--panel); border:1px solid var(--line); border-left:5px solid var(--c,var(--ink));
+    padding:18px 20px; border-radius:2px;
+  }
+  .summary-card h3{margin:0 0 6px; font-family:var(--sans); font-size:17px;}
+  .summary-card p{margin:0; color:var(--ink-soft); font-size:14.5px;}
+
+  /* framework blocks */
+  .fw{
+    background:var(--panel); border:1px solid var(--line);
+    border-top:5px solid var(--c);
+    margin-bottom:36px; border-radius:2px;
+  }
+  .fw-head{padding:26px 28px 14px; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap;}
+  .fw-head h3{font-family:var(--sans); font-size:24px; margin:0;}
+  .fw-tag{font-family:var(--mono); font-size:12px; color:var(--c); background:var(--bg); padding:5px 10px; border-radius:2px;}
+  .fw-body{padding:0 28px 28px;}
+  .fw-lede{color:var(--ink-soft); margin-top:0;}
+
+  .kv{display:grid; grid-template-columns: 150px 1fr; gap:4px 18px; margin:18px 0; font-size:14.5px;}
+  .kv dt{font-family:var(--mono); font-size:12px; color:var(--c); text-transform:uppercase; letter-spacing:.03em; align-self:start; padding-top:2px;}
+  .kv dd{margin:0 0 10px;}
+
+  h4.subhead{
+    font-family:var(--mono); font-size:12.5px; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--ink-soft); margin:22px 0 8px; border-bottom:1px dashed var(--line); padding-bottom:6px;
+  }
+
+  pre{
+    background:#12151a; color:#e5f4ed; padding:16px 18px; border-radius:3px;
+    overflow-x:auto; font-family:var(--mono); font-size:13px; line-height:1.55;
+    border-left:3px solid var(--c);
+  }
+  code{font-family:var(--mono); font-size:.92em;}
+  :not(pre)>code{background:#e7e5dc; padding:1px 5px; border-radius:2px;}
+
+  ul.tight{margin:8px 0; padding-left:20px;}
+  ul.tight li{margin-bottom:6px;}
+
+  .callout{
+    display:flex; gap:12px; background:var(--bg); border:1px solid var(--line);
+    padding:14px 16px; border-radius:2px; margin-top:16px; font-size:14px;
+  }
+  .callout .mark{font-family:var(--mono); font-weight:700; color:var(--c); flex-shrink:0;}
+
+  /* tables */
+  .table-wrap{overflow-x:auto; margin-top:20px; border:1px solid var(--line); border-radius:2px;}
+  table{border-collapse:collapse; width:100%; font-size:13.5px; min-width:720px;}
+  thead th{
+    background:var(--ink); color:#f0f0ea; font-family:var(--mono); text-transform:uppercase;
+    font-size:11.5px; letter-spacing:.03em; text-align:left; padding:12px 14px;
+  }
+  tbody th{
+    text-align:left; font-family:var(--mono); font-size:12px; color:var(--ink-soft);
+    background:#f4f4f0; padding:12px 14px; vertical-align:top; width:150px;
+  }
+  tbody td{padding:12px 14px; border-top:1px solid var(--line); vertical-align:top;}
+  tbody tr:nth-child(even) td, tbody tr:nth-child(even) th{background:#fafaf7;}
+  td.c-pipecat{border-left:3px solid var(--pipecat);}
+  td.c-livekit{border-left:3px solid var(--livekit);}
+  td.c-ten{border-left:3px solid var(--ten);}
+
+  /* checklist */
+  .checklist{display:grid; gap:14px; margin-top:24px;}
+  .check-item{
+    display:grid; grid-template-columns: 34px 1fr; gap:14px;
+    background:var(--panel); border:1px solid var(--line); padding:16px 18px; border-radius:2px;
+  }
+  .check-item .n{
+    font-family:var(--mono); font-weight:700; color:#fff; background:var(--ink);
+    width:34px; height:34px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    font-size:14px;
+  }
+  .check-item h4{margin:0 0 4px; font-family:var(--sans); font-size:15.5px;}
+  .check-item p{margin:0; color:var(--ink-soft); font-size:14px;}
+
+  /* html standards section */
+  .std-block{background:var(--panel); border:1px solid var(--line); padding:22px 24px; border-radius:2px; margin-bottom:16px; border-left:5px solid var(--ink);}
+  .std-block h4{margin:0 0 8px; font-family:var(--sans); font-size:17px;}
+  .std-block p{margin:0; color:var(--ink-soft); font-size:14.5px;}
+
+  footer{
+    background:var(--ink); color:#c9cdc6; padding:40px 24px 50px; font-size:13.5px;
+  }
+  footer .inner{max-width:980px; margin:0 auto;}
+  footer h5{color:#f0f0ea; font-family:var(--sans); margin:0 0 10px;}
+
+  @media(min-width:640px){
+    .summary-grid{grid-template-columns:repeat(3,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <svg class="wave" viewBox="0 0 800 60" preserveAspectRatio="none">
+    <polyline points="0,30 40,10 80,45 120,15 160,40 200,20 240,35 280,12 320,30 360,45 400,18 440,32 480,10 520,42 560,22 600,36 640,14 680,30 720,20 760,38 800,25"
+      fill="none" stroke="#9fe6c9" stroke-width="2"/>
+  </svg>
+  <div class="hero-inner">
+    <p class="kicker">// TỔNG HỢP BÁO CÁO NGHIÊN CỨU — 2 TÀI LIỆU NGUỒN</p>
+    <h1 class="title">Ba framework cho <em>hội thoại AI</em> thời gian thực</h1>
+    <p class="hero-desc">
+      Tổng hợp và đối chiếu hai bản báo cáo nghiên cứu độc lập về <strong>Pipecat</strong>, <strong>LiveKit</strong> và <strong>TEN Framework</strong> —
+      ba nền tảng mã nguồn mở để xây dựng tác nhân (agent) giọng nói và đa phương thức thời gian thực — cùng phần phụ lục
+      về chuẩn hóa HTML và thực hành tốt khi xây giao diện cho các ứng dụng này.
+    </p>
+    <div class="badge-row">
+      <span class="badge">Pipecat — BSD-2-Clause</span>
+      <span class="badge">LiveKit — Apache 2.0</span>
+      <span class="badge">TEN — Apache 2.0 + điều khoản Agora</span>
+    </div>
+  </div>
+</header>
+
+<nav class="toc">
+  <ul>
+    <li><a href="#tong-quan">Tổng quan</a></li>
+    <li><a href="#pipecat">Pipecat</a></li>
+    <li><a href="#livekit">LiveKit</a></li>
+    <li><a href="#ten">TEN</a></li>
+    <li><a href="#so-sanh">Bảng so sánh</a></li>
+    <li><a href="#checklist">Checklist PoC</a></li>
+    <li><a href="#html-chuan">Chuẩn HTML</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <!-- TỔNG QUAN -->
+  <section id="tong-quan">
+    <h2 class="section-title"><span class="section-num">00</span> Tóm tắt điều hành</h2>
+    <p class="section-lede">
+      Cả hai báo cáo đều thống nhất: <strong>Pipecat</strong>, <strong>LiveKit</strong> và <strong>TEN</strong> đều là framework mã nguồn mở
+      phục vụ xây dựng ứng dụng hội thoại giọng nói / đa phương thức với AI, nhưng khác nhau rõ rệt về triết lý kiến trúc — pipeline Python linh hoạt,
+      nền tảng hội nghị SFU quy mô lớn, hay đồ thị extension đa ngôn ngữ tối ưu độ trễ. Một trong hai tài liệu nguồn còn bổ sung phần phụ lục
+      về các chuẩn HTML (WHATWG/W3C, WCAG, bảo mật CSP) áp dụng cho lớp giao diện web của các hệ thống này.
+    </p>
+    <div class="summary-grid">
+      <div class="summary-card" style="--c:var(--pipecat)">
+        <h3 style="color:var(--pipecat)">Pipecat</h3>
+        <p>Framework Python điều phối &gt;150 dịch vụ AI (STT/LLM/TTS) trong một pipeline thời gian thực, ưu tiên độ trễ thấp và dễ đổi nhà cung cấp.</p>
+      </div>
+      <div class="summary-card" style="--c:var(--livekit)">
+        <h3 style="color:var(--livekit)">LiveKit</h3>
+        <p>Nền tảng SFU WebRTC cho hội nghị đa người, tích hợp Agents Framework để đưa tác nhân AI vào phòng như một người tham gia.</p>
+      </div>
+      <div class="summary-card" style="--c:var(--ten)">
+        <h3 style="color:var(--ten)">TEN</h3>
+        <p>Framework đa ngôn ngữ (C++/Go/Python/TS) tổ chức ứng dụng thành đồ thị extension, tách riêng "đường nóng" hiệu năng cao để đạt độ trễ cực thấp.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- PIPECAT -->
+  <section id="pipecat">
+    <h2 class="section-title"><span class="section-num">01</span> Pipecat</h2>
+    <div class="fw" style="--c:var(--pipecat); --bg:var(--pipecat-bg)">
+      <div class="fw-head">
+        <h3>Pipecat.ai</h3>
+        <span class="fw-tag">pipecat.daily.co</span>
+      </div>
+      <div class="fw-body">
+        <p class="fw-lede">
+          Hệ sinh thái Python mã nguồn mở để xây dựng trợ lý giọng nói và ứng dụng AI đa phương thức, điều phối hơn 150 dịch vụ AI
+          (STT, LLM, TTS, nhận dạng hình ảnh…) trong một pipeline duy nhất nhằm đạt hội thoại tự nhiên, phản hồi nhanh (round-trip
+          khoảng 500–800ms).
+        </p>
+
+        <h4 class="subhead">Kiến trúc &amp; thành phần</h4>
+        <p>
+          Kiến trúc tách <strong>client</strong> (JS/React/React Native/iOS/Android/C++) và <strong>server</strong> Python chạy pipeline theo khung
+          audio (frame): Transport (WebRTC/SIP/PSTN) → STT → LLM → TTS → phát lại. Hệ thống dùng mô hình đa tác nhân — mỗi <em>agent</em> là một
+          tiến trình/luồng, phối hợp qua <em>message bus</em> (Redis hoặc PostgreSQL), quản lý bởi <code>WorkerRunner</code>, lớp cơ bản
+          <code>BaseWorker</code>, và các worker chuyên biệt (<code>PipelineWorker</code>, <code>LLMWorker</code>). "Pipecat Flows" cho phép định nghĩa
+          luồng hội thoại theo trạng thái (đặt vé, thu thập thông tin, xác nhận…) thay vì để LLM tự do ứng xử. Giao tiếp client–server tuân theo
+          giao thức <strong>RTVI</strong> (Real-Time Voice Inference), giúp tương thích với các server khác cùng chuẩn.
+        </p>
+
+        <h4 class="subhead">Ví dụ tích hợp web (JavaScript)</h4>
+        <pre><code>import { PipecatClient, PipecatRTCTransport } from '@pipecat/client';
+
+const client = new PipecatClient({
+  startUrl: "https://api.pipecat.daily.co/v1/public/my-agent/start",
+  transport: new PipecatRTCTransport(),
+  publicApiKey: "YOUR_API_KEY"
+});
+await client.connect();
+client.on('transcript', t =&gt; console.log("Bot nói:", t));
+await client.sendText("Xin chào");</code></pre>
+
+        <dl class="kv">
+          <dt>Triển khai</dt>
+          <dd>Tự host (Python 3.11+, tối thiểu ~2 CPU/4GB RAM) hoặc <strong>Pipecat Cloud</strong> (Daily) — quản lý toàn phần, tự động scale ngang;
+            gói <strong>Enterprise</strong> chạy trong AWS/GCP/Azure riêng của doanh nghiệp.</dd>
+          <dt>Hiệu năng</dt>
+          <dd>Round-trip điển hình ~0.5–0.8s. Vì chạy trên Python/asyncio, tác vụ CPU nặng (lọc nhiễu, DSP, embedding) cần đẩy ra executor
+            hoặc native extension để tránh giật khung audio.</dd>
+          <dt>Bảo mật</dt>
+          <dd>TLS cho kết nối, xác thực bằng API key (public bot endpoint) hoặc JWT (Pipecat Cloud). Khuyến nghị dùng CSP chống XSS, sanitize
+            HTML người dùng nhập (ví dụ DOMPurify), mã hóa dữ liệu nhạy cảm khi lưu trữ để tuân GDPR/CCPA.</dd>
+          <dt>Giấy phép / giá</dt>
+          <dd><strong>BSD 2-Clause</strong> — miễn phí, tự do dùng và phân phối. Pipecat Cloud tính theo phút: gói agent 1x/2x/3x (0.5–1.5 vCPU)
+            ~$0.01–0.03/phút hoạt động; vận chuyển WebRTC giọng nói ~$0.001/phút, video ~$0.004/phút/người; SIP/PSTN ~$0.003–0.018/phút.
+            Miễn phí 10.000 phút/tháng đầu.</dd>
+          <dt>Phù hợp khi</dt>
+          <dd>Cần tùy biến sâu pipeline hội thoại, đổi nhanh nhà cung cấp AI, xử lý song song nhiều tác vụ, hoặc xây logic hội thoại có kịch bản
+            phức tạp (flows). Ví dụ: trợ lý thoại, tổng đài AI, bot đa kênh, game giọng nói.</dd>
+        </dl>
+
+        <div class="callout" style="--bg:var(--pipecat-bg)">
+          <span class="mark">⚠</span>
+          <span>Điểm yếu chính: phụ thuộc Python (GIL/asyncio) nên logic nặng dễ gây nghẽn; hạ tầng bus (Redis/Postgres) cần vận hành thêm khi
+            scale đa node; tính năng video/đa phương thức còn sơ khai hơn LiveKit.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LIVEKIT -->
+  <section id="livekit">
+    <h2 class="section-title"><span class="section-num">02</span> LiveKit</h2>
+    <div class="fw" style="--c:var(--livekit); --bg:var(--livekit-bg)">
+      <div class="fw-head">
+        <h3>LiveKit.com</h3>
+        <span class="fw-tag">livekit.io</span>
+      </div>
+      <div class="fw-body">
+        <p class="fw-lede">
+          Nền tảng mã nguồn mở và dịch vụ đám mây cho truyền thông thời gian thực (WebRTC SFU) kết hợp <strong>Agents Framework</strong> để
+          đưa tác nhân AI vào phòng họp như một người tham gia thực thụ — phục vụ cả hội nghị đa người và trợ lý ảo.
+        </p>
+
+        <h4 class="subhead">Kiến trúc &amp; thành phần</h4>
+        <p>
+          <strong>LiveKit Server</strong> là SFU (Selective Forwarding Unit) viết bằng Go, xử lý signaling, NAT traversal, mã hóa DTLS-SRTP,
+          hỗ trợ simulcast và nhiều codec (VP8/H.264/AV1); một instance phục vụ khoảng 300–500 người tham gia trước khi cần chia node, và có thể
+          cluster qua Redis để scale lên hàng nghìn kết nối. <strong>Agents Framework</strong> cho phép viết tác nhân Python/Node gia nhập phòng,
+          nhận audio/video, chạy qua STT→LLM→TTS rồi phát lại — hỗ trợ turn-taking ngữ nghĩa và dispatch API. Hệ sinh thái SDK rất rộng: client
+          (JS/React, Swift, Kotlin, Flutter, Unity, React Native, C++) và server (Go, Node, Python, Rust, Ruby, Java, PHP), cùng REST/Twirp API
+          (<code>CreateRoom</code>, <code>JoinRoom</code>, <code>UpdateParticipant</code>…) và các dịch vụ phụ trợ: egress/ingress (ghi/nhập luồng
+          RTMP-SRT), Telephony SIP/PSTN, DTMF, call transfer.
+        </p>
+
+        <h4 class="subhead">Ví dụ kết nối phòng (JavaScript)</h4>
+        <pre><code>import { Room } from 'livekit-client';
+
+const room = new Room();
+await room.connect("wss://&lt;your-livekit-server&gt;", token); // token do backend cấp
+room.on('trackSubscribed', track =&gt; {
+  // gắn track lên DOM hoặc xử lý dữ liệu
+});</code></pre>
+
+        <dl class="kv">
+          <dt>Triển khai</dt>
+          <dd>Tự host (binary/Docker/Kubernetes, ~2 CPU/4GB RAM tối thiểu) hoặc <strong>LiveKit Cloud</strong> đa vùng với SLA — cùng một API cho
+            cả hai môi trường, front-end không đổi khi chuyển từ local lên cloud.</dd>
+          <dt>Hiệu năng</dt>
+          <dd>Độ trễ đầu-cuối thực tế ~100–250ms, đủ thấp cho hội thoại tự nhiên; kiến trúc SFU phi tập trung đã chứng minh phục vụ hàng nghìn
+            kết nối đồng thời.</dd>
+          <dt>Bảo mật</dt>
+          <dd>Mã hóa media qua SRTP, tín hiệu qua HTTPS/WebSocket/TLS; xác thực bằng <strong>JWT</strong> (API key + secret) theo từng phòng/người
+            tham gia. Khuyến nghị CSP dạng <code>default-src 'self'; frame-ancestors 'none';</code> để chặn clickjacking/XSS. Cloud có SOC2/GDPR
+            tùy gói; tự host cho toàn quyền kiểm soát dữ liệu (phù hợp yêu cầu HIPAA).</dd>
+          <dt>Giấy phép / giá</dt>
+          <dd><strong>Apache 2.0</strong> — miễn phí khi tự host. LiveKit Cloud tính theo phút tham gia: ~$0.004/phút (audio), ~$0.016/phút
+            (video), ghi hình (egress) ~$0.024/phút; các gói dịch vụ từ miễn phí đến $50–500+/tháng cộng phí sử dụng.</dd>
+          <dt>Phù hợp khi</dt>
+          <dd>Cần hội nghị đa điểm, tích hợp đa kênh voice-video, mở rộng toàn cầu, hoặc kết hợp điện thoại truyền thống (SIP/PSTN) với AI.
+            Ví dụ: hội nghị trực tuyến, telehealth, giáo dục từ xa, AI Meeting Assistant, call bot doanh nghiệp.</dd>
+        </dl>
+
+        <div class="callout" style="--bg:var(--livekit-bg)">
+          <span class="mark">⚠</span>
+          <span>Điểm yếu chính: học phí kiến trúc phòng/track/worker khá cao cho đội nhỏ chỉ cần bot thoại 1-1; cần hiểu WebRTC (TURN, NAT
+            traversal); quản lý trạng thái ở quy mô hàng nghìn phòng đòi hỏi Redis cluster và cân bằng tải kỹ lưỡng.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TEN -->
+  <section id="ten">
+    <h2 class="section-title"><span class="section-num">03</span> TEN Framework</h2>
+    <div class="fw" style="--c:var(--ten); --bg:var(--ten-bg)">
+      <div class="fw-head">
+        <h3>TEN (theten.ai)</h3>
+        <span class="fw-tag">Transformative Extensions Network</span>
+      </div>
+      <div class="fw-body">
+        <p class="fw-lede">
+          Framework mở, đa ngôn ngữ hướng tới hệ thống tác nhân đa phương thức thời gian thực, được Agora hậu thuẫn. Ứng dụng được tổ chức
+          như một <strong>đồ thị định hướng (graph)</strong> gồm nhiều <em>extension</em>, cho phép tách phần xử lý cần hiệu năng cao sang ngôn
+          ngữ biên dịch (C/C++/Go) trong khi logic tổng thể vẫn viết bằng Python/TypeScript.
+        </p>
+
+        <h4 class="subhead">Kiến trúc &amp; thành phần</h4>
+        <p>
+          Tệp <code>property.json</code> định nghĩa đồ thị extension, quy tắc định tuyến và trạng thái agent. Mỗi <strong>extension</strong>
+          (viết bằng C/C++, Go, Python hoặc TypeScript) đảm nhiệm một công đoạn: VAD, STT, LLM, TTS, xử lý hình ảnh… TEN tích hợp sẵn
+          <strong>TEN VAD</strong> (Voice Activity Detection nhẹ, ~300KB, hop 10ms) và <strong>TEN Turn Detection</strong> để nhận biết ngắt lời
+          tự nhiên. Một <strong>server backend (Go)</strong> tiếp nhận yêu cầu HTTP/WebSocket, khởi chạy và định tuyến agent process; đi kèm
+          <strong>Playground</strong> — giao diện web (cổng 3000) để cấu hình/debug trực quan, cùng bộ công cụ <strong>TMAN Designer/CLI</strong>
+          để dựng đồ thị extension bằng kéo-thả.
+        </p>
+
+        <h4 class="subhead">Ví dụ gọi API (JavaScript)</h4>
+        <pre><code>fetch("http://localhost:8080/api/v1/chat", {
+  method: "POST",
+  headers: {"Content-Type": "application/json"},
+  body: JSON.stringify({ text: "Xin chào" })
+})
+.then(res =&gt; res.json())
+.then(data =&gt; console.log("Bot:", data.reply));</code></pre>
+
+        <dl class="kv">
+          <dt>Triển khai</dt>
+          <dd>Hoàn toàn tự host (Docker, Kubernetes, VM local hoặc edge) — không có dịch vụ cloud chính thức. Yêu cầu tối thiểu nhẹ
+            (~2 CPU/4GB RAM cho agent cơ bản); có thể chạy một phần trên thiết bị edge (ví dụ ESP32-S3) và phần còn lại trên cloud.</dd>
+          <dt>Hiệu năng</dt>
+          <dd>Tối ưu "đường nóng" bằng native code nên độ trễ VAD/DSP rất thấp; overhead chủ yếu ở serialization khi chuyển frame giữa các
+            extension khác ngôn ngữ, nên hiệu năng phụ thuộc thiết kế đồ thị (càng ít copy dữ liệu càng tốt). TEN chưa có hệ scale phân tán
+            sẵn như LiveKit; mở rộng chủ yếu bằng cách nhân bản server/instance.</dd>
+          <dt>Bảo mật</dt>
+          <dd>Endpoint API cần HTTPS/CORS tự cấu hình; vì extension có thể chạy mã tùy ý, môi trường nên cô lập bằng Docker/sandbox. Cần lọc
+            đầu vào nếu người dùng có thể gửi lệnh cấu hình extension, tránh chèn mã nguy hại.</dd>
+          <dt>Giấy phép / giá</dt>
+          <dd><strong>Apache 2.0</strong> kèm điều khoản bổ sung của Agora (hạn chế xây dịch vụ cạnh tranh và một số ràng buộc khi cài trên
+            thiết bị người dùng). Miễn phí hoàn toàn khi tự host; cộng đồng GitHub hơn 11k sao, có Discord hỗ trợ.</dd>
+          <dt>Phù hợp khi</dt>
+          <dd>Cần độ trễ siêu thấp, xử lý đồng thời audio + video + dữ liệu, chạy trên thiết bị edge/IoT/robot, hoặc đội ngũ đa ngôn ngữ
+            (Python + C++) muốn kiểm soát hoàn toàn luồng AI. Ví dụ: thông dịch song ngữ thời gian thực, robot nhận dạng cảnh vật, voice
+            agent nhúng.</dd>
+        </dl>
+
+        <div class="callout" style="--bg:var(--ten-bg)">
+          <span class="mark">⚠</span>
+          <span>Điểm yếu chính: độ phức tạp phát triển cao (lỗi native khó debug, phụ thuộc ABI/toolchain đa ngôn ngữ); cộng đồng và tài liệu
+            còn non trẻ hơn Pipecat/LiveKit; điều khoản giấy phép bổ sung của Agora cần lưu ý khi triển khai thương mại quy mô lớn.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SO SÁNH -->
+  <section id="so-sanh">
+    <h2 class="section-title"><span class="section-num">04</span> Bảng so sánh tổng hợp</h2>
+    <p class="section-lede">Hợp nhất các tiêu chí từ cả hai bảng so sánh gốc.</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Tiêu chí</th><th style="color:#9fe6c9">Pipecat</th><th style="color:#aebff2">LiveKit</th><th style="color:#f2c898">TEN</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>Kiến trúc</th>
+            <td class="c-pipecat">Client–server; server Python theo pipeline khung (Transport→STT→LLM→TTS), đa tác nhân qua message bus.</td>
+            <td class="c-livekit">SFU WebRTC (Go) cho phòng/track + Agents Framework (Python/Node) xử lý media như một người tham gia.</td>
+            <td class="c-ten">Server trung gian (Go) + agent process + đồ thị extension đa ngôn ngữ (C/C++/Go/Python/TS).</td>
+          </tr>
+          <tr>
+            <th>Giao thức</th>
+            <td class="c-pipecat">WebRTC (qua Daily), WebSocket, SIP/PSTN (Twilio…), giao thức RTVI.</td>
+            <td class="c-livekit">WebRTC/SFU, RTMP/SRT ingest-egress, Twirp/gRPC REST API, SIP/PSTN (LiveKit Phone).</td>
+            <td class="c-ten">HTTP, WebSocket, WebRTC (qua Agora SDK); chưa có SIP/PSTN dựng sẵn.</td>
+          </tr>
+          <tr>
+            <th>SDK / ngôn ngữ</th>
+            <td class="c-pipecat">Server: Python. Client: JS/React/RN, iOS, Android, C++.</td>
+            <td class="c-livekit">SFU: Go. Server/Agents: Go, Node, Python, Rust, Ruby, Java, PHP. Client: JS/React, Swift, Kotlin, Flutter, Unity.</td>
+            <td class="c-ten">Core &amp; server: Go. Extension: C/C++/Go/Python/TS. Chưa có SDK client chính thức riêng.</td>
+          </tr>
+          <tr>
+            <th>Xác thực</th>
+            <td class="c-pipecat">API key / TLS cho endpoint public; JWT cho Pipecat Cloud.</td>
+            <td class="c-livekit">JWT token theo từng phòng/người tham gia (API key + secret).</td>
+            <td class="c-ten">API key hoặc token tùy cấu hình; HTTPS/WS do nhà phát triển tự thiết lập.</td>
+          </tr>
+          <tr>
+            <th>Hiệu năng / độ trễ</th>
+            <td class="c-pipecat">Round-trip ~0.5–0.8s; phụ thuộc CPU/GPU cho AI, cần tránh nghẽn asyncio.</td>
+            <td class="c-livekit">End-to-end ~0.1–0.25s; một instance SFU phục vụ ~300–500 người trước khi cần chia node.</td>
+            <td class="c-ten">Rất thấp ở phần native (VAD hop 10ms); tổng thể tùy thiết kế đồ thị và mức serialization giữa extension.</td>
+          </tr>
+          <tr>
+            <th>Khả năng mở rộng</th>
+            <td class="c-pipecat">Scale ngang nhiều instance/Runner; Pipecat Cloud tự động scale.</td>
+            <td class="c-livekit">SFU cluster qua Redis, LiveKit Cloud phân tầng theo nhu cầu (build/ship/scale).</td>
+            <td class="c-ten">Container/Kubernetes; scale ngang bằng nhân bản instance, chưa có hệ điều phối sẵn như LiveKit.</td>
+          </tr>
+          <tr>
+            <th>Bảo mật</th>
+            <td class="c-pipecat">TLS, CSP, sanitize đầu vào; tuân GDPR/CCPA khi lưu dữ liệu nhạy cảm.</td>
+            <td class="c-livekit">SRTP/DTLS cho media, HTTPS/JWT cho tín hiệu, CSP; Cloud có SOC2/GDPR tùy gói.</td>
+            <td class="c-ten">HTTPS/WS tự cấu hình, CSP, cách ly extension bằng sandbox/Docker do chạy mã tùy ý.</td>
+          </tr>
+          <tr>
+            <th>Giấy phép</th>
+            <td class="c-pipecat">BSD 2-Clause — mở hoàn toàn.</td>
+            <td class="c-livekit">Apache 2.0 — mở hoàn toàn.</td>
+            <td class="c-ten">Apache 2.0 kèm điều khoản bổ sung của Agora (hạn chế cạnh tranh).</td>
+          </tr>
+          <tr>
+            <th>Giá (Cloud)</th>
+            <td class="c-pipecat">Mã nguồn mở miễn phí; Pipecat Cloud ~$0.01–0.03/phút agent + phí transport/SIP.</td>
+            <td class="c-livekit">Tự host miễn phí; LiveKit Cloud từ miễn phí đến $50–500+/tháng + phí theo phút.</td>
+            <td class="c-ten">Miễn phí hoàn toàn (tự host); chưa có dịch vụ cloud chính thức.</td>
+          </tr>
+          <tr>
+            <th>Use-case chính</th>
+            <td class="c-pipecat">Trợ lý thoại tùy biến cao, tổng đài AI, bot đa kênh, game giọng nói.</td>
+            <td class="c-livekit">Hội nghị đa người, livestream, telehealth, AI Meeting Assistant, call bot PSTN.</td>
+            <td class="c-ten">Thông dịch song ngữ real-time, robot/IoT, voice agent nhúng cần độ trễ cực thấp.</td>
+          </tr>
+          <tr>
+            <th>Hạn chế lớn nhất</th>
+            <td class="c-pipecat">Nghẽn khi tác vụ nặng chạy thuần Python; hạ tầng bus cần vận hành thêm khi scale.</td>
+            <td class="c-livekit">Chi phí học tập kiến trúc phòng/track cao cho use-case đơn giản (1-1).</td>
+            <td class="c-ten">Độ phức tạp phát triển đa ngôn ngữ cao; cộng đồng/tài liệu còn non trẻ.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- CHECKLIST -->
+  <section id="checklist">
+    <h2 class="section-title"><span class="section-num">05</span> Checklist đánh giá &amp; PoC đề xuất</h2>
+    <p class="section-lede">
+      Trước khi chọn framework, nên xây dựng Proof of Concept và đối chiếu theo checklist sau (đo bằng latency, dropout rate,
+      tốc độ nhận dạng, FPS video nếu có, và chi phí/phút).
+    </p>
+    <div class="checklist">
+      <div class="check-item">
+        <span class="n">1</span>
+        <div><h4>Kiểm thử tính năng chính</h4><p>Xây kịch bản dùng khả năng đặc trưng của mỗi framework; đo độ trễ đầu-cuối, độ trễ từng thành phần (STT/LLM/TTS), khả năng xử lý đồng thời.</p></div>
+      </div>
+      <div class="check-item">
+        <span class="n">2</span>
+        <div><h4>Đánh giá quy mô</h4><p>Load test nhiều kết nối đồng thời để đo throughput, CPU/RAM, băng thông; xác định giới hạn mỗi framework (số flows/phòng tối đa).</p></div>
+      </div>
+      <div class="check-item">
+        <span class="n">3</span>
+        <div><h4>Tích hợp &amp; linh hoạt</h4><p>Thử đổi nhà cung cấp STT/TTS/LLM mà không sửa code nhiều; đánh giá tích hợp với hệ sinh thái hiện có (DB, CRM, RAG).</p></div>
+      </div>
+      <div class="check-item">
+        <span class="n">4</span>
+        <div><h4>Độ ổn định &amp; an toàn</h4><p>Kiểm tra khả năng khôi phục khi mất mạng/restart; xác thực, mã hóa audio, chống tấn công token.</p></div>
+      </div>
+      <div class="check-item">
+        <span class="n">5</span>
+        <div><h4>Chi phí &amp; triển khai</h4><p>Tính chi phí hạ tầng tự host (server, CPU/RAM, GPU) so với giá dịch vụ cloud tương ứng.</p></div>
+      </div>
+      <div class="check-item">
+        <span class="n">6</span>
+        <div><h4>Trải nghiệm người dùng</h4><p>Mô phỏng gọi thực tế từ trình duyệt/điện thoại; theo dõi chất lượng âm thanh và khả năng xử lý ngắt lời.</p></div>
+      </div>
+    </div>
+    <p style="margin-top:22px; color:var(--ink-soft); font-size:14.5px;">
+      Gợi ý sơ đồ thử nghiệm: LiveKit — 1–3 node SFU + Redis cluster + agent server Python; Pipecat — 2 worker + 1 Redis bus + TTS/ASR giả lập;
+      TEN — 1 instance server + các extension Python/C++ giả lập.
+      Ưu tiên tốc độ phát triển và quy mô rộng → LiveKit; ưu tiên tùy biến sâu và đa mô-đun → Pipecat hoặc TEN.
+    </p>
+  </section>
+
+  <!-- HTML CHUẨN -->
+  <section id="html-chuan">
+    <h2 class="section-title"><span class="section-num">06</span> Phụ lục: Chuẩn hóa HTML &amp; thực hành tốt</h2>
+    <p class="section-lede">
+      Phần bổ sung riêng của một trong hai tài liệu nguồn, liên quan tới lớp giao diện web mà các framework trên đều cần (client SDK, Playground, dashboard).
+    </p>
+
+    <div class="std-block">
+      <h4>Tiêu chuẩn chính thức (WHATWG / W3C)</h4>
+      <p>HTML được chuẩn hóa dưới sự hợp tác của WHATWG (duy trì "HTML Living Standard", hướng tới ngôn ngữ đánh dấu ngữ nghĩa cho web có
+        truy cập cao) và W3C (khuyến nghị HTML5 năm 2014, bổ sung phần tử/API mới như video, audio, canvas, localStorage). Các thẻ ngữ nghĩa
+        như <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;header&gt;</code>,
+        <code>&lt;footer&gt;</code> ra đời từ đây.</p>
+    </div>
+    <div class="std-block">
+      <h4>Phần tử ngữ nghĩa (Semantic HTML)</h4>
+      <p>Dùng đúng phần tử cho đúng mục đích để tận dụng các hỗ trợ truy cập có sẵn của trình duyệt — ví dụ <code>&lt;button&gt;</code> thay
+        vì <code>&lt;div&gt;</code> để tự động hỗ trợ điều hướng bàn phím và ARIA cơ bản. Hệ thống heading và các thẻ cấu trúc giúp screen
+        reader và công cụ SEO nhận biết nội dung dễ dàng hơn, đồng thời HTML ngữ nghĩa thường nhẹ và responsive hơn.</p>
+    </div>
+    <div class="std-block">
+      <h4>Truy cập &amp; WCAG</h4>
+      <p>WCAG đề xuất bốn nguyên tắc: Perceivable, Operable, Understandable, Robust — bảo đảm văn bản thay thế (<code>alt</code>) cho hình
+        ảnh, tiêu đề hợp lý, nhãn form rõ ràng, và điều khiển được bằng bàn phím, giúp nội dung tiếp cận được nhiều nhóm người khuyết tật hơn.</p>
+    </div>
+    <div class="std-block">
+      <h4>Bảo mật: CSP &amp; sanitization</h4>
+      <p>Content Security Policy (CSP) giúp ngăn chặn script không rõ nguồn — lớp phòng thủ thứ cấp chống XSS. Với nội dung HTML do người
+        dùng tạo (WYSIWYG), cần sanitize đầu ra (ví dụ DOMPurify); dùng <code>.textContent</code> thay vì gán HTML thô để tự động encode
+        ký tự an toàn.</p>
+    </div>
+
+    <h4 class="subhead" style="margin-top:28px;">Ví dụ cấu trúc HTML5 chuẩn kèm CSP</h4>
+    <pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang="vi"&gt;
+  &lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Ví dụ trang&lt;/title&gt;
+    &lt;meta http-equiv="Content-Security-Policy" content="default-src 'self';"&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;header&gt;
+      &lt;h1&gt;Tiêu đề chính&lt;/h1&gt;
+      &lt;nav&gt;&lt;!-- menu điều hướng --&gt;&lt;/nav&gt;
+    &lt;/header&gt;
+    &lt;main&gt;
+      &lt;article&gt;
+        &lt;h2&gt;Phần nội dung&lt;/h2&gt;
+        &lt;p&gt;Nội dung chính.&lt;/p&gt;
+      &lt;/article&gt;
+      &lt;aside&gt;Thông tin phụ&lt;/aside&gt;
+    &lt;/main&gt;
+    &lt;footer&gt;&amp;copy; 2026 Công ty ABC&lt;/footer&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+  </section>
+
+</main>
+
+<footer>
+  <div class="inner">
+    <h5>Nguồn</h5>
+    <p>Nội dung được tổng hợp và hợp nhất từ hai báo cáo nghiên cứu độc lập ("deep-research-report.md" và bản sao có phần phụ lục HTML) do
+      người dùng cung cấp, dựa trên tài liệu chính thức và các bài viết chuyên sâu về Pipecat, LiveKit và TEN Framework, cùng tài liệu chuẩn
+      của WHATWG, W3C, MDN, WCAG và OWASP.</p>
+  </div>
+</footer>
+
+</body>
+</html>
