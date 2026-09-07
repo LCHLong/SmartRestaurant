@@ -67,6 +67,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/system', require('./routes/systemRoutes'));
 app.use('/api/super-admin', require('./routes/superAdminRoutes'));
 app.use('/api/coupons', require('./routes/couponRoutes'));
+app.use('/api/ai', require('./routes/aiRoutes'));
 
 app.use('/api', testEmailRouter);
 

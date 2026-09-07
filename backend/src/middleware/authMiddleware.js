@@ -38,3 +38,25 @@ exports.verifyToken = async (req, res, next) => {
     res.status(400).json({ message: 'Invalid Token' });
   }
 };
+
+/**
+ * optionalAuth — Cho phép cả guest và authenticated user
+ * Nếu có token hợp lệ → set req.user; không có hoặc invalid → req.user = null
+ */
+exports.optionalAuth = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) {
+    req.user = null;
+    return next();
+  }
+
+  try {
+    const verified = jwt.verify(token, process.env.JWT_SECRET || 'secret_tam_thoi');
+    req.user = verified;
+  } catch (_) {
+    req.user = null;
+  }
+  next();
+};

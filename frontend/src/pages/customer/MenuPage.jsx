@@ -7,6 +7,8 @@ import ItemDetailModal from '../../components/ItemDetailModal';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import CustomerSidebar from '../../layouts/CustomerSidebar';
+import AriaChatWidget from '../../components/AriaChatWidget';
+
 
 export default function MenuPage() {
     const navigate = useNavigate();
@@ -541,6 +543,8 @@ export default function MenuPage() {
                     )}
                 </div>
             </main>
+            {/* Aria AI Chat Widget */}
+            <AriaChatWidget autoGreetDelay={5000} />
         </div>
     );
 }

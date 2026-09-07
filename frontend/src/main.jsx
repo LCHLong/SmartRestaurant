@@ -7,6 +7,7 @@ import App from './App.jsx'
 import { CartProvider } from './contexts/CartContext.jsx'
 import { AuthProvider } from './contexts/AuthContext.jsx'
 import { SocketProvider } from './contexts/SocketContext';
+import { AiChatProvider } from './contexts/AiChatContext';
 
 // 3. Dùng createRoot trực tiếp (không cần ReactDOM.createRoot)
 createRoot(document.getElementById('root')).render(
@@ -15,7 +16,9 @@ createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <SocketProvider>
           <CartProvider>
-            <App />
+            <AiChatProvider>
+              <App />
+            </AiChatProvider>
           </CartProvider>
         </SocketProvider>
       </AuthProvider>

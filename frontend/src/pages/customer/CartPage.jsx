@@ -5,6 +5,8 @@ import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { saveGuestOrder } from '../../utils/guestOrders';
 import api from '../../services/api';
+import AriaChatWidget from '../../components/AriaChatWidget';
+
 
 export default function CartPage() {
     const navigate = useNavigate();
@@ -691,6 +693,8 @@ export default function CartPage() {
                     )}
                 </button>
             </div>
+            {/* Aria AI Chat Widget — upsell trigger tại CartPage */}
+            <AriaChatWidget autoGreetDelay={3000} />
         </div>
     );
 }
