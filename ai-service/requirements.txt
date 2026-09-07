@@ -1,0 +1,19 @@
+# Pipecat framework with Google and LiveKit transports/plugins
+pipecat-ai[google,livekit]>=0.0.50
+
+# LiveKit Agents framework & plugins
+livekit-agents>=1.0.0
+livekit-plugins-google>=1.0.0
+
+# API & Web service
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+
+# LLM & AI SDKs
+google-genai>=1.0.0
+google-generativeai>=0.8.0
+
+# Helpers & Environment
+pydantic>=2.10.0
+python-dotenv>=1.0.0
+httpx>=0.28.0

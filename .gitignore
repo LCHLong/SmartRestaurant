@@ -6,3 +6,6 @@ build/
 .vscode/
 ACCOUNTS_NOTE.md
 .lavish/
+.venv/
+__pycache__/
+*.pyc
