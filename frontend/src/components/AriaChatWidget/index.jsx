@@ -24,29 +24,17 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
     isLoading,
     hasUnread,
     sendMessage,
-    triggerAutoGreet,
   } = useAiChat();
 
   const [inputText, setInputText] = useState('');
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  const autoGreetTimer = useRef(null);
-
-  // Auto-scroll khi có message mới
+  // Auto-scroll khi có token mới (dùng auto để không bị giật lag khi stream nhanh)
   useEffect(() => {
     if (isOpen) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
     }
   }, [messages, isOpen]);
-
-  // Auto-greet sau N giây
-  useEffect(() => {
-    autoGreetTimer.current = setTimeout(() => {
-      triggerAutoGreet();
-    }, autoGreetDelay);
-
-    return () => clearTimeout(autoGreetTimer.current);
-  }, []); // eslint-disable-line
 
   // Focus input khi mở
   useEffect(() => {

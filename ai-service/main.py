@@ -59,12 +59,13 @@ class ChatRequest(BaseModel):
 @app.get("/health")
 async def health_check():
     """Health check — Node.js Gateway dùng endpoint này để kiểm tra Pipecat status"""
-    gemini_key_set = bool(os.getenv("GEMINI_API_KEY"))
+    groq_key_set = bool(os.getenv("GROQ_API_KEY"))
     return {
         "status": "ok",
         "service": "aria-pipecat",
-        "gemini_configured": gemini_key_set,
-        "model": os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+        "llm_provider": "groq",
+        "groq_configured": groq_key_set,
+        "model": os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
     }
 
 

@@ -130,27 +130,27 @@ exports.consult = async (req, res) => {
   res.status(200).json({ success: true, message: 'Processing' });
 
   // ---- Phần còn lại chạy async, kết quả qua Socket.io ----
-  try {
-    // 4. Check Pipecat health (nếu down → fallback trực tiếp Gemini trong tương lai)
-    const pipecatOk = await isPipecatHealthy();
-    if (!pipecatOk) {
-      io.to(socketRoom).emit('ai_error', {
-        sessionId,
-        message: 'AI service tạm thời không khả dụng. Vui lòng thử lại sau.'
-      });
-      return;
+  const sessionRoom = `session_${sessionId}`;
+  const tableRoom = `table_${tableId}`;
+
+  const emitToClient = (event, data) => {
+    io.to(sessionRoom).emit(event, data);
+    if (tableId && tableId !== 'unknown') {
+      io.to(tableRoom).emit(event, data);
     }
+  };
 
-    // 5. RAG — 2-Stage retrieval
-    const { context, fallbackUsed } = await retrieveMenuContext(message, resolvedRestaurantId);
+  try {
+    // 4. RAG — 2-Stage retrieval (song song lấy context & history)
+    const [ragResult, orderHistory, history] = await Promise.all([
+      retrieveMenuContext(message, resolvedRestaurantId),
+      getOrderHistory(userId),
+      getSessionHistory(sessionId)
+    ]);
 
-    // 6. Order history (nếu đăng nhập)
-    const orderHistory = await getOrderHistory(userId);
+    const { context, fallbackUsed } = ragResult;
 
-    // 7. Session history (Redis)
-    const history = await getSessionHistory(sessionId);
-
-    // 8. Build payload cho Pipecat
+    // 5. Build payload cho Pipecat
     const pipecatPayload = {
       message,
       sessionId,
@@ -163,16 +163,16 @@ exports.consult = async (req, res) => {
       restaurantId: resolvedRestaurantId
     };
 
-    // 9. Stream từ Pipecat → emit Socket.io
+    // 6. Stream từ Pipecat → emit Socket.io
     let fullResponse = '';
 
     streamFromPipecat(
       pipecatPayload,
 
-      // onToken: emit từng token
+      // onToken: emit từng token trực tiếp tới client
       (token) => {
         fullResponse += token;
-        io.to(socketRoom).emit('ai_stream_token', { sessionId, token });
+        emitToClient('ai_stream_token', { sessionId, token });
       },
 
       // onDone: emit final response + suggested items
@@ -180,20 +180,20 @@ exports.consult = async (req, res) => {
         const finalText = result.text || fullResponse;
         const suggestedItems = result.suggestedItems || [];
 
-        io.to(socketRoom).emit('ai_response', {
+        emitToClient('ai_response', {
           sessionId,
           content: finalText,
           suggestedItems
         });
 
-        // 10. Lưu lịch sử hội thoại
+        // 7. Lưu lịch sử hội thoại
         await saveSessionHistory(sessionId, history, message, finalText);
       },
 
       // onError
       (err) => {
         console.error('[aiController] Pipecat error:', err.message);
-        io.to(socketRoom).emit('ai_error', {
+        emitToClient('ai_error', {
           sessionId,
           message: 'Aria tạm thời gặp sự cố. Bạn có thể thử lại hoặc gọi nhân viên hỗ trợ.'
         });
@@ -203,7 +203,7 @@ exports.consult = async (req, res) => {
   } catch (err) {
     console.error('[aiController] Unexpected error:', err.message);
     try {
-      io.to(socketRoom).emit('ai_error', {
+      emitToClient('ai_error', {
         sessionId,
         message: 'Đã xảy ra lỗi không mong muốn. Vui lòng thử lại.'
       });

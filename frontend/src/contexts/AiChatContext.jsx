@@ -36,7 +36,16 @@ export const AiChatProvider = ({ children }) => {
 
   // ---- State ----
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([]); // { id, role, content, suggestedItems, isStreaming }
+  // Tin nhắn chào mừng mặc định hiển thị tức thì (0ms latency, không cần chờ mạng)
+  const defaultWelcome = {
+    id: 'aria-welcome-msg',
+    role: 'assistant',
+    content: 'Xin chào! Em là **Aria** — trợ lý tư vấn món ăn của nhà hàng 🍽️\n\nBạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?',
+    suggestedItems: [],
+    isStreaming: false
+  };
+
+  const [messages, setMessages] = useState([defaultWelcome]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
   const [sessionId] = useState(() => {
@@ -60,6 +69,15 @@ export const AiChatProvider = ({ children }) => {
   // ---- Socket listeners ----
   useEffect(() => {
     if (!socket) return;
+
+    // 1. Luôn join session room của riêng mình để nhận token ngay lập tức
+    socket.emit('join_room', `session_${sessionId}`);
+
+    // 2. Join thêm table room nếu có
+    const tableId = getTableId();
+    if (tableId && tableId !== 'unknown') {
+      socket.emit('join_room', `table_${tableId}`);
+    }
 
     // Nhận từng token streaming
     const onToken = ({ sessionId: sid, token }) => {
@@ -95,21 +113,18 @@ export const AiChatProvider = ({ children }) => {
         streamingMsgIdRef.current = null;
 
         if (streamingId) {
-          // Cập nhật message streaming → done
           return prev.map(m =>
             m.id === streamingId
               ? { ...m, content, suggestedItems: suggestedItems || [], isStreaming: false }
               : m
           );
         }
-        // Không có streaming — thêm message mới (fallback)
         return [
           ...prev,
           { id: uuidv4(), role: 'assistant', content, suggestedItems: suggestedItems || [], isStreaming: false }
         ];
       });
 
-      // Badge unread nếu widget đang đóng
       if (!isOpen) setHasUnread(true);
     };
 
@@ -124,7 +139,7 @@ export const AiChatProvider = ({ children }) => {
         {
           id: uuidv4(),
           role: 'assistant',
-          content: message || 'Aria gặp sự cố. Vui lòng thử lại.',
+          content: message || 'Aria tạm thời gặp sự cố. Vui lòng thử lại.',
           suggestedItems: [],
           isStreaming: false,
           isError: true
@@ -136,12 +151,6 @@ export const AiChatProvider = ({ children }) => {
     socket.on('ai_response', onResponse);
     socket.on('ai_error', onError);
 
-    // Join table room để nhận events AI
-    const tableId = getTableId();
-    if (tableId !== 'unknown') {
-      socket.emit('join_room', `table_${tableId}`);
-    }
-
     return () => {
       socket.off('ai_stream_token', onToken);
       socket.off('ai_response', onResponse);
@@ -149,28 +158,25 @@ export const AiChatProvider = ({ children }) => {
     };
   }, [socket, sessionId, isOpen]);
 
-  // ---- Auto-greeting (sau 5 giây lần đầu vào trang) ----
-  const hasGreeted = useRef(false);
-  const triggerAutoGreet = useCallback(async () => {
-    if (hasGreeted.current) return;
-    hasGreeted.current = true;
-
-    const tableNumber = getTableId();
-    await sendMessage(`Xin chào! Tôi vừa ngồi vào bàn ${tableNumber}.`, { isAutoGreet: true });
-  }, []); // eslint-disable-line
-
   // ---- sendMessage ----
-  const sendMessage = useCallback(async (text, opts = {}) => {
+  const sendMessage = useCallback(async (text) => {
     if (!text?.trim() || isLoading) return;
 
     const tableId = getTableId();
 
-    // Thêm message của user vào history (trừ auto-greet ẩn)
-    if (!opts.isAutoGreet) {
-      setMessages(prev => [
-        ...prev,
-        { id: uuidv4(), role: 'user', content: text.trim(), suggestedItems: [], isStreaming: false }
-      ]);
+    // Thêm message của user vào history
+    setMessages(prev => [
+      ...prev,
+      { id: uuidv4(), role: 'user', content: text.trim(), suggestedItems: [], isStreaming: false }
+    ]);
+
+    setIsLoading(true);
+    streamingMsgIdRef.current = null;
+
+    // Đảm bảo socket đã trong room trước khi gửi
+    socket?.emit('join_room', `session_${sessionId}`);
+    if (tableId && tableId !== 'unknown') {
+      socket?.emit('join_room', `table_${tableId}`);
     }
 
     setIsLoading(true);
@@ -236,7 +242,6 @@ export const AiChatProvider = ({ children }) => {
       isLoading,
       hasUnread,
       sendMessage,
-      triggerAutoGreet,
       sessionId,
     }}>
       {children}

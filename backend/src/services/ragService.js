@@ -20,7 +20,7 @@ const TOP_K = 6; // Số món tối đa lấy từ RAG
  * @returns {Array} danh sách menu items
  */
 async function getMenuFromCache(restaurantId) {
-  const cacheKey = `menu:${restaurantId}`;
+  const cacheKey = `menu:${restaurantId || 'default'}`;
   try {
     const cached = await redis.get(cacheKey);
     if (cached) {
@@ -28,8 +28,8 @@ async function getMenuFromCache(restaurantId) {
     }
   } catch (_) { /* Redis miss - proceed to DB */ }
 
-  // Cache miss → fetch từ Supabase
-  const { data, error } = await supabase
+  // 1. Thử lấy với các cột AI mở rộng (nếu đã chạy migration)
+  let { data, error } = await supabase
     .from('menu_items')
     .select(`
       id,
@@ -45,18 +45,40 @@ async function getMenuFromCache(restaurantId) {
       ai_description,
       is_trending,
       is_available,
-      categories ( name )
+      category:categories ( name )
     `)
-    .eq('restaurant_id', restaurantId)
     .eq('is_available', true)
     .order('name');
 
+  // 2. Nếu các cột AI chưa tồn tại trong DB, fallback truy vấn các cột mặc định
   if (error) {
-    console.error('[ragService] Supabase fetch error:', error.message);
-    return [];
+    const basicQuery = await supabase
+      .from('menu_items')
+      .select(`
+        id,
+        name,
+        price,
+        description,
+        image_url,
+        category_id,
+        is_available,
+        category:categories ( name )
+      `)
+      .eq('is_available', true)
+      .order('name');
+
+    data = basicQuery.data;
+    if (basicQuery.error) {
+      console.error('[ragService] Supabase fetch error:', basicQuery.error.message);
+      return [];
+    }
   }
 
-  const items = data || [];
+  // Chuẩn hoá dữ liệu category
+  const items = (data || []).map(item => ({
+    ...item,
+    categories: item.categories || item.category || { name: '' }
+  }));
 
   // Lưu vào Redis với TTL 5 phút
   try {
@@ -80,25 +102,39 @@ async function getOrderHistory(userId) {
     if (cached) return JSON.parse(cached);
   } catch (_) { /* miss */ }
 
-  const { data, error } = await supabase
-    .from('order_items')
-    .select('menu_item_id, menu_items(name)')
-    .eq('orders.user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(20);
-
-  if (error || !data) return [];
-
-  const history = data.map(d => ({
-    id: d.menu_item_id,
-    name: d.menu_items?.name
-  })).filter(d => d.name);
-
   try {
-    await redis.set(cacheKey, JSON.stringify(history), { EX: 600 });
-  } catch (_) { /* Ignore */ }
+    const { data: userOrders, error: orderErr } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('customer_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(10);
 
-  return history;
+    if (orderErr || !userOrders || userOrders.length === 0) return [];
+
+    const orderIds = userOrders.map(o => o.id);
+    const { data, error } = await supabase
+      .from('order_items')
+      .select('menu_item_id, menu_items(name)')
+      .in('order_id', orderIds)
+      .limit(20);
+
+    if (error || !data) return [];
+
+    const history = data.map(d => ({
+      id: d.menu_item_id,
+      name: d.menu_items?.name
+    })).filter(d => d.name);
+
+    try {
+      await redis.set(cacheKey, JSON.stringify(history), { EX: 600 });
+    } catch (_) { /* Ignore */ }
+
+    return history;
+  } catch (err) {
+    console.warn('[ragService] getOrderHistory error (skipped):', err.message);
+    return [];
+  }
 }
 
 /**

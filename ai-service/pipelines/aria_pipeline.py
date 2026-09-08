@@ -1,11 +1,14 @@
 """
 aria_pipeline.py
-Pipecat AriaConversationPipeline — xử lý 1 request chat từ Aria
+Pipecat AriaConversationPipeline — dùng Groq API (thay Gemini)
 
-Pipeline flow:
-    TextInput → SystemPromptBuilder (Layer 1+2) → GeminiLLMProcessor → EntityExtractor → StructuredOutputFrame
+Groq cung cấp inference cực nhanh (TTFT < 0.5s) với các model:
+  - llama-3.3-70b-versatile   ← Khuyến nghị: chất lượng cao, hỗ trợ tiếng Việt tốt
+  - llama-3.1-8b-instant      ← Nhanh nhất, nhẹ nhất
+  - mixtral-8x7b-32768        ← Context dài (32k tokens)
+  - gemma2-9b-it              ← Google Gemma trên Groq
 
-Chạy trong FastAPI endpoint, yield SSE events cho Node.js Gateway.
+Groq SDK tương thích OpenAI — dùng chat.completions.create với stream=True
 """
 
 import os
@@ -13,7 +16,7 @@ import json
 import asyncio
 from typing import AsyncGenerator, Optional
 
-import google.generativeai as genai
+from groq import AsyncGroq
 
 from prompts.aria_system_prompt import ARIA_SYSTEM_PROMPT
 from processors.system_prompt_builder import build_dynamic_context
@@ -24,23 +27,33 @@ from processors.fallback_handler import (
     get_fallback_context,
 )
 
-# Cấu hình Gemini
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+# ─── Cấu hình Groq ──────────────────────────────────────────────────────────
+GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
+GROQ_MODEL   = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
 
-if GEMINI_API_KEY:
-    genai.configure(api_key=GEMINI_API_KEY)
+# Tạo AsyncGroq client
+_groq_client: Optional[AsyncGroq] = None
+
+def _get_client() -> AsyncGroq:
+    global _groq_client
+    if _groq_client is None:
+        if not GROQ_API_KEY:
+            raise RuntimeError("GROQ_API_KEY chưa được cấu hình trong .env")
+        _groq_client = AsyncGroq(api_key=GROQ_API_KEY)
+    return _groq_client
+# ────────────────────────────────────────────────────────────────────────────
 
 
 class AriaConversationPipeline:
     """
-    Pipeline xử lý 1 lượt hội thoại Aria.
-    Input: ChatRequest object
+    Pipeline xử lý 1 lượt hội thoại Aria với Groq LLM (AsyncGroq).
+
+    Input : ChatRequest object (từ FastAPI)
     Output: AsyncGenerator[str] — SSE events (JSON lines)
     """
 
     def __init__(self):
-        self.model_name = GEMINI_MODEL
+        self.model = GROQ_MODEL
 
     async def process(
         self,
@@ -56,28 +69,21 @@ class AriaConversationPipeline:
     ) -> AsyncGenerator[str, None]:
         """
         Xử lý 1 request và yield SSE events.
-
-        Yields:
-            str: JSON SSE event strings như:
-                 data: {"type": "token", "content": "..."}
-                 data: {"type": "done", "suggestedItems": [...]}
-                 data: {"type": "error", "message": "..."}
         """
-
-        if not GEMINI_API_KEY:
-            yield self._sse("error", {"message": "GEMINI_API_KEY chưa được cấu hình"})
+        if not GROQ_API_KEY:
+            yield self._sse("error", {"message": "GROQ_API_KEY chưa được cấu hình"})
             return
 
         try:
-            # --- Stage: FallbackHandler check ---
+            # ── Fallback: Human Handoff check ────────────────────────────────
             if is_human_handoff_requested(message):
-                fallback_info = get_fallback_context(menu_context, tier=3)
-                yield self._sse("token", {"content": fallback_info["message_hint"]})
-                yield self._sse("done", {"suggestedItems": [], "isHandoff": True})
+                fb = get_fallback_context(menu_context, tier=3)
+                yield self._sse("token",  {"content": fb["message_hint"]})
+                yield self._sse("done",   {"suggestedItems": [], "isHandoff": True})
                 return
 
-            # --- Stage: SystemPromptBuilder (Layer 1 + Layer 2) ---
-            dynamic_context = build_dynamic_context(
+            # ── Layer 1 + 2: Build system prompt ─────────────────────────────
+            dynamic_ctx = build_dynamic_context(
                 menu_context=menu_context,
                 cart_items=cart_items,
                 order_history=order_history,
@@ -88,58 +94,50 @@ class AriaConversationPipeline:
 
             fallback_hint = ""
             if fallback_used:
-                fb_info = get_fallback_context(menu_context, tier=2)
+                fb_info       = get_fallback_context(menu_context, tier=2)
                 fallback_hint = build_fallback_prompt_hint(fb_info, fallback_used)
 
-            # Layer 1 (System) + Layer 2 (Dynamic) combine
-            full_system_prompt = (
+            system_prompt = (
                 ARIA_SYSTEM_PROMPT
                 + "\n\n---\n"
-                + dynamic_context
+                + dynamic_ctx
                 + fallback_hint
             )
 
-            # --- Stage: Build conversation history (Layer 3 = user message) ---
-            chat_history = []
+            # ── Build messages cho Groq (OpenAI format) ───────────────────────
+            messages: list[dict] = [{"role": "system", "content": system_prompt}]
+
+            # Thêm conversation history (session memory)
             for turn in conversation_history:
-                role = turn.get("role", "user")
-                content = turn.get("content", "")
-                # Gemini API expects role "user" or "model"
-                gemini_role = "model" if role == "assistant" else "user"
-                chat_history.append({
-                    "role": gemini_role,
-                    "parts": [{"text": content}]
-                })
+                role      = turn.get("role", "user")
+                content   = turn.get("content", "")
+                groq_role = "assistant" if role == "assistant" else "user"
+                messages.append({"role": groq_role, "content": content})
 
-            # --- Stage: GeminiLLMProcessor (Streaming) ---
-            model = genai.GenerativeModel(
-                model_name=self.model_name,
-                system_instruction=full_system_prompt,
-                generation_config={
-                    "temperature": 0.7,
-                    "max_output_tokens": 400,
-                    "top_p": 0.9,
-                }
+            # Layer 3: user message hiện tại
+            messages.append({"role": "user", "content": message})
+
+            # ── Gọi AsyncGroq streaming (hoàn toàn non-blocking, cực nhanh) ────
+            client = _get_client()
+            stream = await client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                stream=True,
+                temperature=0.6,
+                max_tokens=350,
+                top_p=0.9,
             )
 
-            chat = model.start_chat(history=chat_history)
-
-            # Stream response token by token
             full_text = ""
-            response_stream = await asyncio.to_thread(
-                lambda: chat.send_message(message, stream=True)
-            )
-
-            for chunk in response_stream:
-                token = chunk.text if hasattr(chunk, "text") else ""
+            async for chunk in stream:
+                delta = chunk.choices[0].delta if chunk.choices else None
+                token = (delta.content or "") if delta else ""
                 if token:
                     full_text += token
                     yield self._sse("token", {"content": token})
-                    await asyncio.sleep(0)  # yield control
 
-            # --- Stage: EntityExtractor ---
+            # ── EntityExtractor ───────────────────────────────────────────────
             suggested_items = extract_suggested_items(full_text, menu_context)
-
             yield self._sse("done", {"suggestedItems": suggested_items})
 
         except Exception as e:
@@ -147,6 +145,5 @@ class AriaConversationPipeline:
 
     @staticmethod
     def _sse(event_type: str, data: dict) -> str:
-        """Format SSE event string"""
         payload = {"type": event_type, **data}
         return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"

@@ -63,10 +63,9 @@ const initSocket = (httpServer) => {
           socket.emit('error', { message: 'Unauthorized access to waiter room' });
           return;
         }
-      } else if (room.startsWith('table_')) {
-        // Table rooms là public (cho khách hàng tracking orders)
-        // Nhưng vẫn log để audit
-        console.log(`📱 Guest/Customer joined table room: ${room}`);
+      } else if (room.startsWith('table_') || room.startsWith('session_')) {
+        // Table rooms & AI session rooms là public cho khách hàng
+        console.log(`📱 Guest/Customer joined room: ${room}`);
       } else {
         // Room không hợp lệ
         console.log(`❌ INVALID ROOM: User ${socket.id} tried to join unknown room: ${room}`);
