@@ -10,4 +10,5 @@ Cổng tra cứu trực tuyến toàn diện: 👉 **[https://2c80a67d.ht-ml.app
 | **[4]** | **Self-evolving Agentic Customer Support System at LinkedIn** | Chih Hui Wang et al. *(LinkedIn, 08/2026)* | [🌐 **e7a6b96e.ht-ml.app**](https://e7a6b96e.ht-ml.app/) | [VI Markdown](04_Self_Evolving_Agentic_Customer_Support_LinkedIn_VI.md) • [PDF](04_Self_Evolving_Agentic_Customer_Support_LinkedIn.pdf) |
 | **[5]** | **From Prompt–Response to Goal-Directed Systems: The Evolution of Agentic AI Software Architecture** | Mamdouh Alenezi *(Tahakom, 02/2026)* | [🌐 **ee140d88.ht-ml.app**](https://ee140d88.ht-ml.app/) | [VI Markdown](05_Evolution_of_Agentic_AI_Software_Architecture_VI.md) • [PDF](05_Evolution_of_Agentic_AI_Software_Architecture.pdf) |
 
-👉 **Xem thuyết minh tổng hợp chi tiết toàn bộ 5 paper:** [00_Tong_Hop_5_Papers_KLTN_AI_Consultant.md](00_Tong_Hop_5_Papers_KLTN_AI_Consultant.md)
+👉 **Xem thuyết minh tổng hợp chi tiết toàn bộ 5 paper:** [00_Tong_Hop_5_Papers_KLTN_AI_Consultant.md](00_Tong_Hop_5_Papers_KLTN_AI_Consultant.md)  
+👉 **Bản tổng hợp cốt lõi KLTN AI Consultant:** [Tong_Hop_Noi_Dung_AI_Consultant_KLTN.md](Tong_Hop_Noi_Dung_AI_Consultant_KLTN.md) • [🌐 **Live Web: 1fea1d77.ht-ml.app**](https://1fea1d77.ht-ml.app/)
