@@ -1,5 +1,5 @@
 # 🗄️ CÁC MỤC CÒN THIẾU TRONG DATABASE SCHEMA
-**Nguồn:** Phân tích từ `docs/PROJECT_DESCRIPTION.md` so với `database/migrations/01_init_schema.sql`
+**Nguồn:** Phân tích từ `docs/02_project_description.md` so với `database/migrations/01_init_schema.sql`
 
 Các bảng và cột sau đây là cần thiết để hỗ trợ đầy đủ mô tả dự án nhưng hiện đang thiếu trong schema ban đầu.
 

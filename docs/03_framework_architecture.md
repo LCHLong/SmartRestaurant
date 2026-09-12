@@ -1,6 +1,6 @@
 # 🏗️ Đề xuất Kiến trúc AI Consultant "Aria" — Tích hợp Pipecat / LiveKit / TEN
 
-> **Dựa trên:** Proposal `ai_consultant_proposal.md` v1.0  
+> **Dựa trên:** Proposal `06_ai_consultant_proposal.md` v1.0  
 > **Tech Stack hiện tại:** React 19 + Vite · Node.js/Express 5 · Supabase · Redis · Socket.io
 
 ---
