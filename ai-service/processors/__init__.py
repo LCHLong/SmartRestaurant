@@ -15,6 +15,10 @@ from .vietnamese_tokenizer import (
     normalize_vietnamese_text,
 )
 from .index_manager import DualIndexManager
+from .hybrid_retriever import (
+    HybridMenuRetriever,
+    min_max_normalize,
+)
 
 __all__ = [
     "build_dynamic_context",
@@ -28,6 +32,8 @@ __all__ = [
     "tokenize_vietnamese",
     "normalize_vietnamese_text",
     "DualIndexManager",
+    "HybridMenuRetriever",
+    "min_max_normalize",
 ]
 
 
