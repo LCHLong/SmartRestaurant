@@ -7,6 +7,11 @@ Thư mục này chứa sơ đồ cơ sở dữ liệu (schema) và các tập l�
 - **`migrations/`**: Chứa các tập lệnh SQL để thiết lập và cập nhật sơ đồ cơ sở dữ liệu.
   - `01_init_schema.sql`: Khởi tạo các bảng cốt lõi (Người dùng, Bàn ăn, Thực đơn, Đơn hàng, v.v.).
   - Các file tiếp theo (ví dụ: `02_add_reviews.sql`, `03_missing_features.sql`...) áp dụng các tính năng mới và cập nhật theo thứ tự thời gian.
+  - `27_add_ai_consultant_fields.sql`: Bổ sung nguyên liệu, dị ứng, calo, độ cay cho menu items.
+  - `28_add_rag_vector_columns.sql`: Kích hoạt pgvector, thêm cột vector(768), row_serialized, dietary_tags, bảng restaurant_policies, chỉ mục HNSW và các hàm RPC tìm kiếm vector tương đồng (Advanced RAG).
+  - `28_add_rag_vector_columns_rollback.sql`: Kịch bản rollback an toàn cho migration 28.
+
+> 📖 **Tài liệu chi tiết:** Xem đặc tả thiết kế schema và chiến lược chỉ mục RAG tại [docs/10_database_rag_schema.md](../docs/10_database_rag_schema.md).
 
 ## Cách Import dữ liệu
 
