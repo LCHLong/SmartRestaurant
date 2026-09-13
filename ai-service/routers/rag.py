@@ -75,6 +75,10 @@ class RetrieveRequest(BaseModel):
         default=False,
         description="Tự động sinh vector giả lập khi không truyền query_vector (phục vụ testing/offline)"
     )
+    enable_metadata_filter: bool = Field(
+        default=True,
+        description="Bật bộ lọc siêu dữ liệu cứng (Metadata Hard-Filtering) loại trừ 100% món dị ứng hoặc vượt ngân sách"
+    )
 
 
 class RetrieveItemResponse(BaseModel):
@@ -97,6 +101,14 @@ class RetrieveResponse(BaseModel):
     alpha: float = Field(..., description="Trọng số Dense áp dụng")
     total_matches: int = Field(..., description="Số lượng kết quả tìm thấy")
     latency_ms: float = Field(..., description="Thời gian thực thi thuật toán truy xuất lai (mili-giây)")
+    extracted_entities: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Chi tiết các thực thể ẩm thực bóc tách được (dị ứng, ngân sách, độ cay, chế độ ăn)"
+    )
+    filtered_out_count: int = Field(
+        default=0,
+        description="Số lượng ứng viên bị loại bỏ bởi bộ lọc cứng siêu dữ liệu an toàn"
+    )
     results: List[RetrieveItemResponse] = Field(..., description="Danh sách kết quả Top-K đã xếp hạng")
 
 
@@ -114,16 +126,18 @@ class RagHealthResponse(BaseModel):
     "/retrieve",
     response_model=RetrieveResponse,
     status_code=status.HTTP_200_OK,
-    summary="Truy xuất lai Top-K ứng viên (Dense + Sparse + Min-Max Score Fusion)",
+    summary="Truy xuất lai Top-K ứng viên (Dense + Sparse + Min-Max Score Fusion + Metadata Filter)",
     description="Endpoint độc lập cho phép Gateway gọi sang để tìm kiếm các món ăn hoặc chính sách phù hợp nhất."
 )
 async def retrieve_candidates(request: RetrieveRequest) -> RetrieveResponse:
     """
     Thực thi thuật toán Hybrid Retrieval:
-    1. Tiếp nhận câu hỏi & các tham số kiểm soát (top_k, alpha).
-    2. Gọi bộ chỉ mục kép Dense FAISS HNSW + Sparse BM25 Okapi.
-    3. Co giãn Min-Max điểm số về [0, 1] và dung hợp trọng số 0.6 / 0.4.
-    4. Trả về Top-K ứng viên kèm phân rã điểm số chi tiết và đo lường độ trễ.
+    1. Tiếp nhận câu hỏi & các tham số kiểm soát (top_k, alpha, enable_metadata_filter).
+    2. Bóc tách thực thể F&B NER (dị ứng, chế độ ăn, độ cay, ngân sách).
+    3. Gọi bộ chỉ mục kép Dense FAISS HNSW + Sparse BM25 Okapi.
+    4. Co giãn Min-Max điểm số về [0, 1] và dung hợp trọng số 0.6 / 0.4.
+    5. Áp dụng Metadata Hard-Filtering loại bỏ 100% món vi phạm an toàn dị ứng hoặc vượt ngân sách.
+    6. Trả về Top-K ứng viên kèm phân rã điểm số chi tiết và đo lường độ trễ.
     """
     t_start = time.perf_counter()
 
@@ -148,6 +162,7 @@ async def retrieve_candidates(request: RetrieveRequest) -> RetrieveResponse:
             top_k=request.top_k,
             alpha=request.alpha,
             auto_mock_vector=request.auto_mock_vector,
+            enable_metadata_filter=request.enable_metadata_filter,
         )
     except Exception as e:
         raise HTTPException(
@@ -170,6 +185,14 @@ async def retrieve_candidates(request: RetrieveRequest) -> RetrieveResponse:
         for r in raw_results
     ]
 
+    # Trích xuất thông tin filter metadata
+    entities_dict = (
+        retriever.last_extracted_entities.to_dict()
+        if retriever.last_extracted_entities
+        else None
+    )
+    filtered_count = retriever.last_filter_stats.get("filtered_out_count", 0)
+
     return RetrieveResponse(
         status="success",
         query=clean_query,
@@ -177,6 +200,8 @@ async def retrieve_candidates(request: RetrieveRequest) -> RetrieveResponse:
         alpha=request.alpha,
         total_matches=len(items_response),
         latency_ms=round(latency_ms, 4),
+        extracted_entities=entities_dict,
+        filtered_out_count=filtered_count,
         results=items_response,
     )
 

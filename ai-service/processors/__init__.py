@@ -19,6 +19,11 @@ from .hybrid_retriever import (
     HybridMenuRetriever,
     min_max_normalize,
 )
+from .metadata_filter import (
+    CulinaryEntityExtractor,
+    MetadataFilter,
+    ExtractedEntities,
+)
 
 __all__ = [
     "build_dynamic_context",
@@ -34,6 +39,9 @@ __all__ = [
     "DualIndexManager",
     "HybridMenuRetriever",
     "min_max_normalize",
+    "CulinaryEntityExtractor",
+    "MetadataFilter",
+    "ExtractedEntities",
 ]
 
 

@@ -127,6 +127,41 @@ class TestApiEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("access-control-allow-origin", response.headers)
 
+    def test_retrieve_with_metadata_filter_allergen(self):
+        """Kiểm tra POST /rag/retrieve tự động trích xuất dị ứng và lọc bỏ món vi phạm."""
+        payload = {
+            "query": "tôi bị dị ứng tôm và hải sản",
+            "top_k": 5,
+            "enable_metadata_filter": True
+        }
+        response = self.client.post("/rag/retrieve", json=payload)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("extracted_entities", data)
+        self.assertIsNotNone(data["extracted_entities"])
+        self.assertIn("tôm", data["extracted_entities"]["allergens"])
+        # Đảm bảo kết quả không có món tôm
+        for item in data["results"]:
+            self.assertNotIn("tôm", item["name"].lower())
+            self.assertNotIn("hải sản", item["name"].lower())
+
+    def test_retrieve_with_metadata_filter_budget(self):
+        """Kiểm tra POST /rag/retrieve trích xuất ngân sách và loại bỏ món vượt ngân sách."""
+        payload = {
+            "query": "tìm món ăn dưới 60k",
+            "top_k": 5,
+            "enable_metadata_filter": True
+        }
+        response = self.client.post("/rag/retrieve", json=payload)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIsNotNone(data["extracted_entities"])
+        self.assertEqual(data["extracted_entities"]["max_price"], 60000.0)
+        # Đảm bảo các món trả về đều có giá <= 60000
+        for item in data["results"]:
+            price = item["item"].get("price", 0)
+            self.assertLessEqual(price, 60000.0)
+
 
 if __name__ == "__main__":
     unittest.main()

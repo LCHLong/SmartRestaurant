@@ -19,6 +19,7 @@ from typing import List, Dict, Any, Tuple, Optional, Union
 import numpy as np
 
 from processors.index_manager import DualIndexManager
+from processors.metadata_filter import CulinaryEntityExtractor, MetadataFilter, ExtractedEntities
 
 
 def min_max_normalize(scores_dict: Dict[int, float], eps: float = 1e-9) -> Dict[int, float]:
@@ -93,6 +94,10 @@ class HybridMenuRetriever:
             self.index_manager.load_from_disk(index_type)
 
         self._vector_cache: Dict[str, np.ndarray] = {}
+        self.entity_extractor = CulinaryEntityExtractor()
+        self.metadata_filter = MetadataFilter()
+        self.last_extracted_entities: Optional[ExtractedEntities] = None
+        self.last_filter_stats: Dict[str, Any] = {}
 
     def retrieve(
         self,
@@ -102,17 +107,21 @@ class HybridMenuRetriever:
         alpha: Optional[float] = None,
         search_depth_multiplier: int = 2,
         auto_mock_vector: bool = False,
+        enable_metadata_filter: bool = True,
+        entities: Optional[ExtractedEntities] = None,
     ) -> List[Dict[str, Any]]:
         """
         Thực hiện truy xuất kết hợp và xếp hạng Top-K ứng viên.
         
         Quy trình xử lý:
         1. Kiểm tra câu truy vấn hợp lệ.
-        2. Chạy Dense Search (FAISS HNSW) nếu có query_vector hoặc auto_mock_vector=True.
-        3. Chạy Sparse Search (BM25 Okapi) với bộ tách từ tiếng Việt.
-        4. Áp dụng Min-Max Normalization cho từng luồng điểm.
-        5. Dung hợp điểm: Score = actual_alpha * Dense_norm + (1 - actual_alpha) * BM25_norm.
-        6. Sắp xếp giảm dần và đóng gói kết quả đầy đủ metadata.
+        2. Bóc tách thực thể ẩm thực (F&B NER) nếu chỉ mục là 'menu' và bật lọc.
+        3. Chạy Dense Search (FAISS HNSW) nếu có query_vector hoặc auto_mock_vector=True.
+        4. Chạy Sparse Search (BM25 Okapi) với bộ tách từ tiếng Việt.
+        5. Áp dụng Min-Max Normalization cho từng luồng điểm.
+        6. Dung hợp điểm: Score = actual_alpha * Dense_norm + (1 - actual_alpha) * BM25_norm.
+        7. Lọc cứng siêu dữ liệu (Metadata Hard-Filtering): loại bỏ 100% món dị ứng / sai ngân sách.
+        8. Sắp xếp giảm dần và đóng gói kết quả đầy đủ metadata.
         
         Args:
             query: Chuỗi câu hỏi / từ khóa tìm kiếm của người dùng (vd: "Phở bò không cay")
@@ -121,6 +130,8 @@ class HybridMenuRetriever:
             alpha: Trọng số Dense (None sẽ dùng default_alpha = 0.6)
             search_depth_multiplier: Hệ số mở rộng số ứng viên ban đầu cho mỗi luồng (mặc định 2)
             auto_mock_vector: Cho phép tự sinh vector giả lập khi không truyền query_vector (mặc định False)
+            enable_metadata_filter: Bật tiền lọc cứng dựa trên thực thể dị ứng / ngân sách (mặc định True)
+            entities: Đối tượng ExtractedEntities đã trích xuất sẵn (nếu có)
             
         Returns:
             Danh sách các Dict đại diện cho Top-K món ăn/chính sách, sắp xếp theo hybrid_score giảm dần.
@@ -131,8 +142,18 @@ class HybridMenuRetriever:
         if len(self.index_manager.corpus_items) == 0:
             return []
 
+        # --- Bóc tách thực thể ẩm thực (F&B NER) ---
+        extracted = entities
+        if self.index_type == "menu" and enable_metadata_filter and extracted is None:
+            extracted = self.entity_extractor.extract(query)
+        self.last_extracted_entities = extracted
+
         alpha = self.default_alpha if alpha is None else float(np.clip(alpha, 0.0, 1.0))
-        search_depth = min(top_k * search_depth_multiplier, len(self.index_manager.corpus_items))
+        
+        # Nếu có bộ lọc, mở rộng search_depth ban đầu để sau khi loại trừ vẫn đủ Top-K
+        has_active_filters = bool(extracted and extracted.to_dict().get("has_filters", False))
+        depth_mult = max(search_depth_multiplier, 3) if has_active_filters else search_depth_multiplier
+        search_depth = min(max(top_k * depth_mult, 30), len(self.index_manager.corpus_items))
 
         # --- 1. Luồng Dense Search (Ngữ nghĩa) ---
         dense_raw_scores: Dict[int, float] = {}
@@ -202,9 +223,29 @@ class HybridMenuRetriever:
                 }
             })
 
-        # --- 5. Sắp xếp giảm dần và lấy Top-K ---
+        # --- 5. Sắp xếp giảm dần theo điểm số lai ---
         fusion_results.sort(key=lambda x: x["hybrid_score"], reverse=True)
-        return fusion_results[:top_k]
+
+        # --- 6. Tiền lọc cứng siêu dữ liệu (Metadata Hard-Filtering) ---
+        if self.index_type == "menu" and enable_metadata_filter and has_active_filters and extracted:
+            accepted, rejected = self.metadata_filter.filter_items(fusion_results, extracted, self.entity_extractor)
+            self.last_filter_stats = {
+                "total_before_filter": len(fusion_results),
+                "accepted_count": len(accepted),
+                "filtered_out_count": len(rejected),
+                "rejected_items": [{"name": r["name"], "reason": r.get("rejection_reason")} for r in rejected[:10]]
+            }
+            final_candidates = accepted
+        else:
+            self.last_filter_stats = {
+                "total_before_filter": len(fusion_results),
+                "accepted_count": len(fusion_results),
+                "filtered_out_count": 0,
+                "rejected_items": []
+            }
+            final_candidates = fusion_results
+
+        return final_candidates[:top_k]
 
     def _create_deterministic_query_vector(self, query: str) -> np.ndarray:
         """
