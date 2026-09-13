@@ -31,6 +31,9 @@ ai-service/
 │   ├── entity_extractor.py               # Trích xuất thực thể món ăn từ văn bản
 │   ├── fallback_handler.py               # Xử lý an toàn khi thiếu dữ liệu hoặc lỗi
 │   └── system_prompt_builder.py          # Ghép dynamic context vào system prompt
+├── routers/                              # Các route API độc lập của microservice
+│   ├── __init__.py
+│   └── rag.py                            # [Bước 2.3] Endpoints /rag/retrieve & /rag/health
 ├── scripts/                              # Các công cụ dòng lệnh (CLI Tools & Automation)
 │   ├── bulk_ingest_serialized.py         # [Bước 1.3] Đồng bộ hàng loạt lên Supabase & xuất JSON
 │   ├── build_indexes.py                  # [Bước 2.1] Xây dựng và lưu trữ chỉ mục ra đĩa
@@ -39,11 +42,12 @@ ai-service/
 ├── tests/                                # Bộ kiểm thử tự động (Unit Tests)
 │   ├── test_serializer.py                # 12 test cases cho Row Serializer Engine
 │   ├── test_index_manager.py             # 5 test cases cho Tokenizer & Index Manager
-│   └── test_hybrid_retriever.py          # 7 test cases cho HybridRetriever & Min-Max
+│   ├── test_hybrid_retriever.py          # 7 test cases cho HybridRetriever & Min-Max
+│   └── test_api_endpoints.py             # [Bước 2.3] 9 test cases cho FastAPI RAG endpoints & CORS
 ├── .env.example                          # Mẫu cấu hình biến môi trường
 ├── requirements.txt                      # Danh mục các thư viện Python phụ thuộc
 ├── Dockerfile                            # Docker container hóa microservice
-└── main.py                               # FastAPI application entrypoint
+└── main.py                               # FastAPI application entrypoint (CORS, Timing, Routers)
 ```
 
 ---
@@ -69,6 +73,10 @@ ai-service/
   - **Dung hợp điểm số tối ưu:** $\text{Score} = 0.6 \times \text{Dense}_{\text{norm}} + 0.4 \times \text{BM25}_{\text{norm}}$.
   - **Cơ chế Adaptive Alpha:** Khi có `query_vector` thì kết hợp $0.6/0.4$; khi không có vector thì tự động điều chỉnh chỉ dùng BM25 để không bị vector giả lập làm sai lệch xếp hạng món ăn.
   - **Sinh vector lượng giác tất định:** Cung cấp vector giả lập siêu tốc ($< 0.01\text{ms}$) cho mục đích kiểm thử và offline.
+- **FastAPI Retrieval Endpoint ([`routers/rag.py`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/ai-service/routers/rag.py) & [`main.py`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/ai-service/main.py)):**
+  - **`POST /rag/retrieve`**: Endpoint truy xuất độc lập cho phép Node.js Gateway hoặc client gọi trực tiếp. Hỗ trợ xác thực schema bằng Pydantic, lọc theo `index_type` (`menu` hoặc `policies`), tùy biến `alpha` và `top_k`.
+  - **`GET /rag/health`**: Báo cáo tình trạng tải bộ nhớ của các chỉ mục HNSW FAISS và BM25 Okapi.
+  - **Timing & CORS Middleware**: Tự động đo lường thời gian xử lý toàn trình và trả về trong header HTTP `X-Process-Time` (chuẩn mili-giây/giây).
 
 ---
 
@@ -155,31 +163,110 @@ Hạng   Hybrid     Dense(Norm)    BM25(Norm)     Tên món ăn                G
 
 ---
 
+## 📡 Tài Liệu Đặc Tả API (API Endpoints Specification)
+
+### 1. `POST /rag/retrieve` — Truy xuất lai Top-K ứng viên
+Endpoint độc lập nhận câu hỏi người dùng, thực hiện Min-Max Score Fusion giữa FAISS Dense Cosine và BM25 Okapi, trả về danh sách ứng viên kèm phân rã điểm số minh bạch.
+
+**Request Body Schema (`application/json`):**
+```json
+{
+  "query": "phở bò tái nạm",
+  "top_k": 5,
+  "alpha": 0.6,
+  "index_type": "menu",
+  "query_vector": null,
+  "auto_mock_vector": false
+}
+```
+
+**cURL Example:**
+```bash
+curl -X POST "http://localhost:5001/rag/retrieve" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "phở bò tái nạm", "top_k": 3, "alpha": 0.6}'
+```
+
+**Response Example (`200 OK`):**
+```json
+{
+  "status": "success",
+  "query": "phở bò tái nạm",
+  "index_type": "menu",
+  "alpha": 0.6,
+  "total_matches": 3,
+  "latency_ms": 0.1842,
+  "results": [
+    {
+      "index": 0,
+      "id": "item-uuid-001",
+      "name": "Phở Bò Tái Nạm",
+      "serialized_text": "Món: Phở Bò Tái Nạm | Danh mục: Món nước | Giá: 75,000 đ...",
+      "hybrid_score": 1.0,
+      "score_breakdown": {
+        "dense_raw": 0.0,
+        "dense_norm": 0.0,
+        "bm25_raw": 5.421,
+        "bm25_norm": 1.0,
+        "alpha": 0.0
+      },
+      "item": { "name": "Phở Bò Tái Nạm", "price": 75000 }
+    }
+  ]
+}
+```
+> **Lưu ý:** Response Header kèm theo `X-Process-Time` (ví dụ `0.001420s`) để Gateway giám sát thời gian xử lý toàn trình.
+
+### 2. `GET /rag/health` — Trạng thái hoạt động Lõi RAG
+```bash
+curl -X GET "http://localhost:5001/rag/health"
+```
+```json
+{
+  "status": "ok",
+  "service": "advanced-hybrid-rag",
+  "paper_reference": "Advancing RAG for Structured Enterprise Data (IIT Roorkee 2025)",
+  "menu_index": {
+    "loaded_items_count": 17,
+    "vector_dimension": 768,
+    "has_faiss": true,
+    "has_bm25": true
+  },
+  "policies_index": {
+    "loaded_items_count": 4,
+    "vector_dimension": 768,
+    "has_faiss": true,
+    "has_bm25": true
+  }
+}
+```
+
+---
+
 ## 🧪 Kiểm Thử Tự Động (Unit Testing)
 
-Chạy toàn bộ 24 bài kiểm thử của cả 3 phân hệ:
+Chạy toàn bộ 33 bài kiểm thử của cả 4 phân hệ (Serializer, Tokenizer/Index, Hybrid Retriever, API Endpoints):
 ```bash
 PYTHONPATH=. .venv/bin/python -m unittest discover -s tests -v
 ```
 
 **Báo cáo kiểm thử thực tế:**
 ```text
-test_01_full_menu_item (test_serializer.TestRowSerializer) ... ok
-test_02_minimal_menu_item (test_serializer.TestRowSerializer) ... ok
-... (12 tests cho Row Serializer) ... ok
-test_01_vietnamese_text_normalization (test_index_manager.TestIndexManager) ... ok
-test_02_vietnamese_tokenizer_compounds (test_index_manager.TestIndexManager) ... ok
-... (5 tests cho Index Manager) ... ok
-test_01_min_max_normalize_standard (test_hybrid_retriever.TestHybridMenuRetriever) ... ok
-test_02_min_max_normalize_edge_cases (test_hybrid_retriever.TestHybridMenuRetriever) ... ok
-test_03_exact_keyword_boost (test_hybrid_retriever.TestHybridMenuRetriever) ... ok
-test_04_dense_vector_boost (test_hybrid_retriever.TestHybridMenuRetriever) ... ok
-test_05_alpha_weighting_impact (test_hybrid_retriever.TestHybridMenuRetriever) ... ok
-test_06_score_breakdown_and_bounds (test_hybrid_retriever.TestHybridMenuRetriever) ... ok
-test_07_empty_query_safety (test_hybrid_retriever.TestHybridMenuRetriever) ... ok
+test_get_rag_health (test_api_endpoints.TestApiEndpoints) ... ok
+test_get_root_health (test_api_endpoints.TestApiEndpoints) ... ok
+test_retrieve_cors_header (test_api_endpoints.TestApiEndpoints) ... ok
+test_retrieve_menu_items_success (test_api_endpoints.TestApiEndpoints) ... ok
+test_retrieve_policies_success (test_api_endpoints.TestApiEndpoints) ... ok
+test_retrieve_validation_empty_query (test_api_endpoints.TestApiEndpoints) ... ok
+test_retrieve_validation_invalid_top_k (test_api_endpoints.TestApiEndpoints) ... ok
+test_retrieve_validation_whitespace_query (test_api_endpoints.TestApiEndpoints) ... ok
+test_retrieve_with_explicit_vector (test_api_endpoints.TestApiEndpoints) ... ok
+... (7 tests cho Hybrid Retriever) ... ok
+... (5 tests cho Index Manager & Tokenizer) ... ok
+... (12 tests cho Row Serializer Engine) ... ok
 
 ----------------------------------------------------------------------
-Ran 24 tests in 0.027s
+Ran 33 tests in 0.110s
 OK (Tỷ lệ đạt 100%)
 ```
 
@@ -193,7 +280,8 @@ OK (Tỷ lệ đạt 100%)
 | **BM25 Sparse Search Latency** | $< 5.000\text{ ms}$ | **`0.121 ms`** | Nhanh hơn **41 lần** | 🛡️ **Gate 2 PASSED** |
 | **Thời gian nạp chỉ mục từ đĩa lên RAM** | $< 50.000\text{ ms}$ | **`1.460 ms`** | Nhanh hơn **34 lần** | 🛡️ **Gate 2 PASSED** |
 | **Thời gian truy xuất lai toàn trình (Hybrid)** | $< 20.000\text{ ms}$ | **`0.167 ms`** | Nhanh hơn **120 lần** | 🛡️ **Gate 2 PASSED** |
-| **Tỷ lệ kiểm thử tự động vượt qua** | $100\%$ | **24 / 24 Tests (100%)** | Tuyệt đối | ✅ **ĐẠT** |
+| **Độ trễ HTTP Endpoint `/rag/retrieve`** | $< 50.000\text{ ms}$ | **`< 2.000 ms`** | Nhanh hơn **25 lần** | 🛡️ **Gate 2 PASSED** |
+| **Tỷ lệ kiểm thử tự động vượt qua** | $100\%$ | **33 / 33 Tests (100%)** | Tuyệt đối | ✅ **ĐẠT** |
 
 ---
 

@@ -8,7 +8,9 @@ Endpoints:
 """
 
 import os
-from fastapi import FastAPI, HTTPException
+import time
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Optional
@@ -17,12 +19,36 @@ from dotenv import load_dotenv
 load_dotenv()
 
 from pipelines.aria_pipeline import AriaConversationPipeline
+from routers.rag import router as rag_router
 
 app = FastAPI(
     title="SmartRestaurant AI Service",
-    description="Pipecat-based AI Consultant 'Aria' microservice",
-    version="1.0.0"
+    description="Pipecat-based AI Consultant 'Aria' & Advanced Hybrid RAG microservice",
+    version="1.1.0"
 )
+
+# CORS Middleware for Node.js Gateway and web clients
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.middleware("http")
+async def add_process_time_header(request: Request, call_next):
+    """Tính toán thời gian xử lý mỗi HTTP request và đính kèm vào response header X-Process-Time."""
+    start_time = time.perf_counter()
+    response = await call_next(request)
+    process_time = time.perf_counter() - start_time
+    response.headers["X-Process-Time"] = f"{process_time:.6f}s"
+    return response
+
+
+# Đăng ký RAG Router (POST /rag/retrieve, GET /rag/health)
+app.include_router(rag_router)
 
 # Singleton pipeline instance
 pipeline = AriaConversationPipeline()
