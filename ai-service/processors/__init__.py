@@ -10,6 +10,11 @@ from .row_serializer import (
     serialize_menu_item,
     serialize_restaurant_policy,
 )
+from .vietnamese_tokenizer import (
+    tokenize_vietnamese,
+    normalize_vietnamese_text,
+)
+from .index_manager import DualIndexManager
 
 __all__ = [
     "build_dynamic_context",
@@ -20,5 +25,9 @@ __all__ = [
     "serialize_menu_row",
     "serialize_menu_item",
     "serialize_restaurant_policy",
+    "tokenize_vietnamese",
+    "normalize_vietnamese_text",
+    "DualIndexManager",
 ]
+
 

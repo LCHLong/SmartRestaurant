@@ -1,0 +1,2 @@
+# ai-service/data/indexes/
+# Thư mục lưu trữ file chỉ mục nhị phân FAISS HNSW (.bin) và BM25 Okapi (.pkl)
