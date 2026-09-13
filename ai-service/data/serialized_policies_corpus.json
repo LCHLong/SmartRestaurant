@@ -1,0 +1,57 @@
+[
+  {
+    "id": "ac4b2093-b488-4fce-aa08-039ef4280825",
+    "policy_type": "allergen",
+    "title": "Cam kết an toàn thực phẩm & Cảnh báo dị ứng",
+    "content": "Nhà hàng cam kết sử dụng 100% nguyên liệu tươi sạch có nguồn gốc rõ ràng. Thực khách có tiền sử dị ứng thực phẩm (hải sản, đậu phộng, trứng, sữa, gluten...) vui lòng thông báo cho nhân viên hoặc ghi chú trực tiếp khi đặt món trên ứng dụng để bếp xử lý riêng biệt.",
+    "row_serialized": "[CHÍNH SÁCH NHÀ HÀNG: Cam kết an toàn thực phẩm & Cảnh báo dị ứng]\n• Phân loại quy định: An toàn thực phẩm & Cảnh báo dị ứng (allergen)\n• Trạng thái: Đang áp dụng\n• Nội dung điều khoản: Nhà hàng cam kết sử dụng 100% nguyên liệu tươi sạch có nguồn gốc rõ ràng. Thực khách có tiền sử dị ứng thực phẩm (hải sản, đậu phộng, trứng, sữa, gluten...) vui lòng thông báo cho nhân viên hoặc ghi chú trực tiếp khi đặt món trên ứng dụng để bếp xử lý riêng biệt.",
+    "embedding": null,
+    "is_active": true,
+    "created_at": "2026-09-13T01:53:10.202342+00:00",
+    "updated_at": "2026-09-13T01:53:10.202342+00:00"
+  },
+  {
+    "id": "b89489bc-fb31-4c35-9d63-3a6b59f4dd3d",
+    "policy_type": "voucher",
+    "title": "Chính sách áp dụng mã giảm giá & Voucher",
+    "content": "Mỗi hóa đơn chỉ áp dụng tối đa 01 mã voucher giảm giá. Voucher không có giá trị quy đổi thành tiền mặt và không áp dụng đồng thời với các chương trình khuyến mãi theo combo trừ khi có quy định riêng. Voucher phải còn hạn sử dụng tại thời điểm thanh toán.",
+    "row_serialized": "[CHÍNH SÁCH NHÀ HÀNG: Chính sách áp dụng mã giảm giá & Voucher]\n• Phân loại quy định: Khuyến mãi & Mã giảm giá (voucher)\n• Trạng thái: Đang áp dụng\n• Nội dung điều khoản: Mỗi hóa đơn chỉ áp dụng tối đa 01 mã voucher giảm giá. Voucher không có giá trị quy đổi thành tiền mặt và không áp dụng đồng thời với các chương trình khuyến mãi theo combo trừ khi có quy định riêng. Voucher phải còn hạn sử dụng tại thời điểm thanh toán.",
+    "embedding": null,
+    "is_active": true,
+    "created_at": "2026-09-13T01:53:10.202342+00:00",
+    "updated_at": "2026-09-13T01:53:10.202342+00:00"
+  },
+  {
+    "id": "9b192dd7-5a5c-46c0-940a-61ef2f7a67f1",
+    "policy_type": "refund",
+    "title": "Chính sách đổi trả món & Hoàn tiền",
+    "content": "Khách hàng có quyền yêu cầu đổi món mới hoặc hủy món nếu món ăn mang lên không đúng theo đơn đặt hàng, có dấu hiệu hư hỏng hoặc phát hiện dị vật. Việc hoàn tiền sẽ được hoàn trả qua đúng phương thức thanh toán ban đầu của khách hàng trong vòng 24 giờ.",
+    "row_serialized": "[CHÍNH SÁCH NHÀ HÀNG: Chính sách đổi trả món & Hoàn tiền]\n• Phân loại quy định: Đổi trả món & Hoàn tiền (refund)\n• Trạng thái: Đang áp dụng\n• Nội dung điều khoản: Khách hàng có quyền yêu cầu đổi món mới hoặc hủy món nếu món ăn mang lên không đúng theo đơn đặt hàng, có dấu hiệu hư hỏng hoặc phát hiện dị vật. Việc hoàn tiền sẽ được hoàn trả qua đúng phương thức thanh toán ban đầu của khách hàng trong vòng 24 giờ.",
+    "embedding": null,
+    "is_active": true,
+    "created_at": "2026-09-13T01:53:10.202342+00:00",
+    "updated_at": "2026-09-13T01:53:10.202342+00:00"
+  },
+  {
+    "id": "6158f0cd-5aa4-4210-b5f5-d9b1a810b1af",
+    "policy_type": "table_booking",
+    "title": "Quy định đặt bàn & Giữ chỗ",
+    "content": "Bàn đặt trước sẽ được giữ chỗ tối đa 15 phút so với giờ hẹn. Trường hợp khách đến trễ hơn 15 phút mà không thông báo trước, nhà hàng có quyền hủy bàn hoặc xếp bàn khác tùy tình trạng bàn trống thực tế. Khách đoàn trên 10 người vui lòng đặt cọc trước ít nhất 2 giờ.",
+    "row_serialized": "[CHÍNH SÁCH NHÀ HÀNG: Quy định đặt bàn & Giữ chỗ]\n• Phân loại quy định: Đặt bàn & Giữ chỗ (table_booking)\n• Trạng thái: Đang áp dụng\n• Nội dung điều khoản: Bàn đặt trước sẽ được giữ chỗ tối đa 15 phút so với giờ hẹn. Trường hợp khách đến trễ hơn 15 phút mà không thông báo trước, nhà hàng có quyền hủy bàn hoặc xếp bàn khác tùy tình trạng bàn trống thực tế. Khách đoàn trên 10 người vui lòng đặt cọc trước ít nhất 2 giờ.",
+    "embedding": null,
+    "is_active": true,
+    "created_at": "2026-09-13T01:53:10.202342+00:00",
+    "updated_at": "2026-09-13T01:53:10.202342+00:00"
+  },
+  {
+    "id": "4b7df883-1736-4f5e-bace-ca675368e381",
+    "policy_type": "outside_food",
+    "title": "Quy định mang đồ ăn thức uống từ ngoài vào",
+    "content": "Nhà hàng không khuyến khích mang đồ ăn từ bên ngoài vào nhằm đảm bảo tiêu chuẩn vệ sinh an toàn thực phẩm. Trường hợp khách mang rượu hoặc đồ uống có cồn từ bên ngoài vào sẽ áp dụng phí phục vụ đồ uống (phí khui chai) theo bảng giá niêm yết.",
+    "row_serialized": "[CHÍNH SÁCH NHÀ HÀNG: Quy định mang đồ ăn thức uống từ ngoài vào]\n• Phân loại quy định: Quy định mang đồ ăn ngoài (outside_food)\n• Trạng thái: Đang áp dụng\n• Nội dung điều khoản: Nhà hàng không khuyến khích mang đồ ăn từ bên ngoài vào nhằm đảm bảo tiêu chuẩn vệ sinh an toàn thực phẩm. Trường hợp khách mang rượu hoặc đồ uống có cồn từ bên ngoài vào sẽ áp dụng phí phục vụ đồ uống (phí khui chai) theo bảng giá niêm yết.",
+    "embedding": null,
+    "is_active": true,
+    "created_at": "2026-09-13T01:53:10.202342+00:00",
+    "updated_at": "2026-09-13T01:53:10.202342+00:00"
+  }
+]
