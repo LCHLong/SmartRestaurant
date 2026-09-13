@@ -5,6 +5,11 @@ from .fallback_handler import (
     get_fallback_context,
     build_fallback_prompt_hint,
 )
+from .row_serializer import (
+    serialize_menu_row,
+    serialize_menu_item,
+    serialize_restaurant_policy,
+)
 
 __all__ = [
     "build_dynamic_context",
@@ -12,4 +17,8 @@ __all__ = [
     "is_human_handoff_requested",
     "get_fallback_context",
     "build_fallback_prompt_hint",
+    "serialize_menu_row",
+    "serialize_menu_item",
+    "serialize_restaurant_policy",
 ]
+
