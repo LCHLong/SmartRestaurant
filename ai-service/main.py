@@ -78,6 +78,8 @@ class ChatRequest(BaseModel):
     conversationHistory: list[HistoryItem] = []
     fallbackUsed: bool = False
     restaurantId: Optional[str] = None
+    enableRerank: bool = True
+    topK: int = 5
 
 
 # ---------- Endpoints ----------
@@ -116,6 +118,8 @@ async def chat(request: ChatRequest):
                 session_id=request.sessionId,
                 fallback_used=request.fallbackUsed,
                 restaurant_id=request.restaurantId,
+                enable_rerank=request.enableRerank,
+                top_k=request.topK,
             ):
                 yield sse_chunk
         except Exception as e:

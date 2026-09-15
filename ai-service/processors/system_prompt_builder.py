@@ -89,7 +89,7 @@ def build_dynamic_context(
     time_of_day = _get_time_of_day()
     lines.append(f"## THÔNG TIN NGỮ CẢNH")
     lines.append(f"- Bàn số: {table_id}")
-    lines.append(f"- Thời điểm: {time_of_day} ({datetime.now().strftime('%H:%M')})")
+    lines.append(f"- Thời điểm hiện tại tại quán: {time_of_day} ({datetime.now().strftime('%H:%M')}) (Chỉ dùng để chào hỏi; nếu khách hỏi món cho một buổi cụ thể như sáng/trưa/tối, hãy ưu tiên tư vấn đúng theo buổi khách yêu cầu, không từ chối theo giờ đồng hồ)")
     lines.append("")
 
     # --- Menu context (RAG result) ---

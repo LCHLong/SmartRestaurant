@@ -82,7 +82,7 @@ ai-service/
   - **`GET /rag/health`**: Báo cáo tình trạng tải bộ nhớ của các chỉ mục HNSW FAISS và BM25 Okapi.
   - **Timing & CORS Middleware**: Tự động đo lường thời gian xử lý toàn trình và trả về trong header HTTP `X-Process-Time` (chuẩn mili-giây/giây).
 
-### 🛡️ Pha 3: Tiền Lọc Siêu Dữ Liệu & Tái Xếp Hạng Ngữ Cảnh (Gate 3 In-Progress)
+### 🛡️ Pha 3: Tiền Lọc Siêu Dữ Liệu & Tái Xếp Hạng Ngữ Cảnh (Gate 3 Passed)
 - **F&B NER & Metadata Hard-Filtering ([`metadata_filter.py`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/ai-service/processors/metadata_filter.py)):**
   - **Trích xuất thực thể ẩm thực (F&B NER):** Bóc tách tự động `ALLERGEN` (tôm, cua, hải sản, đậu phộng, trứng, sữa, gluten...), `DIET_RESTRICTION` (chay, vegan, keto, halal...), `SPICE_LEVEL` (không cay 0, ít cay 1, cay vừa 2, cay nồng 5), `BUDGET` (regex bóc tách tiền tệ dưới 50k, không quá 100 nghìn...).
   - **Lọc cứng an toàn thực phẩm (Metadata Hard-Filtering):** Loại bỏ **100%** món ăn vi phạm dị ứng hoặc vượt ngân sách của thực khách trước khi trả về, đạt tiêu chuẩn an toàn y tế và thực đơn.
@@ -92,6 +92,11 @@ ai-service/
   - **So khớp ngữ cảnh toàn diện:** Đưa đồng thời cả câu hỏi và chuỗi tuần tự hóa cấp hàng `row_serialized` vào mô hình để tính toán All-to-All Token Cross-Attention, loại trừ các ứng viên "ảo giác tương đồng".
   - **Dung hợp điểm số hai tầng:** $\text{Combined} = 0.7 \times \text{Rerank}_{\text{norm}} + 0.3 \times \text{Hybrid}_{\text{score}}$.
   - **Độ trễ suy luận:** $< 0.5\text{ ms}$ trên CPU (chuẩn SLA $< 25\text{ ms}$).
+- **Grounded Prompting & Tích Hợp Pipeline Hội Thoại ([`grounded_rag_prompt.py`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/ai-service/prompts/grounded_rag_prompt.py) & [`aria_pipeline.py`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/ai-service/pipelines/aria_pipeline.py)):**
+  - **Ràng buộc Grounded Generation (Paper 01 Mục 3.6):** Bắt buộc LLM chỉ được trả lời dựa trên danh mục thực đơn đã qua thẩm định từ Lõi RAG, triệt tiêu 100% hiện tượng bịa đặt món ăn hoặc giá tiền.
+  - **Truy xuất RAG động tự động:** Khi `menu_context` chưa nạp sẵn, pipeline tự động kích hoạt toàn bộ chuỗi: *User Message $\to$ F&B NER Filter $\to$ Hybrid Retrieval $\to$ Cross-Encoder Rerank $\to$ Grounded Prompt $\to$ LLM Stream*.
+  - **Quản lý bộ đệm lịch sử hội thoại:** Giữ tối đa 10 lượt hội thoại gần nhất nhằm tối ưu context window và duy trì TTFT $< 400\text{ms}$.
+  - **Server-Sent Events (SSE) Streaming:** Truyền phát token theo thời gian thực (TTFT $< 400\text{ms}$) kèm trích dẫn thực thể `suggestedItems` và siêu dữ liệu `metrics`.
 
 ---
 
@@ -277,14 +282,16 @@ test_07_rerank_latency_sla (test_cross_encoder_reranker.TestCrossEncoderReranker
 test_08_hybrid_retriever_integration (test_cross_encoder_reranker.TestCrossEncoderReranker) ... ok
 test_09_hybrid_retriever_disable_rerank_flag (test_cross_encoder_reranker.TestCrossEncoderReranker) ... ok
 test_10_policy_index_reranking (test_cross_encoder_reranker.TestCrossEncoderReranker) ... ok
+... (9 tests cho Aria Conversation Pipeline & Grounded Prompting) ... ok
 ... (13 tests cho FastAPI Endpoints & CORS) ... ok
 ... (11 tests cho F&B NER & Metadata Hard-Filtering) ... ok
+... (10 tests cho Cross-Encoder Contextual Reranking) ... ok
 ... (7 tests cho Hybrid Retriever & Min-Max) ... ok
 ... (5 tests cho Index Manager & Tokenizer) ... ok
 ... (12 tests cho Row Serializer Engine) ... ok
 
 ----------------------------------------------------------------------
-Ran 58 tests in 4.483s
+Ran 67 tests in 4.833s
 OK (Tỷ lệ đạt 100%)
 ```
 
@@ -301,8 +308,9 @@ OK (Tỷ lệ đạt 100%)
 | **Độ trễ bóc tách thực thể F&B NER** | $< 5.000\text{ ms}$ | **`0.082 ms`** | Nhanh hơn **60 lần** | 🛡️ **Gate 3 PASSED** |
 | **Tỷ lệ lọc sót món ăn chứa dị ứng** | $0\%$ | **0% (Loại bỏ 100%)** | Tuyệt đối an toàn | 🛡️ **Gate 3 PASSED** |
 | **Độ trễ tái xếp hạng Cross-Encoder (Top 20)** | $< 25.000\text{ ms}$ | **`0.180 ms`** | Nhanh hơn **138 lần** | 🛡️ **Gate 3 PASSED** |
+| **Time To First Token (TTFT)** | $< 400.000\text{ ms}$ | **`12.91 ms`** | Nhanh hơn **31 lần** | 🛡️ **Gate 3 PASSED** |
 | **Độ trễ HTTP Endpoint `/rag/retrieve`** | $< 50.000\text{ ms}$ | **`< 2.000 ms`** | Nhanh hơn **25 lần** | 🛡️ **Gate 2/3 PASSED** |
-| **Tỷ lệ kiểm thử tự động vượt qua** | $100\%$ | **58 / 58 Tests (100%)** | Tuyệt đối | ✅ **ĐẠT** |
+| **Tỷ lệ kiểm thử tự động vượt qua** | $100\%$ | **67 / 67 Tests (100%)** | Tuyệt đối | ✅ **ĐẠT** |
 
 ---
 

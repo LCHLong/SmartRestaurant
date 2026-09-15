@@ -45,16 +45,19 @@ def extract_suggested_items(
     for match in bold_pattern.finditer(ai_text):
         candidate = match.group(1).strip()
         item = _find_menu_item(candidate, menu_lookup)
-        if item and item.get("id") not in seen_ids:
-            suggested.append(_to_suggestion(item))
-            seen_ids.add(item["id"])
+        if item:
+            item_id = item.get("id") or item.get("name")
+            if item_id not in seen_ids:
+                suggested.append(_to_suggestion(item))
+                seen_ids.add(item_id)
 
     # Pattern 2: Tên món xuất hiện trực tiếp trong text (fuzzy match)
     if not suggested:
         for name_lower, item in menu_lookup.items():
-            if name_lower in ai_text.lower() and item.get("id") not in seen_ids:
+            item_id = item.get("id") or item.get("name")
+            if name_lower in ai_text.lower() and item_id not in seen_ids:
                 suggested.append(_to_suggestion(item))
-                seen_ids.add(item["id"])
+                seen_ids.add(item_id)
 
     # Giới hạn tối đa 3 gợi ý
     return suggested[:3]
