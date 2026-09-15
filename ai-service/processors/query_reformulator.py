@@ -47,19 +47,23 @@ class QueryReformulator:
     ]
 
     NEGATIVE_FEEDBACK_TRIGGERS = [
-        "không thích",
+        "không thích món này",
+        "không thích các món này",
+        "không thích món trên",
         "đổi món",
         "món khác đi",
         "có món nào khác",
         "thay bằng món khác",
-        "chán",
-        "dở",
+        "chán quá",
+        "dở quá",
         "không ngon",
-        "không ăn",
         "thôi không lấy",
         "bỏ món này",
         "gợi ý món khác",
         "tìm món khác",
+        "không ăn món này",
+        "không ăn cái này",
+        "không muốn ăn món này",
         "👎",
     ]
 
@@ -242,7 +246,7 @@ class QueryReformulator:
         clean_q = clean_q.strip(" ,.?!")
 
         if clean_q:
-            standalone = f"món ăn khác thanh đạm mới lạ thay thế: {clean_q}"
+            standalone = f"món ăn khác thay thế: {clean_q}"
         else:
             standalone = "món ăn đặc sản khác thơm ngon thay thế cho thực khách"
 

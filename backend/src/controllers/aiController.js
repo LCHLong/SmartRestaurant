@@ -46,6 +46,25 @@ const consultSchema = Joi.object({
 // ---------- Helpers ----------
 
 /**
+ * Thuật toán băm nhất quán gán nhánh A/B testing dựa trên sessionId (Paper 01 - Bước 5.2)
+ * Variant A (50%): Advancing RAG (2-Stage + Metadata Filter + Cross-Encoder Reranker)
+ * Variant B (50%): Baseline RAG thông thường
+ * @param {string} sessionId
+ * @param {number} ratio Tỉ lệ phân bổ nhánh A (mặc định 0.5 = 50%)
+ * @returns {'variant_a_advanced' | 'variant_b_baseline'}
+ */
+function getAbVariant(sessionId, ratio = 0.5) {
+  if (!sessionId || typeof sessionId !== 'string') return 'variant_a_advanced';
+  let hash = 2166136261;
+  for (let i = 0; i < sessionId.length; i++) {
+    hash ^= sessionId.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  const score = (hash >>> 0) / 4294967296;
+  return score < ratio ? 'variant_a_advanced' : 'variant_b_baseline';
+}
+
+/**
  * Kiểm tra & tăng rate limit counter
  * @returns {boolean} true nếu vượt limit
  */
@@ -119,7 +138,17 @@ exports.consult = async (req, res) => {
   const io = getIO();
   const socketRoom = `table_${tableId}`;
 
-  // 2. Rate limit check
+  // 2. A/B Testing Traffic Split (50% Advancing RAG vs 50% Baseline)
+  const abVariant = getAbVariant(sessionId);
+
+  // Ghi nhận lượt impression nhánh A/B trong Redis Telemetry
+  try {
+    if (redis && typeof redis.incr === 'function') {
+      redis.incr(`rag_telemetry:${abVariant}_impressions`).catch(() => {});
+    }
+  } catch (_) {}
+
+  // 3. Rate limit check
   const rateLimited = await checkRateLimit(sessionId);
   if (rateLimited) {
     return res.status(429).json({
@@ -128,8 +157,8 @@ exports.consult = async (req, res) => {
     });
   }
 
-  // 3. Phản hồi HTTP 200 ngay (kết quả trả qua Socket.io)
-  res.status(200).json({ success: true, message: 'Processing' });
+  // 4. Phản hồi HTTP 200 ngay (kết quả trả qua Socket.io)
+  res.status(200).json({ success: true, message: 'Processing', abVariant });
 
   // ---- Phần còn lại chạy async, kết quả qua Socket.io ----
   const sessionRoom = `session_${sessionId}`;
@@ -143,7 +172,7 @@ exports.consult = async (req, res) => {
   };
 
   try {
-    // 4. RAG — 2-Stage retrieval (song song lấy context & history)
+    // 5. RAG — 2-Stage retrieval (song song lấy context & history)
     const [ragResult, orderHistory, history] = await Promise.all([
       retrieveMenuContext(message, resolvedRestaurantId),
       getOrderHistory(userId),
@@ -152,7 +181,7 @@ exports.consult = async (req, res) => {
 
     const { context, fallbackUsed } = ragResult;
 
-    // 5. Build payload cho Pipecat
+    // 6. Build payload cho Pipecat (kèm cờ A/B Testing)
     const pipecatPayload = {
       message,
       sessionId,
@@ -164,19 +193,21 @@ exports.consult = async (req, res) => {
       fallbackUsed,
       restaurantId: resolvedRestaurantId,
       feedbackType: req.body.feedbackType,
-      rejectedItems: req.body.rejectedItems
+      rejectedItems: req.body.rejectedItems,
+      abVariant,
+      enableRerank: abVariant === 'variant_a_advanced'
     };
 
-    // 6. Stream từ Pipecat → emit Socket.io
+    // 7. Stream từ Pipecat → emit Socket.io
     let fullResponse = '';
 
     streamFromPipecat(
       pipecatPayload,
 
-      // onToken: emit từng token trực tiếp tới client
+      // onToken: emit từng token trực tiếp tới client kèm thẻ nhánh
       (token) => {
         fullResponse += token;
-        emitToClient('ai_stream_token', { sessionId, token });
+        emitToClient('ai_stream_token', { sessionId, token, abVariant });
       },
 
       // onDone: emit final response + suggested items
@@ -187,10 +218,11 @@ exports.consult = async (req, res) => {
         emitToClient('ai_response', {
           sessionId,
           content: finalText,
-          suggestedItems
+          suggestedItems,
+          abVariant
         });
 
-        // 7. Lưu lịch sử hội thoại
+        // 8. Lưu lịch sử hội thoại
         await saveSessionHistory(sessionId, history, message, finalText);
       },
 
@@ -234,3 +266,5 @@ exports.clearSession = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Failed to clear session' });
   }
 };
+
+exports.getAbVariant = getAbVariant;

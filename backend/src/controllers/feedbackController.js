@@ -18,6 +18,23 @@ const memoryTelemetryMetrics = {
   detailed: 0
 };
 
+// Bộ nhớ telemetry phân nhóm A/B testing
+const memoryAbMetrics = {
+  variant_a_advanced: { impressions: 0, total: 0, thumbs_up: 0, thumbs_down: 0 },
+  variant_b_baseline: { impressions: 0, total: 0, thumbs_up: 0, thumbs_down: 0 }
+};
+
+function resolveVariant(sessionId) {
+  if (!sessionId) return 'variant_a_advanced';
+  let hash = 2166136261;
+  for (let i = 0; i < sessionId.length; i++) {
+    hash ^= sessionId.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  const score = (hash >>> 0) / 4294967296;
+  return score < 0.5 ? 'variant_a_advanced' : 'variant_b_baseline';
+}
+
 // Joi Schema kiểm tra tính hợp lệ của request payload
 const feedbackSchema = Joi.object({
   sessionId: Joi.string().max(100).required(),
@@ -29,7 +46,8 @@ const feedbackSchema = Joi.object({
   rejectedItems: Joi.array().items(Joi.string().max(255)).default([]),
   contextIds: Joi.array().items(Joi.alternatives().try(Joi.string(), Joi.number())).default([]),
   comment: Joi.string().max(1000).allow(null, '').optional(),
-  metadata: Joi.object().default({})
+  metadata: Joi.object().default({}),
+  abVariant: Joi.string().valid('variant_a_advanced', 'variant_b_baseline').optional()
 });
 
 /**
@@ -55,8 +73,11 @@ exports.submitFeedback = async (req, res) => {
       rejectedItems = [],
       contextIds = [],
       comment = null,
-      metadata = {}
+      metadata = {},
+      abVariant: inputVariant
     } = value;
+
+    const abVariant = inputVariant || resolveVariant(sessionId);
 
     // Gán điểm số rating mặc định nếu không truyền
     let rating = value.rating;
@@ -82,6 +103,7 @@ exports.submitFeedback = async (req, res) => {
       contextIds,
       comment,
       metadata,
+      abVariant,
       createdAt
     };
 
@@ -91,6 +113,8 @@ exports.submitFeedback = async (req, res) => {
         await Promise.allSettled([
           redis.incr('rag_telemetry:total_feedback'),
           redis.incr(`rag_telemetry:${feedbackType}`),
+          redis.incr(`rag_telemetry:${abVariant}_total`),
+          redis.incr(`rag_telemetry:${abVariant}_${feedbackType}`),
           redis.set(`feedback:${feedbackId}`, JSON.stringify(feedbackRecord), { EX: 86400 * 7 }) // Lưu 7 ngày
         ]);
 
@@ -111,6 +135,11 @@ exports.submitFeedback = async (req, res) => {
     memoryTelemetryMetrics.total += 1;
     if (memoryTelemetryMetrics[feedbackType] !== undefined) {
       memoryTelemetryMetrics[feedbackType] += 1;
+    }
+    if (memoryAbMetrics[abVariant]) {
+      memoryAbMetrics[abVariant].total += 1;
+      if (feedbackType === 'thumbs_up') memoryAbMetrics[abVariant].thumbs_up += 1;
+      if (feedbackType === 'thumbs_down') memoryAbMetrics[abVariant].thumbs_down += 1;
     }
     if (!memoryFeedbackStore.has(sessionId)) {
       memoryFeedbackStore.set(sessionId, []);
@@ -147,6 +176,7 @@ exports.submitFeedback = async (req, res) => {
       message: 'Ghi nhận phản hồi telemetry thành công',
       data: {
         sessionId,
+        abVariant,
         feedbackType,
         rating,
         rejectedItems,
@@ -235,3 +265,80 @@ exports.getFeedbackStats = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Lỗi máy chủ khi lấy thống kê telemetry' });
   }
 };
+
+/**
+ * Báo cáo so sánh A/B Testing giữa Advancing RAG và Baseline (GET /api/chat/feedback/ab-stats)
+ */
+exports.getAbStats = async (req, res) => {
+  try {
+    let aImpressions = memoryAbMetrics.variant_a_advanced.impressions;
+    let aTotal = memoryAbMetrics.variant_a_advanced.total;
+    let aUp = memoryAbMetrics.variant_a_advanced.thumbs_up;
+    let aDown = memoryAbMetrics.variant_a_advanced.thumbs_down;
+
+    let bImpressions = memoryAbMetrics.variant_b_baseline.impressions;
+    let bTotal = memoryAbMetrics.variant_b_baseline.total;
+    let bUp = memoryAbMetrics.variant_b_baseline.thumbs_up;
+    let bDown = memoryAbMetrics.variant_b_baseline.thumbs_down;
+
+    // Truy xuất số liệu từ Redis nếu khả dụng
+    try {
+      if (redis && typeof redis.get === 'function') {
+        const [
+          rAImp, rATot, rAUp, rADown,
+          rBImp, rBTot, rBUp, rBDown
+        ] = await Promise.all([
+          redis.get('rag_telemetry:variant_a_advanced_impressions'),
+          redis.get('rag_telemetry:variant_a_advanced_total'),
+          redis.get('rag_telemetry:variant_a_advanced_thumbs_up'),
+          redis.get('rag_telemetry:variant_a_advanced_thumbs_down'),
+          redis.get('rag_telemetry:variant_b_baseline_impressions'),
+          redis.get('rag_telemetry:variant_b_baseline_total'),
+          redis.get('rag_telemetry:variant_b_baseline_thumbs_up'),
+          redis.get('rag_telemetry:variant_b_baseline_thumbs_down'),
+        ]);
+
+        if (rAImp !== null) aImpressions = parseInt(rAImp, 10) || aImpressions;
+        if (rATot !== null) aTotal = parseInt(rATot, 10) || aTotal;
+        if (rAUp !== null) aUp = parseInt(rAUp, 10) || aUp;
+        if (rADown !== null) aDown = parseInt(rADown, 10) || aDown;
+
+        if (rBImp !== null) bImpressions = parseInt(rBImp, 10) || bImpressions;
+        if (rBTot !== null) bTotal = parseInt(rBTot, 10) || bTotal;
+        if (rBUp !== null) bUp = parseInt(rBUp, 10) || bUp;
+        if (rBDown !== null) bDown = parseInt(rBDown, 10) || bDown;
+      }
+    } catch (_) { /* fallback to memory counters */ }
+
+    const aSat = aTotal > 0 ? Number(((aUp / aTotal) * 100).toFixed(2)) : 100.0;
+    const bSat = bTotal > 0 ? Number(((bUp / bTotal) * 100).toFixed(2)) : 100.0;
+
+    return res.json({
+      success: true,
+      data: {
+        trafficSplit: '50/50',
+        variant_a_advanced: {
+          name: 'Advancing RAG (Paper 01 Hybrid + Metadata + Reranker)',
+          impressions: aImpressions,
+          totalFeedback: aTotal,
+          thumbsUp: aUp,
+          thumbsDown: aDown,
+          satisfactionRatePct: aSat
+        },
+        variant_b_baseline: {
+          name: 'Baseline RAG (Simple Retrieval)',
+          impressions: bImpressions,
+          totalFeedback: bTotal,
+          thumbsUp: bUp,
+          thumbsDown: bDown,
+          satisfactionRatePct: bSat
+        },
+        improvementDeltaPct: Number((aSat - bSat).toFixed(2))
+      }
+    });
+  } catch (err) {
+    console.error('❌ [feedbackController] Lỗi getAbStats:', err);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ khi lấy thống kê A/B testing' });
+  }
+};
+

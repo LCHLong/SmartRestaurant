@@ -15,6 +15,9 @@ router.post('/', optionalAuth, feedbackController.submitFeedback);
 // GET /api/chat/feedback/stats
 router.get('/stats', feedbackController.getFeedbackStats);
 
+// GET /api/chat/feedback/ab-stats (A/B Testing Comparison Analytics)
+router.get('/ab-stats', feedbackController.getAbStats);
+
 // GET /api/chat/feedback/session/:sessionId
 router.get('/session/:sessionId', feedbackController.getFeedbacksBySession);
 

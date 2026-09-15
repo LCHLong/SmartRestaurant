@@ -1,0 +1,1957 @@
+{
+  "metadata": {
+    "title": "SmartRestaurant Advanced RAG Benchmark Report (Paper 01 Guidelines)",
+    "timestamp": "2026-09-15T11:55:38Z",
+    "total_cases": 100,
+    "total_time_seconds": 13.13,
+    "avg_latency_ms": 131.05,
+    "gate_5_passed": true
+  },
+  "aggregate_metrics": {
+    "faithfulness": 0.9985,
+    "answer_relevance": 0.9225,
+    "table_precision": 1.0,
+    "overall_score": 0.9723,
+    "allergen_violations_count": 0,
+    "price_violations_count": 0,
+    "hallucination_detected_count": 0
+  },
+  "group_breakdown": {
+    "family_and_elderly": {
+      "count": 20,
+      "faithfulness": 1.0,
+      "relevance": 0.9145,
+      "precision": 1.0,
+      "overall": 0.9701,
+      "allergen_violations": 0,
+      "price_violations": 0
+    },
+    "office_lunch": {
+      "count": 20,
+      "faithfulness": 1.0,
+      "relevance": 0.9145,
+      "precision": 1.0,
+      "overall": 0.9701,
+      "allergen_violations": 0,
+      "price_violations": 0
+    },
+    "dietary_and_allergen": {
+      "count": 20,
+      "faithfulness": 0.995,
+      "relevance": 0.8875,
+      "precision": 1.0,
+      "overall": 0.9586,
+      "allergen_violations": 0,
+      "price_violations": 0
+    },
+    "friends_gathering": {
+      "count": 20,
+      "faithfulness": 1.0,
+      "relevance": 0.9543,
+      "precision": 1.0,
+      "overall": 0.9841,
+      "allergen_violations": 0,
+      "price_violations": 0
+    },
+    "couples_date": {
+      "count": 20,
+      "faithfulness": 0.9975,
+      "relevance": 0.9417,
+      "precision": 1.0,
+      "overall": 0.9786,
+      "allergen_violations": 0,
+      "price_violations": 0
+    }
+  },
+  "detailed_results": [
+    {
+      "case_id": "tc_001",
+      "user_group": "family_and_elderly",
+      "query": "Bàn mình có em bé 4 tuổi, gợi ý món nào thanh đạm, không cay hoàn toàn nhé",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_002",
+      "user_group": "family_and_elderly",
+      "query": "Ông bà mình thích món nước nóng sốt, mềm dễ ăn và không cay",
+      "response_text": "Dạ, Aria xin gợi ý **Phở Bò Tái Nạm** · 75.000đ rất phù hợp với yêu cầu của quý khách ạ. Phở bò truyền thống với thịt bò tái và nạm. Ngoài ra, quý khách cũng có thể thử thêm **Bún Chả Hà Nội** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Phở Bò Tái Nạm",
+        "Bún Chả Hà Nội"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_003",
+      "user_group": "family_and_elderly",
+      "query": "Gợi ý món tráng miệng ngọt dịu cho bé ăn sau bữa trưa",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_004",
+      "user_group": "family_and_elderly",
+      "query": "Có món canh nào giải nhiệt mùa hè cho cả nhà có trẻ con không?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_005",
+      "user_group": "family_and_elderly",
+      "query": "Nhà mình đi 4 người có người già và trẻ con, tư vấn món không cay, dễ tiêu hóa",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Phở Bò Tái Nạm** · 75.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Phở Bò Tái Nạm"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_006",
+      "user_group": "family_and_elderly",
+      "query": "Món nào ít dầu mỡ, luộc hoặc hấp cho người huyết áp cao?",
+      "response_text": "Dạ, Aria xin gợi ý **Chả giò Hải sản** · 65.000đ rất phù hợp với yêu cầu của quý khách ạ. Chả giò chiên giòn với nhân hải sản, nấm mèo và cà rốt. Ngoài ra, quý khách cũng có thể thử thêm **Gỏi cuốn Tôm Thịt** · 45.000đ ạ!",
+      "suggested_dishes": [
+        "Chả giò Hải sản",
+        "Gỏi cuốn Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_007",
+      "user_group": "family_and_elderly",
+      "query": "Bé nhà mình thích ăn đồ ngọt, có món nào lành bụng không?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_008",
+      "user_group": "family_and_elderly",
+      "query": "Mẹ mình răng yếu, cần món mềm và nước dùng ngọt thanh",
+      "response_text": "Dạ, Aria xin gợi ý **Phở Bò Tái Nạm** · 75.000đ rất phù hợp với yêu cầu của quý khách ạ. Phở bò truyền thống với thịt bò tái và nạm. Ngoài ra, quý khách cũng có thể thử thêm **Bún Chả Hà Nội** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Phở Bò Tái Nạm",
+        "Bún Chả Hà Nội"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_009",
+      "user_group": "family_and_elderly",
+      "query": "Tìm món ăn sáng cho gia đình, không ăn cay được đâu nhé",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_010",
+      "user_group": "family_and_elderly",
+      "query": "Có món gì có rau củ thanh mát cho trẻ nhỏ lười ăn rau không?",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Kem Trái Dừa** · 45.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Kem Trái Dừa"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_011",
+      "user_group": "family_and_elderly",
+      "query": "Trời lạnh muốn ăn tô bún phở nóng hổi nhưng không cho ớt hay sa tế",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Kem Trái Dừa** · 45.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Kem Trái Dừa"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_012",
+      "user_group": "family_and_elderly",
+      "query": "Bữa trưa gia đình ấm cúng, có món canh và món mặn nào hợp nhau?",
+      "response_text": "Dạ, Aria xin gợi ý **Trà Đào Cam Sả** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Trà đen hương đào, kết hợp cùng cam tươi và sả cây. Ngoài ra, quý khách cũng có thể thử thêm **Chè Thái** · 35.000đ ạ!",
+      "suggested_dishes": [
+        "Trà Đào Cam Sả",
+        "Chè Thái"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_013",
+      "user_group": "family_and_elderly",
+      "query": "Em bé uống được loại nước ép hoặc sinh tố nào không ngọt gắt?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Chè Thái** · 35.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Chè Thái"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_014",
+      "user_group": "family_and_elderly",
+      "query": "Gợi ý món ăn nhẹ giữa buổi cho người cao tuổi",
+      "response_text": "Dạ, Aria xin gợi ý **Gà Nướng Cơm Lam** · 280.000đ rất phù hợp với yêu cầu của quý khách ạ. Gà đồi nướng mọi vàng giòn, ăn kèm cơm lam. Ngoài ra, quý khách cũng có thể thử thêm **Nước Ép Dưa Hấu** · 40.000đ ạ!",
+      "suggested_dishes": [
+        "Gà Nướng Cơm Lam",
+        "Nước Ép Dưa Hấu"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_015",
+      "user_group": "family_and_elderly",
+      "query": "Nhà có 2 người lớn và 1 bé 5 tuổi, tổng tiền khoảng 200k ăn món gì?",
+      "response_text": "Dạ, Aria xin gợi ý **Chè Thái** · 35.000đ rất phù hợp với yêu cầu của quý khách ạ. Các loại trái cây, thạch và nước cốt dừa thơm béo. Ngoài ra, quý khách cũng có thể thử thêm **Bánh Flan** · 25.000đ ạ!",
+      "suggested_dishes": [
+        "Chè Thái",
+        "Bánh Flan"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_016",
+      "user_group": "family_and_elderly",
+      "query": "Người già ăn tối muốn ăn nhẹ bụng để ngủ ngon, không cay",
+      "response_text": "Dạ, Aria xin gợi ý **Gà Nướng Cơm Lam** · 280.000đ rất phù hợp với yêu cầu của quý khách ạ. Gà đồi nướng mọi vàng giòn, ăn kèm cơm lam. Ngoài ra, quý khách cũng có thể thử thêm **Cơm Tấm Sườn Bì Chả** · 60.000đ ạ!",
+      "suggested_dishes": [
+        "Gà Nướng Cơm Lam",
+        "Cơm Tấm Sườn Bì Chả"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_017",
+      "user_group": "family_and_elderly",
+      "query": "Trẻ con thích ăn cơm sườn, quán có cơm sườn mềm không?",
+      "response_text": "Dạ, Aria xin gợi ý **Cơm Tấm Sườn Bì Chả** · 60.000đ rất phù hợp với yêu cầu của quý khách ạ. Cơm tấm dẻo, sườn nướng mật ong, bì thính, chả trứng. Ngoài ra, quý khách cũng có thể thử thêm **Bánh Flan** · 25.000đ ạ!",
+      "suggested_dishes": [
+        "Cơm Tấm Sườn Bì Chả",
+        "Bánh Flan"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_018",
+      "user_group": "family_and_elderly",
+      "query": "Gợi ý món cuốn thanh mát nhiều rau xanh cho cả nhà",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Kem Trái Dừa** · 45.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Kem Trái Dừa"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_019",
+      "user_group": "family_and_elderly",
+      "query": "Người nhà mới ốm dậy, cần món cháo hoặc súp bồi bổ sức khỏe",
+      "response_text": "Dạ, Aria xin gợi ý **Súp Bắp Cua** · 55.000đ rất phù hợp với yêu cầu của quý khách ạ. Súp sệt với thịt cua tươi, bắp hạt và trứng cút. Ngoài ra, quý khách cũng có thể thử thêm **Nước Ép Dưa Hấu** · 40.000đ ạ!",
+      "suggested_dishes": [
+        "Súp Bắp Cua",
+        "Nước Ép Dưa Hấu"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_020",
+      "user_group": "family_and_elderly",
+      "query": "Tất cả các món nhà mình gọi đều không được cay nhé, kiểm tra giúp mình",
+      "response_text": "Dạ, Aria xin gợi ý **Chè Thái** · 35.000đ rất phù hợp với yêu cầu của quý khách ạ. Các loại trái cây, thạch và nước cốt dừa thơm béo. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Chè Thái",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_021",
+      "user_group": "office_lunch",
+      "query": "Bữa trưa văn phòng dưới 70k, ăn no và ra món nhanh",
+      "response_text": "Dạ, Aria xin gợi ý **Bánh Flan** · 25.000đ rất phù hợp với yêu cầu của quý khách ạ. Bánh flan mềm mịn, thơm mùi trứng và caramel. Ngoài ra, quý khách cũng có thể thử thêm **Gỏi cuốn Tôm Thịt** · 45.000đ ạ!",
+      "suggested_dishes": [
+        "Bánh Flan",
+        "Gỏi cuốn Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_022",
+      "user_group": "office_lunch",
+      "query": "Có món cơm nào chắc dạ giá dưới 80 nghìn không?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_023",
+      "user_group": "office_lunch",
+      "query": "Ăn trưa nhanh 1 người, ngân sách 50k",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Bánh Flan** · 25.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Bánh Flan"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_024",
+      "user_group": "office_lunch",
+      "query": "Combo ăn trưa kèm đồ uống dưới 100k cho dân công sở",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_025",
+      "user_group": "office_lunch",
+      "query": "Trưa nay vội quá, món nào làm trong vòng 10-15 phút?",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Kem Trái Dừa** · 45.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Kem Trái Dừa"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_026",
+      "user_group": "office_lunch",
+      "query": "Trưa ăn bún gì đậm đà chống ngấy giá tầm 60k - 70k?",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Nước Ép Dưa Hấu** · 40.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Nước Ép Dưa Hấu"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_027",
+      "user_group": "office_lunch",
+      "query": "Hôm nay trời mưa mát mẻ, văn phòng mình muốn ăn món bún nóng hổi",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Kem Trái Dừa** · 45.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Kem Trái Dừa"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_028",
+      "user_group": "office_lunch",
+      "query": "Nhóm văn phòng 3 người, mỗi người khoảng 70k thì gọi những món gì?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_029",
+      "user_group": "office_lunch",
+      "query": "Cần suất ăn trưa nhiều đạm, nhiều thịt nướng",
+      "response_text": "Dạ, Aria xin gợi ý **Bún Chả Hà Nội** · 65.000đ rất phù hợp với yêu cầu của quý khách ạ. Thịt nướng và chả viên nướng than hồng. Ngoài ra, quý khách cũng có thể thử thêm **Lẩu Thả Phan Thiết** · 350.000đ ạ!",
+      "suggested_dishes": [
+        "Bún Chả Hà Nội",
+        "Lẩu Thả Phan Thiết"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_030",
+      "user_group": "office_lunch",
+      "query": "Đang buồn ngủ quá, có món đồ uống nào tỉnh táo làm việc chiều?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_031",
+      "user_group": "office_lunch",
+      "query": "Món bún chả bao nhiêu tiền một phần?",
+      "response_text": "Dạ, Aria xin gợi ý **Bún Chả Hà Nội** · 65.000đ rất phù hợp với yêu cầu của quý khách ạ. Thịt nướng và chả viên nướng than hồng. Ngoài ra, quý khách cũng có thể thử thêm **Bún Bò Huế** · 70.000đ ạ!",
+      "suggested_dishes": [
+        "Bún Chả Hà Nội",
+        "Bún Bò Huế"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_032",
+      "user_group": "office_lunch",
+      "query": "Cơm tấm sườn bì chả ở đây giá bao nhiêu?",
+      "response_text": "Dạ, Aria xin gợi ý **Cơm Tấm Sườn Bì Chả** · 60.000đ rất phù hợp với yêu cầu của quý khách ạ. Cơm tấm dẻo, sườn nướng mật ong, bì thính, chả trứng. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Cơm Tấm Sườn Bì Chả",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_033",
+      "user_group": "office_lunch",
+      "query": "Ăn trưa nhanh gọn không bị dính mùi quần áo",
+      "response_text": "Dạ, Aria xin gợi ý **Bánh Flan** · 25.000đ rất phù hợp với yêu cầu của quý khách ạ. Bánh flan mềm mịn, thơm mùi trứng và caramel. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Bánh Flan",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_034",
+      "user_group": "office_lunch",
+      "query": "Có món nào dưới 30k để ăn phụ không?",
+      "response_text": "Dạ, Aria xin gợi ý **Bánh Flan** · 25.000đ rất phù hợp với yêu cầu của quý khách ạ. Bánh flan mềm mịn, thơm mùi trứng và caramel. ",
+      "suggested_dishes": [
+        "Bánh Flan"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_035",
+      "user_group": "office_lunch",
+      "query": "Trưa nay muốn ăn thanh mát nhiều rau xanh, giá dưới 80k",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Kem Trái Dừa** · 45.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Kem Trái Dừa"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_036",
+      "user_group": "office_lunch",
+      "query": "Tư vấn suất ăn trưa đầy đủ tinh bột, thịt và rau cho nam giới",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Chả giò Hải sản** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Chả giò Hải sản"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_037",
+      "user_group": "office_lunch",
+      "query": "Mình chỉ có 75k thôi, ăn được món nước gì ngon nhất?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_038",
+      "user_group": "office_lunch",
+      "query": "Ăn trưa xong muốn mua thêm 1 tráng miệng, tổng dưới 90k",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Nước Ép Dưa Hấu** · 40.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Nước Ép Dưa Hấu"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_039",
+      "user_group": "office_lunch",
+      "query": "Thời gian chuẩn bị món cơm sườn mất bao lâu?",
+      "response_text": "Dạ, Aria xin gợi ý **Cơm Tấm Sườn Bì Chả** · 60.000đ rất phù hợp với yêu cầu của quý khách ạ. Cơm tấm dẻo, sườn nướng mật ong, bì thính, chả trứng. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Cơm Tấm Sườn Bì Chả",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_040",
+      "user_group": "office_lunch",
+      "query": "Một người ăn trưa bình dân ở quán thì nên chọn món nào?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_041",
+      "user_group": "dietary_and_allergen",
+      "query": "Tôi bị dị ứng tôm và cua nặng, tuyệt đối không được có tôm cua",
+      "response_text": "Dạ, Aria xin gợi ý **Chè Thái** · 35.000đ rất phù hợp với yêu cầu của quý khách ạ. Các loại trái cây, thạch và nước cốt dừa thơm béo. Ngoài ra, quý khách cũng có thể thử thêm **Bánh Flan** · 25.000đ ạ!",
+      "suggested_dishes": [
+        "Chè Thái",
+        "Bánh Flan"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_042",
+      "user_group": "dietary_and_allergen",
+      "query": "Tôi không ăn được thịt bò vì lý do tôn giáo, gợi ý món heo hoặc gà",
+      "response_text": "Dạ, Aria xin gợi ý **Gà Nướng Cơm Lam** · 280.000đ rất phù hợp với yêu cầu của quý khách ạ. Gà đồi nướng mọi vàng giòn, ăn kèm cơm lam. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Gà Nướng Cơm Lam",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_043",
+      "user_group": "dietary_and_allergen",
+      "query": "Hôm nay mùng một mình ăn chay, quán có món chay nào không?",
+      "response_text": "Dạ Aria chào quý khách! Hiện tại nhà hàng chưa có món phù hợp với yêu cầu 'Hôm nay mùng một mình ăn chay, quán có món chay nào không?'. Quý khách có muốn xem các món đặc sản khác không ạ?",
+      "suggested_dishes": [],
+      "faithfulness": 0.95,
+      "relevance": 0.8,
+      "precision": 1.0,
+      "overall_score": 0.91,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_044",
+      "user_group": "dietary_and_allergen",
+      "query": "Tôi dị ứng lạc đậu phộng, món nào không rắc đậu phộng?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_045",
+      "user_group": "dietary_and_allergen",
+      "query": "Tôi không ăn được hải sản, gợi ý món thịt heo",
+      "response_text": "Dạ, Aria xin gợi ý **Chè Thái** · 35.000đ rất phù hợp với yêu cầu của quý khách ạ. Các loại trái cây, thạch và nước cốt dừa thơm béo. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Chè Thái",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_046",
+      "user_group": "dietary_and_allergen",
+      "query": "Đang ăn chế độ keto giảm tinh bột, có món cuốn nào nhiều thịt rau ít bún?",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Bún Chả Hà Nội** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Bún Chả Hà Nội"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_047",
+      "user_group": "dietary_and_allergen",
+      "query": "Dị ứng trứng gà vịt, món nào không có trứng?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_048",
+      "user_group": "dietary_and_allergen",
+      "query": "Tôi bị đau dạ dày không ăn được cay, món nào lành tính nhất?",
+      "response_text": "Dạ, Aria xin gợi ý **Gà Nướng Cơm Lam** · 280.000đ rất phù hợp với yêu cầu của quý khách ạ. Gà đồi nướng mọi vàng giòn, ăn kèm cơm lam. Ngoài ra, quý khách cũng có thể thử thêm **Nước Ép Dưa Hấu** · 40.000đ ạ!",
+      "suggested_dishes": [
+        "Gà Nướng Cơm Lam",
+        "Nước Ép Dưa Hấu"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_049",
+      "user_group": "dietary_and_allergen",
+      "query": "Bị dị ứng tôm nhưng thích ăn món cuốn, có gỏi cuốn nào không có tôm không?",
+      "response_text": "Dạ, Aria xin gợi ý **Chè Thái** · 35.000đ rất phù hợp với yêu cầu của quý khách ạ. Các loại trái cây, thạch và nước cốt dừa thơm béo. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Chè Thái",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_050",
+      "user_group": "dietary_and_allergen",
+      "query": "Món canh cua rau đay có cua đồng không, mình dị ứng giáp xác",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Bún Bò Huế** · 70.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Bún Bò Huế"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_051",
+      "user_group": "dietary_and_allergen",
+      "query": "Mình ăn chay thanh tịnh, tư vấn đồ uống và tráng miệng",
+      "response_text": "Dạ Aria chào quý khách! Hiện tại nhà hàng chưa có món phù hợp với yêu cầu 'Mình ăn chay thanh tịnh, tư vấn đồ uống và tráng miệng'. Quý khách có muốn xem các món đặc sản khác không ạ?",
+      "suggested_dishes": [],
+      "faithfulness": 0.95,
+      "relevance": 0.8,
+      "precision": 1.0,
+      "overall_score": 0.91,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_052",
+      "user_group": "dietary_and_allergen",
+      "query": "Kiêng mỡ heo và bì heo, cơm tấm có thể đổi thịt khác không?",
+      "response_text": "Dạ, Aria xin gợi ý **Cơm Tấm Sườn Bì Chả** · 60.000đ rất phù hợp với yêu cầu của quý khách ạ. Cơm tấm dẻo, sườn nướng mật ong, bì thính, chả trứng. Ngoài ra, quý khách cũng có thể thử thêm **Bún Chả Hà Nội** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Cơm Tấm Sườn Bì Chả",
+        "Bún Chả Hà Nội"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_053",
+      "user_group": "dietary_and_allergen",
+      "query": "Không ăn được đồ ngọt do tiểu đường, trà đào có làm không đường được không?",
+      "response_text": "Dạ, Aria xin gợi ý **Trà Đào Cam Sả** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Trà đen hương đào, kết hợp cùng cam tươi và sả cây. Ngoài ra, quý khách cũng có thể thử thêm **Nước Ép Dưa Hấu** · 40.000đ ạ!",
+      "suggested_dishes": [
+        "Trà Đào Cam Sả",
+        "Nước Ép Dưa Hấu"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_054",
+      "user_group": "dietary_and_allergen",
+      "query": "Dị ứng hải sản thì có ăn được bún bò huế không?",
+      "response_text": "Dạ, Aria xin gợi ý **Bún Chả Hà Nội** · 65.000đ rất phù hợp với yêu cầu của quý khách ạ. Thịt nướng và chả viên nướng than hồng. Ngoài ra, quý khách cũng có thể thử thêm **Nước Ép Dưa Hấu** · 40.000đ ạ!",
+      "suggested_dishes": [
+        "Bún Chả Hà Nội",
+        "Nước Ép Dưa Hấu"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_055",
+      "user_group": "dietary_and_allergen",
+      "query": "Tư vấn món hoàn toàn không chứa sữa bò và lactose",
+      "response_text": "Dạ, Aria xin gợi ý **Sinh Tố Bơ** · 55.000đ rất phù hợp với yêu cầu của quý khách ạ. Bơ sáp xay nhuyễn cùng sữa đặc và sữa tươi. Ngoài ra, quý khách cũng có thể thử thêm **Cà phê Sữa Đá** · 35.000đ ạ!",
+      "suggested_dishes": [
+        "Sinh Tố Bơ",
+        "Cà phê Sữa Đá"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_056",
+      "user_group": "dietary_and_allergen",
+      "query": "Mình ăn kiêng gluten, có món bún gạo nào an toàn?",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Bún Chả Hà Nội** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Bún Chả Hà Nội"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_057",
+      "user_group": "dietary_and_allergen",
+      "query": "Người đang giảm cân cần món ít calo nhất quán",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_058",
+      "user_group": "dietary_and_allergen",
+      "query": "Dị ứng cua nhưng ăn được tôm thì nên chọn món nào?",
+      "response_text": "Dạ, Aria xin gợi ý **Chè Thái** · 35.000đ rất phù hợp với yêu cầu của quý khách ạ. Các loại trái cây, thạch và nước cốt dừa thơm béo. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Chè Thái",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_059",
+      "user_group": "dietary_and_allergen",
+      "query": "Món nào không dùng bột ngọt (mì chính)?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_060",
+      "user_group": "dietary_and_allergen",
+      "query": "Vừa kiêng thịt bò vừa không ăn cay, gọi món gì an toàn?",
+      "response_text": "Dạ, Aria xin gợi ý **Bánh Flan** · 25.000đ rất phù hợp với yêu cầu của quý khách ạ. Bánh flan mềm mịn, thơm mùi trứng và caramel. Ngoài ra, quý khách cũng có thể thử thêm **Lẩu Thả Phan Thiết** · 350.000đ ạ!",
+      "suggested_dishes": [
+        "Bánh Flan",
+        "Lẩu Thả Phan Thiết"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_061",
+      "user_group": "friends_gathering",
+      "query": "Nhóm bạn nhậu muốn ăn món cay nồng đậm vị để lai rai",
+      "response_text": "Dạ, Aria xin gợi ý **Bún Bò Huế** · 70.000đ rất phù hợp với yêu cầu của quý khách ạ. Bún bò cay nồng đặc trưng Huế với bắp bò, giò heo. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Bún Bò Huế",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_062",
+      "user_group": "friends_gathering",
+      "query": "Bàn nhậu 5 người muốn gọi món khai vị cuốn chấm lai rai",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_063",
+      "user_group": "friends_gathering",
+      "query": "Có món thịt nướng than hoa nào ăn nhậu đậm đà không?",
+      "response_text": "Dạ, Aria xin gợi ý **Bún Chả Hà Nội** · 65.000đ rất phù hợp với yêu cầu của quý khách ạ. Thịt nướng và chả viên nướng than hồng. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Bún Chả Hà Nội",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_064",
+      "user_group": "friends_gathering",
+      "query": "Tụi mình đi 6 người, tư vấn set món ăn no và hợp nhậu",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Phở Bò Tái Nạm** · 75.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Phở Bò Tái Nạm"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.933,
+      "precision": 1.0,
+      "overall_score": 0.977,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_065",
+      "user_group": "friends_gathering",
+      "query": "Món bún bò huế ở đây có cay nhiều không, cho thêm ớt sa tế được không?",
+      "response_text": "Dạ, Aria xin gợi ý **Bún Bò Huế** · 70.000đ rất phù hợp với yêu cầu của quý khách ạ. Bún bò cay nồng đặc trưng Huế với bắp bò, giò heo. Ngoài ra, quý khách cũng có thể thử thêm **Phở Bò Tái Nạm** · 75.000đ ạ!",
+      "suggested_dishes": [
+        "Bún Bò Huế",
+        "Phở Bò Tái Nạm"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_066",
+      "user_group": "friends_gathering",
+      "query": "Sau khi nhậu muốn ăn một tô nước dùng chua cay nóng giải rượu",
+      "response_text": "Dạ, Aria xin gợi ý **Bún Bò Huế** · 70.000đ rất phù hợp với yêu cầu của quý khách ạ. Bún bò cay nồng đặc trưng Huế với bắp bò, giò heo. Ngoài ra, quý khách cũng có thể thử thêm **Nước Ép Dưa Hấu** · 40.000đ ạ!",
+      "suggested_dishes": [
+        "Bún Bò Huế",
+        "Nước Ép Dưa Hấu"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_067",
+      "user_group": "friends_gathering",
+      "query": "Bàn tụi mình thích ăn thịt bò tái, có món phở hay bún nào nhiều bò?",
+      "response_text": "Dạ, Aria xin gợi ý **Phở Bò Tái Nạm** · 75.000đ rất phù hợp với yêu cầu của quý khách ạ. Phở bò truyền thống với thịt bò tái và nạm. Ngoài ra, quý khách cũng có thể thử thêm **Gỏi cuốn Tôm Thịt** · 45.000đ ạ!",
+      "suggested_dishes": [
+        "Phở Bò Tái Nạm",
+        "Gỏi cuốn Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_068",
+      "user_group": "friends_gathering",
+      "query": "Nhóm bạn muốn gọi vài ly nước thanh nhiệt sau khi ăn đồ cay nóng",
+      "response_text": "Dạ, Aria xin gợi ý **Bún Bò Huế** · 70.000đ rất phù hợp với yêu cầu của quý khách ạ. Bún bò cay nồng đặc trưng Huế với bắp bò, giò heo. Ngoài ra, quý khách cũng có thể thử thêm **Nước Ép Dưa Hấu** · 40.000đ ạ!",
+      "suggested_dishes": [
+        "Bún Bò Huế",
+        "Nước Ép Dưa Hấu"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_069",
+      "user_group": "friends_gathering",
+      "query": "Có món gì ăn bốc tay nhanh hoặc cuốn chấm không cần dùng đũa nhiều?",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Lẩu Thả Phan Thiết** · 350.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Lẩu Thả Phan Thiết"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_070",
+      "user_group": "friends_gathering",
+      "query": "Gợi ý món ăn kèm với cơm tấm cho nhóm đông người chia sẻ",
+      "response_text": "Dạ, Aria xin gợi ý **Gà Nướng Cơm Lam** · 280.000đ rất phù hợp với yêu cầu của quý khách ạ. Gà đồi nướng mọi vàng giòn, ăn kèm cơm lam. Ngoài ra, quý khách cũng có thể thử thêm **Cơm Tấm Sườn Bì Chả** · 60.000đ ạ!",
+      "suggested_dishes": [
+        "Gà Nướng Cơm Lam",
+        "Cơm Tấm Sườn Bì Chả"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_071",
+      "user_group": "friends_gathering",
+      "query": "Bàn 4 người ăn nhậu hết khoảng bao nhiêu tiền?",
+      "response_text": "Dạ, Aria xin gợi ý **Gà Nướng Cơm Lam** · 280.000đ rất phù hợp với yêu cầu của quý khách ạ. Gà đồi nướng mọi vàng giòn, ăn kèm cơm lam. Ngoài ra, quý khách cũng có thể thử thêm **Nước Ép Dưa Hấu** · 40.000đ ạ!",
+      "suggested_dishes": [
+        "Gà Nướng Cơm Lam",
+        "Nước Ép Dưa Hấu"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_072",
+      "user_group": "friends_gathering",
+      "query": "Món nào là đặc sản nổi tiếng nhất của quán để bạn bè phương xa thử?",
+      "response_text": "Dạ, Aria xin gợi ý **Lẩu Thả Phan Thiết** · 350.000đ rất phù hợp với yêu cầu của quý khách ạ. Lẩu đặc sản với nhiều loại nguyên liệu bày trí đẹp mắt. Ngoài ra, quý khách cũng có thể thử thêm **Cà phê Sữa Đá** · 35.000đ ạ!",
+      "suggested_dishes": [
+        "Lẩu Thả Phan Thiết",
+        "Cà phê Sữa Đá"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_073",
+      "user_group": "friends_gathering",
+      "query": "Muốn ăn món gì có chả nướng và nước mắm chua ngọt chuẩn vị",
+      "response_text": "Dạ, Aria xin gợi ý **Bún Chả Hà Nội** · 65.000đ rất phù hợp với yêu cầu của quý khách ạ. Thịt nướng và chả viên nướng than hồng. Ngoài ra, quý khách cũng có thể thử thêm **Cơm Tấm Sườn Bì Chả** · 60.000đ ạ!",
+      "suggested_dishes": [
+        "Bún Chả Hà Nội",
+        "Cơm Tấm Sườn Bì Chả"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_074",
+      "user_group": "friends_gathering",
+      "query": "Bún bò huế ở đây có bắp bò và giò heo không?",
+      "response_text": "Dạ, Aria xin gợi ý **Bún Bò Huế** · 70.000đ rất phù hợp với yêu cầu của quý khách ạ. Bún bò cay nồng đặc trưng Huế với bắp bò, giò heo. Ngoài ra, quý khách cũng có thể thử thêm **Phở Bò Tái Nạm** · 75.000đ ạ!",
+      "suggested_dishes": [
+        "Bún Bò Huế",
+        "Phở Bò Tái Nạm"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_075",
+      "user_group": "friends_gathering",
+      "query": "Có khuyến mãi hay combo gì cho bàn tiệc sinh nhật không?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.982,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_076",
+      "user_group": "friends_gathering",
+      "query": "Muốn ăn món nào thật nhiều năng lượng để chuẩn bị đi đá bóng",
+      "response_text": "Dạ, Aria xin gợi ý **Lẩu Thả Phan Thiết** · 350.000đ rất phù hợp với yêu cầu của quý khách ạ. Lẩu đặc sản với nhiều loại nguyên liệu bày trí đẹp mắt. Ngoài ra, quý khách cũng có thể thử thêm **Cà phê Sữa Đá** · 35.000đ ạ!",
+      "suggested_dishes": [
+        "Lẩu Thả Phan Thiết",
+        "Cà phê Sữa Đá"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_077",
+      "user_group": "friends_gathering",
+      "query": "Món sườn nướng cơm tấm có ướp mật ong không?",
+      "response_text": "Dạ, Aria xin gợi ý **Cơm Tấm Sườn Bì Chả** · 60.000đ rất phù hợp với yêu cầu của quý khách ạ. Cơm tấm dẻo, sườn nướng mật ong, bì thính, chả trứng. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Cơm Tấm Sườn Bì Chả",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_078",
+      "user_group": "friends_gathering",
+      "query": "Nhóm 8 người muốn ăn các món truyền thống 3 miền Bắc Trung Nam",
+      "response_text": "Dạ, Aria xin gợi ý **Phở Bò Tái Nạm** · 75.000đ rất phù hợp với yêu cầu của quý khách ạ. Phở bò truyền thống với thịt bò tái và nạm. Ngoài ra, quý khách cũng có thể thử thêm **Cà phê Sữa Đá** · 35.000đ ạ!",
+      "suggested_dishes": [
+        "Phở Bò Tái Nạm",
+        "Cà phê Sữa Đá"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.933,
+      "precision": 1.0,
+      "overall_score": 0.977,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_079",
+      "user_group": "friends_gathering",
+      "query": "Quán có phục vụ bia hoặc rượu để uống cùng món nướng không?",
+      "response_text": "Dạ, Aria xin gợi ý **Kem Trái Dừa** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Kem dừa mát lạnh phục vụ trong trái dừa tươi. Ngoài ra, quý khách cũng có thể thử thêm **Bún Chả Hà Nội** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Kem Trái Dừa",
+        "Bún Chả Hà Nội"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.982,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_080",
+      "user_group": "friends_gathering",
+      "query": "Bàn mình ngồi nhậu lâu có bị tính phí giữ bàn không?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.982,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_081",
+      "user_group": "couples_date",
+      "query": "Mình và bạn gái đi hẹn hò, tư vấn set ăn 2 người nhẹ nhàng tinh tế",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Phở Bò Tái Nạm** · 75.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Phở Bò Tái Nạm"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.967,
+      "precision": 1.0,
+      "overall_score": 0.988,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_082",
+      "user_group": "couples_date",
+      "query": "Bạn gái mình thích đồ ngọt, có món tráng miệng nào ngon đẹp mắt?",
+      "response_text": "Dạ, Aria xin gợi ý **Lẩu Thả Phan Thiết** · 350.000đ rất phù hợp với yêu cầu của quý khách ạ. Lẩu đặc sản với nhiều loại nguyên liệu bày trí đẹp mắt. Ngoài ra, quý khách cũng có thể thử thêm **Gỏi cuốn Tôm Thịt** · 45.000đ ạ!",
+      "suggested_dishes": [
+        "Lẩu Thả Phan Thiết",
+        "Gỏi cuốn Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_083",
+      "user_group": "couples_date",
+      "query": "Tư vấn 2 ly đồ uống hoa quả thơm mát cho cặp đôi",
+      "response_text": "Dạ, Aria xin gợi ý **Kem Trái Dừa** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Kem dừa mát lạnh phục vụ trong trái dừa tươi. Ngoài ra, quý khách cũng có thể thử thêm **Chè Thái** · 35.000đ ạ!",
+      "suggested_dishes": [
+        "Kem Trái Dừa",
+        "Chè Thái"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_084",
+      "user_group": "couples_date",
+      "query": "Muốn ăn món nước vị ngọt thanh, hình thức đẹp để chụp ảnh",
+      "response_text": "Dạ, Aria xin gợi ý **Lẩu Thả Phan Thiết** · 350.000đ rất phù hợp với yêu cầu của quý khách ạ. Lẩu đặc sản với nhiều loại nguyên liệu bày trí đẹp mắt. Ngoài ra, quý khách cũng có thể thử thêm **Nước Ép Dưa Hấu** · 40.000đ ạ!",
+      "suggested_dishes": [
+        "Lẩu Thả Phan Thiết",
+        "Nước Ép Dưa Hấu"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_085",
+      "user_group": "couples_date",
+      "query": "Bạn gái không thích ăn hành, phở bò có dặn không lấy hành được không?",
+      "response_text": "Dạ, Aria xin gợi ý **Phở Bò Tái Nạm** · 75.000đ rất phù hợp với yêu cầu của quý khách ạ. Phở bò truyền thống với thịt bò tái và nạm. Ngoài ra, quý khách cũng có thể thử thêm **Bún Bò Huế** · 70.000đ ạ!",
+      "suggested_dishes": [
+        "Phở Bò Tái Nạm",
+        "Bún Bò Huế"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_086",
+      "user_group": "couples_date",
+      "query": "Cặp đôi ăn tối nhẹ nhàng tổng khoảng 150k",
+      "response_text": "Dạ, Aria xin gợi ý **Cơm Tấm Sườn Bì Chả** · 60.000đ rất phù hợp với yêu cầu của quý khách ạ. Cơm tấm dẻo, sườn nướng mật ong, bì thính, chả trứng. Ngoài ra, quý khách cũng có thể thử thêm **Bún Chả Hà Nội** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Cơm Tấm Sườn Bì Chả",
+        "Bún Chả Hà Nội"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_087",
+      "user_group": "couples_date",
+      "query": "Trà đào cam sả ở đây có thơm mùi sả tươi không bạn?",
+      "response_text": "Dạ, Aria xin gợi ý **Trà Đào Cam Sả** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Trà đen hương đào, kết hợp cùng cam tươi và sả cây. Ngoài ra, quý khách cũng có thể thử thêm **Bánh Flan** · 25.000đ ạ!",
+      "suggested_dishes": [
+        "Trà Đào Cam Sả",
+        "Bánh Flan"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_088",
+      "user_group": "couples_date",
+      "query": "Bánh flan ở quán có vị đắng của cà phê caramel không?",
+      "response_text": "Dạ, Aria xin gợi ý **Bánh Flan** · 25.000đ rất phù hợp với yêu cầu của quý khách ạ. Bánh flan mềm mịn, thơm mùi trứng và caramel. Ngoài ra, quý khách cũng có thể thử thêm **Cà phê Sữa Đá** · 35.000đ ạ!",
+      "suggested_dishes": [
+        "Bánh Flan",
+        "Cà phê Sữa Đá"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_089",
+      "user_group": "couples_date",
+      "query": "Gợi ý món ăn ít mùi tỏi ớt để tiện trò chuyện sau bữa ăn",
+      "response_text": "Dạ, Aria xin gợi ý **Bánh Flan** · 25.000đ rất phù hợp với yêu cầu của quý khách ạ. Bánh flan mềm mịn, thơm mùi trứng và caramel. Ngoài ra, quý khách cũng có thể thử thêm **Gà Nướng Cơm Lam** · 280.000đ ạ!",
+      "suggested_dishes": [
+        "Bánh Flan",
+        "Gà Nướng Cơm Lam"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_090",
+      "user_group": "couples_date",
+      "query": "Mình muốn tạo bất ngờ cho bạn gái, quán có nến hoặc trang trí bàn không?",
+      "response_text": "Dạ, Aria xin gợi ý **Lẩu Thả Phan Thiết** · 350.000đ rất phù hợp với yêu cầu của quý khách ạ. Lẩu đặc sản với nhiều loại nguyên liệu bày trí đẹp mắt. Ngoài ra, quý khách cũng có thể thử thêm **Nước Ép Dưa Hấu** · 40.000đ ạ!",
+      "suggested_dishes": [
+        "Lẩu Thả Phan Thiết",
+        "Nước Ép Dưa Hấu"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.982,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_091",
+      "user_group": "couples_date",
+      "query": "Món gỏi cuốn tôm thịt có mấy cuốn trong một đĩa?",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_092",
+      "user_group": "couples_date",
+      "query": "Tụi mình muốn ăn chung một phần lớn vừa no vừa vui",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_093",
+      "user_group": "couples_date",
+      "query": "Buổi tối mùa thu se lạnh, hẹn hò nên gọi 2 tô gì nóng sốt?",
+      "response_text": "Dạ, Aria xin gợi ý **Kem Trái Dừa** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Kem dừa mát lạnh phục vụ trong trái dừa tươi. ",
+      "suggested_dishes": [
+        "Kem Trái Dừa"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.88,
+      "precision": 1.0,
+      "overall_score": 0.958,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_094",
+      "user_group": "couples_date",
+      "query": "Bạn gái mình ăn rất ít, có món nào nhỏ nhắn thanh đạm không?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Gỏi cuốn Tôm Thịt** · 45.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Gỏi cuốn Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_095",
+      "user_group": "couples_date",
+      "query": "Thực đơn ở đây có món nào mang phong cách ẩm thực Hà Nội không?",
+      "response_text": "Dạ, Aria xin gợi ý **Bún Chả Hà Nội** · 65.000đ rất phù hợp với yêu cầu của quý khách ạ. Thịt nướng và chả viên nướng than hồng. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Bún Chả Hà Nội",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.983,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_096",
+      "user_group": "couples_date",
+      "query": "Hai người ăn tráng miệng bánh flan và uống trà đào hết bao nhiêu tiền?",
+      "response_text": "Dạ, Aria xin gợi ý **Bánh Flan** · 25.000đ rất phù hợp với yêu cầu của quý khách ạ. Bánh flan mềm mịn, thơm mùi trứng và caramel. Ngoài ra, quý khách cũng có thể thử thêm **Trà Đào Cam Sả** · 45.000đ ạ!",
+      "suggested_dishes": [
+        "Bánh Flan",
+        "Trà Đào Cam Sả"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_097",
+      "user_group": "couples_date",
+      "query": "Quán có không gian góc bàn yên tĩnh cho 2 người không?",
+      "response_text": "Dạ, Aria xin gợi ý **Nước Ép Dưa Hấu** · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. Dưa hấu tươi ép nguyên chất. Ngoài ra, quý khách cũng có thể thử thêm **Mì Quảng Tôm Thịt** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Nước Ép Dưa Hấu",
+        "Mì Quảng Tôm Thịt"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.95,
+      "precision": 1.0,
+      "overall_score": 0.982,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_098",
+      "user_group": "couples_date",
+      "query": "Món bún chả có nhiều rau sống và dưa góp ăn kèm không?",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Bún Chả Hà Nội** · 65.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Bún Chả Hà Nội"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 1.0,
+      "precision": 1.0,
+      "overall_score": 1.0,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_099",
+      "user_group": "couples_date",
+      "query": "Tư vấn cho tụi mình 1 món mặn, 1 món cuốn và 1 tráng miệng",
+      "response_text": "Dạ, Aria xin gợi ý **Gỏi cuốn Tôm Thịt** · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng. Ngoài ra, quý khách cũng có thể thử thêm **Phở Bò Tái Nạm** · 75.000đ ạ!",
+      "suggested_dishes": [
+        "Gỏi cuốn Tôm Thịt",
+        "Phở Bò Tái Nạm"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.967,
+      "precision": 1.0,
+      "overall_score": 0.988,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    },
+    {
+      "case_id": "tc_100",
+      "user_group": "couples_date",
+      "query": "Lần đầu tiên dẫn người yêu đến quán, món nào là 'chữ ký' đặc biệt nhất?",
+      "response_text": "Dạ, yêu cầu của bạn có vẻ cần sự hỗ trợ trực tiếp từ nhân viên của chúng tôi ạ. Bạn có thể nhấn nút bên dưới để gọi nhân viên đến bàn nhé! 🔔",
+      "suggested_dishes": [],
+      "faithfulness": 0.95,
+      "relevance": 0.8,
+      "precision": 1.0,
+      "overall_score": 0.91,
+      "allergen_violation": false,
+      "price_violation": false,
+      "hallucination_detected": false,
+      "judge_mode": "deterministic_semantic",
+      "reasoning": "Câu trả lời thỏa mãn 100% các tiêu chí an toàn và phù hợp thực đơn."
+    }
+  ]
+}

@@ -93,7 +93,7 @@ class CulinaryEntityExtractor:
 
     # 3. Từ khóa chế độ ăn (Dietary Restrictions)
     DIET_KEYWORDS: Dict[str, List[str]] = {
-        "chay": ["chay", "ăn chay", "an chay", "món chay", "mon chay", "vegetarian", "thanh đạm", "thanh dam"],
+        "chay": ["chay", "ăn chay", "an chay", "món chay", "mon chay", "vegetarian"],
         "vegan": ["thuần chay", "thuan chay", "vegan"],
         "keto": ["keto", "ít tinh bột", "it tinh bot", "low carb"],
         "halal": ["halal"],
@@ -103,7 +103,7 @@ class CulinaryEntityExtractor:
     # 4. Ngữ cảnh độ cay (Spice Level)
     SPICE_PATTERNS: List[Tuple[str, int, Optional[int]]] = [
         # (Pattern regex, max_spice, min_spice)
-        (r"\b(?:không cay|khong cay|đừng cay|dung cay|0 cay|ko cay)\b", 0, None),
+        (r"\b(?:không cay|khong cay|đừng cay|dung cay|0 cay|ko cay|không ăn cay|khong an cay|không ăn được cay|khong an duoc cay|kiêng cay|kieng cay)\b", 0, None),
         (r"\b(?:ít cay|it cay|cay nhẹ|cay nhe|hơi cay|hoi cay|chút cay|chut cay)\b", 1, None),
         (r"\b(?:cay vừa|cay vua|vừa cay|vua cay)\b", 2, 1),
         (r"\b(?:cay nhiều|cay nhieu|rất cay|rat cay|cực cay|cuc cay|cay nồng|cay nong|siêu cay|sieu cay)\b", 5, 3),
@@ -221,7 +221,7 @@ class CulinaryEntityExtractor:
         max_patterns = [
             r"(?:dưới|duoi|<|<=|tối đa|toi da|không quá|khong qua|ít hơn|it hon)\s*(\d+(?:[.,]\d+)?)\s*(k|nghìn|nghin|ngàn|ngan|đồng|dong|đ|d|vnd)?",
             r"(\d+(?:[.,]\d+)?)\s*(?:k|nghìn|nghin|ngàn|ngan|đồng|dong|đ|d|vnd)?\s*(?:đổ lại|do lai|trở xuống|tro xuong)",
-            r"(?:ngân sách|ngan sach|tầm|tam|giá)\s*(?:dưới|khoảng|khoang)?\s*(\d+(?:[.,]\d+)?)\s*(k|nghìn|nghin|ngàn|ngan|đồng|dong|đ|d|vnd)",
+            r"(?:ngân sách|ngan sach|tầm|tam|giá|tổng|tong|khoảng|khoang)\s*(?:dưới|khoảng|khoang)?\s*(\d+(?:[.,]\d+)?)\s*(k|nghìn|nghin|ngàn|ngan|đồng|dong|đ|d|vnd)",
         ]
 
         for pattern in max_patterns:
@@ -241,6 +241,10 @@ class CulinaryEntityExtractor:
                         break
                 except ValueError:
                     pass
+
+        # Bổ sung ngưỡng ngân sách cho các từ khóa bình dân, tiết kiệm
+        if entities.max_price is None and re.search(r"\b(?:bình dân|binh dan|tiết kiệm|tiet kiem|giá rẻ|gia re|sinh viên|sinh vien)\b", text):
+            entities.max_price = 70000.0
 
         # Mẫu 2: Khoảng từ X đến Y (vd: "từ 30k đến 60k")
         range_match = re.search(
@@ -359,15 +363,26 @@ class MetadataFilter:
             # 4. Lọc Ngưỡng Cay (Max Spice Level)
             if not rejection_reasons and entities.max_spice_level is not None:
                 item_spice = raw_data.get("spice_level")
+                spice_val = None
                 if item_spice is not None:
                     try:
                         spice_val = int(item_spice)
-                        if spice_val > entities.max_spice_level:
-                            rejection_reasons.append(
-                                f"Độ cay ({spice_val}/5) vượt mức yêu cầu (tối đa {entities.max_spice_level}/5)"
-                            )
                     except (ValueError, TypeError):
                         pass
+                else:
+                    # Suy luận độ cay từ tên và mô tả món ăn nếu dữ liệu gốc thiếu trường spice_level
+                    desc_text = f"{raw_data.get('name', '')} {raw_data.get('description', '')}".lower()
+                    if any(k in desc_text for k in ("cay nồng", "sa tế", "ớt", "cay đặc trưng", "vị cay")):
+                        spice_val = 3
+                    elif "cay" in desc_text and "không cay" not in desc_text:
+                        spice_val = 2
+                    else:
+                        spice_val = 0
+
+                if spice_val is not None and spice_val > entities.max_spice_level:
+                    rejection_reasons.append(
+                        f"Độ cay ({spice_val}/5) vượt mức yêu cầu (tối đa {entities.max_spice_level}/5)"
+                    )
 
             # 5. Lọc Ngân Sách Tối Đa (Max Price)
             if not rejection_reasons and entities.max_price is not None:
