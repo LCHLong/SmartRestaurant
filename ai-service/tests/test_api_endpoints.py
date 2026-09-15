@@ -162,6 +162,50 @@ class TestApiEndpoints(unittest.TestCase):
             price = item["item"].get("price", 0)
             self.assertLessEqual(price, 60000.0)
 
+    def test_retrieve_with_cross_encoder_rerank_enabled(self):
+        """Kiểm tra POST /rag/retrieve kích hoạt Cross-Encoder Contextual Reranking."""
+        payload = {
+            "query": "phở bò nướng thơm ngon đặc sản",
+            "top_k": 4,
+            "enable_rerank": True,
+            "rerank_weight": 0.7
+        }
+        response = self.client.post("/rag/retrieve", json=payload)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertIn("rerank_stats", data)
+        self.assertIsNotNone(data["rerank_stats"])
+        self.assertTrue(data["rerank_stats"]["enabled"])
+        self.assertIn("latency_ms", data["rerank_stats"])
+
+        results = data["results"]
+        self.assertGreater(len(results), 0)
+        for item in results:
+            self.assertIn("rerank_score", item)
+            self.assertIn("combined_score", item)
+            self.assertIn("initial_rank", item)
+            self.assertIn("final_rank", item)
+            self.assertIn("rerank_engine", item)
+            self.assertGreaterEqual(item["rerank_score"], 0.0)
+            self.assertLessEqual(item["rerank_score"], 1.0)
+
+    def test_retrieve_with_cross_encoder_rerank_disabled(self):
+        """Kiểm tra POST /rag/retrieve khi tắt cờ enable_rerank."""
+        payload = {
+            "query": "phở bò",
+            "top_k": 3,
+            "enable_rerank": False
+        }
+        response = self.client.post("/rag/retrieve", json=payload)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+
+        self.assertIn("rerank_stats", data)
+        self.assertFalse(data["rerank_stats"]["enabled"])
+        self.assertEqual(data["rerank_stats"]["latency_ms"], 0.0)
+
 
 if __name__ == "__main__":
     unittest.main()
+

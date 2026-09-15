@@ -24,6 +24,7 @@ from .metadata_filter import (
     MetadataFilter,
     ExtractedEntities,
 )
+from .cross_encoder_reranker import CrossEncoderReranker
 
 __all__ = [
     "build_dynamic_context",
@@ -42,6 +43,7 @@ __all__ = [
     "CulinaryEntityExtractor",
     "MetadataFilter",
     "ExtractedEntities",
+    "CrossEncoderReranker",
 ]
 
 

@@ -18,8 +18,10 @@ import hashlib
 from typing import List, Dict, Any, Tuple, Optional, Union
 import numpy as np
 
+import time
 from processors.index_manager import DualIndexManager
 from processors.metadata_filter import CulinaryEntityExtractor, MetadataFilter, ExtractedEntities
+from processors.cross_encoder_reranker import CrossEncoderReranker
 
 
 def min_max_normalize(scores_dict: Dict[int, float], eps: float = 1e-9) -> Dict[int, float]:
@@ -96,8 +98,10 @@ class HybridMenuRetriever:
         self._vector_cache: Dict[str, np.ndarray] = {}
         self.entity_extractor = CulinaryEntityExtractor()
         self.metadata_filter = MetadataFilter()
+        self.reranker = CrossEncoderReranker()
         self.last_extracted_entities: Optional[ExtractedEntities] = None
         self.last_filter_stats: Dict[str, Any] = {}
+        self.last_rerank_stats: Dict[str, Any] = {}
 
     def retrieve(
         self,
@@ -109,6 +113,8 @@ class HybridMenuRetriever:
         auto_mock_vector: bool = False,
         enable_metadata_filter: bool = True,
         entities: Optional[ExtractedEntities] = None,
+        enable_rerank: bool = True,
+        rerank_weight: Optional[float] = None,
     ) -> List[Dict[str, Any]]:
         """
         Thực hiện truy xuất kết hợp và xếp hạng Top-K ứng viên.
@@ -245,7 +251,33 @@ class HybridMenuRetriever:
             }
             final_candidates = fusion_results
 
-        return final_candidates[:top_k]
+        # --- 7. Tái xếp hạng ngữ cảnh sâu (Cross-Encoder Contextual Reranking - Bước 3.2) ---
+        if enable_rerank and final_candidates:
+            rerank_start = time.perf_counter()
+            reranked = self.reranker.rerank(
+                query=query,
+                candidates=final_candidates,
+                top_k=top_k,
+                rerank_weight=rerank_weight
+            )
+            rerank_elapsed_ms = (time.perf_counter() - rerank_start) * 1000.0
+            self.last_rerank_stats = {
+                "enabled": True,
+                "engine": self.reranker.active_engine,
+                "latency_ms": round(rerank_elapsed_ms, 3),
+                "input_count": len(final_candidates),
+                "output_count": len(reranked),
+            }
+            return reranked
+        else:
+            self.last_rerank_stats = {
+                "enabled": False,
+                "engine": None,
+                "latency_ms": 0.0,
+                "input_count": len(final_candidates),
+                "output_count": len(final_candidates[:top_k]),
+            }
+            return final_candidates[:top_k]
 
     def _create_deterministic_query_vector(self, query: str) -> np.ndarray:
         """

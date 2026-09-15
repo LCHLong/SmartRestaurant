@@ -79,6 +79,16 @@ class RetrieveRequest(BaseModel):
         default=True,
         description="Bật bộ lọc siêu dữ liệu cứng (Metadata Hard-Filtering) loại trừ 100% món dị ứng hoặc vượt ngân sách"
     )
+    enable_rerank: bool = Field(
+        default=True,
+        description="Bật tái xếp hạng ngữ cảnh sâu bằng Cross-Encoder (Bước 3.2)"
+    )
+    rerank_weight: Optional[float] = Field(
+        default=0.7,
+        ge=0.0,
+        le=1.0,
+        description="Trọng số dung hợp điểm Cross-Encoder và điểm Hybrid (mặc định 0.7)"
+    )
 
 
 class RetrieveItemResponse(BaseModel):
@@ -88,9 +98,14 @@ class RetrieveItemResponse(BaseModel):
     item: Dict[str, Any] = Field(..., description="Dữ liệu gốc chi tiết của bản ghi")
     serialized_text: str = Field(default="", description="Chuỗi văn bản bán cấu trúc tuần tự hóa cấp hàng")
     hybrid_score: float = Field(..., description="Điểm số lai sau khi dung hợp (nằm trong [0, 1])")
+    rerank_score: Optional[float] = Field(default=None, description="Điểm số tương quan ngữ cảnh sau khi Cross-Encoder chấm")
+    combined_score: Optional[float] = Field(default=None, description="Điểm số tổng hợp cuối cùng sau rerank")
+    initial_rank: Optional[int] = Field(default=None, description="Thứ hạng ban đầu từ tầng Hybrid Retriever")
+    final_rank: Optional[int] = Field(default=None, description="Thứ hạng cuối cùng sau khi Cross-Encoder tái sắp xếp")
+    rerank_engine: Optional[str] = Field(default=None, description="Tên engine Cross-Encoder đã thực thi")
     score_breakdown: Dict[str, Any] = Field(
         ...,
-        description="Chi tiết phân rã điểm số: dense_raw, dense_norm, bm25_raw, bm25_norm, alpha"
+        description="Chi tiết phân rã điểm số: dense_raw, dense_norm, bm25_raw, bm25_norm, alpha, rerank_norm"
     )
 
 
@@ -108,6 +123,10 @@ class RetrieveResponse(BaseModel):
     filtered_out_count: int = Field(
         default=0,
         description="Số lượng ứng viên bị loại bỏ bởi bộ lọc cứng siêu dữ liệu an toàn"
+    )
+    rerank_stats: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Thống kê chi tiết bước tái xếp hạng Cross-Encoder (độ trễ, engine, số ứng viên)"
     )
     results: List[RetrieveItemResponse] = Field(..., description="Danh sách kết quả Top-K đã xếp hạng")
 
@@ -163,6 +182,8 @@ async def retrieve_candidates(request: RetrieveRequest) -> RetrieveResponse:
             alpha=request.alpha,
             auto_mock_vector=request.auto_mock_vector,
             enable_metadata_filter=request.enable_metadata_filter,
+            enable_rerank=request.enable_rerank,
+            rerank_weight=request.rerank_weight,
         )
     except Exception as e:
         raise HTTPException(
@@ -180,18 +201,24 @@ async def retrieve_candidates(request: RetrieveRequest) -> RetrieveResponse:
             item=r["item"],
             serialized_text=r.get("serialized_text", ""),
             hybrid_score=r["hybrid_score"],
+            rerank_score=r.get("rerank_score"),
+            combined_score=r.get("combined_score"),
+            initial_rank=r.get("initial_rank"),
+            final_rank=r.get("final_rank"),
+            rerank_engine=r.get("rerank_engine"),
             score_breakdown=r["score_breakdown"],
         )
         for r in raw_results
     ]
 
-    # Trích xuất thông tin filter metadata
+    # Trích xuất thông tin filter metadata & rerank stats
     entities_dict = (
         retriever.last_extracted_entities.to_dict()
         if retriever.last_extracted_entities
         else None
     )
     filtered_count = retriever.last_filter_stats.get("filtered_out_count", 0)
+    rerank_stats = getattr(retriever, "last_rerank_stats", None)
 
     return RetrieveResponse(
         status="success",
@@ -202,6 +229,7 @@ async def retrieve_candidates(request: RetrieveRequest) -> RetrieveResponse:
         latency_ms=round(latency_ms, 4),
         extracted_entities=entities_dict,
         filtered_out_count=filtered_count,
+        rerank_stats=rerank_stats,
         results=items_response,
     )
 
