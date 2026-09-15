@@ -80,6 +80,8 @@ class ChatRequest(BaseModel):
     restaurantId: Optional[str] = None
     enableRerank: bool = True
     topK: int = 5
+    feedbackType: Optional[str] = None
+    rejectedItems: list[str] = []
 
 
 # ---------- Endpoints ----------
@@ -120,6 +122,8 @@ async def chat(request: ChatRequest):
                 restaurant_id=request.restaurantId,
                 enable_rerank=request.enableRerank,
                 top_k=request.topK,
+                feedback_type=request.feedbackType,
+                rejected_items=request.rejectedItems,
             ):
                 yield sse_chunk
         except Exception as e:

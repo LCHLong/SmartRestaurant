@@ -68,6 +68,8 @@ app.use('/api/system', require('./routes/systemRoutes'));
 app.use('/api/super-admin', require('./routes/superAdminRoutes'));
 app.use('/api/coupons', require('./routes/couponRoutes'));
 app.use('/api/ai', require('./routes/aiRoutes'));
+app.use('/api/chat/feedback', require('./routes/feedbackRoutes'));
+app.use('/api/feedback', require('./routes/feedbackRoutes'));
 
 app.use('/api', testEmailRouter);
 

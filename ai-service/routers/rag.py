@@ -15,12 +15,22 @@ from fastapi import APIRouter, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
 from processors.hybrid_retriever import HybridMenuRetriever
+from processors.query_reformulator import QueryReformulator
 
 router = APIRouter(prefix="/rag", tags=["Advanced Hybrid RAG"])
 
-# Singleton retrievers cho cả thực đơn và chính sách
+# Singleton retrievers & reformulator
 _menu_retriever: Optional[HybridMenuRetriever] = None
 _policies_retriever: Optional[HybridMenuRetriever] = None
+_reformulator: Optional[QueryReformulator] = None
+
+
+def get_reformulator() -> QueryReformulator:
+    """Lấy hoặc khởi tạo singleton QueryReformulator."""
+    global _reformulator
+    if _reformulator is None:
+        _reformulator = QueryReformulator()
+    return _reformulator
 
 
 def get_retriever(index_type: str = "menu") -> HybridMenuRetriever:
@@ -262,3 +272,71 @@ async def rag_health():
             "has_bm25": pol_r.index_manager.bm25 is not None,
         }
     )
+
+
+# ---------- Bước 4.1: Query Reformulator Endpoint ----------
+
+class ReformulateRequest(BaseModel):
+    query: str = Field(
+        ...,
+        min_length=1,
+        max_length=500,
+        description="Câu hỏi ban đầu của thực khách",
+        examples=["món này có cay không?"]
+    )
+    history: List[Dict[str, str]] = Field(
+        default=[],
+        description="Lịch sử đàm thoại các lượt gần nhất [{'role': '...', 'content': '...'}]"
+    )
+    feedback_type: Optional[str] = Field(
+        default=None,
+        description="Loại phản hồi nếu có ('thumbs_down', 'rejected', v.v.)"
+    )
+    rejected_items: List[str] = Field(
+        default=[],
+        description="Danh sách tên món ăn bị từ chối"
+    )
+
+
+class ReformulateResponse(BaseModel):
+    status: str = "success"
+    original_query: str
+    standalone_query: str
+    is_reformulated: bool
+    reformulation_type: str
+    excluded_items: List[str]
+    detected_referenced_dish: Optional[str] = None
+    latency_ms: float
+
+
+@router.post(
+    "/reformulate",
+    response_model=ReformulateResponse,
+    summary="Tái cấu trúc truy vấn thích ứng (Bước 4.1)",
+    description="Khử đại từ thay thế, làm rõ câu hỏi mơ hồ hoặc mở rộng tìm kiếm khi khách từ chối món ăn."
+)
+async def reformulate_query(request: ReformulateRequest):
+    """
+    Endpoint viết lại câu hỏi người dùng thành câu truy vấn độc lập:
+    - Contextual Anaphora: 'món này có cay không?' -> 'Phở Bò Tái Nạm có cay không?'
+    - Negative Feedback: Khi khách bấm 👎 hoặc chê, tự động loại trừ món cũ và tìm món thay thế.
+    - Ambiguous Rewriting: 'uống gì ngon' -> 'đồ uống thanh nhiệt nước ép trái cây...'
+    """
+    reformulator = get_reformulator()
+    result = reformulator.reformulate(
+        query=request.query,
+        conversation_history=request.history,
+        feedback_type=request.feedback_type,
+        rejected_items=request.rejected_items
+    )
+    return ReformulateResponse(
+        status="success",
+        original_query=result.original_query,
+        standalone_query=result.standalone_query,
+        is_reformulated=result.is_reformulated,
+        reformulation_type=result.reformulation_type,
+        excluded_items=result.excluded_items,
+        detected_referenced_dish=result.detected_referenced_dish,
+        latency_ms=result.latency_ms
+    )
+

@@ -45,6 +45,7 @@ from processors.fallback_handler import (
     get_fallback_context,
 )
 from processors.hybrid_retriever import HybridMenuRetriever
+from processors.query_reformulator import QueryReformulator
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -68,17 +69,19 @@ class AriaConversationPipeline:
     
     Quy trình:
       1. Nhận yêu cầu và kiểm tra chuyển giao nhân viên (Human Handoff).
-      2. Truy xuất RAG động: F&B NER Filter -> Hybrid Retrieval -> Cross-Encoder Reranking.
-      3. Định dạng Grounded Knowledge Base Context theo Paper 01 (Mục 3.6).
-      4. Quản lý bộ đệm lịch sử hội thoại (Conversation Memory Buffer 10 turns).
-      5. Stream câu trả lời qua Server-Sent Events (SSE) với chỉ số TTFT < 400ms.
+      2. Tái cấu trúc truy vấn thích ứng (Bước 4.1 - Query Reformulator).
+      3. Truy xuất RAG động: F&B NER Filter -> Hybrid Retrieval -> Cross-Encoder Reranking.
+      4. Định dạng Grounded Knowledge Base Context theo Paper 01 (Mục 3.6).
+      5. Quản lý bộ đệm lịch sử hội thoại (Conversation Memory Buffer 10 turns).
+      6. Stream câu trả lời qua Server-Sent Events (SSE) với chỉ số TTFT < 400ms.
     """
 
     def __init__(self, model: Optional[str] = None, max_history_turns: int = 10):
         self.model = model or os.getenv("GROQ_MODEL", GROQ_MODEL)
         self.max_history_turns = max_history_turns
-        # Khởi tạo Lõi RAG nội tại
+        # Khởi tạo Lõi RAG nội tại & Bộ viết lại truy vấn thích ứng
         self.retriever = HybridMenuRetriever(index_type="menu")
+        self.reformulator = QueryReformulator()
 
     async def process(
         self,
@@ -88,15 +91,17 @@ class AriaConversationPipeline:
         order_history: Optional[List[Dict[str, Any]]] = None,
         conversation_history: Optional[List[Dict[str, Any]]] = None,
         table_id: str = "T01",
-        session_id: str = "",
+        session_id: Optional[str] = None,
         fallback_used: bool = False,
         restaurant_id: Optional[str] = None,
         enable_rerank: bool = True,
         top_k: int = 5,
         rerank_weight: Optional[float] = None,
+        feedback_type: Optional[str] = None,
+        rejected_items: Optional[List[str]] = None,
     ) -> AsyncGenerator[str, None]:
         """
-        Xử lý một lượt hội thoại và stream các SSE events (JSON Lines).
+        Xử lý toàn trình một lượt thoại của khách hàng và stream kết quả qua SSE.
         """
         t_start = time.perf_counter()
         cart_items = cart_items or []
@@ -120,14 +125,23 @@ class AriaConversationPipeline:
                 })
                 return
 
-            # ── 2. Truy xuất RAG động (Dynamic RAG Retrieval + Reranking) ──────
+            # ── 2. Tái cấu trúc truy vấn thích ứng (Bước 4.1 - Query Reformulator) ──
+            reformulation_res = self.reformulator.reformulate(
+                query=message,
+                conversation_history=conversation_history,
+                feedback_type=feedback_type,
+                rejected_items=rejected_items,
+            )
+            search_query = reformulation_res.standalone_query
+
+            # ── 3. Truy xuất RAG động (Dynamic RAG Retrieval + Reranking) ──────
             grounded_candidates: List[Dict[str, Any]] = []
             rerank_stats: Dict[str, Any] = {}
 
             if not menu_context:
-                # Tự động truy xuất từ Lõi RAG toàn trình (Hybrid + Metadata Filter + Cross-Encoder Rerank)
+                # Tự động truy xuất từ Lõi RAG toàn trình với search_query đã được viết lại
                 grounded_candidates = self.retriever.retrieve(
-                    query=message,
+                    query=search_query,
                     top_k=top_k,
                     enable_rerank=enable_rerank,
                     rerank_weight=rerank_weight,
@@ -137,7 +151,7 @@ class AriaConversationPipeline:
                 # Nếu client truyền sẵn menu_context, thực hiện tái xếp hạng nếu bật enable_rerank
                 if enable_rerank and hasattr(self.retriever, "reranker"):
                     grounded_candidates = self.retriever.reranker.rerank(
-                        query=message,
+                        query=search_query,
                         candidates=menu_context,
                         top_k=top_k,
                         rerank_weight=rerank_weight,
@@ -148,6 +162,13 @@ class AriaConversationPipeline:
                     }
                 else:
                     grounded_candidates = menu_context[:top_k]
+
+            # Loại bỏ các món bị khách từ chối nếu có negative feedback
+            if reformulation_res.excluded_items:
+                grounded_candidates = [
+                    c for c in grounded_candidates
+                    if c.get("name") not in reformulation_res.excluded_items
+                ]
 
             # ── 3. Định dạng Grounded Knowledge Base Prompt Template ──────────
             grounded_menu_text = format_grounded_candidates(grounded_candidates, max_items=top_k)
@@ -248,6 +269,12 @@ class AriaConversationPipeline:
                     "total_time_ms": round(total_time_ms, 2),
                     "rag_count": len(grounded_candidates),
                     "rerank_engine": rerank_stats.get("engine", "offline_fallback"),
+                    "reformulation": {
+                        "is_reformulated": reformulation_res.is_reformulated,
+                        "type": reformulation_res.reformulation_type,
+                        "standalone_query": search_query,
+                        "latency_ms": reformulation_res.latency_ms,
+                    },
                 }
             })
 

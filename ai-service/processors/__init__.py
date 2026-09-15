@@ -25,6 +25,10 @@ from .metadata_filter import (
     ExtractedEntities,
 )
 from .cross_encoder_reranker import CrossEncoderReranker
+from .query_reformulator import (
+    QueryReformulator,
+    ReformulatedQueryResult,
+)
 
 __all__ = [
     "build_dynamic_context",
@@ -44,6 +48,8 @@ __all__ = [
     "MetadataFilter",
     "ExtractedEntities",
     "CrossEncoderReranker",
+    "QueryReformulator",
+    "ReformulatedQueryResult",
 ]
 
 
