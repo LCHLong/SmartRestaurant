@@ -138,10 +138,11 @@ exports.consult = async (req, res) => {
   const io = getIO();
   const socketRoom = `table_${tableId}`;
 
-  // 2. A/B Testing Traffic Split (50% Advancing RAG vs 50% Baseline)
-  const abVariant = getAbVariant(sessionId);
+  // 2. A/B Testing Traffic Split (Đã vô hiệu hóa cơ chế 50/50, chạy đồng nhất cho mọi client)
+  // const abVariant = getAbVariant(sessionId); // Code 50/50 cũ
+  const abVariant = 'variant_a_advanced'; // Hoặc 'default' - đảm bảo nhất quán 100% mọi máy
 
-  // Ghi nhận lượt impression nhánh A/B trong Redis Telemetry
+  // Ghi nhận lượt impression trong Redis Telemetry (nếu có)
   try {
     if (redis && typeof redis.incr === 'function') {
       redis.incr(`rag_telemetry:${abVariant}_impressions`).catch(() => {});
@@ -183,16 +184,14 @@ exports.consult = async (req, res) => {
 
     const { context, fallbackUsed } = ragResult;
 
-    // 6. Build payload cho Pipecat (kèm cờ A/B Testing)
-    // Variant A (Advancing RAG): để AI Service tự chạy Lõi Hybrid RAG toàn trình (menuContext = null)
-    // Variant B (Baseline RAG): dùng menuContext cơ bản từ Node.js
-    const isAdvanced = abVariant === 'variant_a_advanced';
+    // 6. Build payload cho Pipecat
+    // Luôn gửi context mảng hợp lệ (context || []), tránh gửi null gây lỗi 422 ở FastAPI
     const pipecatPayload = {
       message,
       sessionId,
       tableId,
       cartItems,
-      menuContext: isAdvanced ? null : context,
+      menuContext: context || [],
       orderHistory,
       conversationHistory: history,
       fallbackUsed,
@@ -200,7 +199,7 @@ exports.consult = async (req, res) => {
       feedbackType: req.body.feedbackType,
       rejectedItems: req.body.rejectedItems,
       abVariant,
-      enableRerank: isAdvanced
+      enableRerank: true
     };
 
     // 7. Stream từ Pipecat → emit Socket.io

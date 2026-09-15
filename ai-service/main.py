@@ -73,7 +73,7 @@ class ChatRequest(BaseModel):
     sessionId: str
     tableId: str
     cartItems: list[CartItem] = []
-    menuContext: list[dict] = []
+    menuContext: Optional[list[dict]] = None
     orderHistory: list[dict] = []
     conversationHistory: list[HistoryItem] = []
     fallbackUsed: bool = False
