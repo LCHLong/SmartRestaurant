@@ -148,22 +148,89 @@ async function getOrderHistory(userId) {
 function stage1Filter(userMessage, allItems) {
   const query = userMessage.toLowerCase();
 
-  // Tokenize query thành các từ khoá
+  // 1. Nhận diện các từ khoá bị phủ định / loại trừ (ví dụ: "không muốn ăn thịt", "kiêng hải sản", "ngán thịt", "không cay")
+  const isNonSpicyRequested = /(?:không cay|khong cay|ít cay|it cay|cay nhẹ|cay nhe|đừng cay|dung cay|không ăn cay|khong an cay)/i.test(query);
+  const isSpicyRequested = /(?:thật cay|that cay|siêu cay|sieu cay|rất cay|rat cay|cay nồng|cay nong|món cay|mon cay|ăn cay|an cay)/i.test(query) && !isNonSpicyRequested;
+
+  const negationRegex = /(?:không muốn ăn|khong muon an|không thích ăn|khong thich an|không ăn|khong an|không dùng|khong dung|dị ứng|di ung|kiêng|kieng|tránh|tranh|ngán|ngan|đừng|dung)\s+(?:với\s+|món có\s+|đồ có\s+|các món\s+)?([a-zA-Zà-ỹÀ-Ỹ\s,]+)/i;
+  const negMatch = query.match(negationRegex);
+  const negativeKeywords = [];
+
+  if (isNonSpicyRequested) {
+    negativeKeywords.push('cay nồng', 'sa tế', 'siêu cay', 'cay nhiều');
+  }
+
+  if (negMatch && negMatch[1]) {
+    const negPhrase = negMatch[1].toLowerCase();
+    if (negPhrase.includes('hải sản') || negPhrase.includes('hai san') || negPhrase.includes('tôm') || negPhrase.includes('cua') || negPhrase.includes('mực') || negPhrase.includes('ốc') || negPhrase.includes('cá')) {
+      negativeKeywords.push('tôm', 'cua', 'mực', 'cá', 'hải sản', 'ốc', 'ngao', 'sò', 'hàu');
+    }
+    if (negPhrase.includes('đậu phộng') || negPhrase.includes('dau phong') || negPhrase.includes('lạc') || negPhrase.includes('lac') || negPhrase.includes('hạnh nhân')) {
+      negativeKeywords.push('đậu phộng', 'dau phong', 'lạc', 'hạt', 'hạnh nhân');
+    }
+    if (negPhrase.includes('thịt') || negPhrase.includes('thit') || negPhrase.includes('bò') || negPhrase.includes('heo') || negPhrase.includes('gà')) {
+      negativeKeywords.push('thịt', 'thit', 'heo', 'bò', 'gà', 'lợn', 'thịt băm', 'chả lụa', 'sườn');
+    }
+    if (negPhrase.includes('sữa') || negPhrase.includes('sua') || negPhrase.includes('phô mai')) {
+      negativeKeywords.push('sữa', 'phô mai', 'kem', 'cheese');
+    }
+    if (negPhrase.includes('trứng') || negPhrase.includes('trung')) {
+      negativeKeywords.push('trứng', 'hột gà');
+    }
+  }
+
+  // 2. Tokenize query thành các từ khoá tích cực (loại bỏ từ dừng phủ định)
+  const stopWords = new Set(['không', 'khong', 'muốn', 'muon', 'thích', 'thich', 'ăn', 'an', 'món', 'mon', 'có', 'co', 'đồ', 'do', 'được', 'duoc', 'tôi', 'toi', 'mình', 'cho', 'gợi', 'ý', 'giúp', 'nhé', 'ạ']);
+  if (isNonSpicyRequested) {
+    stopWords.add('cay');
+  }
+
   const keywords = query
     .split(/[\s,./!?]+/)
-    .filter(w => w.length > 1);
+    .filter(w => w.length > 1 && !stopWords.has(w) && !negativeKeywords.includes(w));
 
-  // Tính score cho từng item
+  // 3. Tính score cho từng item với bộ lọc loại trừ
   const scored = allItems.map(item => {
-    let score = 0;
     const searchable = [
       item.name,
       item.description,
       item.ai_description,
       item.categories?.name,
       ...(item.ingredients || []),
-      ...(item.allergens || [])
+      ...(item.allergens || []),
+      ...(item.dietary_tags || [])
     ].filter(Boolean).join(' ').toLowerCase();
+
+    // Loại trừ ngay lập tức nếu chứa thành phần bị cấm/kiêng
+    for (const negKw of negativeKeywords) {
+      if (searchable.includes(negKw)) {
+        return { item, score: -999 };
+      }
+    }
+
+    // Nếu khách yêu cầu không cay: loại trừ món có chữ cay hoặc spice_level > 0
+    if (isNonSpicyRequested) {
+      const isSpicy = (item.spice_level !== undefined && item.spice_level !== null && item.spice_level > 0) ||
+                      searchable.includes('cay nồng') || searchable.includes('sa tế') ||
+                      (searchable.includes('cay') && !searchable.includes('không cay'));
+      if (isSpicy) {
+        return { item, score: -999 };
+      }
+    }
+
+    let score = 0;
+
+    // Điểm thưởng cho món không cay khi khách yêu cầu
+    if (isNonSpicyRequested) {
+      score += 3;
+    }
+
+    // Điểm thưởng cho món cay khi khách yêu cầu
+    if (isSpicyRequested) {
+      const isSpicy = (item.spice_level !== undefined && item.spice_level !== null && item.spice_level >= 2) ||
+                      searchable.includes('cay nồng') || searchable.includes('sa tế') || searchable.includes('chua cay');
+      if (isSpicy) score += 5;
+    }
 
     for (const kw of keywords) {
       if (searchable.includes(kw)) score += 2;
@@ -175,7 +242,7 @@ function stage1Filter(userMessage, allItems) {
     return { item, score };
   });
 
-  // Sort by score, lấy top K
+  // Sort by score, lấy top K (chỉ lấy các món score > 0)
   const topItems = scored
     .filter(s => s.score > 0)
     .sort((a, b) => b.score - a.score)

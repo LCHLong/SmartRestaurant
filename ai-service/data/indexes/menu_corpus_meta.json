@@ -1,16 +1,57 @@
 {
   "items": [
     {
+      "id": "2637d58d-d94b-4a7e-8623-f67795fc9230",
+      "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
+      "name": "Bạc Xỉu Ba Tầng Sài Gòn Xưa",
+      "description": "Tầng sữa đặc ngọt ngào ở đáy, lớp sữa tươi béo mịn ở giữa và phủ lớp cà phê phin đánh bọt nâu bồng bềnh bên trên.",
+      "price": 38000,
+      "image_url": "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:05.131248+00:00",
+      "updated_at": "2026-09-15T15:05:05.131248+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 5,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Bạc Xỉu Ba Tầng Sài Gòn Xưa]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 38.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 180 kcal\n• Thành phần nguyên liệu: Sữa tươi thanh trùng, Sữa đặc, Cà phê phin\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Ngọt ngào, Nhẹ nhàng\n• Mô tả hương vị: Tầng sữa đặc ngọt ngào ở đáy, lớp sữa tươi béo mịn ở giữa và phủ lớp cà phê phin đánh bọt nâu bồng bềnh bên trên. Lượng cà phê chỉ vừa đủ thoảng hương, phù hợp với phái đẹp hoặc những ai không quen uống cà phê đắng gắt.",
+      "dietary_tags": [
+        "Ngọt ngào",
+        "Nhẹ nhàng"
+      ],
+      "ingredients": [
+        "Sữa tươi thanh trùng",
+        "Sữa đặc",
+        "Cà phê phin"
+      ],
+      "allergens": [
+        "Sữa"
+      ],
+      "spice_level": 0,
+      "calories": 180,
+      "ai_description": "Lượng cà phê chỉ vừa đủ thoảng hương, phù hợp với phái đẹp hoặc những ai không quen uống cà phê đắng gắt.",
+      "is_trending": false,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
+    },
+    {
       "id": "a609039b-fad0-48ea-8e8b-a137216f0297",
       "category_id": "590e0b3c-ff7f-49e3-bbe9-dabe2cb9531e",
       "name": "Bánh Flan",
       "description": "Bánh flan mềm mịn, thơm mùi trứng và caramel.",
-      "price": 25000.0,
+      "price": 25000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547013607-68451175.jpg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-04T17:56:27.062928+00:00",
-      "avg_rating": 5.0,
+      "avg_rating": 5,
       "review_count": 1,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -21,20 +62,254 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Bánh Flan]\n• Phân loại: Khác\n• Giá bán: 25,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Bánh flan mềm mịn, thơm mùi trứng và caramel.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Bánh Flan]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 25.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Bánh flan mềm mịn, thơm mùi trứng và caramel.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Tráng miệng (Desserts)"
+      }
+    },
+    {
+      "id": "65e66330-2c6b-4878-855c-81a492eaab14",
+      "category_id": "590e0b3c-ff7f-49e3-bbe9-dabe2cb9531e",
+      "name": "Bánh Flan Caramel Hạt Cafe Truyền Thống",
+      "description": "Bánh flan mềm mượt không rỗ mặt làm từ trứng gà ta tươi và sữa đặc, chan sốt caramel đường thốt nốt và chút cốt cà phê đắng nhẹ.",
+      "price": 32000,
+      "image_url": "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:05.616948+00:00",
+      "updated_at": "2026-09-15T15:05:05.616948+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 4,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Bánh Flan Caramel Hạt Cafe Truyền Thống (Món thịnh hành ⭐)]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 32.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 185 kcal\n• Thành phần nguyên liệu: Lòng đỏ trứng gà ta, Sữa đặc, Sữa tươi, Đường caramel, Cốt cà phê phin\n• Cảnh báo dị ứng: Trứng, Sữa\n• Nhãn chế độ ăn: Tráng miệng, Dễ ăn\n• Mô tả hương vị: Bánh flan mềm mượt không rỗ mặt làm từ trứng gà ta tươi và sữa đặc, chan sốt caramel đường thốt nốt và chút cốt cà phê đắng nhẹ. Vị béo ngậy ngọt ngào của trứng sữa được cân bằng hoàn hảo nhờ vị đắng nhẹ thơm lừng của cà phê và caramel hổ phách.",
+      "dietary_tags": [
+        "Tráng miệng",
+        "Dễ ăn"
+      ],
+      "ingredients": [
+        "Lòng đỏ trứng gà ta",
+        "Sữa đặc",
+        "Sữa tươi",
+        "Đường caramel",
+        "Cốt cà phê phin"
+      ],
+      "allergens": [
+        "Trứng",
+        "Sữa"
+      ],
+      "spice_level": 0,
+      "calories": 185,
+      "ai_description": "Vị béo ngậy ngọt ngào của trứng sữa được cân bằng hoàn hảo nhờ vị đắng nhẹ thơm lừng của cà phê và caramel hổ phách.",
+      "is_trending": true,
+      "category": {
+        "name": "Tráng miệng (Desserts)"
+      }
+    },
+    {
+      "id": "d214382f-d616-4f87-becb-09e5bf828bb8",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Bánh Mì Thập Cẩm Xá Xíu Ba Tê Trứ Danh",
+      "description": "Vỏ bánh mì nướng giòn rụm bên ngoài ruột xốp, phết pate gan heo béo ngậy, thịt xá xíu mềm thơm, chả lụa và đồ chua.",
+      "price": 35000,
+      "image_url": "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:00.116682+00:00",
+      "updated_at": "2026-09-15T15:05:00.116682+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 5,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Bánh Mì Thập Cẩm Xá Xíu Ba Tê Trứ Danh (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 35.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 420 kcal\n• Thành phần nguyên liệu: Bánh mì bột mì nướng giòn, Pate gan heo, Thịt xá xíu ngũ vị, Chả lụa, Dưa leo, Đồ chua, Ngò rí\n• Cảnh báo dị ứng: Gluten, Sữa\n• Nhãn chế độ ăn: Ăn nhanh, Món biểu tượng đường phố\n• Mô tả hương vị: Vỏ bánh mì nướng giòn rụm bên ngoài ruột xốp, phết pate gan heo béo ngậy, thịt xá xíu mềm thơm, chả lụa và đồ chua. Sự kết hợp hoàn hảo giữa độ giòn xốp của bánh nướng mới, vị béo của pate gan và chút cay nồng của sốt ớt rim.",
+      "dietary_tags": [
+        "Ăn nhanh",
+        "Món biểu tượng đường phố"
+      ],
+      "ingredients": [
+        "Bánh mì bột mì nướng giòn",
+        "Pate gan heo",
+        "Thịt xá xíu ngũ vị",
+        "Chả lụa",
+        "Dưa leo",
+        "Đồ chua",
+        "Ngò rí"
+      ],
+      "allergens": [
+        "Gluten",
+        "Sữa"
+      ],
+      "spice_level": 1,
+      "calories": 420,
+      "ai_description": "Sự kết hợp hoàn hảo giữa độ giòn xốp của bánh nướng mới, vị béo của pate gan và chút cay nồng của sốt ớt rim.",
+      "is_trending": true,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "29a3a1c3-3d62-43d5-a3d2-54c7f22766b3",
+      "category_id": "590e0b3c-ff7f-49e3-bbe9-dabe2cb9531e",
+      "name": "Bánh Mousse Chanh Dây Phủ Gương Vàng",
+      "description": "Đế bánh bông lan xốp nhẹ, lớp kem mousse phô mai mịn mượt phủ thạch chanh leo tráng gương chua dịu lấp lánh.",
+      "price": 48000,
+      "image_url": "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:06.337832+00:00",
+      "updated_at": "2026-09-15T15:05:06.337832+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1565958011703-44f9829ba187?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 5,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Bánh Mousse Chanh Dây Phủ Gương Vàng]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 48.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 235 kcal\n• Thành phần nguyên liệu: Cream cheese, Whipping cream, Nước cốt chanh dây tươi, Bột mì, Trứng gà, Bơ lạt\n• Cảnh báo dị ứng: Gluten, Sữa, Trứng\n• Nhãn chế độ ăn: Bánh Âu, Chua ngọt thanh tao\n• Mô tả hương vị: Đế bánh bông lan xốp nhẹ, lớp kem mousse phô mai mịn mượt phủ thạch chanh leo tráng gương chua dịu lấp lánh. Vị chua rực rỡ đặc trưng của chanh dây làm bừng tỉnh vị giác, lớp kem mousse bông mịn xốp tan ngay nơi đầu lưỡi.",
+      "dietary_tags": [
+        "Bánh Âu",
+        "Chua ngọt thanh tao"
+      ],
+      "ingredients": [
+        "Cream cheese",
+        "Whipping cream",
+        "Nước cốt chanh dây tươi",
+        "Bột mì",
+        "Trứng gà",
+        "Bơ lạt"
+      ],
+      "allergens": [
+        "Gluten",
+        "Sữa",
+        "Trứng"
+      ],
+      "spice_level": 0,
+      "calories": 235,
+      "ai_description": "Vị chua rực rỡ đặc trưng của chanh dây làm bừng tỉnh vị giác, lớp kem mousse bông mịn xốp tan ngay nơi đầu lưỡi.",
+      "is_trending": false,
+      "category": {
+        "name": "Tráng miệng (Desserts)"
+      }
+    },
+    {
+      "id": "b63e9873-8967-417f-be8c-6f60d0a5d8ef",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Bò Lúc Lắc Khoai Tây Chiên Pháp",
+      "description": "Thịt bò thăn mềm xắt quân cờ xào lửa lớn sốt tiêu đen bơ tỏi, ớt chuông ba màu và khoai tây chiên giòn.",
+      "price": 119000,
+      "image_url": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:57.885989+00:00",
+      "updated_at": "2026-09-15T15:04:57.885989+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 15,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Bò Lúc Lắc Khoai Tây Chiên Pháp (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 119.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 610 kcal\n• Thành phần nguyên liệu: Thịt thăn bò Úc, Ớt chuông đỏ vàng xanh, Hành tây tím, Bơ lạt, Tỏi phi, Khoai tây\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: High-Protein, Món Âu-Á\n• Mô tả hương vị: Thịt bò thăn mềm xắt quân cờ xào lửa lớn sốt tiêu đen bơ tỏi, ớt chuông ba màu và khoai tây chiên giòn. Thịt bò xém cạnh ngoài nhưng bên trong mềm mọng nước, quyện sốt bơ tỏi đậm đà chấm muối tiêu chanh chuẩn vị.",
+      "dietary_tags": [
+        "High-Protein",
+        "Món Âu-Á"
+      ],
+      "ingredients": [
+        "Thịt thăn bò Úc",
+        "Ớt chuông đỏ vàng xanh",
+        "Hành tây tím",
+        "Bơ lạt",
+        "Tỏi phi",
+        "Khoai tây"
+      ],
+      "allergens": [
+        "Sữa"
+      ],
+      "spice_level": 1,
+      "calories": 610,
+      "ai_description": "Thịt bò xém cạnh ngoài nhưng bên trong mềm mọng nước, quyện sốt bơ tỏi đậm đà chấm muối tiêu chanh chuẩn vị.",
+      "is_trending": true,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "abd19890-2884-49d6-a68c-13363d053ee7",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Bò Sốt Tiêu Đen Bánh Mì Nóng Giòn",
+      "description": "Bắp bò hầm mềm mọng trong nước sốt tiêu đen sánh đậm, thơm bơ tỏi, dùng kèm bánh mì đặc ruột nướng nóng giòn.",
+      "price": 89000,
+      "image_url": "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:00.81686+00:00",
+      "updated_at": "2026-09-15T15:05:00.81686+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 12,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Bò Sốt Tiêu Đen Bánh Mì Nóng Giòn]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 89.000 VND\n• Độ cay: 2/5\n• Lượng Calo: 590 kcal\n• Thành phần nguyên liệu: Bắp bò hoa, Tiêu đen xay, Hành tây, Bánh mì nóng giòn, Bơ lạt\n• Cảnh báo dị ứng: Gluten, Sữa\n• Nhãn chế độ ăn: Ấm bụng, Đậm đà, High-Protein\n• Mô tả hương vị: Bắp bò hầm mềm mọng trong nước sốt tiêu đen sánh đậm, thơm bơ tỏi, dùng kèm bánh mì đặc ruột nướng nóng giòn. Nước sốt tiêu đen đặc sánh cay the ấm nồng xé bánh mì chấm ngập sốt, cực kỳ thích hợp cho những buổi tối mưa se lạnh.",
+      "dietary_tags": [
+        "Ấm bụng",
+        "Đậm đà",
+        "High-Protein"
+      ],
+      "ingredients": [
+        "Bắp bò hoa",
+        "Tiêu đen xay",
+        "Hành tây",
+        "Bánh mì nóng giòn",
+        "Bơ lạt"
+      ],
+      "allergens": [
+        "Gluten",
+        "Sữa"
+      ],
+      "spice_level": 2,
+      "calories": 590,
+      "ai_description": "Nước sốt tiêu đen đặc sánh cay the ấm nồng xé bánh mì chấm ngập sốt, cực kỳ thích hợp cho những buổi tối mưa se lạnh.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
     },
     {
       "id": "0242bb6b-01e9-4d11-85de-e4b88a97ff91",
       "category_id": "0d299b82-6329-4db1-922a-f41339661249",
       "name": "Bún Bò Huế",
       "description": "Bún bò cay nồng đặc trưng Huế với bắp bò, giò heo.",
-      "price": 70000.0,
+      "price": 70000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547034927-235281225.webp",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -46,20 +321,75 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Bún Bò Huế]\n• Phân loại: Khác\n• Giá bán: 70,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Bún bò cay nồng đặc trưng Huế với bắp bò, giò heo.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Bún Bò Huế]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 70.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Bún bò cay nồng đặc trưng Huế với bắp bò, giò heo.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "27362063-c481-4946-bdf1-9f9a90d18b05",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Bún Bò Huế Cố Đô Cay Nồng",
+      "description": "Bún sợi tròn to đặc trưng, bắp bò hoa giòn, giò heo mềm rục, chả cua Huế và nước dùng mắm ruốc sả ớt đỏ au.",
+      "price": 75000,
+      "image_url": "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:57.384222+00:00",
+      "updated_at": "2026-09-15T15:04:57.384222+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1627308595229-7830a5c91f9f?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 10,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Bún Bò Huế Cố Đô Cay Nồng (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 75.000 VND\n• Độ cay: 3/5\n• Lượng Calo: 640 kcal\n• Thành phần nguyên liệu: Bún sợi to, Bắp bò, Giò heo, Chả cua, Huyết bò, Mắm ruốc Huế, Sả ớt\n• Cảnh báo dị ứng: Hải sản\n• Nhãn chế độ ăn: Cay nồng, Đậm đà, Ấm bụng\n• Mô tả hương vị: Bún sợi tròn to đặc trưng, bắp bò hoa giòn, giò heo mềm rục, chả cua Huế và nước dùng mắm ruốc sả ớt đỏ au. Vị cay nồng ấm rực người, dậy mùi thơm mộc mạc của sả cây hòa quyện với mắm ruốc chưng truyền thống xứ Huế.",
+      "dietary_tags": [
+        "Cay nồng",
+        "Đậm đà",
+        "Ấm bụng"
+      ],
+      "ingredients": [
+        "Bún sợi to",
+        "Bắp bò",
+        "Giò heo",
+        "Chả cua",
+        "Huyết bò",
+        "Mắm ruốc Huế",
+        "Sả ớt"
+      ],
+      "allergens": [
+        "Hải sản"
+      ],
+      "spice_level": 3,
+      "calories": 640,
+      "ai_description": "Vị cay nồng ấm rực người, dậy mùi thơm mộc mạc của sả cây hòa quyện với mắm ruốc chưng truyền thống xứ Huế.",
+      "is_trending": true,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
     },
     {
       "id": "faeddb05-f90d-4c0f-be87-51a0eb442d8b",
       "category_id": "0d299b82-6329-4db1-922a-f41339661249",
       "name": "Bún Chả Hà Nội",
       "description": "Thịt nướng và chả viên nướng than hồng.",
-      "price": 65000.0,
+      "price": 65000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547103657-213922154.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -70,20 +400,290 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Bún Chả Hà Nội]\n• Phân loại: Khác\n• Giá bán: 65,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Thịt nướng và chả viên nướng than hồng.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Bún Chả Hà Nội]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Thịt nướng và chả viên nướng than hồng.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "be3b0cdd-6cf5-4b42-a111-1b07bd486279",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Bún Chả Hà Nội Nướng Than Hoa",
+      "description": "Thịt ba chỉ thái mỏng ướp mắm tiêu và chả băm viên nướng trên vỉ than hồng, ăn cùng nước chấm ấm và bún tươi.",
+      "price": 69000,
+      "image_url": "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:56.8989+00:00",
+      "updated_at": "2026-09-15T15:04:56.8989+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1569058242253-92a9c755a0ec?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 12,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Bún Chả Hà Nội Nướng Than Hoa (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 69.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 580 kcal\n• Thành phần nguyên liệu: Thịt ba chỉ heo, Thịt nạc vai băm, Bún tươi, Đu đủ ngâm, Cà rốt, Rau kinh giới\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Món truyền thống, High-Protein, Đậm đà\n• Mô tả hương vị: Thịt ba chỉ thái mỏng ướp mắm tiêu và chả băm viên nướng trên vỉ than hồng, ăn cùng nước chấm ấm và bún tươi. Vị ngọt thịt đậm đà vương mùi khói than nướng mộc mạc, nước chấm chua ngọt nóng hổi kích thích mọi giác quan.",
+      "dietary_tags": [
+        "Món truyền thống",
+        "High-Protein",
+        "Đậm đà"
+      ],
+      "ingredients": [
+        "Thịt ba chỉ heo",
+        "Thịt nạc vai băm",
+        "Bún tươi",
+        "Đu đủ ngâm",
+        "Cà rốt",
+        "Rau kinh giới"
+      ],
+      "allergens": [],
+      "spice_level": 1,
+      "calories": 580,
+      "ai_description": "Vị ngọt thịt đậm đà vương mùi khói than nướng mộc mạc, nước chấm chua ngọt nóng hổi kích thích mọi giác quan.",
+      "is_trending": true,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "ed9a9f3d-88e7-4195-abfc-329e7af4050e",
+      "category_id": "33d14592-31f3-477d-b818-55dd4e277462",
+      "name": "Bún Nấm Thanh Đạm Rong Biển",
+      "description": "Bún tươi chan nước dùng hầm củ quả lê táo ngọt thanh, các loại nấm rơm, nấm bào ngư, nấm kim châm và rong biển Wakame.",
+      "price": 55000,
+      "image_url": "https://images.unsplash.com/photo-1546069901-d7373f156d9a?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:01.275303+00:00",
+      "updated_at": "2026-09-15T15:05:01.275303+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1546069901-d7373f156d9a?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 10,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Bún Nấm Thanh Đạm Rong Biển]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 55.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 310 kcal\n• Thành phần nguyên liệu: Bún tươi, Nấm bào ngư, Nấm kim châm, Rong biển Wakame, Bắp ngọt, Củ cải trắng\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Low-Calo, Thanh lọc cơ thể\n• Mô tả hương vị: Bún tươi chan nước dùng hầm củ quả lê táo ngọt thanh, các loại nấm rơm, nấm bào ngư, nấm kim châm và rong biển Wakame. Nước dùng trong veo ngọt lành tự nhiên từ củ quả, vị giòn dai sần sật của các loại nấm tươi mang lại cảm giác nhẹ nhõm an lành.",
+      "dietary_tags": [
+        "Vegan",
+        "Vegetarian",
+        "Gluten-Free",
+        "Low-Calo",
+        "Thanh lọc cơ thể"
+      ],
+      "ingredients": [
+        "Bún tươi",
+        "Nấm bào ngư",
+        "Nấm kim châm",
+        "Rong biển Wakame",
+        "Bắp ngọt",
+        "Củ cải trắng"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 310,
+      "ai_description": "Nước dùng trong veo ngọt lành tự nhiên từ củ quả, vị giòn dai sần sật của các loại nấm tươi mang lại cảm giác nhẹ nhõm an lành.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chay & Healthy (Vegetarian)"
+      }
+    },
+    {
+      "id": "4b88856b-da77-4403-a46d-c7fb091f6a58",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Bún Riêu Cua Đồng Ốc Lụa Giòn Sần Sật",
+      "description": "Cua đồng giã tay đóng tảng riêu béo ngậy, ốc bươu giòn sần sật, đậu hũ chiên phồng ngấm nước lèo chua thanh cà chua và giấm bỗng.",
+      "price": 65000,
+      "image_url": "https://images.unsplash.com/photo-1594041680534-e8c8cdebd659?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:59.881594+00:00",
+      "updated_at": "2026-09-15T15:04:59.881594+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1594041680534-e8c8cdebd659?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 10,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Bún Riêu Cua Đồng Ốc Lụa Giòn Sần Sật]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 470 kcal\n• Thành phần nguyên liệu: Cua đồng tươi, Ốc bươu hấp lá gừng, Đậu hũ non chiên, Cà chua chín, Giấm bỗng nếp\n• Cảnh báo dị ứng: Hải sản\n• Nhãn chế độ ăn: Chua thanh giải nhiệt, Dân dã\n• Mô tả hương vị: Cua đồng giã tay đóng tảng riêu béo ngậy, ốc bươu giòn sần sật, đậu hũ chiên phồng ngấm nước lèo chua thanh cà chua và giấm bỗng. Vị chua thanh mát lành của giấm bỗng truyền thống cân bằng vị béo của riêu cua đồng, ăn kèm rau muống chẻ xanh mướt.",
+      "dietary_tags": [
+        "Chua thanh giải nhiệt",
+        "Dân dã"
+      ],
+      "ingredients": [
+        "Cua đồng tươi",
+        "Ốc bươu hấp lá gừng",
+        "Đậu hũ non chiên",
+        "Cà chua chín",
+        "Giấm bỗng nếp"
+      ],
+      "allergens": [
+        "Hải sản"
+      ],
+      "spice_level": 1,
+      "calories": 470,
+      "ai_description": "Vị chua thanh mát lành của giấm bỗng truyền thống cân bằng vị béo của riêu cua đồng, ăn kèm rau muống chẻ xanh mướt.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "65493d92-4870-4e6b-b050-796ad1989579",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Cá Hồi Áp Chảo Sốt Bơ Chanh Măng Tây",
+      "description": "Phi-lê cá hồi Na Uy tươi áp chảo vàng da giòn rụm thịt mềm hồng, phủ sốt bơ chanh vàng Dill thơm dịu và măng tây xào bơ.",
+      "price": 165000,
+      "image_url": "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:58.607494+00:00",
+      "updated_at": "2026-09-15T15:04:58.607494+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1467003909585-2f8a72700288?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 15,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Cá Hồi Áp Chảo Sốt Bơ Chanh Măng Tây]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 165.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 460 kcal\n• Thành phần nguyên liệu: Cá hồi tươi Na Uy, Măng tây xanh, Bơ lạt Anchor, Nước cốt chanh vàng, Lá thì là Dill\n• Cảnh báo dị ứng: Hải sản, Sữa\n• Nhãn chế độ ăn: Keto, High-Protein, Low-Carb, Omega-3, Healthy\n• Mô tả hương vị: Phi-lê cá hồi Na Uy tươi áp chảo vàng da giòn rụm thịt mềm hồng, phủ sốt bơ chanh vàng Dill thơm dịu và măng tây xào bơ. Đỉnh cao dinh dưỡng với nguồn Omega-3 dồi dào, thớ cá béo mềm tan trong miệng kết hợp vị chua dịu thanh tao của sốt bơ chanh.",
+      "dietary_tags": [
+        "Keto",
+        "High-Protein",
+        "Low-Carb",
+        "Omega-3",
+        "Healthy"
+      ],
+      "ingredients": [
+        "Cá hồi tươi Na Uy",
+        "Măng tây xanh",
+        "Bơ lạt Anchor",
+        "Nước cốt chanh vàng",
+        "Lá thì là Dill"
+      ],
+      "allergens": [
+        "Hải sản",
+        "Sữa"
+      ],
+      "spice_level": 0,
+      "calories": 460,
+      "ai_description": "Đỉnh cao dinh dưỡng với nguồn Omega-3 dồi dào, thớ cá béo mềm tan trong miệng kết hợp vị chua dịu thanh tao của sốt bơ chanh.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "167d3206-a25f-4513-9480-0fe0fd24a17c",
+      "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
+      "name": "Cà Phê Đen Đá Buôn Ma Thuột",
+      "description": "100% cà phê Robusta hảo hạng pha phin truyền thống, thơm đượm nồng nàn không pha tạp, vị đắng mộc mạc nguyên bản.",
+      "price": 29000,
+      "image_url": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:04.88078+00:00",
+      "updated_at": "2026-09-15T15:05:04.88078+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 4,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Cà Phê Đen Đá Buôn Ma Thuột]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 29.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 15 kcal\n• Thành phần nguyên liệu: Cà phê Robusta nguyên chất, Đá viên\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Keto, Vegan, Không đường, Tỉnh táo, Zero-Calo\n• Mô tả hương vị: 100% cà phê Robusta hảo hạng pha phin truyền thống, thơm đượm nồng nàn không pha tạp, vị đắng mộc mạc nguyên bản. Đậm đặc sánh đen huyền bí, hương thơm nồng nàn lưu luyến, dành cho những ai mê vị đắng mộc tinh tế của cà phê Việt.",
+      "dietary_tags": [
+        "Keto",
+        "Vegan",
+        "Không đường",
+        "Tỉnh táo",
+        "Zero-Calo"
+      ],
+      "ingredients": [
+        "Cà phê Robusta nguyên chất",
+        "Đá viên"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 15,
+      "ai_description": "Đậm đặc sánh đen huyền bí, hương thơm nồng nàn lưu luyến, dành cho những ai mê vị đắng mộc tinh tế của cà phê Việt.",
+      "is_trending": false,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
+    },
+    {
+      "id": "c6b1c9fb-d64f-4d03-9800-154db3b83ccb",
+      "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
+      "name": "Cà Phê Muối Cố Đô Béo Mặn",
+      "description": "Cốt cà phê phin đậm đặc kết hợp lớp kem sữa muối mặn mặn béo ngậy phía trên, khuấy đều tạo hương vị gây nghiện.",
+      "price": 42000,
+      "image_url": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:03.178707+00:00",
+      "updated_at": "2026-09-15T15:05:03.178707+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 5,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Cà Phê Muối Cố Đô Béo Mặn (Món thịnh hành ⭐)]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 42.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 190 kcal\n• Thành phần nguyên liệu: Cà phê phin, Kem béo thực vật, Muối biển tinh khiết, Sữa đặc\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Trending, Béo mặn độc đáo\n• Mô tả hương vị: Cốt cà phê phin đậm đặc kết hợp lớp kem sữa muối mặn mặn béo ngậy phía trên, khuấy đều tạo hương vị gây nghiện. Sự cân bằng tinh tế giữa đắng của cà phê, ngọt của sữa và chút mặn thanh của muối biển làm dịu vị gắt, cực kỳ mượt mà.",
+      "dietary_tags": [
+        "Trending",
+        "Béo mặn độc đáo"
+      ],
+      "ingredients": [
+        "Cà phê phin",
+        "Kem béo thực vật",
+        "Muối biển tinh khiết",
+        "Sữa đặc"
+      ],
+      "allergens": [
+        "Sữa"
+      ],
+      "spice_level": 0,
+      "calories": 190,
+      "ai_description": "Sự cân bằng tinh tế giữa đắng của cà phê, ngọt của sữa và chút mặn thanh của muối biển làm dịu vị gắt, cực kỳ mượt mà.",
+      "is_trending": true,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
     },
     {
       "id": "6ba5fae9-dc99-4956-9ae2-5800654818f4",
       "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
       "name": "Cà phê Sữa Đá",
       "description": "Cà phê pha phin truyền thống hòa quyện cùng sữa đặc.",
-      "price": 35000.0,
+      "price": 35000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547137968-722416351.jpg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -93,20 +693,115 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Cà phê Sữa Đá]\n• Phân loại: Khác\n• Giá bán: 35,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Cà phê pha phin truyền thống hòa quyện cùng sữa đặc.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Cà phê Sữa Đá]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 35.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Cà phê pha phin truyền thống hòa quyện cùng sữa đặc.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
+    },
+    {
+      "id": "49aa17d8-8af4-450a-9801-c4e40278ac13",
+      "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
+      "name": "Cà Phê Sữa Đá Sài Gòn Truyền Thống",
+      "description": "Cà phê Robusta Buôn Ma Thuột rang mộc pha phin truyền thống nhỏ giọt, hòa quyện sữa đặc thơm ngọt và đá viên tinh khiết.",
+      "price": 35000,
+      "image_url": "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:02.942454+00:00",
+      "updated_at": "2026-09-15T15:05:02.942454+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 5,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Cà Phê Sữa Đá Sài Gòn Truyền Thống (Món thịnh hành ⭐)]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 35.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 165 kcal\n• Thành phần nguyên liệu: Hạt cà phê Robusta rang mộc, Sữa đặc có đường, Nước sôi, Đá viên\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Tỉnh táo, Đồ uống quốc dân\n• Mô tả hương vị: Cà phê Robusta Buôn Ma Thuột rang mộc pha phin truyền thống nhỏ giọt, hòa quyện sữa đặc thơm ngọt và đá viên tinh khiết. Vị đắng đậm đà lưu luyến nơi hậu vị, quyện cùng độ ngọt béo mịn của sữa đặc tạo nên thức uống đánh thức năng lượng hoàn hảo.",
+      "dietary_tags": [
+        "Tỉnh táo",
+        "Đồ uống quốc dân"
+      ],
+      "ingredients": [
+        "Hạt cà phê Robusta rang mộc",
+        "Sữa đặc có đường",
+        "Nước sôi",
+        "Đá viên"
+      ],
+      "allergens": [
+        "Sữa"
+      ],
+      "spice_level": 0,
+      "calories": 165,
+      "ai_description": "Vị đắng đậm đà lưu luyến nơi hậu vị, quyện cùng độ ngọt béo mịn của sữa đặc tạo nên thức uống đánh thức năng lượng hoàn hảo.",
+      "is_trending": true,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
+    },
+    {
+      "id": "0565d4da-b622-4011-b597-4e860c621a21",
+      "category_id": "33d14592-31f3-477d-b818-55dd4e277462",
+      "name": "Canh Hạt Sen Củ Sen Táo Đỏ Bổ Dưỡng",
+      "description": "Hạt sen tươi hầm mềm bùi cùng củ sen giòn nhẹ, táo đỏ Tân Cương ngọt thơm và nấm tuyết trong vắt thanh tao.",
+      "price": 49000,
+      "image_url": "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:02.46784+00:00",
+      "updated_at": "2026-09-15T15:05:02.46784+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 10,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Canh Hạt Sen Củ Sen Táo Đỏ Bổ Dưỡng]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 49.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 190 kcal\n• Thành phần nguyên liệu: Hạt sen tươi Huế, Củ sen thái lát, Táo đỏ khô, Kỷ tử, Nấm tuyết\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Dưỡng nhan, Ngủ ngon\n• Mô tả hương vị: Hạt sen tươi hầm mềm bùi cùng củ sen giòn nhẹ, táo đỏ Tân Cương ngọt thơm và nấm tuyết trong vắt thanh tao. Món canh bồi bổ khí huyết giúp an thần ngủ sâu, vị ngọt thanh tự nhiên từ táo đỏ và hạt sen chín nhừ.",
+      "dietary_tags": [
+        "Vegan",
+        "Vegetarian",
+        "Gluten-Free",
+        "Dưỡng nhan",
+        "Ngủ ngon"
+      ],
+      "ingredients": [
+        "Hạt sen tươi Huế",
+        "Củ sen thái lát",
+        "Táo đỏ khô",
+        "Kỷ tử",
+        "Nấm tuyết"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 190,
+      "ai_description": "Món canh bồi bổ khí huyết giúp an thần ngủ sâu, vị ngọt thanh tự nhiên từ táo đỏ và hạt sen chín nhừ.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chay & Healthy (Vegetarian)"
+      }
     },
     {
       "id": "8ac25b34-965b-4ff1-882f-b36616e70a83",
       "category_id": "47401834-aaaa-40e5-a66b-6f402f91cc5c",
       "name": "Chả giò Hải sản",
       "description": "Chả giò chiên giòn với nhân hải sản, nấm mèo và cà rốt.",
-      "price": 65000.0,
+      "price": 65000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547182099-998371883.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -117,20 +812,119 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Chả giò Hải sản]\n• Phân loại: Khác\n• Giá bán: 65,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Chả giò chiên giòn với nhân hải sản, nấm mèo và cà rốt.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Chả giò Hải sản]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Chả giò chiên giòn với nhân hải sản, nấm mèo và cà rốt.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Khai vị (Starters)"
+      }
+    },
+    {
+      "id": "1048adaf-abde-4616-9817-6859b8b27d7e",
+      "category_id": "47401834-aaaa-40e5-a66b-6f402f91cc5c",
+      "name": "Chả giò Hải sản Hoàng Kim",
+      "description": "Vỏ rế vàng ươm giòn rụm bọc nhân tôm, cua biển, nấm tuyết và sốt mayonnaise béo nhẹ.",
+      "price": 68000,
+      "image_url": "https://images.unsplash.com/photo-1606471191009-63994c53433b?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:54.982438+00:00",
+      "updated_at": "2026-09-15T15:04:54.982438+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1606471191009-63994c53433b?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 12,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Chả giò Hải sản Hoàng Kim (Món thịnh hành ⭐)]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 68.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 360 kcal\n• Thành phần nguyên liệu: Tôm sú, Thịt cua biển, Nấm tuyết, Bánh tráng rế, Trứng gà\n• Cảnh báo dị ứng: Hải sản, Trứng, Gluten\n• Nhãn chế độ ăn: Chiên giòn, High-Protein\n• Mô tả hương vị: Vỏ rế vàng ươm giòn rụm bọc nhân tôm, cua biển, nấm tuyết và sốt mayonnaise béo nhẹ. Giòn tan nơi đầu lưỡi, nhân hải sản tươi ngọt béo nhẹ, ăn kèm rau xà lách tươi và nước mắm chua ngọt dịu.",
+      "dietary_tags": [
+        "Chiên giòn",
+        "High-Protein"
+      ],
+      "ingredients": [
+        "Tôm sú",
+        "Thịt cua biển",
+        "Nấm tuyết",
+        "Bánh tráng rế",
+        "Trứng gà"
+      ],
+      "allergens": [
+        "Hải sản",
+        "Trứng",
+        "Gluten"
+      ],
+      "spice_level": 0,
+      "calories": 360,
+      "ai_description": "Giòn tan nơi đầu lưỡi, nhân hải sản tươi ngọt béo nhẹ, ăn kèm rau xà lách tươi và nước mắm chua ngọt dịu.",
+      "is_trending": true,
+      "category": {
+        "name": "Khai vị (Starters)"
+      }
+    },
+    {
+      "id": "049957d2-facd-4201-8b4d-4a72bd7ab8ca",
+      "category_id": "590e0b3c-ff7f-49e3-bbe9-dabe2cb9531e",
+      "name": "Chè Khúc Bạch Hạnh Nhân Thanh Mát",
+      "description": "Những viên khúc bạch phô mai sữa dẻo dai béo ngậy, quả vải thiều mọng nước, chan nước đường phèn hoa nhài và hạnh nhân lát rang vàng.",
+      "price": 45000,
+      "image_url": "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:05.859615+00:00",
+      "updated_at": "2026-09-15T15:05:05.859615+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1579954115545-a95591f28bfc?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 5,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Chè Khúc Bạch Hạnh Nhân Thanh Mát (Món thịnh hành ⭐)]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 45.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 240 kcal\n• Thành phần nguyên liệu: Sữa tươi, Whipping cream, Phô mai tươi, Vải thiều, Hạnh nhân lát, Nước đường phèn lá dứa\n• Cảnh báo dị ứng: Sữa, Hạt hạnh nhân\n• Nhãn chế độ ăn: Thanh nhiệt, Tráng miệng giải nhiệt\n• Mô tả hương vị: Những viên khúc bạch phô mai sữa dẻo dai béo ngậy, quả vải thiều mọng nước, chan nước đường phèn hoa nhài và hạnh nhân lát rang vàng. Nước chè trong vắt thơm hương hoa nhài nhẹ nhàng, viên khúc bạch béo ngậy sực sực kết hợp hạnh nhân lát bùi rụm khó quên.",
+      "dietary_tags": [
+        "Thanh nhiệt",
+        "Tráng miệng giải nhiệt"
+      ],
+      "ingredients": [
+        "Sữa tươi",
+        "Whipping cream",
+        "Phô mai tươi",
+        "Vải thiều",
+        "Hạnh nhân lát",
+        "Nước đường phèn lá dứa"
+      ],
+      "allergens": [
+        "Sữa",
+        "Hạt hạnh nhân"
+      ],
+      "spice_level": 0,
+      "calories": 240,
+      "ai_description": "Nước chè trong vắt thơm hương hoa nhài nhẹ nhàng, viên khúc bạch béo ngậy sực sực kết hợp hạnh nhân lát bùi rụm khó quên.",
+      "is_trending": true,
+      "category": {
+        "name": "Tráng miệng (Desserts)"
+      }
     },
     {
       "id": "9922368e-6d23-42e8-b2f3-dd253c25ffb2",
       "category_id": "590e0b3c-ff7f-49e3-bbe9-dabe2cb9531e",
       "name": "Chè Thái",
       "description": "Các loại trái cây, thạch và nước cốt dừa thơm béo.",
-      "price": 35000.0,
+      "price": 35000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547278822-788737728.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -140,20 +934,207 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Chè Thái]\n• Phân loại: Khác\n• Giá bán: 35,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Các loại trái cây, thạch và nước cốt dừa thơm béo.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Chè Thái]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 35.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Các loại trái cây, thạch và nước cốt dừa thơm béo.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Tráng miệng (Desserts)"
+      }
+    },
+    {
+      "id": "639b3840-6b77-4a85-ba76-e20e2189941a",
+      "category_id": "590e0b3c-ff7f-49e3-bbe9-dabe2cb9531e",
+      "name": "Chè Thái Trái Cây Sầu Riêng Sốt Dừa",
+      "description": "Mít chín thái sợi, thạch dừa giòn sần sật, hạt đác rim đường, nhãn xuồng và cơm sầu riêng Ri6 thơm lừng chan cốt dừa béo.",
+      "price": 42000,
+      "image_url": "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:06.577465+00:00",
+      "updated_at": "2026-09-15T15:05:06.577465+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 5,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Chè Thái Trái Cây Sầu Riêng Sốt Dừa]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 42.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 290 kcal\n• Thành phần nguyên liệu: Thịt sầu riêng Ri6, Mít nghệ, Thạch củ năng, Hạt đác rim, Nước cốt dừa tươi\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Đặc sản, Trái cây nhiệt đới\n• Mô tả hương vị: Mít chín thái sợi, thạch dừa giòn sần sật, hạt đác rim đường, nhãn xuồng và cơm sầu riêng Ri6 thơm lừng chan cốt dừa béo. Hương sầu riêng ngào ngạt lan tỏa, vị ngọt đậm đà phong phú của các loại quả nhiệt đới quyện trong làn cốt dừa béo ngậy.",
+      "dietary_tags": [
+        "Đặc sản",
+        "Trái cây nhiệt đới"
+      ],
+      "ingredients": [
+        "Thịt sầu riêng Ri6",
+        "Mít nghệ",
+        "Thạch củ năng",
+        "Hạt đác rim",
+        "Nước cốt dừa tươi"
+      ],
+      "allergens": [
+        "Sữa"
+      ],
+      "spice_level": 0,
+      "calories": 290,
+      "ai_description": "Hương sầu riêng ngào ngạt lan tỏa, vị ngọt đậm đà phong phú của các loại quả nhiệt đới quyện trong làn cốt dừa béo ngậy.",
+      "is_trending": false,
+      "category": {
+        "name": "Tráng miệng (Desserts)"
+      }
+    },
+    {
+      "id": "a3c1ecd4-6481-4761-b7c0-fac213dd5278",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Cơm Chiên Hải Sản Hoàng Kim",
+      "description": "Cơm hạt tơi vàng bọc lòng đỏ trứng muối bùi béo, xào cùng tôm sú giòn ngọt, mực ống tươi và đậu Hà Lan.",
+      "price": 78000,
+      "image_url": "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:58.118289+00:00",
+      "updated_at": "2026-09-15T15:04:58.118289+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1603133872878-684f208fb84b?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 12,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Cơm Chiên Hải Sản Hoàng Kim (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 78.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 650 kcal\n• Thành phần nguyên liệu: Cơm nguội gạo thơm, Tôm sú bóc nõn, Mực ống, Lòng đỏ trứng muối, Đậu Hà Lan, Hành lá\n• Cảnh báo dị ứng: Hải sản, Trứng\n• Nhãn chế độ ăn: High-Protein, Đậm đà, Béo ngậy\n• Mô tả hương vị: Cơm hạt tơi vàng bọc lòng đỏ trứng muối bùi béo, xào cùng tôm sú giòn ngọt, mực ống tươi và đậu Hà Lan. Hạt cơm xào săn tơi từng hạt, ánh màu vàng hoàng kim từ trứng muối thơm ngậy kết hợp vị ngọt tự nhiên của tôm mực.",
+      "dietary_tags": [
+        "High-Protein",
+        "Đậm đà",
+        "Béo ngậy"
+      ],
+      "ingredients": [
+        "Cơm nguội gạo thơm",
+        "Tôm sú bóc nõn",
+        "Mực ống",
+        "Lòng đỏ trứng muối",
+        "Đậu Hà Lan",
+        "Hành lá"
+      ],
+      "allergens": [
+        "Hải sản",
+        "Trứng"
+      ],
+      "spice_level": 0,
+      "calories": 650,
+      "ai_description": "Hạt cơm xào săn tơi từng hạt, ánh màu vàng hoàng kim từ trứng muối thơm ngậy kết hợp vị ngọt tự nhiên của tôm mực.",
+      "is_trending": true,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "c543e9b4-057b-4378-9850-5396d19abc06",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Cơm Gà Xối Mỡ Giòn Da Thượng Hạng",
+      "description": "Đùi gà góc tư xối mỡ lớp da giòn rụm màu cánh gián nhưng thớ thịt bên trong mọng nước, hạt cơm nấu nước luộc gà óng vàng.",
+      "price": 65000,
+      "image_url": "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:00.349256+00:00",
+      "updated_at": "2026-09-15T15:05:00.349256+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 12,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Cơm Gà Xối Mỡ Giòn Da Thượng Hạng]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 710 kcal\n• Thành phần nguyên liệu: Đùi gà ta góc tư, Gạo dẻo nấu nước cốt gà, Bột nghệ vàng, Tỏi ớt băm, Dưa leo chua ngọt\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: High-Protein, Giòn rụm, No lâu\n• Mô tả hương vị: Đùi gà góc tư xối mỡ lớp da giòn rụm màu cánh gián nhưng thớ thịt bên trong mọng nước, hạt cơm nấu nước luộc gà óng vàng. Cắn miếng da gà rôm rốp giòn tan, thịt ngọt thơm đậm vị ăn kèm cơm đỏ dẻo thơm và canh thanh mát giải ngấy.",
+      "dietary_tags": [
+        "High-Protein",
+        "Giòn rụm",
+        "No lâu"
+      ],
+      "ingredients": [
+        "Đùi gà ta góc tư",
+        "Gạo dẻo nấu nước cốt gà",
+        "Bột nghệ vàng",
+        "Tỏi ớt băm",
+        "Dưa leo chua ngọt"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 710,
+      "ai_description": "Cắn miếng da gà rôm rốp giòn tan, thịt ngọt thơm đậm vị ăn kèm cơm đỏ dẻo thơm và canh thanh mát giải ngấy.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "9e7ceb72-f0aa-4b63-8033-eaf4dffbb0f0",
+      "category_id": "33d14592-31f3-477d-b818-55dd4e277462",
+      "name": "Cơm Gạo Lứt Xào Nấm Đông Cô Hạt Sen",
+      "description": "Gạo lứt tím than giàu chất xơ xào tơi cùng hạt sen Huế bùi ngọt, nấm đông cô tươi, nấm đùi gà và cà rốt bi.",
+      "price": 58000,
+      "image_url": "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:01.046681+00:00",
+      "updated_at": "2026-09-15T15:05:01.046681+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 12,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Cơm Gạo Lứt Xào Nấm Đông Cô Hạt Sen (Món thịnh hành ⭐)]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 58.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 360 kcal\n• Thành phần nguyên liệu: Gạo lứt tím than hữu cơ, Hạt sen tươi, Nấm đông cô, Nấm đùi gà, Dầu mè, Hạt nêm nấm\n• Cảnh báo dị ứng: Mè\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Healthy, Giảm cân\n• Mô tả hương vị: Gạo lứt tím than giàu chất xơ xào tơi cùng hạt sen Huế bùi ngọt, nấm đông cô tươi, nấm đùi gà và cà rốt bi. Món cơm dưỡng sinh giàu khoáng chất, vị bùi béo tự nhiên của hạt sen hòa cùng hương nấm xào thơm dịu.",
+      "dietary_tags": [
+        "Vegan",
+        "Vegetarian",
+        "Gluten-Free",
+        "Healthy",
+        "Giảm cân"
+      ],
+      "ingredients": [
+        "Gạo lứt tím than hữu cơ",
+        "Hạt sen tươi",
+        "Nấm đông cô",
+        "Nấm đùi gà",
+        "Dầu mè",
+        "Hạt nêm nấm"
+      ],
+      "allergens": [
+        "Mè"
+      ],
+      "spice_level": 0,
+      "calories": 360,
+      "ai_description": "Món cơm dưỡng sinh giàu khoáng chất, vị bùi béo tự nhiên của hạt sen hòa cùng hương nấm xào thơm dịu.",
+      "is_trending": true,
+      "category": {
+        "name": "Món chay & Healthy (Vegetarian)"
+      }
     },
     {
       "id": "a8bd6ffb-1399-4f92-b4dc-f3dfa0f3662f",
       "category_id": "0d299b82-6329-4db1-922a-f41339661249",
       "name": "Cơm Tấm Sườn Bì Chả",
       "description": "Cơm tấm dẻo, sườn nướng mật ong, bì thính, chả trứng.",
-      "price": 60000.0,
+      "price": 60000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547323877-938203403.jpeg",
       "is_available": false,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -163,20 +1144,206 @@
       "status": "sold_out",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Cơm Tấm Sườn Bì Chả]\n• Phân loại: Khác\n• Giá bán: 60,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Cơm tấm dẻo, sườn nướng mật ong, bì thính, chả trứng.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Cơm Tấm Sườn Bì Chả]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 60.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Cơm tấm dẻo, sườn nướng mật ong, bì thính, chả trứng.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "1d16d7bb-7e1a-44a5-9a32-785acafc85ec",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Cơm Tấm Sườn Bì Chả Trứng Lòng Đào",
+      "description": "Cơm tấm dẻo hạt, sườn cốt lết dày thịt ướp mật ong nướng than xém cạnh, bì thính vàng giòn và trứng ốp la.",
+      "price": 68000,
+      "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:57.139153+00:00",
+      "updated_at": "2026-09-15T15:04:57.139153+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 10,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Cơm Tấm Sườn Bì Chả Trứng Lòng Đào (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 68.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 720 kcal\n• Thành phần nguyên liệu: Gạo tấm thơm, Sườn heo cốt lết, Bì heo trộn thính, Chả trứng hấp, Trứng gà ốp la, Mỡ hành\n• Cảnh báo dị ứng: Trứng\n• Nhãn chế độ ăn: High-Protein, No lâu, Món truyền thống\n• Mô tả hương vị: Cơm tấm dẻo hạt, sườn cốt lết dày thịt ướp mật ong nướng than xém cạnh, bì thính vàng giòn và trứng ốp la. Biểu tượng ẩm thực Sài Gòn với miếng sườn ngấm gia vị đẫm sốt, hạt mỡ hành béo ngậy rưới nước mắm kẹo ớt tỏi.",
+      "dietary_tags": [
+        "High-Protein",
+        "No lâu",
+        "Món truyền thống"
+      ],
+      "ingredients": [
+        "Gạo tấm thơm",
+        "Sườn heo cốt lết",
+        "Bì heo trộn thính",
+        "Chả trứng hấp",
+        "Trứng gà ốp la",
+        "Mỡ hành"
+      ],
+      "allergens": [
+        "Trứng"
+      ],
+      "spice_level": 0,
+      "calories": 720,
+      "ai_description": "Biểu tượng ẩm thực Sài Gòn với miếng sườn ngấm gia vị đẫm sốt, hạt mỡ hành béo ngậy rưới nước mắm kẹo ớt tỏi.",
+      "is_trending": true,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "c64a7b61-9e37-4502-ad0d-f2edb759e7a6",
+      "category_id": "33d14592-31f3-477d-b818-55dd4e277462",
+      "name": "Đậu Hũ Chiên Sả Ớt Giòn Vỏ",
+      "description": "Đậu hũ mơ chiên giòn vỏ bên ngoài, bên trong mềm béo như sữa đậu nành, phủ sả ớt phi vàng thơm rực rỡ.",
+      "price": 45000,
+      "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:02.707838+00:00",
+      "updated_at": "2026-09-15T15:05:02.707838+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 8,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Đậu Hũ Chiên Sả Ớt Giòn Vỏ]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 45.000 VND\n• Độ cay: 2/5\n• Lượng Calo: 290 kcal\n• Thành phần nguyên liệu: Đậu hũ mơ gia truyền, Sả băm nhuyễn, Ớt sừng băm, Muối tiêu\n• Cảnh báo dị ứng: Đậu nành\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Dân dã\n• Mô tả hương vị: Đậu hũ mơ chiên giòn vỏ bên ngoài, bên trong mềm béo như sữa đậu nành, phủ sả ớt phi vàng thơm rực rỡ. Món ăn dân dã giòn rụm bên ngoài nhưng bên trong mịn màng béo ngậy, sả chiên vàng thơm ngát kích thích vị giác.",
+      "dietary_tags": [
+        "Vegan",
+        "Vegetarian",
+        "Gluten-Free",
+        "Dân dã"
+      ],
+      "ingredients": [
+        "Đậu hũ mơ gia truyền",
+        "Sả băm nhuyễn",
+        "Ớt sừng băm",
+        "Muối tiêu"
+      ],
+      "allergens": [
+        "Đậu nành"
+      ],
+      "spice_level": 2,
+      "calories": 290,
+      "ai_description": "Món ăn dân dã giòn rụm bên ngoài nhưng bên trong mịn màng béo ngậy, sả chiên vàng thơm ngát kích thích vị giác.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chay & Healthy (Vegetarian)"
+      }
+    },
+    {
+      "id": "adeff8e5-deb6-4904-ad0f-03b5b5e0337c",
+      "category_id": "33d14592-31f3-477d-b818-55dd4e277462",
+      "name": "Đậu Hũ Sốt Tứ Xuyên Nấm Cay Chay",
+      "description": "Đậu hũ non mềm mượt sốt cùng nấm đông cô băm nhỏ, ớt khô Tứ Xuyên và hoa tiêu tạo độ cay tê nhẹ đặc trưng.",
+      "price": 52000,
+      "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:01.513511+00:00",
+      "updated_at": "2026-09-15T15:05:01.513511+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 10,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Đậu Hũ Sốt Tứ Xuyên Nấm Cay Chay (Món thịnh hành ⭐)]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 52.000 VND\n• Độ cay: 3/5\n• Lượng Calo: 280 kcal\n• Thành phần nguyên liệu: Đậu hũ non, Nấm đông cô khô băm, Ớt Tứ Xuyên, Hoa tiêu Tứ Xuyên, Tương ớt cay\n• Cảnh báo dị ứng: Đậu nành\n• Nhãn chế độ ăn: Vegan, Vegetarian, Cay tê, High-Protein thực vật\n• Mô tả hương vị: Đậu hũ non mềm mượt sốt cùng nấm đông cô băm nhỏ, ớt khô Tứ Xuyên và hoa tiêu tạo độ cay tê nhẹ đặc trưng. Đậu hũ trơn mềm tan ngay trong miệng, quyện vị cay tê đậm đà của hoa tiêu, ăn cùng cơm nóng rất đưa cơm.",
+      "dietary_tags": [
+        "Vegan",
+        "Vegetarian",
+        "Cay tê",
+        "High-Protein thực vật"
+      ],
+      "ingredients": [
+        "Đậu hũ non",
+        "Nấm đông cô khô băm",
+        "Ớt Tứ Xuyên",
+        "Hoa tiêu Tứ Xuyên",
+        "Tương ớt cay"
+      ],
+      "allergens": [
+        "Đậu nành"
+      ],
+      "spice_level": 3,
+      "calories": 280,
+      "ai_description": "Đậu hũ trơn mềm tan ngay trong miệng, quyện vị cay tê đậm đà của hoa tiêu, ăn cùng cơm nóng rất đưa cơm.",
+      "is_trending": true,
+      "category": {
+        "name": "Món chay & Healthy (Vegetarian)"
+      }
+    },
+    {
+      "id": "b42ac7c6-5a17-495d-bfe1-0152111382a7",
+      "category_id": "2cefb265-4c0b-4482-b609-cdf7e27c132a",
+      "name": "Gà Hấp Lá Sen Xôi Hạt Sen Đại Bổ",
+      "description": "Nguyên con gà ta hấp cách thủy trong bọc lá sen tươi cùng nấm đông cô, kỷ tử, táo đỏ và xôi hạt sen dẻo thơm ngấm trọn nước cốt gà.",
+      "price": 295000,
+      "image_url": "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:07.067916+00:00",
+      "updated_at": "2026-09-15T15:05:07.067916+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 30,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Gà Hấp Lá Sen Xôi Hạt Sen Đại Bổ]\n• Phân loại: Đặc biệt (Special)\n• Giá bán: 295.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 920 kcal\n• Thành phần nguyên liệu: Gà ta nguyên con, Lá sen tươi, Hạt sen Huế, Nếp cái hoa vàng, Kỷ tử, Nấm đông cô\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Món tiệc sang trọng, Bổ dưỡng dưỡng sinh, High-Protein\n• Mô tả hương vị: Nguyên con gà ta hấp cách thủy trong bọc lá sen tươi cùng nấm đông cô, kỷ tử, táo đỏ và xôi hạt sen dẻo thơm ngấm trọn nước cốt gà. Mở gói lá sen là hương thơm thanh khiết ùa ra ngào ngạt, thịt gà mềm ngọt lịm ngấm đều vào từng hạt xôi nếp dẻo thơm.",
+      "dietary_tags": [
+        "Món tiệc sang trọng",
+        "Bổ dưỡng dưỡng sinh",
+        "High-Protein"
+      ],
+      "ingredients": [
+        "Gà ta nguyên con",
+        "Lá sen tươi",
+        "Hạt sen Huế",
+        "Nếp cái hoa vàng",
+        "Kỷ tử",
+        "Nấm đông cô"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 920,
+      "ai_description": "Mở gói lá sen là hương thơm thanh khiết ùa ra ngào ngạt, thịt gà mềm ngọt lịm ngấm đều vào từng hạt xôi nếp dẻo thơm.",
+      "is_trending": false,
+      "category": {
+        "name": "Đặc biệt (Special)"
+      }
     },
     {
       "id": "52f8eee9-693e-4e7f-9aa9-9a39be7980af",
       "category_id": "2cefb265-4c0b-4482-b609-cdf7e27c132a",
       "name": "Gà Nướng Cơm Lam",
       "description": "Gà đồi nướng mọi vàng giòn, ăn kèm cơm lam.",
-      "price": 280000.0,
+      "price": 280000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547369432-699727004.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -186,20 +1353,72 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Gà Nướng Cơm Lam]\n• Phân loại: Khác\n• Giá bán: 280,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Gà đồi nướng mọi vàng giòn, ăn kèm cơm lam.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Gà Nướng Cơm Lam]\n• Phân loại: Đặc biệt (Special)\n• Giá bán: 280.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Gà đồi nướng mọi vàng giòn, ăn kèm cơm lam.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Đặc biệt (Special)"
+      }
+    },
+    {
+      "id": "79adb5c3-851c-436b-890e-53e7baea903e",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Gà Nướng Cơm Lam Bản Đôn Tây Bắc",
+      "description": "Nửa con gà đồi thả vườn tẩm ướp mắc khén, hạt dổi nướng than giòn da thơm lừng, ăn kèm ống cơm lam nếp nương dẻo quánh.",
+      "price": 155000,
+      "image_url": "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:59.378851+00:00",
+      "updated_at": "2026-09-15T15:04:59.378851+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 25,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Gà Nướng Cơm Lam Bản Đôn Tây Bắc (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 155.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 780 kcal\n• Thành phần nguyên liệu: Gà đồi thả vườn, Hạt mắc khén, Hạt dổi rừng, Gạo nếp nương, Ống tre nứa, Muối ớt lá é\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Đặc sản Tây Bắc, High-Protein, Đậm đà\n• Mô tả hương vị: Nửa con gà đồi thả vườn tẩm ướp mắc khén, hạt dổi nướng than giòn da thơm lừng, ăn kèm ống cơm lam nếp nương dẻo quánh. Thịt gà săn chắc giòn da tê nhẹ đầu lưỡi từ hạt mắc khén, chấm muối ớt lá é và cắn miếng cơm lam nướng thơm mùi tre xanh.",
+      "dietary_tags": [
+        "Đặc sản Tây Bắc",
+        "High-Protein",
+        "Đậm đà"
+      ],
+      "ingredients": [
+        "Gà đồi thả vườn",
+        "Hạt mắc khén",
+        "Hạt dổi rừng",
+        "Gạo nếp nương",
+        "Ống tre nứa",
+        "Muối ớt lá é"
+      ],
+      "allergens": [],
+      "spice_level": 1,
+      "calories": 780,
+      "ai_description": "Thịt gà săn chắc giòn da tê nhẹ đầu lưỡi từ hạt mắc khén, chấm muối ớt lá é và cắn miếng cơm lam nướng thơm mùi tre xanh.",
+      "is_trending": true,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
     },
     {
       "id": "5dd14d49-5286-4c2c-af28-52518877c9a1",
       "category_id": "47401834-aaaa-40e5-a66b-6f402f91cc5c",
       "name": "Gỏi cuốn Tôm Thịt",
       "description": "Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng.",
-      "price": 45000.0,
+      "price": 45000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547446842-702473514.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -209,20 +1428,163 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Gỏi cuốn Tôm Thịt]\n• Phân loại: Khác\n• Giá bán: 45,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Gỏi cuốn Tôm Thịt]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 45.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Khai vị (Starters)"
+      }
+    },
+    {
+      "id": "fcc5ddde-ca3a-493c-b38e-c47a62ea22b9",
+      "category_id": "47401834-aaaa-40e5-a66b-6f402f91cc5c",
+      "name": "Gỏi cuốn Tôm Thịt Cố Đô",
+      "description": "Tôm sú tươi giòn, thịt ba chỉ heo thảo mộc, bún tươi và rau húng láng cuốn bánh tráng dẻo.",
+      "price": 48000,
+      "image_url": "https://images.unsplash.com/photo-1541014741259-de529411b96a?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:54.709207+00:00",
+      "updated_at": "2026-09-15T15:04:54.709207+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1541014741259-de529411b96a?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 10,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Gỏi cuốn Tôm Thịt Cố Đô (Món thịnh hành ⭐)]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 48.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 220 kcal\n• Thành phần nguyên liệu: Tôm sú, Thịt ba chỉ heo, Bún tươi, Rau sống, Bánh tráng\n• Cảnh báo dị ứng: Hải sản\n• Nhãn chế độ ăn: Thanh đạm, Ít béo, Gluten-Free\n• Mô tả hương vị: Tôm sú tươi giòn, thịt ba chỉ heo thảo mộc, bún tươi và rau húng láng cuốn bánh tráng dẻo. Món khai vị mát lành, vị tôm ngọt tự nhiên cuộn cùng rau thơm, chấm tương đậu phộng béo bùi chuẩn vị Nam Bộ.",
+      "dietary_tags": [
+        "Thanh đạm",
+        "Ít béo",
+        "Gluten-Free"
+      ],
+      "ingredients": [
+        "Tôm sú",
+        "Thịt ba chỉ heo",
+        "Bún tươi",
+        "Rau sống",
+        "Bánh tráng"
+      ],
+      "allergens": [
+        "Hải sản"
+      ],
+      "spice_level": 0,
+      "calories": 220,
+      "ai_description": "Món khai vị mát lành, vị tôm ngọt tự nhiên cuộn cùng rau thơm, chấm tương đậu phộng béo bùi chuẩn vị Nam Bộ.",
+      "is_trending": true,
+      "category": {
+        "name": "Khai vị (Starters)"
+      }
+    },
+    {
+      "id": "007af603-1a79-4b0c-86fc-940eb33bd0da",
+      "category_id": "47401834-aaaa-40e5-a66b-6f402f91cc5c",
+      "name": "Gỏi Ngó Sen Tôm Thịt Chua Cay",
+      "description": "Ngó sen tươi giòn sần sật ngâm chua ngọt, tôm luộc bóc nõn, tai heo giòn sần sật, rau răm và lạc rang.",
+      "price": 69000,
+      "image_url": "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:55.939412+00:00",
+      "updated_at": "2026-09-15T15:04:55.939412+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 12,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Gỏi Ngó Sen Tôm Thịt Chua Cay]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 69.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 240 kcal\n• Thành phần nguyên liệu: Ngó sen, Tôm sú, Tai heo, Cà rốt, Đậu phộng, Rau răm\n• Cảnh báo dị ứng: Hải sản, Đậu phộng\n• Nhãn chế độ ăn: Thanh nhiệt, Ít béo, Gluten-Free\n• Mô tả hương vị: Ngó sen tươi giòn sần sật ngâm chua ngọt, tôm luộc bóc nõn, tai heo giòn sần sật, rau răm và lạc rang. Hòa quyện vị chua thanh, cay nhẹ, ngó sen giữ độ giòn tự nhiên và mùi thơm nồng nàn của rau răm.",
+      "dietary_tags": [
+        "Thanh nhiệt",
+        "Ít béo",
+        "Gluten-Free"
+      ],
+      "ingredients": [
+        "Ngó sen",
+        "Tôm sú",
+        "Tai heo",
+        "Cà rốt",
+        "Đậu phộng",
+        "Rau răm"
+      ],
+      "allergens": [
+        "Hải sản",
+        "Đậu phộng"
+      ],
+      "spice_level": 1,
+      "calories": 240,
+      "ai_description": "Hòa quyện vị chua thanh, cay nhẹ, ngó sen giữ độ giòn tự nhiên và mùi thơm nồng nàn của rau răm.",
+      "is_trending": false,
+      "category": {
+        "name": "Khai vị (Starters)"
+      }
+    },
+    {
+      "id": "90013471-7188-41f2-89ec-c680322aa458",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Hủ Tiếu Nam Vang Sườn Tôm Cật",
+      "description": "Hủ tiếu dai mướt trần nước sôi, nước lèo ninh tôm khô mực khô trong vắt ngọt lịm, kèm sườn heo, tôm tươi, cật heo và thịt băm.",
+      "price": 65000,
+      "image_url": "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:59.644806+00:00",
+      "updated_at": "2026-09-15T15:04:59.644806+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 10,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Hủ Tiếu Nam Vang Sườn Tôm Cật]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 510 kcal\n• Thành phần nguyên liệu: Sợi hủ tiếu dai Sa Đéc, Sườn non heo, Tôm sú, Cật heo thái khía, Mực khô, Tỏi phi thơm\n• Cảnh báo dị ứng: Hải sản\n• Nhãn chế độ ăn: Thanh ngọt, Món truyền thống\n• Mô tả hương vị: Hủ tiếu dai mướt trần nước sôi, nước lèo ninh tôm khô mực khô trong vắt ngọt lịm, kèm sườn heo, tôm tươi, cật heo và thịt băm. Nước dùng trong veo ngọt hậu từ tôm mực sấy, thoang thoảng mùi tỏi phi giòn tan béo ngậy khó cưỡng.",
+      "dietary_tags": [
+        "Thanh ngọt",
+        "Món truyền thống"
+      ],
+      "ingredients": [
+        "Sợi hủ tiếu dai Sa Đéc",
+        "Sườn non heo",
+        "Tôm sú",
+        "Cật heo thái khía",
+        "Mực khô",
+        "Tỏi phi thơm"
+      ],
+      "allergens": [
+        "Hải sản"
+      ],
+      "spice_level": 0,
+      "calories": 510,
+      "ai_description": "Nước dùng trong veo ngọt hậu từ tôm mực sấy, thoang thoảng mùi tỏi phi giòn tan béo ngậy khó cưỡng.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
     },
     {
       "id": "81c19cb2-5f00-4126-bb37-627a47b7617e",
       "category_id": "590e0b3c-ff7f-49e3-bbe9-dabe2cb9531e",
       "name": "Kem Trái Dừa",
       "description": "Kem dừa mát lạnh phục vụ trong trái dừa tươi.",
-      "price": 45000.0,
+      "price": 45000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547501501-37483458.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -232,20 +1594,115 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Kem Trái Dừa]\n• Phân loại: Khác\n• Giá bán: 45,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Kem dừa mát lạnh phục vụ trong trái dừa tươi.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Kem Trái Dừa]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 45.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Kem dừa mát lạnh phục vụ trong trái dừa tươi.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Tráng miệng (Desserts)"
+      }
+    },
+    {
+      "id": "cf3de649-2a77-4d04-8262-0114ef5edd89",
+      "category_id": "590e0b3c-ff7f-49e3-bbe9-dabe2cb9531e",
+      "name": "Kem Xôi Dừa Thái Lan Thơm Bùi",
+      "description": "Viên kem dừa non mát lạnh phục vụ trong gáo dừa tươi, lót xôi nếp lá dứa dẻo thơm, rắc dừa nạo và đậu phộng rang giòn.",
+      "price": 49000,
+      "image_url": "https://images.unsplash.com/photo-1501443762994-82bd5dace89a?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:06.09911+00:00",
+      "updated_at": "2026-09-15T15:05:06.09911+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1501443762994-82bd5dace89a?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 6,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Kem Xôi Dừa Thái Lan Thơm Bùi]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 49.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 320 kcal\n• Thành phần nguyên liệu: Kem dừa nguyên chất, Gạo nếp nương lá dứa, Cơm dừa non thái sợi, Đậu phộng rang, Bắp hạt\n• Cảnh báo dị ứng: Đậu phộng, Sữa\n• Nhãn chế độ ăn: Đặc sản, Ngọt ngào\n• Mô tả hương vị: Viên kem dừa non mát lạnh phục vụ trong gáo dừa tươi, lót xôi nếp lá dứa dẻo thơm, rắc dừa nạo và đậu phộng rang giòn. Sự hòa quyện tuyệt đỉnh giữa cái mát lạnh tê lưỡi của kem dừa và độ dẻo ấm mềm của xôi nếp thơm mùi lá dứa.",
+      "dietary_tags": [
+        "Đặc sản",
+        "Ngọt ngào"
+      ],
+      "ingredients": [
+        "Kem dừa nguyên chất",
+        "Gạo nếp nương lá dứa",
+        "Cơm dừa non thái sợi",
+        "Đậu phộng rang",
+        "Bắp hạt"
+      ],
+      "allergens": [
+        "Đậu phộng",
+        "Sữa"
+      ],
+      "spice_level": 0,
+      "calories": 320,
+      "ai_description": "Sự hòa quyện tuyệt đỉnh giữa cái mát lạnh tê lưỡi của kem dừa và độ dẻo ấm mềm của xôi nếp thơm mùi lá dứa.",
+      "is_trending": false,
+      "category": {
+        "name": "Tráng miệng (Desserts)"
+      }
+    },
+    {
+      "id": "349d713e-9a2b-425d-af48-3b894bb7236d",
+      "category_id": "47401834-aaaa-40e5-a66b-6f402f91cc5c",
+      "name": "Khoai Tây Múi Cau Phô Mai Truffle",
+      "description": "Khoai tây Mỹ cắt múi cau chiên vàng ruộm, lắc phô mai Parmesan và thoảng dầu nấm Truffle đen quý tộc.",
+      "price": 55000,
+      "image_url": "https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:55.704783+00:00",
+      "updated_at": "2026-09-15T15:04:55.704783+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1576107232684-1279f3908594?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 10,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Khoai Tây Múi Cau Phô Mai Truffle]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 55.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 340 kcal\n• Thành phần nguyên liệu: Khoai tây Mỹ, Bột phô mai Parmesan, Dầu nấm Truffle đen, Muối hồng Himalaya\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Ăn vặt, Vegetarian\n• Mô tả hương vị: Khoai tây Mỹ cắt múi cau chiên vàng ruộm, lắc phô mai Parmesan và thoảng dầu nấm Truffle đen quý tộc. Lớp vỏ giòn xốp bên ngoài, ruột khoai bở bùi, dậy mùi thơm sang trọng quyến rũ của nấm Truffle.",
+      "dietary_tags": [
+        "Ăn vặt",
+        "Vegetarian"
+      ],
+      "ingredients": [
+        "Khoai tây Mỹ",
+        "Bột phô mai Parmesan",
+        "Dầu nấm Truffle đen",
+        "Muối hồng Himalaya"
+      ],
+      "allergens": [
+        "Sữa"
+      ],
+      "spice_level": 0,
+      "calories": 340,
+      "ai_description": "Lớp vỏ giòn xốp bên ngoài, ruột khoai bở bùi, dậy mùi thơm sang trọng quyến rũ của nấm Truffle.",
+      "is_trending": false,
+      "category": {
+        "name": "Khai vị (Starters)"
+      }
     },
     {
       "id": "d6a20433-fe6a-44ee-a8a3-0fb55b4e800f",
       "category_id": "2cefb265-4c0b-4482-b609-cdf7e27c132a",
       "name": "Lẩu Thả Phan Thiết",
       "description": "Lẩu đặc sản với nhiều loại nguyên liệu bày trí đẹp mắt.",
-      "price": 350000.0,
+      "price": 350000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547567138-53646889.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -255,20 +1712,123 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Lẩu Thả Phan Thiết]\n• Phân loại: Khác\n• Giá bán: 350,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Lẩu đặc sản với nhiều loại nguyên liệu bày trí đẹp mắt.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Lẩu Thả Phan Thiết]\n• Phân loại: Đặc biệt (Special)\n• Giá bán: 350.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Lẩu đặc sản với nhiều loại nguyên liệu bày trí đẹp mắt.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Đặc biệt (Special)"
+      }
+    },
+    {
+      "id": "5845a2d5-1d56-4bad-af11-2b822b15a001",
+      "category_id": "2cefb265-4c0b-4482-b609-cdf7e27c132a",
+      "name": "Lẩu Thả Phan Thiết Cung Đình",
+      "description": "Mâm tiệc hải sản bày trên cánh hoa chuối đỏ rực: cá mai tươi chần tái mè, thịt ba chỉ luộc, trứng chiên sợi, bánh tráng nướng và nước lèo tôm thịt đậm đà.",
+      "price": 365000,
+      "image_url": "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:06.818733+00:00",
+      "updated_at": "2026-09-15T15:05:06.818733+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1559339352-11d035aa65de?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 25,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Lẩu Thả Phan Thiết Cung Đình (Món thịnh hành ⭐)]\n• Phân loại: Đặc biệt (Special)\n• Giá bán: 365.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 850 kcal\n• Thành phần nguyên liệu: Cá mai phi lê, Thịt ba chỉ luộc, Trứng gà sợi, Hoa chuối đỏ, Nước hầm tôm tươi, Đậu phộng rang, Bánh tráng nướng\n• Cảnh báo dị ứng: Hải sản, Đậu phộng, Trứng\n• Nhãn chế độ ăn: Món tiệc cao cấp, Món ăn gia đình, Đặc sản biển\n• Mô tả hương vị: Mâm tiệc hải sản bày trên cánh hoa chuối đỏ rực: cá mai tươi chần tái mè, thịt ba chỉ luộc, trứng chiên sợi, bánh tráng nướng và nước lèo tôm thịt đậm đà. Một bản hòa tấu màu sắc và hương vị tinh hoa biển cả Phan Thiết, chan nước lèo nóng hổi dậy mùi đậu phộng thơm béo.",
+      "dietary_tags": [
+        "Món tiệc cao cấp",
+        "Món ăn gia đình",
+        "Đặc sản biển"
+      ],
+      "ingredients": [
+        "Cá mai phi lê",
+        "Thịt ba chỉ luộc",
+        "Trứng gà sợi",
+        "Hoa chuối đỏ",
+        "Nước hầm tôm tươi",
+        "Đậu phộng rang",
+        "Bánh tráng nướng"
+      ],
+      "allergens": [
+        "Hải sản",
+        "Đậu phộng",
+        "Trứng"
+      ],
+      "spice_level": 1,
+      "calories": 850,
+      "ai_description": "Một bản hòa tấu màu sắc và hương vị tinh hoa biển cả Phan Thiết, chan nước lèo nóng hổi dậy mùi đậu phộng thơm béo.",
+      "is_trending": true,
+      "category": {
+        "name": "Đặc biệt (Special)"
+      }
+    },
+    {
+      "id": "01672a8c-d84d-4a06-bc88-b4cb372a02b0",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Lẩu Thái Hải Sản Tom Yum Chua Cay",
+      "description": "Nước lẩu Tom Yum đậm vị cốt dừa, lá chanh Kaffir, riềng non và sả cây, ngập tràn tôm sú, mực nang, ngao và nấm đùi gà.",
+      "price": 185000,
+      "image_url": "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:58.362151+00:00",
+      "updated_at": "2026-09-15T15:04:58.362151+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 20,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Lẩu Thái Hải Sản Tom Yum Chua Cay (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 185.000 VND\n• Độ cay: 3/5\n• Lượng Calo: 580 kcal\n• Thành phần nguyên liệu: Tôm sú, Mực nang, Ngao tươi, Nước cốt dừa, Lá chanh Thái, Nấm rơm, Sả ớt riềng\n• Cảnh báo dị ứng: Hải sản\n• Nhãn chế độ ăn: Cay nồng, Món ăn gia đình, Gluten-Free\n• Mô tả hương vị: Nước lẩu Tom Yum đậm vị cốt dừa, lá chanh Kaffir, riềng non và sả cây, ngập tràn tôm sú, mực nang, ngao và nấm đùi gà. Sự bùng nổ của vị chua thanh chanh Thái, vị béo thơm cốt dừa và hậu vị cay ấm nồng, cực kỳ kích thích vị giác.",
+      "dietary_tags": [
+        "Cay nồng",
+        "Món ăn gia đình",
+        "Gluten-Free"
+      ],
+      "ingredients": [
+        "Tôm sú",
+        "Mực nang",
+        "Ngao tươi",
+        "Nước cốt dừa",
+        "Lá chanh Thái",
+        "Nấm rơm",
+        "Sả ớt riềng"
+      ],
+      "allergens": [
+        "Hải sản"
+      ],
+      "spice_level": 3,
+      "calories": 580,
+      "ai_description": "Sự bùng nổ của vị chua thanh chanh Thái, vị béo thơm cốt dừa và hậu vị cay ấm nồng, cực kỳ kích thích vị giác.",
+      "is_trending": true,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
     },
     {
       "id": "0e90e122-9c83-4751-a406-25bd6c6b78cc",
       "category_id": "0d299b82-6329-4db1-922a-f41339661249",
       "name": "Mì Quảng Tôm Thịt",
       "description": "Mì Quảng sợi vàng, tôm tươi, thịt heo rim.",
-      "price": 65000.0,
+      "price": 65000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547577012-120150936.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -278,20 +1838,296 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Mì Quảng Tôm Thịt]\n• Phân loại: Khác\n• Giá bán: 65,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Mì Quảng sợi vàng, tôm tươi, thịt heo rim.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Mì Quảng Tôm Thịt]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Mì Quảng sợi vàng, tôm tươi, thịt heo rim.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "7459fcf7-a4ab-4587-b985-87a795d713f8",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Mì Quảng Tôm Thịt Xứ Quảng",
+      "description": "Sợi mì nghệ vàng óng, tôm sông rim mặn ngọt, thịt ba rọi ngấm vị, nước nhưn xâm xấp thơm dầu phụng và bánh tráng mè.",
+      "price": 65000,
+      "image_url": "https://images.unsplash.com/photo-1594041680534-e8c8cdebd659?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:57.632198+00:00",
+      "updated_at": "2026-09-15T15:04:57.632198+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1594041680534-e8c8cdebd659?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 12,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Mì Quảng Tôm Thịt Xứ Quảng]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 520 kcal\n• Thành phần nguyên liệu: Mì Quảng sợi vàng, Tôm sông, Thịt heo rim, Đậu phộng rang, Bánh tráng nướng mè, Rau búp chuối\n• Cảnh báo dị ứng: Hải sản, Đậu phộng, Gluten\n• Nhãn chế độ ăn: Món truyền thống, Đậm vị miền Trung\n• Mô tả hương vị: Sợi mì nghệ vàng óng, tôm sông rim mặn ngọt, thịt ba rọi ngấm vị, nước nhưn xâm xấp thơm dầu phụng và bánh tráng mè. Nước nhưn sánh đậm chan vừa chạm mặt mì, cắn miếng bánh tráng giòn tan cùng búp chuối thái mỏng tạo cảm giác cuốn hút.",
+      "dietary_tags": [
+        "Món truyền thống",
+        "Đậm vị miền Trung"
+      ],
+      "ingredients": [
+        "Mì Quảng sợi vàng",
+        "Tôm sông",
+        "Thịt heo rim",
+        "Đậu phộng rang",
+        "Bánh tráng nướng mè",
+        "Rau búp chuối"
+      ],
+      "allergens": [
+        "Hải sản",
+        "Đậu phộng",
+        "Gluten"
+      ],
+      "spice_level": 1,
+      "calories": 520,
+      "ai_description": "Nước nhưn sánh đậm chan vừa chạm mặt mì, cắn miếng bánh tráng giòn tan cùng búp chuối thái mỏng tạo cảm giác cuốn hút.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "bfaff104-fcce-47e7-86ff-8d0dfc95d235",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Mì Ý Sốt Bò Băm Bolognese Truyền Thống",
+      "description": "Sợi mì Spaghetti chuẩn Al Dente nấu cùng sốt cà chua thịt bò băm hầm kỹ với lá nguyệt quế và rắc phô mai Parmesan.",
+      "price": 85000,
+      "image_url": "https://images.unsplash.com/photo-1621996346565-e3d5d6281691?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:59.101949+00:00",
+      "updated_at": "2026-09-15T15:04:59.101949+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1621996346565-e3d5d6281691?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 12,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Mì Ý Sốt Bò Băm Bolognese Truyền Thống]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 85.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 540 kcal\n• Thành phần nguyên liệu: Mì Ý Spaghetti Semolina, Thịt bò băm nhuyễn, Cà chua San Marzano, Phô mai Parmesan, Lá Oregano, Húng tây\n• Cảnh báo dị ứng: Gluten, Sữa\n• Nhãn chế độ ăn: Món Âu, Thân thiện với trẻ nhỏ\n• Mô tả hương vị: Sợi mì Spaghetti chuẩn Al Dente nấu cùng sốt cà chua thịt bò băm hầm kỹ với lá nguyệt quế và rắc phô mai Parmesan. Vị chua ngọt dịu êm của cà chua Ý ninh nhừ hòa cùng thịt bò ngọt bùi, món ăn thân thiện yêu thích của mọi trẻ em.",
+      "dietary_tags": [
+        "Món Âu",
+        "Thân thiện với trẻ nhỏ"
+      ],
+      "ingredients": [
+        "Mì Ý Spaghetti Semolina",
+        "Thịt bò băm nhuyễn",
+        "Cà chua San Marzano",
+        "Phô mai Parmesan",
+        "Lá Oregano",
+        "Húng tây"
+      ],
+      "allergens": [
+        "Gluten",
+        "Sữa"
+      ],
+      "spice_level": 0,
+      "calories": 540,
+      "ai_description": "Vị chua ngọt dịu êm của cà chua Ý ninh nhừ hòa cùng thịt bò ngọt bùi, món ăn thân thiện yêu thích của mọi trẻ em.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "418befa1-30e4-4311-a1df-a6f6589ad600",
+      "category_id": "33d14592-31f3-477d-b818-55dd4e277462",
+      "name": "Nấm Bào Ngư Hấp Gừng Sả Dầu Mè",
+      "description": "Nấm bào ngư trắng tươi dai ngọt hấp cách thủy với gừng non đập dập, sả cây và vài giọt dầu mè thơm ngát.",
+      "price": 59000,
+      "image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:02.227503+00:00",
+      "updated_at": "2026-09-15T15:05:02.227503+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 10,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Nấm Bào Ngư Hấp Gừng Sả Dầu Mè]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 59.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 180 kcal\n• Thành phần nguyên liệu: Nấm bào ngư tươi, Gừng non, Sả cây, Dầu mè đen, Ớt sừng\n• Cảnh báo dị ứng: Mè\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Ấm bụng, Thanh đạm\n• Mô tả hương vị: Nấm bào ngư trắng tươi dai ngọt hấp cách thủy với gừng non đập dập, sả cây và vài giọt dầu mè thơm ngát. Thịt nấm giữ nguyên độ mọng nước tự nhiên, vị the ấm nhẹ của gừng giải cảm và làm ấm cơ thể rất tốt.",
+      "dietary_tags": [
+        "Vegan",
+        "Vegetarian",
+        "Gluten-Free",
+        "Ấm bụng",
+        "Thanh đạm"
+      ],
+      "ingredients": [
+        "Nấm bào ngư tươi",
+        "Gừng non",
+        "Sả cây",
+        "Dầu mè đen",
+        "Ớt sừng"
+      ],
+      "allergens": [
+        "Mè"
+      ],
+      "spice_level": 1,
+      "calories": 180,
+      "ai_description": "Thịt nấm giữ nguyên độ mọng nước tự nhiên, vị the ấm nhẹ của gừng giải cảm và làm ấm cơ thể rất tốt.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chay & Healthy (Vegetarian)"
+      }
+    },
+    {
+      "id": "81299adc-9bed-4a95-b0a0-01f7160c74d7",
+      "category_id": "33d14592-31f3-477d-b818-55dd4e277462",
+      "name": "Nem Chay Rong Biển Chiên Xù",
+      "description": "Lá rong biển cuộn nấm tuyết, đậu xanh đồ chín, cà rốt và khoai môn, lăn bột chiên xù vàng rụm.",
+      "price": 58000,
+      "image_url": "https://images.unsplash.com/photo-1606471191009-63994c53433b?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:01.745845+00:00",
+      "updated_at": "2026-09-15T15:05:01.745845+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1606471191009-63994c53433b?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 12,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Nem Chay Rong Biển Chiên Xù]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 58.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 320 kcal\n• Thành phần nguyên liệu: Lá rong biển Gim, Đậu xanh, Khoai môn, Nấm mèo, Bột chiên xù\n• Cảnh báo dị ứng: Gluten\n• Nhãn chế độ ăn: Vegan, Vegetarian, Giòn tan\n• Mô tả hương vị: Lá rong biển cuộn nấm tuyết, đậu xanh đồ chín, cà rốt và khoai môn, lăn bột chiên xù vàng rụm. Hương thơm đặc trưng của rong biển nướng quyện cùng vị bùi béo ngọt của khoai môn và nhân đậu xanh mịn.",
+      "dietary_tags": [
+        "Vegan",
+        "Vegetarian",
+        "Giòn tan"
+      ],
+      "ingredients": [
+        "Lá rong biển Gim",
+        "Đậu xanh",
+        "Khoai môn",
+        "Nấm mèo",
+        "Bột chiên xù"
+      ],
+      "allergens": [
+        "Gluten"
+      ],
+      "spice_level": 0,
+      "calories": 320,
+      "ai_description": "Hương thơm đặc trưng của rong biển nướng quyện cùng vị bùi béo ngọt của khoai môn và nhân đậu xanh mịn.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chay & Healthy (Vegetarian)"
+      }
+    },
+    {
+      "id": "f0fecf3a-584e-43ad-a7c9-0c52a385a096",
+      "category_id": "47401834-aaaa-40e5-a66b-6f402f91cc5c",
+      "name": "Nem Lụi Nướng Than Hoa Phố Cổ",
+      "description": "Thịt heo quết dẻo nướng than hồng quanh củ sả thơm lừng, ăn kèm bánh hỏi lá dứa và chuối chát.",
+      "price": 65000,
+      "image_url": "https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:56.183636+00:00",
+      "updated_at": "2026-09-15T15:04:56.183636+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 15,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Nem Lụi Nướng Than Hoa Phố Cổ]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 65.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 380 kcal\n• Thành phần nguyên liệu: Thịt nạc heo quết nhuyễn, Củ sả, Bánh hỏi, Khế chua, Chuối chát\n• Cảnh báo dị ứng: Đậu phộng\n• Nhãn chế độ ăn: High-Protein, Đậm đà\n• Mô tả hương vị: Thịt heo quết dẻo nướng than hồng quanh củ sả thơm lừng, ăn kèm bánh hỏi lá dứa và chuối chát. Mùi khói nướng than hoa quyện sả tươi, chấm sốt tương gan đậu phộng gia truyền thơm bùi ngây ngất.",
+      "dietary_tags": [
+        "High-Protein",
+        "Đậm đà"
+      ],
+      "ingredients": [
+        "Thịt nạc heo quết nhuyễn",
+        "Củ sả",
+        "Bánh hỏi",
+        "Khế chua",
+        "Chuối chát"
+      ],
+      "allergens": [
+        "Đậu phộng"
+      ],
+      "spice_level": 1,
+      "calories": 380,
+      "ai_description": "Mùi khói nướng than hoa quyện sả tươi, chấm sốt tương gan đậu phộng gia truyền thơm bùi ngây ngất.",
+      "is_trending": false,
+      "category": {
+        "name": "Khai vị (Starters)"
+      }
+    },
+    {
+      "id": "86d8b31b-b059-40c7-8475-ba727cc5ce7e",
+      "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
+      "name": "Nước Ép Cần Tây Táo Xanh Dứa Detox",
+      "description": "Cần tây Đà Lạt tươi ép lạnh nguyên chất cùng táo xanh giòn chua và dứa mật thơm, không thêm đường phụ gia.",
+      "price": 49000,
+      "image_url": "https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:03.889819+00:00",
+      "updated_at": "2026-09-15T15:05:03.889819+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1613478223719-2ab802602423?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 6,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Nước Ép Cần Tây Táo Xanh Dứa Detox (Món thịnh hành ⭐)]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 49.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 110 kcal\n• Thành phần nguyên liệu: Cần tây hữu cơ Đà Lạt, Táo xanh Granny Smith, Dứa mật chín cây\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Keto, Vegan, Gluten-Free, Detox, Không đường, Low-Calo\n• Mô tả hương vị: Cần tây Đà Lạt tươi ép lạnh nguyên chất cùng táo xanh giòn chua và dứa mật thơm, không thêm đường phụ gia. Công thức detox lý tưởng giúp thanh lọc mỡ thừa, vị ngọt dịu của táo và dứa khử hoàn toàn mùi hăng của cần tây, cực kỳ dễ uống.",
+      "dietary_tags": [
+        "Keto",
+        "Vegan",
+        "Gluten-Free",
+        "Detox",
+        "Không đường",
+        "Low-Calo"
+      ],
+      "ingredients": [
+        "Cần tây hữu cơ Đà Lạt",
+        "Táo xanh Granny Smith",
+        "Dứa mật chín cây"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 110,
+      "ai_description": "Công thức detox lý tưởng giúp thanh lọc mỡ thừa, vị ngọt dịu của táo và dứa khử hoàn toàn mùi hăng của cần tây, cực kỳ dễ uống.",
+      "is_trending": true,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
     },
     {
       "id": "7d24f3cd-733f-41f7-be94-9a048edaa566",
       "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
       "name": "Nước Ép Dưa Hấu",
       "description": "Dưa hấu tươi ép nguyên chất.",
-      "price": 40000.0,
+      "price": 40000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547624035-364874399.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -301,20 +2137,113 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Nước Ép Dưa Hấu]\n• Phân loại: Khác\n• Giá bán: 40,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Dưa hấu tươi ép nguyên chất.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Nước Ép Dưa Hấu]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 40.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Dưa hấu tươi ép nguyên chất.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
+    },
+    {
+      "id": "a1733861-153d-4779-85cb-5132a9085418",
+      "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
+      "name": "Nước Ép Dưa Hấu Bạc Hà Tươi",
+      "description": "Dưa hấu Long An chín đỏ mọng ép tươi nguyên chất 100%, dầm nhẹ vài lá bạc hà tươi sảng khoái.",
+      "price": 40000,
+      "image_url": "https://images.unsplash.com/photo-1589733955941-5eeaf752f6dd?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:04.127294+00:00",
+      "updated_at": "2026-09-15T15:05:04.127294+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1589733955941-5eeaf752f6dd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 5,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Nước Ép Dưa Hấu Bạc Hà Tươi]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 40.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 95 kcal\n• Thành phần nguyên liệu: Dưa hấu không hạt ruột đỏ, Lá bạc hà tươi\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Vegan, Gluten-Free, Low-Calo, Giải nhiệt\n• Mô tả hương vị: Dưa hấu Long An chín đỏ mọng ép tươi nguyên chất 100%, dầm nhẹ vài lá bạc hà tươi sảng khoái. Vị ngọt mát tự nhiên của dưa hấu kết hợp cảm giác the mát bất tận của lá bạc hà, giải khát cực đỉnh.",
+      "dietary_tags": [
+        "Vegan",
+        "Gluten-Free",
+        "Low-Calo",
+        "Giải nhiệt"
+      ],
+      "ingredients": [
+        "Dưa hấu không hạt ruột đỏ",
+        "Lá bạc hà tươi"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 95,
+      "ai_description": "Vị ngọt mát tự nhiên của dưa hấu kết hợp cảm giác the mát bất tận của lá bạc hà, giải khát cực đỉnh.",
+      "is_trending": false,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
+    },
+    {
+      "id": "0769e550-ecd6-407f-a031-5a5f27519188",
+      "category_id": "590e0b3c-ff7f-49e3-bbe9-dabe2cb9531e",
+      "name": "Panna Cotta Dâu Tây Đà Lạt Mềm Tan",
+      "description": "Kem sữa nấu vani Madagascar núng nính mềm mịn tan ngay trên đầu lưỡi, phủ sốt dâu tây tươi chua ngọt rạng rỡ.",
+      "price": 45000,
+      "image_url": "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:05.374994+00:00",
+      "updated_at": "2026-09-15T15:05:05.374994+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1488477181946-6428a0291777?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 5,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Panna Cotta Dâu Tây Đà Lạt Mềm Tan (Món thịnh hành ⭐)]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 45.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 210 kcal\n• Thành phần nguyên liệu: Kem whipping cream Anchor, Sữa tươi, Dâu tây Đà Lạt tươi, Vani Madagascar, Gelatin\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Món Âu, Ngọt thanh, Tráng miệng\n• Mô tả hương vị: Kem sữa nấu vani Madagascar núng nính mềm mịn tan ngay trên đầu lưỡi, phủ sốt dâu tây tươi chua ngọt rạng rỡ. Kết cấu núng nính mượt mà, vị béo ngậy của kem sữa hòa hảo hoàn hảo với vị chua thanh rực rỡ của dâu tây tươi.",
+      "dietary_tags": [
+        "Món Âu",
+        "Ngọt thanh",
+        "Tráng miệng"
+      ],
+      "ingredients": [
+        "Kem whipping cream Anchor",
+        "Sữa tươi",
+        "Dâu tây Đà Lạt tươi",
+        "Vani Madagascar",
+        "Gelatin"
+      ],
+      "allergens": [
+        "Sữa"
+      ],
+      "spice_level": 0,
+      "calories": 210,
+      "ai_description": "Kết cấu núng nính mượt mà, vị béo ngậy của kem sữa hòa hảo hoàn hảo với vị chua thanh rực rỡ của dâu tây tươi.",
+      "is_trending": true,
+      "category": {
+        "name": "Tráng miệng (Desserts)"
+      }
     },
     {
       "id": "138bcf9e-27a8-410f-a9ca-d2d4969ba38a",
       "category_id": "0d299b82-6329-4db1-922a-f41339661249",
       "name": "Phở Bò Tái Nạm",
       "description": "Phở bò truyền thống với thịt bò tái và nạm.",
-      "price": 75000.0,
+      "price": 75000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547704085-4554093.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -325,20 +2254,249 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Phở Bò Tái Nạm]\n• Phân loại: Khác\n• Giá bán: 75,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Phở bò truyền thống với thịt bò tái và nạm.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Phở Bò Tái Nạm]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 75.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Phở bò truyền thống với thịt bò tái và nạm.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "72888c00-0928-45af-a328-a3452138e5d8",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Phở Bò Tái Nạm Đặc Biệt Hà Nội",
+      "description": "Nước dùng ninh từ xương bò tủy suốt 18 tiếng, bánh phở mềm mượt, bắp bò hoa tái giòn và nạm bò chín mềm.",
+      "price": 79000,
+      "image_url": "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:56.664989+00:00",
+      "updated_at": "2026-09-15T15:04:56.664989+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 8,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Phở Bò Tái Nạm Đặc Biệt Hà Nội (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 79.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 490 kcal\n• Thành phần nguyên liệu: Bánh phở tươi, Bắp bò hoa, Nạm bò, Nước hầm xương ống bò, Gừng nướng, Hoa hồi, Quế chi\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Gluten-Free, Món truyền thống, High-Protein, Ấm bụng\n• Mô tả hương vị: Nước dùng ninh từ xương bò tủy suốt 18 tiếng, bánh phở mềm mượt, bắp bò hoa tái giòn và nạm bò chín mềm. Nước lèo trong vắt nhưng vị ngọt sâu thấu từ xương tủy bò thảo mộc, thơm nức mùi hoa hồi và quế thanh lịch.",
+      "dietary_tags": [
+        "Gluten-Free",
+        "Món truyền thống",
+        "High-Protein",
+        "Ấm bụng"
+      ],
+      "ingredients": [
+        "Bánh phở tươi",
+        "Bắp bò hoa",
+        "Nạm bò",
+        "Nước hầm xương ống bò",
+        "Gừng nướng",
+        "Hoa hồi",
+        "Quế chi"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 490,
+      "ai_description": "Nước lèo trong vắt nhưng vị ngọt sâu thấu từ xương tủy bò thảo mộc, thơm nức mùi hoa hồi và quế thanh lịch.",
+      "is_trending": true,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "4b1d3e86-4e4b-41ac-afe3-f9e20d490c99",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Phở Gà Ta Lá Chanh Nước Dùng Thanh",
+      "description": "Gà ta thả vườn thịt chắc da giòn vàng ươm, nước phở thanh ngọt thanh lịch, thoảng mùi lá chanh tươi thái chỉ.",
+      "price": 65000,
+      "image_url": "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:00.581143+00:00",
+      "updated_at": "2026-09-15T15:05:00.581143+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1582878826629-29b7ad1cdc43?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 8,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Phở Gà Ta Lá Chanh Nước Dùng Thanh]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 430 kcal\n• Thành phần nguyên liệu: Bánh phở tươi, Thịt gà ta luộc, Lá chanh non, Nước dùng gà hầm gừng nướng\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Gluten-Free, Thanh đạm, Low-Fat, Dễ tiêu hóa\n• Mô tả hương vị: Gà ta thả vườn thịt chắc da giòn vàng ươm, nước phở thanh ngọt thanh lịch, thoảng mùi lá chanh tươi thái chỉ. Lựa chọn nhẹ nhàng êm bụng, nước dùng trong vắt thanh khiết, thịt gà ta dai ngọt tự nhiên thơm ngát tinh dầu lá chanh.",
+      "dietary_tags": [
+        "Gluten-Free",
+        "Thanh đạm",
+        "Low-Fat",
+        "Dễ tiêu hóa"
+      ],
+      "ingredients": [
+        "Bánh phở tươi",
+        "Thịt gà ta luộc",
+        "Lá chanh non",
+        "Nước dùng gà hầm gừng nướng"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 430,
+      "ai_description": "Lựa chọn nhẹ nhàng êm bụng, nước dùng trong vắt thanh khiết, thịt gà ta dai ngọt tự nhiên thơm ngát tinh dầu lá chanh.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
+    },
+    {
+      "id": "410de5bd-5970-4584-b58d-01f9befaf2a8",
+      "category_id": "47401834-aaaa-40e5-a66b-6f402f91cc5c",
+      "name": "Salad Bơ Hạt Quinoa Sốt Chanh Dây",
+      "description": "Bơ sáp Đắk Lắk béo ngậy, hạt diêm mạch Quinoa giàu khoáng, xà lách lolo, dâu tây và sốt chanh leo tươi.",
+      "price": 72000,
+      "image_url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:56.422439+00:00",
+      "updated_at": "2026-09-15T15:04:56.422439+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 8,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Salad Bơ Hạt Quinoa Sốt Chanh Dây]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 72.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 230 kcal\n• Thành phần nguyên liệu: Bơ sáp, Hạt Quinoa, Xà lách Romaine, Dâu tây, Chanh dây\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Healthy, Superfood\n• Mô tả hương vị: Bơ sáp Đắk Lắk béo ngậy, hạt diêm mạch Quinoa giàu khoáng, xà lách lolo, dâu tây và sốt chanh leo tươi. Món khai vị thuần chay sang trọng, vị chua ngọt từ chanh dây đánh thức vị giác hoàn toàn tự nhiên.",
+      "dietary_tags": [
+        "Vegan",
+        "Vegetarian",
+        "Gluten-Free",
+        "Healthy",
+        "Superfood"
+      ],
+      "ingredients": [
+        "Bơ sáp",
+        "Hạt Quinoa",
+        "Xà lách Romaine",
+        "Dâu tây",
+        "Chanh dây"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 230,
+      "ai_description": "Món khai vị thuần chay sang trọng, vị chua ngọt từ chanh dây đánh thức vị giác hoàn toàn tự nhiên.",
+      "is_trending": false,
+      "category": {
+        "name": "Khai vị (Starters)"
+      }
+    },
+    {
+      "id": "76d038f9-c4c4-43ee-bcc4-cce4211b0f3e",
+      "category_id": "33d14592-31f3-477d-b818-55dd4e277462",
+      "name": "Salad Rau Củ Nhiệt Đới Sốt Chanh Dây",
+      "description": "Bông cải xanh, cà chua bi, dưa chuột baby, ngô ngọt và ớt chuông trộn sốt chanh leo tươi chua thanh dịu mát.",
+      "price": 52000,
+      "image_url": "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:01.980553+00:00",
+      "updated_at": "2026-09-15T15:05:01.980553+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 8,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Salad Rau Củ Nhiệt Đới Sốt Chanh Dây]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 52.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 160 kcal\n• Thành phần nguyên liệu: Bông cải xanh, Cà chua bi, Dưa chuột baby, Ngô ngọt hữu cơ, Sốt chanh dây\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Low-Calo, Detox\n• Mô tả hương vị: Bông cải xanh, cà chua bi, dưa chuột baby, ngô ngọt và ớt chuông trộn sốt chanh leo tươi chua thanh dịu mát. Đĩa salad đầy màu sắc cầu vồng giòn tươi sần sật, ít calo, bổ sung vitamin tươi dồi dào cho làn da và cơ thể.",
+      "dietary_tags": [
+        "Vegan",
+        "Vegetarian",
+        "Gluten-Free",
+        "Low-Calo",
+        "Detox"
+      ],
+      "ingredients": [
+        "Bông cải xanh",
+        "Cà chua bi",
+        "Dưa chuột baby",
+        "Ngô ngọt hữu cơ",
+        "Sốt chanh dây"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 160,
+      "ai_description": "Đĩa salad đầy màu sắc cầu vồng giòn tươi sần sật, ít calo, bổ sung vitamin tươi dồi dào cho làn da và cơ thể.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chay & Healthy (Vegetarian)"
+      }
+    },
+    {
+      "id": "d74d2920-599e-41d6-a68f-2e29a409fc88",
+      "category_id": "47401834-aaaa-40e5-a66b-6f402f91cc5c",
+      "name": "Salad Ức Gà Sốt Mè Rang (Healthy)",
+      "description": "Ức gà xé áp chảo mềm mọng, xà lách Frisee, cà chua bi, dưa leo Nhật và sốt mè rang bùi thơm.",
+      "price": 65000,
+      "image_url": "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:55.453389+00:00",
+      "updated_at": "2026-09-15T15:04:55.453389+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 10,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Salad Ức Gà Sốt Mè Rang (Healthy) (Món thịnh hành ⭐)]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 275 kcal\n• Thành phần nguyên liệu: Ức gà thảo mộc, Xà lách Frisee, Cà chua bi, Dưa leo Nhật, Sốt mè rang\n• Cảnh báo dị ứng: Mè\n• Nhãn chế độ ăn: Keto, High-Protein, Low-Carb, Healthy\n• Mô tả hương vị: Ức gà xé áp chảo mềm mọng, xà lách Frisee, cà chua bi, dưa leo Nhật và sốt mè rang bùi thơm. Món ăn hoàn hảo cho gymer hoặc thực khách theo đuổi chế độ eat-clean, tươi mát giàu chất xơ và protein tinh khiết.",
+      "dietary_tags": [
+        "Keto",
+        "High-Protein",
+        "Low-Carb",
+        "Healthy"
+      ],
+      "ingredients": [
+        "Ức gà thảo mộc",
+        "Xà lách Frisee",
+        "Cà chua bi",
+        "Dưa leo Nhật",
+        "Sốt mè rang"
+      ],
+      "allergens": [
+        "Mè"
+      ],
+      "spice_level": 0,
+      "calories": 275,
+      "ai_description": "Món ăn hoàn hảo cho gymer hoặc thực khách theo đuổi chế độ eat-clean, tươi mát giàu chất xơ và protein tinh khiết.",
+      "is_trending": true,
+      "category": {
+        "name": "Khai vị (Starters)"
+      }
     },
     {
       "id": "e4756152-208e-4eba-ab7a-4bccd587a7bd",
       "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
       "name": "Sinh Tố Bơ",
       "description": "Bơ sáp xay nhuyễn cùng sữa đặc và sữa tươi.",
-      "price": 55000.0,
+      "price": 55000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547711738-218101079.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -348,20 +2506,157 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Sinh Tố Bơ]\n• Phân loại: Khác\n• Giá bán: 55,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Bơ sáp xay nhuyễn cùng sữa đặc và sữa tươi.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Sinh Tố Bơ]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 55.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Bơ sáp xay nhuyễn cùng sữa đặc và sữa tươi.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
+    },
+    {
+      "id": "c7e0ffd8-107f-4c87-817e-3a647519afee",
+      "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
+      "name": "Sinh Tố Bơ Sáp Dừa Béo Ngậy",
+      "description": "Bơ sáp Đắk Lắk dẻo quánh xay nhuyễn cùng sữa chua, nước cốt dừa Bến Tre thơm béo và sữa đặc.",
+      "price": 55000,
+      "image_url": "https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:04.375539+00:00",
+      "updated_at": "2026-09-15T15:05:04.375539+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1553530666-ba11a7da3888?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 6,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Sinh Tố Bơ Sáp Dừa Béo Ngậy (Món thịnh hành ⭐)]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 55.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 330 kcal\n• Thành phần nguyên liệu: Bơ sáp Đắk Lắk, Nước cốt dừa tươi, Sữa tươi thanh trùng, Sữa đặc\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Béo ngậy, Giàu chất béo tốt\n• Mô tả hương vị: Bơ sáp Đắk Lắk dẻo quánh xay nhuyễn cùng sữa chua, nước cốt dừa Bến Tre thơm béo và sữa đặc. Chất sinh tố sánh đặc mịn như nhung, ngậy bùi vị bơ chín già và nức mùi dừa tươi, cung cấp nguồn chất béo lành mạnh.",
+      "dietary_tags": [
+        "Béo ngậy",
+        "Giàu chất béo tốt"
+      ],
+      "ingredients": [
+        "Bơ sáp Đắk Lắk",
+        "Nước cốt dừa tươi",
+        "Sữa tươi thanh trùng",
+        "Sữa đặc"
+      ],
+      "allergens": [
+        "Sữa"
+      ],
+      "spice_level": 0,
+      "calories": 330,
+      "ai_description": "Chất sinh tố sánh đặc mịn như nhung, ngậy bùi vị bơ chín già và nức mùi dừa tươi, cung cấp nguồn chất béo lành mạnh.",
+      "is_trending": true,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
+    },
+    {
+      "id": "92d7a310-aef3-4f5e-8b88-4a838fae5860",
+      "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
+      "name": "Sinh Tố Mãng Cầu Xiêm Chua Ngọt",
+      "description": "Mãng cầu xiêm tươi tách hạt dầm sữa xay đá tuyết xốp mịn, vị chua ngọt cân bằng kích thích tiêu hóa.",
+      "price": 50000,
+      "image_url": "https://images.unsplash.com/photo-1505252585461-04db1eb84625?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:04.629977+00:00",
+      "updated_at": "2026-09-15T15:05:04.629977+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1505252585461-04db1eb84625?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 6,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Sinh Tố Mãng Cầu Xiêm Chua Ngọt]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 50.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 220 kcal\n• Thành phần nguyên liệu: Mãng cầu xiêm tươi, Sữa đặc, Sữa chua không đường, Đá tuyết\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Chua ngọt, Giàu Vitamin C\n• Mô tả hương vị: Mãng cầu xiêm tươi tách hạt dầm sữa xay đá tuyết xốp mịn, vị chua ngọt cân bằng kích thích tiêu hóa. Hương thơm đặc trưng của trái mãng cầu, vị chua nhẹ thanh thoát hòa lẫn độ ngọt vừa phải xua tan cảm giác ngấy sau bữa ăn.",
+      "dietary_tags": [
+        "Chua ngọt",
+        "Giàu Vitamin C"
+      ],
+      "ingredients": [
+        "Mãng cầu xiêm tươi",
+        "Sữa đặc",
+        "Sữa chua không đường",
+        "Đá tuyết"
+      ],
+      "allergens": [
+        "Sữa"
+      ],
+      "spice_level": 0,
+      "calories": 220,
+      "ai_description": "Hương thơm đặc trưng của trái mãng cầu, vị chua nhẹ thanh thoát hòa lẫn độ ngọt vừa phải xua tan cảm giác ngấy sau bữa ăn.",
+      "is_trending": false,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
+    },
+    {
+      "id": "fb6e8d47-2384-4091-ba12-92cfd9c947de",
+      "category_id": "0d299b82-6329-4db1-922a-f41339661249",
+      "name": "Steak Thăn Lưng Bò Mỹ Sốt Tiêu Đen Phú Quốc",
+      "description": "Thăn lưng bò Mỹ Ribeye nướng tái vừa (Medium Rare), vân mỡ xen kẽ mọng nước, dùng kèm khoai tây nghiền và sốt tiêu đen.",
+      "price": 195000,
+      "image_url": "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:58.848059+00:00",
+      "updated_at": "2026-09-15T15:04:58.848059+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": true,
+      "images": [
+        "https://images.unsplash.com/photo-1558030006-450675393462?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 18,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Steak Thăn Lưng Bò Mỹ Sốt Tiêu Đen Phú Quốc]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 195.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 680 kcal\n• Thành phần nguyên liệu: Thăn lưng bò Black Angus Mỹ, Tiêu sọ Phú Quốc, Khoai tây nghiền, Rượu vang đỏ, Bơ tỏi thảo mộc\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: High-Protein, Keto, Món Âu cao cấp\n• Mô tả hương vị: Thăn lưng bò Mỹ Ribeye nướng tái vừa (Medium Rare), vân mỡ xen kẽ mọng nước, dùng kèm khoai tây nghiền và sốt tiêu đen. Thịt mềm ngọt thơm bơ, sốt tiêu đen sánh đậm cay nồng nhẹ ấm áp làm nổi bật trọn vẹn vị thịt bò hảo hạng.",
+      "dietary_tags": [
+        "High-Protein",
+        "Keto",
+        "Món Âu cao cấp"
+      ],
+      "ingredients": [
+        "Thăn lưng bò Black Angus Mỹ",
+        "Tiêu sọ Phú Quốc",
+        "Khoai tây nghiền",
+        "Rượu vang đỏ",
+        "Bơ tỏi thảo mộc"
+      ],
+      "allergens": [
+        "Sữa"
+      ],
+      "spice_level": 1,
+      "calories": 680,
+      "ai_description": "Thịt mềm ngọt thơm bơ, sốt tiêu đen sánh đậm cay nồng nhẹ ấm áp làm nổi bật trọn vẹn vị thịt bò hảo hạng.",
+      "is_trending": false,
+      "category": {
+        "name": "Món chính (Main Dish)"
+      }
     },
     {
       "id": "f8a43b64-407a-4f02-9d4c-557838bbe390",
       "category_id": "47401834-aaaa-40e5-a66b-6f402f91cc5c",
       "name": "Súp Bắp Cua",
       "description": "Súp sệt với thịt cua tươi, bắp hạt và trứng cút.",
-      "price": 55000.0,
+      "price": 55000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547750555-492117054.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -372,20 +2667,74 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Súp Bắp Cua]\n• Phân loại: Khác\n• Giá bán: 55,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Súp sệt với thịt cua tươi, bắp hạt và trứng cút.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Súp Bắp Cua]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 55.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Súp sệt với thịt cua tươi, bắp hạt và trứng cút.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Khai vị (Starters)"
+      }
+    },
+    {
+      "id": "13fe8e66-0e56-4b92-b97b-6d9c6edef44e",
+      "category_id": "47401834-aaaa-40e5-a66b-6f402f91cc5c",
+      "name": "Súp Bắp Cua Tuyết Nhĩ",
+      "description": "Súp bắp Mỹ ngọt thanh nấu cùng thịt cua gỡ tươi nguyên thớ, nấm tuyết nhĩ và trứng cút bùi.",
+      "price": 58000,
+      "image_url": "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:04:55.218653+00:00",
+      "updated_at": "2026-09-15T15:04:55.218653+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1547592166-23ac45744acd?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 8,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Súp Bắp Cua Tuyết Nhĩ]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 58.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 195 kcal\n• Thành phần nguyên liệu: Thịt cua biển, Bắp ngọt Mỹ, Nấm tuyết nhĩ, Trứng cút, Nước hầm gà\n• Cảnh báo dị ứng: Hải sản, Trứng\n• Nhãn chế độ ăn: Ấm bụng, Dễ tiêu hóa, Low-Fat\n• Mô tả hương vị: Súp bắp Mỹ ngọt thanh nấu cùng thịt cua gỡ tươi nguyên thớ, nấm tuyết nhĩ và trứng cút bùi. Nước súp sánh mịn óng ánh, thơm dịu ngậy ngọt vị cua tươi, làm ấm dạ dày lý tưởng trước bữa tiệc.",
+      "dietary_tags": [
+        "Ấm bụng",
+        "Dễ tiêu hóa",
+        "Low-Fat"
+      ],
+      "ingredients": [
+        "Thịt cua biển",
+        "Bắp ngọt Mỹ",
+        "Nấm tuyết nhĩ",
+        "Trứng cút",
+        "Nước hầm gà"
+      ],
+      "allergens": [
+        "Hải sản",
+        "Trứng"
+      ],
+      "spice_level": 0,
+      "calories": 195,
+      "ai_description": "Nước súp sánh mịn óng ánh, thơm dịu ngậy ngọt vị cua tươi, làm ấm dạ dày lý tưởng trước bữa tiệc.",
+      "is_trending": false,
+      "category": {
+        "name": "Khai vị (Starters)"
+      }
     },
     {
       "id": "54869de7-80f0-4be5-a6de-5209654ed777",
       "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
       "name": "Trà Đào Cam Sả",
       "description": "Trà đen hương đào, kết hợp cùng cam tươi và sả cây.",
-      "price": 45000.0,
+      "price": 45000,
       "image_url": "https://mhkwzfkywfkkokhodqgz.supabase.co/storage/v1/object/public/menu_images/1772547639458-611725792.jpeg",
       "is_available": true,
       "created_at": "2026-03-03T14:00:01.84436+00:00",
       "updated_at": "2026-03-03T14:00:01.84436+00:00",
-      "avg_rating": 0.0,
+      "avg_rating": 0,
       "review_count": 0,
       "order_count": 0,
       "is_chef_recommendation": false,
@@ -396,29 +2745,174 @@
       "status": "available",
       "prep_time": 15,
       "embedding": null,
-      "row_serialized": "[MÓN ĂN: Trà Đào Cam Sả]\n• Phân loại: Khác\n• Giá bán: 45,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Trà đen hương đào, kết hợp cùng cam tươi và sả cây.",
-      "dietary_tags": null
+      "row_serialized": "[MÓN ĂN: Trà Đào Cam Sả]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 45.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Trà đen hương đào, kết hợp cùng cam tươi và sả cây.",
+      "dietary_tags": null,
+      "ingredients": null,
+      "allergens": null,
+      "spice_level": 0,
+      "calories": null,
+      "ai_description": null,
+      "is_trending": false,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
+    },
+    {
+      "id": "9961604e-738b-47b0-a430-420266fd4349",
+      "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
+      "name": "Trà Đào Cam Sả Tươi Mát Lạnh",
+      "description": "Trà đen Ceylon hảo hạng ủ lạnh, kết hợp miếng đào giòn ngâm, cam vàng Mỹ tươi mọng nước và tinh chất sả thanh khiết.",
+      "price": 45000,
+      "image_url": "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:03.410794+00:00",
+      "updated_at": "2026-09-15T15:05:03.410794+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1556679343-c7306c1976bc?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 5,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Trà Đào Cam Sả Tươi Mát Lạnh (Món thịnh hành ⭐)]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 45.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 145 kcal\n• Thành phần nguyên liệu: Cốt trà đen Ceylon, Đào miếng giòn ngâm, Cam vàng tươi, Sả cây tươi, Đường mía\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Giải khát, Thanh nhiệt mùa hè, Vegan\n• Mô tả hương vị: Trà đen Ceylon hảo hạng ủ lạnh, kết hợp miếng đào giòn ngâm, cam vàng Mỹ tươi mọng nước và tinh chất sả thanh khiết. Vị chua ngọt thanh mát bùng nổ, hương sả phảng phất thư giãn, xua tan ngay lập tức cái nóng bức mệt mỏi.",
+      "dietary_tags": [
+        "Giải khát",
+        "Thanh nhiệt mùa hè",
+        "Vegan"
+      ],
+      "ingredients": [
+        "Cốt trà đen Ceylon",
+        "Đào miếng giòn ngâm",
+        "Cam vàng tươi",
+        "Sả cây tươi",
+        "Đường mía"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 145,
+      "ai_description": "Vị chua ngọt thanh mát bùng nổ, hương sả phảng phất thư giãn, xua tan ngay lập tức cái nóng bức mệt mỏi.",
+      "is_trending": true,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
+    },
+    {
+      "id": "ba20f9f4-c8d3-4ae9-8ee9-d6d81e78471f",
+      "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
+      "name": "Trà Vải Hoa Hồng Hạt Chia Dưỡng Nhan",
+      "description": "Trà lài hoa nhài thoảng hương nụ hoa hồng khô, thịt vải thiều mọng nước giòn ngọt và hạt chia organic giàu chất xơ.",
+      "price": 48000,
+      "image_url": "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=800&q=80",
+      "is_available": true,
+      "created_at": "2026-09-15T15:05:03.653086+00:00",
+      "updated_at": "2026-09-15T15:05:03.653086+00:00",
+      "avg_rating": 0,
+      "review_count": 0,
+      "order_count": 0,
+      "is_chef_recommendation": false,
+      "images": [
+        "https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=800&q=80"
+      ],
+      "status": "available",
+      "prep_time": 5,
+      "embedding": null,
+      "row_serialized": "[MÓN ĂN: Trà Vải Hoa Hồng Hạt Chia Dưỡng Nhan]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 48.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 135 kcal\n• Thành phần nguyên liệu: Trà hoa nhài, Nụ hoa hồng sấy khô, Vải thiều ngâm giòn, Hạt chia hữu cơ\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Dưỡng nhan, Healthy, Superfood, Vegan\n• Mô tả hương vị: Trà lài hoa nhài thoảng hương nụ hoa hồng khô, thịt vải thiều mọng nước giòn ngọt và hạt chia organic giàu chất xơ. Hương hoa ngọt ngào lãng mạn, vị ngọt thanh tao của vải quyện hạt chia lách tách vui miệng, vừa đẹp da vừa giải nhiệt.",
+      "dietary_tags": [
+        "Dưỡng nhan",
+        "Healthy",
+        "Superfood",
+        "Vegan"
+      ],
+      "ingredients": [
+        "Trà hoa nhài",
+        "Nụ hoa hồng sấy khô",
+        "Vải thiều ngâm giòn",
+        "Hạt chia hữu cơ"
+      ],
+      "allergens": [],
+      "spice_level": 0,
+      "calories": 135,
+      "ai_description": "Hương hoa ngọt ngào lãng mạn, vị ngọt thanh tao của vải quyện hạt chia lách tách vui miệng, vừa đẹp da vừa giải nhiệt.",
+      "is_trending": false,
+      "category": {
+        "name": "Đồ uống (Drinks)"
+      }
     }
   ],
   "serialized": [
-    "[MÓN ĂN: Bánh Flan]\n• Phân loại: Khác\n• Giá bán: 25,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Bánh flan mềm mịn, thơm mùi trứng và caramel.",
-    "[MÓN ĂN: Bún Bò Huế]\n• Phân loại: Khác\n• Giá bán: 70,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Bún bò cay nồng đặc trưng Huế với bắp bò, giò heo.",
-    "[MÓN ĂN: Bún Chả Hà Nội]\n• Phân loại: Khác\n• Giá bán: 65,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Thịt nướng và chả viên nướng than hồng.",
-    "[MÓN ĂN: Cà phê Sữa Đá]\n• Phân loại: Khác\n• Giá bán: 35,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Cà phê pha phin truyền thống hòa quyện cùng sữa đặc.",
-    "[MÓN ĂN: Chả giò Hải sản]\n• Phân loại: Khác\n• Giá bán: 65,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Chả giò chiên giòn với nhân hải sản, nấm mèo và cà rốt.",
-    "[MÓN ĂN: Chè Thái]\n• Phân loại: Khác\n• Giá bán: 35,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Các loại trái cây, thạch và nước cốt dừa thơm béo.",
-    "[MÓN ĂN: Cơm Tấm Sườn Bì Chả]\n• Phân loại: Khác\n• Giá bán: 60,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Cơm tấm dẻo, sườn nướng mật ong, bì thính, chả trứng.",
-    "[MÓN ĂN: Gà Nướng Cơm Lam]\n• Phân loại: Khác\n• Giá bán: 280,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Gà đồi nướng mọi vàng giòn, ăn kèm cơm lam.",
-    "[MÓN ĂN: Gỏi cuốn Tôm Thịt]\n• Phân loại: Khác\n• Giá bán: 45,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng.",
-    "[MÓN ĂN: Kem Trái Dừa]\n• Phân loại: Khác\n• Giá bán: 45,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Kem dừa mát lạnh phục vụ trong trái dừa tươi.",
-    "[MÓN ĂN: Lẩu Thả Phan Thiết]\n• Phân loại: Khác\n• Giá bán: 350,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Lẩu đặc sản với nhiều loại nguyên liệu bày trí đẹp mắt.",
-    "[MÓN ĂN: Mì Quảng Tôm Thịt]\n• Phân loại: Khác\n• Giá bán: 65,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Mì Quảng sợi vàng, tôm tươi, thịt heo rim.",
-    "[MÓN ĂN: Nước Ép Dưa Hấu]\n• Phân loại: Khác\n• Giá bán: 40,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Dưa hấu tươi ép nguyên chất.",
-    "[MÓN ĂN: Phở Bò Tái Nạm]\n• Phân loại: Khác\n• Giá bán: 75,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Phở bò truyền thống với thịt bò tái và nạm.",
-    "[MÓN ĂN: Sinh Tố Bơ]\n• Phân loại: Khác\n• Giá bán: 55,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Bơ sáp xay nhuyễn cùng sữa đặc và sữa tươi.",
-    "[MÓN ĂN: Súp Bắp Cua]\n• Phân loại: Khác\n• Giá bán: 55,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Súp sệt với thịt cua tươi, bắp hạt và trứng cút.",
-    "[MÓN ĂN: Trà Đào Cam Sả]\n• Phân loại: Khác\n• Giá bán: 45,000 VND\n• Độ cay: 0/5 (Không cay)\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Trà đen hương đào, kết hợp cùng cam tươi và sả cây."
+    "[MÓN ĂN: Bạc Xỉu Ba Tầng Sài Gòn Xưa]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 38.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 180 kcal\n• Thành phần nguyên liệu: Sữa tươi thanh trùng, Sữa đặc, Cà phê phin\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Ngọt ngào, Nhẹ nhàng\n• Mô tả hương vị: Tầng sữa đặc ngọt ngào ở đáy, lớp sữa tươi béo mịn ở giữa và phủ lớp cà phê phin đánh bọt nâu bồng bềnh bên trên. Lượng cà phê chỉ vừa đủ thoảng hương, phù hợp với phái đẹp hoặc những ai không quen uống cà phê đắng gắt.",
+    "[MÓN ĂN: Bánh Flan]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 25.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Bánh flan mềm mịn, thơm mùi trứng và caramel.",
+    "[MÓN ĂN: Bánh Flan Caramel Hạt Cafe Truyền Thống (Món thịnh hành ⭐)]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 32.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 185 kcal\n• Thành phần nguyên liệu: Lòng đỏ trứng gà ta, Sữa đặc, Sữa tươi, Đường caramel, Cốt cà phê phin\n• Cảnh báo dị ứng: Trứng, Sữa\n• Nhãn chế độ ăn: Tráng miệng, Dễ ăn\n• Mô tả hương vị: Bánh flan mềm mượt không rỗ mặt làm từ trứng gà ta tươi và sữa đặc, chan sốt caramel đường thốt nốt và chút cốt cà phê đắng nhẹ. Vị béo ngậy ngọt ngào của trứng sữa được cân bằng hoàn hảo nhờ vị đắng nhẹ thơm lừng của cà phê và caramel hổ phách.",
+    "[MÓN ĂN: Bánh Mì Thập Cẩm Xá Xíu Ba Tê Trứ Danh (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 35.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 420 kcal\n• Thành phần nguyên liệu: Bánh mì bột mì nướng giòn, Pate gan heo, Thịt xá xíu ngũ vị, Chả lụa, Dưa leo, Đồ chua, Ngò rí\n• Cảnh báo dị ứng: Gluten, Sữa\n• Nhãn chế độ ăn: Ăn nhanh, Món biểu tượng đường phố\n• Mô tả hương vị: Vỏ bánh mì nướng giòn rụm bên ngoài ruột xốp, phết pate gan heo béo ngậy, thịt xá xíu mềm thơm, chả lụa và đồ chua. Sự kết hợp hoàn hảo giữa độ giòn xốp của bánh nướng mới, vị béo của pate gan và chút cay nồng của sốt ớt rim.",
+    "[MÓN ĂN: Bánh Mousse Chanh Dây Phủ Gương Vàng]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 48.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 235 kcal\n• Thành phần nguyên liệu: Cream cheese, Whipping cream, Nước cốt chanh dây tươi, Bột mì, Trứng gà, Bơ lạt\n• Cảnh báo dị ứng: Gluten, Sữa, Trứng\n• Nhãn chế độ ăn: Bánh Âu, Chua ngọt thanh tao\n• Mô tả hương vị: Đế bánh bông lan xốp nhẹ, lớp kem mousse phô mai mịn mượt phủ thạch chanh leo tráng gương chua dịu lấp lánh. Vị chua rực rỡ đặc trưng của chanh dây làm bừng tỉnh vị giác, lớp kem mousse bông mịn xốp tan ngay nơi đầu lưỡi.",
+    "[MÓN ĂN: Bò Lúc Lắc Khoai Tây Chiên Pháp (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 119.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 610 kcal\n• Thành phần nguyên liệu: Thịt thăn bò Úc, Ớt chuông đỏ vàng xanh, Hành tây tím, Bơ lạt, Tỏi phi, Khoai tây\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: High-Protein, Món Âu-Á\n• Mô tả hương vị: Thịt bò thăn mềm xắt quân cờ xào lửa lớn sốt tiêu đen bơ tỏi, ớt chuông ba màu và khoai tây chiên giòn. Thịt bò xém cạnh ngoài nhưng bên trong mềm mọng nước, quyện sốt bơ tỏi đậm đà chấm muối tiêu chanh chuẩn vị.",
+    "[MÓN ĂN: Bò Sốt Tiêu Đen Bánh Mì Nóng Giòn]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 89.000 VND\n• Độ cay: 2/5\n• Lượng Calo: 590 kcal\n• Thành phần nguyên liệu: Bắp bò hoa, Tiêu đen xay, Hành tây, Bánh mì nóng giòn, Bơ lạt\n• Cảnh báo dị ứng: Gluten, Sữa\n• Nhãn chế độ ăn: Ấm bụng, Đậm đà, High-Protein\n• Mô tả hương vị: Bắp bò hầm mềm mọng trong nước sốt tiêu đen sánh đậm, thơm bơ tỏi, dùng kèm bánh mì đặc ruột nướng nóng giòn. Nước sốt tiêu đen đặc sánh cay the ấm nồng xé bánh mì chấm ngập sốt, cực kỳ thích hợp cho những buổi tối mưa se lạnh.",
+    "[MÓN ĂN: Bún Bò Huế]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 70.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Bún bò cay nồng đặc trưng Huế với bắp bò, giò heo.",
+    "[MÓN ĂN: Bún Bò Huế Cố Đô Cay Nồng (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 75.000 VND\n• Độ cay: 3/5\n• Lượng Calo: 640 kcal\n• Thành phần nguyên liệu: Bún sợi to, Bắp bò, Giò heo, Chả cua, Huyết bò, Mắm ruốc Huế, Sả ớt\n• Cảnh báo dị ứng: Hải sản\n• Nhãn chế độ ăn: Cay nồng, Đậm đà, Ấm bụng\n• Mô tả hương vị: Bún sợi tròn to đặc trưng, bắp bò hoa giòn, giò heo mềm rục, chả cua Huế và nước dùng mắm ruốc sả ớt đỏ au. Vị cay nồng ấm rực người, dậy mùi thơm mộc mạc của sả cây hòa quyện với mắm ruốc chưng truyền thống xứ Huế.",
+    "[MÓN ĂN: Bún Chả Hà Nội]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Thịt nướng và chả viên nướng than hồng.",
+    "[MÓN ĂN: Bún Chả Hà Nội Nướng Than Hoa (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 69.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 580 kcal\n• Thành phần nguyên liệu: Thịt ba chỉ heo, Thịt nạc vai băm, Bún tươi, Đu đủ ngâm, Cà rốt, Rau kinh giới\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Món truyền thống, High-Protein, Đậm đà\n• Mô tả hương vị: Thịt ba chỉ thái mỏng ướp mắm tiêu và chả băm viên nướng trên vỉ than hồng, ăn cùng nước chấm ấm và bún tươi. Vị ngọt thịt đậm đà vương mùi khói than nướng mộc mạc, nước chấm chua ngọt nóng hổi kích thích mọi giác quan.",
+    "[MÓN ĂN: Bún Nấm Thanh Đạm Rong Biển]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 55.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 310 kcal\n• Thành phần nguyên liệu: Bún tươi, Nấm bào ngư, Nấm kim châm, Rong biển Wakame, Bắp ngọt, Củ cải trắng\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Low-Calo, Thanh lọc cơ thể\n• Mô tả hương vị: Bún tươi chan nước dùng hầm củ quả lê táo ngọt thanh, các loại nấm rơm, nấm bào ngư, nấm kim châm và rong biển Wakame. Nước dùng trong veo ngọt lành tự nhiên từ củ quả, vị giòn dai sần sật của các loại nấm tươi mang lại cảm giác nhẹ nhõm an lành.",
+    "[MÓN ĂN: Bún Riêu Cua Đồng Ốc Lụa Giòn Sần Sật]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 470 kcal\n• Thành phần nguyên liệu: Cua đồng tươi, Ốc bươu hấp lá gừng, Đậu hũ non chiên, Cà chua chín, Giấm bỗng nếp\n• Cảnh báo dị ứng: Hải sản\n• Nhãn chế độ ăn: Chua thanh giải nhiệt, Dân dã\n• Mô tả hương vị: Cua đồng giã tay đóng tảng riêu béo ngậy, ốc bươu giòn sần sật, đậu hũ chiên phồng ngấm nước lèo chua thanh cà chua và giấm bỗng. Vị chua thanh mát lành của giấm bỗng truyền thống cân bằng vị béo của riêu cua đồng, ăn kèm rau muống chẻ xanh mướt.",
+    "[MÓN ĂN: Cá Hồi Áp Chảo Sốt Bơ Chanh Măng Tây]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 165.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 460 kcal\n• Thành phần nguyên liệu: Cá hồi tươi Na Uy, Măng tây xanh, Bơ lạt Anchor, Nước cốt chanh vàng, Lá thì là Dill\n• Cảnh báo dị ứng: Hải sản, Sữa\n• Nhãn chế độ ăn: Keto, High-Protein, Low-Carb, Omega-3, Healthy\n• Mô tả hương vị: Phi-lê cá hồi Na Uy tươi áp chảo vàng da giòn rụm thịt mềm hồng, phủ sốt bơ chanh vàng Dill thơm dịu và măng tây xào bơ. Đỉnh cao dinh dưỡng với nguồn Omega-3 dồi dào, thớ cá béo mềm tan trong miệng kết hợp vị chua dịu thanh tao của sốt bơ chanh.",
+    "[MÓN ĂN: Cà Phê Đen Đá Buôn Ma Thuột]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 29.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 15 kcal\n• Thành phần nguyên liệu: Cà phê Robusta nguyên chất, Đá viên\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Keto, Vegan, Không đường, Tỉnh táo, Zero-Calo\n• Mô tả hương vị: 100% cà phê Robusta hảo hạng pha phin truyền thống, thơm đượm nồng nàn không pha tạp, vị đắng mộc mạc nguyên bản. Đậm đặc sánh đen huyền bí, hương thơm nồng nàn lưu luyến, dành cho những ai mê vị đắng mộc tinh tế của cà phê Việt.",
+    "[MÓN ĂN: Cà Phê Muối Cố Đô Béo Mặn (Món thịnh hành ⭐)]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 42.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 190 kcal\n• Thành phần nguyên liệu: Cà phê phin, Kem béo thực vật, Muối biển tinh khiết, Sữa đặc\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Trending, Béo mặn độc đáo\n• Mô tả hương vị: Cốt cà phê phin đậm đặc kết hợp lớp kem sữa muối mặn mặn béo ngậy phía trên, khuấy đều tạo hương vị gây nghiện. Sự cân bằng tinh tế giữa đắng của cà phê, ngọt của sữa và chút mặn thanh của muối biển làm dịu vị gắt, cực kỳ mượt mà.",
+    "[MÓN ĂN: Cà phê Sữa Đá]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 35.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Cà phê pha phin truyền thống hòa quyện cùng sữa đặc.",
+    "[MÓN ĂN: Cà Phê Sữa Đá Sài Gòn Truyền Thống (Món thịnh hành ⭐)]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 35.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 165 kcal\n• Thành phần nguyên liệu: Hạt cà phê Robusta rang mộc, Sữa đặc có đường, Nước sôi, Đá viên\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Tỉnh táo, Đồ uống quốc dân\n• Mô tả hương vị: Cà phê Robusta Buôn Ma Thuột rang mộc pha phin truyền thống nhỏ giọt, hòa quyện sữa đặc thơm ngọt và đá viên tinh khiết. Vị đắng đậm đà lưu luyến nơi hậu vị, quyện cùng độ ngọt béo mịn của sữa đặc tạo nên thức uống đánh thức năng lượng hoàn hảo.",
+    "[MÓN ĂN: Canh Hạt Sen Củ Sen Táo Đỏ Bổ Dưỡng]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 49.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 190 kcal\n• Thành phần nguyên liệu: Hạt sen tươi Huế, Củ sen thái lát, Táo đỏ khô, Kỷ tử, Nấm tuyết\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Dưỡng nhan, Ngủ ngon\n• Mô tả hương vị: Hạt sen tươi hầm mềm bùi cùng củ sen giòn nhẹ, táo đỏ Tân Cương ngọt thơm và nấm tuyết trong vắt thanh tao. Món canh bồi bổ khí huyết giúp an thần ngủ sâu, vị ngọt thanh tự nhiên từ táo đỏ và hạt sen chín nhừ.",
+    "[MÓN ĂN: Chả giò Hải sản]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Chả giò chiên giòn với nhân hải sản, nấm mèo và cà rốt.",
+    "[MÓN ĂN: Chả giò Hải sản Hoàng Kim (Món thịnh hành ⭐)]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 68.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 360 kcal\n• Thành phần nguyên liệu: Tôm sú, Thịt cua biển, Nấm tuyết, Bánh tráng rế, Trứng gà\n• Cảnh báo dị ứng: Hải sản, Trứng, Gluten\n• Nhãn chế độ ăn: Chiên giòn, High-Protein\n• Mô tả hương vị: Vỏ rế vàng ươm giòn rụm bọc nhân tôm, cua biển, nấm tuyết và sốt mayonnaise béo nhẹ. Giòn tan nơi đầu lưỡi, nhân hải sản tươi ngọt béo nhẹ, ăn kèm rau xà lách tươi và nước mắm chua ngọt dịu.",
+    "[MÓN ĂN: Chè Khúc Bạch Hạnh Nhân Thanh Mát (Món thịnh hành ⭐)]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 45.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 240 kcal\n• Thành phần nguyên liệu: Sữa tươi, Whipping cream, Phô mai tươi, Vải thiều, Hạnh nhân lát, Nước đường phèn lá dứa\n• Cảnh báo dị ứng: Sữa, Hạt hạnh nhân\n• Nhãn chế độ ăn: Thanh nhiệt, Tráng miệng giải nhiệt\n• Mô tả hương vị: Những viên khúc bạch phô mai sữa dẻo dai béo ngậy, quả vải thiều mọng nước, chan nước đường phèn hoa nhài và hạnh nhân lát rang vàng. Nước chè trong vắt thơm hương hoa nhài nhẹ nhàng, viên khúc bạch béo ngậy sực sực kết hợp hạnh nhân lát bùi rụm khó quên.",
+    "[MÓN ĂN: Chè Thái]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 35.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Các loại trái cây, thạch và nước cốt dừa thơm béo.",
+    "[MÓN ĂN: Chè Thái Trái Cây Sầu Riêng Sốt Dừa]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 42.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 290 kcal\n• Thành phần nguyên liệu: Thịt sầu riêng Ri6, Mít nghệ, Thạch củ năng, Hạt đác rim, Nước cốt dừa tươi\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Đặc sản, Trái cây nhiệt đới\n• Mô tả hương vị: Mít chín thái sợi, thạch dừa giòn sần sật, hạt đác rim đường, nhãn xuồng và cơm sầu riêng Ri6 thơm lừng chan cốt dừa béo. Hương sầu riêng ngào ngạt lan tỏa, vị ngọt đậm đà phong phú của các loại quả nhiệt đới quyện trong làn cốt dừa béo ngậy.",
+    "[MÓN ĂN: Cơm Chiên Hải Sản Hoàng Kim (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 78.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 650 kcal\n• Thành phần nguyên liệu: Cơm nguội gạo thơm, Tôm sú bóc nõn, Mực ống, Lòng đỏ trứng muối, Đậu Hà Lan, Hành lá\n• Cảnh báo dị ứng: Hải sản, Trứng\n• Nhãn chế độ ăn: High-Protein, Đậm đà, Béo ngậy\n• Mô tả hương vị: Cơm hạt tơi vàng bọc lòng đỏ trứng muối bùi béo, xào cùng tôm sú giòn ngọt, mực ống tươi và đậu Hà Lan. Hạt cơm xào săn tơi từng hạt, ánh màu vàng hoàng kim từ trứng muối thơm ngậy kết hợp vị ngọt tự nhiên của tôm mực.",
+    "[MÓN ĂN: Cơm Gà Xối Mỡ Giòn Da Thượng Hạng]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 710 kcal\n• Thành phần nguyên liệu: Đùi gà ta góc tư, Gạo dẻo nấu nước cốt gà, Bột nghệ vàng, Tỏi ớt băm, Dưa leo chua ngọt\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: High-Protein, Giòn rụm, No lâu\n• Mô tả hương vị: Đùi gà góc tư xối mỡ lớp da giòn rụm màu cánh gián nhưng thớ thịt bên trong mọng nước, hạt cơm nấu nước luộc gà óng vàng. Cắn miếng da gà rôm rốp giòn tan, thịt ngọt thơm đậm vị ăn kèm cơm đỏ dẻo thơm và canh thanh mát giải ngấy.",
+    "[MÓN ĂN: Cơm Gạo Lứt Xào Nấm Đông Cô Hạt Sen (Món thịnh hành ⭐)]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 58.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 360 kcal\n• Thành phần nguyên liệu: Gạo lứt tím than hữu cơ, Hạt sen tươi, Nấm đông cô, Nấm đùi gà, Dầu mè, Hạt nêm nấm\n• Cảnh báo dị ứng: Mè\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Healthy, Giảm cân\n• Mô tả hương vị: Gạo lứt tím than giàu chất xơ xào tơi cùng hạt sen Huế bùi ngọt, nấm đông cô tươi, nấm đùi gà và cà rốt bi. Món cơm dưỡng sinh giàu khoáng chất, vị bùi béo tự nhiên của hạt sen hòa cùng hương nấm xào thơm dịu.",
+    "[MÓN ĂN: Cơm Tấm Sườn Bì Chả]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 60.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Cơm tấm dẻo, sườn nướng mật ong, bì thính, chả trứng.",
+    "[MÓN ĂN: Cơm Tấm Sườn Bì Chả Trứng Lòng Đào (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 68.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 720 kcal\n• Thành phần nguyên liệu: Gạo tấm thơm, Sườn heo cốt lết, Bì heo trộn thính, Chả trứng hấp, Trứng gà ốp la, Mỡ hành\n• Cảnh báo dị ứng: Trứng\n• Nhãn chế độ ăn: High-Protein, No lâu, Món truyền thống\n• Mô tả hương vị: Cơm tấm dẻo hạt, sườn cốt lết dày thịt ướp mật ong nướng than xém cạnh, bì thính vàng giòn và trứng ốp la. Biểu tượng ẩm thực Sài Gòn với miếng sườn ngấm gia vị đẫm sốt, hạt mỡ hành béo ngậy rưới nước mắm kẹo ớt tỏi.",
+    "[MÓN ĂN: Đậu Hũ Chiên Sả Ớt Giòn Vỏ]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 45.000 VND\n• Độ cay: 2/5\n• Lượng Calo: 290 kcal\n• Thành phần nguyên liệu: Đậu hũ mơ gia truyền, Sả băm nhuyễn, Ớt sừng băm, Muối tiêu\n• Cảnh báo dị ứng: Đậu nành\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Dân dã\n• Mô tả hương vị: Đậu hũ mơ chiên giòn vỏ bên ngoài, bên trong mềm béo như sữa đậu nành, phủ sả ớt phi vàng thơm rực rỡ. Món ăn dân dã giòn rụm bên ngoài nhưng bên trong mịn màng béo ngậy, sả chiên vàng thơm ngát kích thích vị giác.",
+    "[MÓN ĂN: Đậu Hũ Sốt Tứ Xuyên Nấm Cay Chay (Món thịnh hành ⭐)]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 52.000 VND\n• Độ cay: 3/5\n• Lượng Calo: 280 kcal\n• Thành phần nguyên liệu: Đậu hũ non, Nấm đông cô khô băm, Ớt Tứ Xuyên, Hoa tiêu Tứ Xuyên, Tương ớt cay\n• Cảnh báo dị ứng: Đậu nành\n• Nhãn chế độ ăn: Vegan, Vegetarian, Cay tê, High-Protein thực vật\n• Mô tả hương vị: Đậu hũ non mềm mượt sốt cùng nấm đông cô băm nhỏ, ớt khô Tứ Xuyên và hoa tiêu tạo độ cay tê nhẹ đặc trưng. Đậu hũ trơn mềm tan ngay trong miệng, quyện vị cay tê đậm đà của hoa tiêu, ăn cùng cơm nóng rất đưa cơm.",
+    "[MÓN ĂN: Gà Hấp Lá Sen Xôi Hạt Sen Đại Bổ]\n• Phân loại: Đặc biệt (Special)\n• Giá bán: 295.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 920 kcal\n• Thành phần nguyên liệu: Gà ta nguyên con, Lá sen tươi, Hạt sen Huế, Nếp cái hoa vàng, Kỷ tử, Nấm đông cô\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Món tiệc sang trọng, Bổ dưỡng dưỡng sinh, High-Protein\n• Mô tả hương vị: Nguyên con gà ta hấp cách thủy trong bọc lá sen tươi cùng nấm đông cô, kỷ tử, táo đỏ và xôi hạt sen dẻo thơm ngấm trọn nước cốt gà. Mở gói lá sen là hương thơm thanh khiết ùa ra ngào ngạt, thịt gà mềm ngọt lịm ngấm đều vào từng hạt xôi nếp dẻo thơm.",
+    "[MÓN ĂN: Gà Nướng Cơm Lam]\n• Phân loại: Đặc biệt (Special)\n• Giá bán: 280.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Gà đồi nướng mọi vàng giòn, ăn kèm cơm lam.",
+    "[MÓN ĂN: Gà Nướng Cơm Lam Bản Đôn Tây Bắc (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 155.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 780 kcal\n• Thành phần nguyên liệu: Gà đồi thả vườn, Hạt mắc khén, Hạt dổi rừng, Gạo nếp nương, Ống tre nứa, Muối ớt lá é\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Đặc sản Tây Bắc, High-Protein, Đậm đà\n• Mô tả hương vị: Nửa con gà đồi thả vườn tẩm ướp mắc khén, hạt dổi nướng than giòn da thơm lừng, ăn kèm ống cơm lam nếp nương dẻo quánh. Thịt gà săn chắc giòn da tê nhẹ đầu lưỡi từ hạt mắc khén, chấm muối ớt lá é và cắn miếng cơm lam nướng thơm mùi tre xanh.",
+    "[MÓN ĂN: Gỏi cuốn Tôm Thịt]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 45.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Tôm tươi, thịt luộc, bún và rau sống cuốn trong bánh tráng.",
+    "[MÓN ĂN: Gỏi cuốn Tôm Thịt Cố Đô (Món thịnh hành ⭐)]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 48.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 220 kcal\n• Thành phần nguyên liệu: Tôm sú, Thịt ba chỉ heo, Bún tươi, Rau sống, Bánh tráng\n• Cảnh báo dị ứng: Hải sản\n• Nhãn chế độ ăn: Thanh đạm, Ít béo, Gluten-Free\n• Mô tả hương vị: Tôm sú tươi giòn, thịt ba chỉ heo thảo mộc, bún tươi và rau húng láng cuốn bánh tráng dẻo. Món khai vị mát lành, vị tôm ngọt tự nhiên cuộn cùng rau thơm, chấm tương đậu phộng béo bùi chuẩn vị Nam Bộ.",
+    "[MÓN ĂN: Gỏi Ngó Sen Tôm Thịt Chua Cay]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 69.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 240 kcal\n• Thành phần nguyên liệu: Ngó sen, Tôm sú, Tai heo, Cà rốt, Đậu phộng, Rau răm\n• Cảnh báo dị ứng: Hải sản, Đậu phộng\n• Nhãn chế độ ăn: Thanh nhiệt, Ít béo, Gluten-Free\n• Mô tả hương vị: Ngó sen tươi giòn sần sật ngâm chua ngọt, tôm luộc bóc nõn, tai heo giòn sần sật, rau răm và lạc rang. Hòa quyện vị chua thanh, cay nhẹ, ngó sen giữ độ giòn tự nhiên và mùi thơm nồng nàn của rau răm.",
+    "[MÓN ĂN: Hủ Tiếu Nam Vang Sườn Tôm Cật]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 510 kcal\n• Thành phần nguyên liệu: Sợi hủ tiếu dai Sa Đéc, Sườn non heo, Tôm sú, Cật heo thái khía, Mực khô, Tỏi phi thơm\n• Cảnh báo dị ứng: Hải sản\n• Nhãn chế độ ăn: Thanh ngọt, Món truyền thống\n• Mô tả hương vị: Hủ tiếu dai mướt trần nước sôi, nước lèo ninh tôm khô mực khô trong vắt ngọt lịm, kèm sườn heo, tôm tươi, cật heo và thịt băm. Nước dùng trong veo ngọt hậu từ tôm mực sấy, thoang thoảng mùi tỏi phi giòn tan béo ngậy khó cưỡng.",
+    "[MÓN ĂN: Kem Trái Dừa]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 45.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Kem dừa mát lạnh phục vụ trong trái dừa tươi.",
+    "[MÓN ĂN: Kem Xôi Dừa Thái Lan Thơm Bùi]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 49.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 320 kcal\n• Thành phần nguyên liệu: Kem dừa nguyên chất, Gạo nếp nương lá dứa, Cơm dừa non thái sợi, Đậu phộng rang, Bắp hạt\n• Cảnh báo dị ứng: Đậu phộng, Sữa\n• Nhãn chế độ ăn: Đặc sản, Ngọt ngào\n• Mô tả hương vị: Viên kem dừa non mát lạnh phục vụ trong gáo dừa tươi, lót xôi nếp lá dứa dẻo thơm, rắc dừa nạo và đậu phộng rang giòn. Sự hòa quyện tuyệt đỉnh giữa cái mát lạnh tê lưỡi của kem dừa và độ dẻo ấm mềm của xôi nếp thơm mùi lá dứa.",
+    "[MÓN ĂN: Khoai Tây Múi Cau Phô Mai Truffle]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 55.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 340 kcal\n• Thành phần nguyên liệu: Khoai tây Mỹ, Bột phô mai Parmesan, Dầu nấm Truffle đen, Muối hồng Himalaya\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Ăn vặt, Vegetarian\n• Mô tả hương vị: Khoai tây Mỹ cắt múi cau chiên vàng ruộm, lắc phô mai Parmesan và thoảng dầu nấm Truffle đen quý tộc. Lớp vỏ giòn xốp bên ngoài, ruột khoai bở bùi, dậy mùi thơm sang trọng quyến rũ của nấm Truffle.",
+    "[MÓN ĂN: Lẩu Thả Phan Thiết]\n• Phân loại: Đặc biệt (Special)\n• Giá bán: 350.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Lẩu đặc sản với nhiều loại nguyên liệu bày trí đẹp mắt.",
+    "[MÓN ĂN: Lẩu Thả Phan Thiết Cung Đình (Món thịnh hành ⭐)]\n• Phân loại: Đặc biệt (Special)\n• Giá bán: 365.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 850 kcal\n• Thành phần nguyên liệu: Cá mai phi lê, Thịt ba chỉ luộc, Trứng gà sợi, Hoa chuối đỏ, Nước hầm tôm tươi, Đậu phộng rang, Bánh tráng nướng\n• Cảnh báo dị ứng: Hải sản, Đậu phộng, Trứng\n• Nhãn chế độ ăn: Món tiệc cao cấp, Món ăn gia đình, Đặc sản biển\n• Mô tả hương vị: Mâm tiệc hải sản bày trên cánh hoa chuối đỏ rực: cá mai tươi chần tái mè, thịt ba chỉ luộc, trứng chiên sợi, bánh tráng nướng và nước lèo tôm thịt đậm đà. Một bản hòa tấu màu sắc và hương vị tinh hoa biển cả Phan Thiết, chan nước lèo nóng hổi dậy mùi đậu phộng thơm béo.",
+    "[MÓN ĂN: Lẩu Thái Hải Sản Tom Yum Chua Cay (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 185.000 VND\n• Độ cay: 3/5\n• Lượng Calo: 580 kcal\n• Thành phần nguyên liệu: Tôm sú, Mực nang, Ngao tươi, Nước cốt dừa, Lá chanh Thái, Nấm rơm, Sả ớt riềng\n• Cảnh báo dị ứng: Hải sản\n• Nhãn chế độ ăn: Cay nồng, Món ăn gia đình, Gluten-Free\n• Mô tả hương vị: Nước lẩu Tom Yum đậm vị cốt dừa, lá chanh Kaffir, riềng non và sả cây, ngập tràn tôm sú, mực nang, ngao và nấm đùi gà. Sự bùng nổ của vị chua thanh chanh Thái, vị béo thơm cốt dừa và hậu vị cay ấm nồng, cực kỳ kích thích vị giác.",
+    "[MÓN ĂN: Mì Quảng Tôm Thịt]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Mì Quảng sợi vàng, tôm tươi, thịt heo rim.",
+    "[MÓN ĂN: Mì Quảng Tôm Thịt Xứ Quảng]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 520 kcal\n• Thành phần nguyên liệu: Mì Quảng sợi vàng, Tôm sông, Thịt heo rim, Đậu phộng rang, Bánh tráng nướng mè, Rau búp chuối\n• Cảnh báo dị ứng: Hải sản, Đậu phộng, Gluten\n• Nhãn chế độ ăn: Món truyền thống, Đậm vị miền Trung\n• Mô tả hương vị: Sợi mì nghệ vàng óng, tôm sông rim mặn ngọt, thịt ba rọi ngấm vị, nước nhưn xâm xấp thơm dầu phụng và bánh tráng mè. Nước nhưn sánh đậm chan vừa chạm mặt mì, cắn miếng bánh tráng giòn tan cùng búp chuối thái mỏng tạo cảm giác cuốn hút.",
+    "[MÓN ĂN: Mì Ý Sốt Bò Băm Bolognese Truyền Thống]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 85.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 540 kcal\n• Thành phần nguyên liệu: Mì Ý Spaghetti Semolina, Thịt bò băm nhuyễn, Cà chua San Marzano, Phô mai Parmesan, Lá Oregano, Húng tây\n• Cảnh báo dị ứng: Gluten, Sữa\n• Nhãn chế độ ăn: Món Âu, Thân thiện với trẻ nhỏ\n• Mô tả hương vị: Sợi mì Spaghetti chuẩn Al Dente nấu cùng sốt cà chua thịt bò băm hầm kỹ với lá nguyệt quế và rắc phô mai Parmesan. Vị chua ngọt dịu êm của cà chua Ý ninh nhừ hòa cùng thịt bò ngọt bùi, món ăn thân thiện yêu thích của mọi trẻ em.",
+    "[MÓN ĂN: Nấm Bào Ngư Hấp Gừng Sả Dầu Mè]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 59.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 180 kcal\n• Thành phần nguyên liệu: Nấm bào ngư tươi, Gừng non, Sả cây, Dầu mè đen, Ớt sừng\n• Cảnh báo dị ứng: Mè\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Ấm bụng, Thanh đạm\n• Mô tả hương vị: Nấm bào ngư trắng tươi dai ngọt hấp cách thủy với gừng non đập dập, sả cây và vài giọt dầu mè thơm ngát. Thịt nấm giữ nguyên độ mọng nước tự nhiên, vị the ấm nhẹ của gừng giải cảm và làm ấm cơ thể rất tốt.",
+    "[MÓN ĂN: Nem Chay Rong Biển Chiên Xù]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 58.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 320 kcal\n• Thành phần nguyên liệu: Lá rong biển Gim, Đậu xanh, Khoai môn, Nấm mèo, Bột chiên xù\n• Cảnh báo dị ứng: Gluten\n• Nhãn chế độ ăn: Vegan, Vegetarian, Giòn tan\n• Mô tả hương vị: Lá rong biển cuộn nấm tuyết, đậu xanh đồ chín, cà rốt và khoai môn, lăn bột chiên xù vàng rụm. Hương thơm đặc trưng của rong biển nướng quyện cùng vị bùi béo ngọt của khoai môn và nhân đậu xanh mịn.",
+    "[MÓN ĂN: Nem Lụi Nướng Than Hoa Phố Cổ]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 65.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 380 kcal\n• Thành phần nguyên liệu: Thịt nạc heo quết nhuyễn, Củ sả, Bánh hỏi, Khế chua, Chuối chát\n• Cảnh báo dị ứng: Đậu phộng\n• Nhãn chế độ ăn: High-Protein, Đậm đà\n• Mô tả hương vị: Thịt heo quết dẻo nướng than hồng quanh củ sả thơm lừng, ăn kèm bánh hỏi lá dứa và chuối chát. Mùi khói nướng than hoa quyện sả tươi, chấm sốt tương gan đậu phộng gia truyền thơm bùi ngây ngất.",
+    "[MÓN ĂN: Nước Ép Cần Tây Táo Xanh Dứa Detox (Món thịnh hành ⭐)]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 49.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 110 kcal\n• Thành phần nguyên liệu: Cần tây hữu cơ Đà Lạt, Táo xanh Granny Smith, Dứa mật chín cây\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Keto, Vegan, Gluten-Free, Detox, Không đường, Low-Calo\n• Mô tả hương vị: Cần tây Đà Lạt tươi ép lạnh nguyên chất cùng táo xanh giòn chua và dứa mật thơm, không thêm đường phụ gia. Công thức detox lý tưởng giúp thanh lọc mỡ thừa, vị ngọt dịu của táo và dứa khử hoàn toàn mùi hăng của cần tây, cực kỳ dễ uống.",
+    "[MÓN ĂN: Nước Ép Dưa Hấu]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 40.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Dưa hấu tươi ép nguyên chất.",
+    "[MÓN ĂN: Nước Ép Dưa Hấu Bạc Hà Tươi]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 40.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 95 kcal\n• Thành phần nguyên liệu: Dưa hấu không hạt ruột đỏ, Lá bạc hà tươi\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Vegan, Gluten-Free, Low-Calo, Giải nhiệt\n• Mô tả hương vị: Dưa hấu Long An chín đỏ mọng ép tươi nguyên chất 100%, dầm nhẹ vài lá bạc hà tươi sảng khoái. Vị ngọt mát tự nhiên của dưa hấu kết hợp cảm giác the mát bất tận của lá bạc hà, giải khát cực đỉnh.",
+    "[MÓN ĂN: Panna Cotta Dâu Tây Đà Lạt Mềm Tan (Món thịnh hành ⭐)]\n• Phân loại: Tráng miệng (Desserts)\n• Giá bán: 45.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 210 kcal\n• Thành phần nguyên liệu: Kem whipping cream Anchor, Sữa tươi, Dâu tây Đà Lạt tươi, Vani Madagascar, Gelatin\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Món Âu, Ngọt thanh, Tráng miệng\n• Mô tả hương vị: Kem sữa nấu vani Madagascar núng nính mềm mịn tan ngay trên đầu lưỡi, phủ sốt dâu tây tươi chua ngọt rạng rỡ. Kết cấu núng nính mượt mà, vị béo ngậy của kem sữa hòa hảo hoàn hảo với vị chua thanh rực rỡ của dâu tây tươi.",
+    "[MÓN ĂN: Phở Bò Tái Nạm]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 75.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Phở bò truyền thống với thịt bò tái và nạm.",
+    "[MÓN ĂN: Phở Bò Tái Nạm Đặc Biệt Hà Nội (Món thịnh hành ⭐)]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 79.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 490 kcal\n• Thành phần nguyên liệu: Bánh phở tươi, Bắp bò hoa, Nạm bò, Nước hầm xương ống bò, Gừng nướng, Hoa hồi, Quế chi\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Gluten-Free, Món truyền thống, High-Protein, Ấm bụng\n• Mô tả hương vị: Nước dùng ninh từ xương bò tủy suốt 18 tiếng, bánh phở mềm mượt, bắp bò hoa tái giòn và nạm bò chín mềm. Nước lèo trong vắt nhưng vị ngọt sâu thấu từ xương tủy bò thảo mộc, thơm nức mùi hoa hồi và quế thanh lịch.",
+    "[MÓN ĂN: Phở Gà Ta Lá Chanh Nước Dùng Thanh]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 430 kcal\n• Thành phần nguyên liệu: Bánh phở tươi, Thịt gà ta luộc, Lá chanh non, Nước dùng gà hầm gừng nướng\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Gluten-Free, Thanh đạm, Low-Fat, Dễ tiêu hóa\n• Mô tả hương vị: Gà ta thả vườn thịt chắc da giòn vàng ươm, nước phở thanh ngọt thanh lịch, thoảng mùi lá chanh tươi thái chỉ. Lựa chọn nhẹ nhàng êm bụng, nước dùng trong vắt thanh khiết, thịt gà ta dai ngọt tự nhiên thơm ngát tinh dầu lá chanh.",
+    "[MÓN ĂN: Salad Bơ Hạt Quinoa Sốt Chanh Dây]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 72.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 230 kcal\n• Thành phần nguyên liệu: Bơ sáp, Hạt Quinoa, Xà lách Romaine, Dâu tây, Chanh dây\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Healthy, Superfood\n• Mô tả hương vị: Bơ sáp Đắk Lắk béo ngậy, hạt diêm mạch Quinoa giàu khoáng, xà lách lolo, dâu tây và sốt chanh leo tươi. Món khai vị thuần chay sang trọng, vị chua ngọt từ chanh dây đánh thức vị giác hoàn toàn tự nhiên.",
+    "[MÓN ĂN: Salad Rau Củ Nhiệt Đới Sốt Chanh Dây]\n• Phân loại: Món chay & Healthy (Vegetarian)\n• Giá bán: 52.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 160 kcal\n• Thành phần nguyên liệu: Bông cải xanh, Cà chua bi, Dưa chuột baby, Ngô ngọt hữu cơ, Sốt chanh dây\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Vegan, Vegetarian, Gluten-Free, Low-Calo, Detox\n• Mô tả hương vị: Bông cải xanh, cà chua bi, dưa chuột baby, ngô ngọt và ớt chuông trộn sốt chanh leo tươi chua thanh dịu mát. Đĩa salad đầy màu sắc cầu vồng giòn tươi sần sật, ít calo, bổ sung vitamin tươi dồi dào cho làn da và cơ thể.",
+    "[MÓN ĂN: Salad Ức Gà Sốt Mè Rang (Healthy) (Món thịnh hành ⭐)]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 65.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 275 kcal\n• Thành phần nguyên liệu: Ức gà thảo mộc, Xà lách Frisee, Cà chua bi, Dưa leo Nhật, Sốt mè rang\n• Cảnh báo dị ứng: Mè\n• Nhãn chế độ ăn: Keto, High-Protein, Low-Carb, Healthy\n• Mô tả hương vị: Ức gà xé áp chảo mềm mọng, xà lách Frisee, cà chua bi, dưa leo Nhật và sốt mè rang bùi thơm. Món ăn hoàn hảo cho gymer hoặc thực khách theo đuổi chế độ eat-clean, tươi mát giàu chất xơ và protein tinh khiết.",
+    "[MÓN ĂN: Sinh Tố Bơ]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 55.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Bơ sáp xay nhuyễn cùng sữa đặc và sữa tươi.",
+    "[MÓN ĂN: Sinh Tố Bơ Sáp Dừa Béo Ngậy (Món thịnh hành ⭐)]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 55.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 330 kcal\n• Thành phần nguyên liệu: Bơ sáp Đắk Lắk, Nước cốt dừa tươi, Sữa tươi thanh trùng, Sữa đặc\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Béo ngậy, Giàu chất béo tốt\n• Mô tả hương vị: Bơ sáp Đắk Lắk dẻo quánh xay nhuyễn cùng sữa chua, nước cốt dừa Bến Tre thơm béo và sữa đặc. Chất sinh tố sánh đặc mịn như nhung, ngậy bùi vị bơ chín già và nức mùi dừa tươi, cung cấp nguồn chất béo lành mạnh.",
+    "[MÓN ĂN: Sinh Tố Mãng Cầu Xiêm Chua Ngọt]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 50.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 220 kcal\n• Thành phần nguyên liệu: Mãng cầu xiêm tươi, Sữa đặc, Sữa chua không đường, Đá tuyết\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: Chua ngọt, Giàu Vitamin C\n• Mô tả hương vị: Mãng cầu xiêm tươi tách hạt dầm sữa xay đá tuyết xốp mịn, vị chua ngọt cân bằng kích thích tiêu hóa. Hương thơm đặc trưng của trái mãng cầu, vị chua nhẹ thanh thoát hòa lẫn độ ngọt vừa phải xua tan cảm giác ngấy sau bữa ăn.",
+    "[MÓN ĂN: Steak Thăn Lưng Bò Mỹ Sốt Tiêu Đen Phú Quốc]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 195.000 VND\n• Độ cay: 1/5\n• Lượng Calo: 680 kcal\n• Thành phần nguyên liệu: Thăn lưng bò Black Angus Mỹ, Tiêu sọ Phú Quốc, Khoai tây nghiền, Rượu vang đỏ, Bơ tỏi thảo mộc\n• Cảnh báo dị ứng: Sữa\n• Nhãn chế độ ăn: High-Protein, Keto, Món Âu cao cấp\n• Mô tả hương vị: Thăn lưng bò Mỹ Ribeye nướng tái vừa (Medium Rare), vân mỡ xen kẽ mọng nước, dùng kèm khoai tây nghiền và sốt tiêu đen. Thịt mềm ngọt thơm bơ, sốt tiêu đen sánh đậm cay nồng nhẹ ấm áp làm nổi bật trọn vẹn vị thịt bò hảo hạng.",
+    "[MÓN ĂN: Súp Bắp Cua]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 55.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Súp sệt với thịt cua tươi, bắp hạt và trứng cút.",
+    "[MÓN ĂN: Súp Bắp Cua Tuyết Nhĩ]\n• Phân loại: Khai vị (Starters)\n• Giá bán: 58.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 195 kcal\n• Thành phần nguyên liệu: Thịt cua biển, Bắp ngọt Mỹ, Nấm tuyết nhĩ, Trứng cút, Nước hầm gà\n• Cảnh báo dị ứng: Hải sản, Trứng\n• Nhãn chế độ ăn: Ấm bụng, Dễ tiêu hóa, Low-Fat\n• Mô tả hương vị: Súp bắp Mỹ ngọt thanh nấu cùng thịt cua gỡ tươi nguyên thớ, nấm tuyết nhĩ và trứng cút bùi. Nước súp sánh mịn óng ánh, thơm dịu ngậy ngọt vị cua tươi, làm ấm dạ dày lý tưởng trước bữa tiệc.",
+    "[MÓN ĂN: Trà Đào Cam Sả]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 45.000 VND\n• Độ cay: 0/5\n• Lượng Calo: N/A\n• Thành phần nguyên liệu: Không ghi chú\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Không có nhãn đặc biệt\n• Mô tả hương vị: Trà đen hương đào, kết hợp cùng cam tươi và sả cây.",
+    "[MÓN ĂN: Trà Đào Cam Sả Tươi Mát Lạnh (Món thịnh hành ⭐)]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 45.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 145 kcal\n• Thành phần nguyên liệu: Cốt trà đen Ceylon, Đào miếng giòn ngâm, Cam vàng tươi, Sả cây tươi, Đường mía\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Giải khát, Thanh nhiệt mùa hè, Vegan\n• Mô tả hương vị: Trà đen Ceylon hảo hạng ủ lạnh, kết hợp miếng đào giòn ngâm, cam vàng Mỹ tươi mọng nước và tinh chất sả thanh khiết. Vị chua ngọt thanh mát bùng nổ, hương sả phảng phất thư giãn, xua tan ngay lập tức cái nóng bức mệt mỏi.",
+    "[MÓN ĂN: Trà Vải Hoa Hồng Hạt Chia Dưỡng Nhan]\n• Phân loại: Đồ uống (Drinks)\n• Giá bán: 48.000 VND\n• Độ cay: 0/5\n• Lượng Calo: 135 kcal\n• Thành phần nguyên liệu: Trà hoa nhài, Nụ hoa hồng sấy khô, Vải thiều ngâm giòn, Hạt chia hữu cơ\n• Cảnh báo dị ứng: Không có dị ứng phổ biến\n• Nhãn chế độ ăn: Dưỡng nhan, Healthy, Superfood, Vegan\n• Mô tả hương vị: Trà lài hoa nhài thoảng hương nụ hoa hồng khô, thịt vải thiều mọng nước giòn ngọt và hạt chia organic giàu chất xơ. Hương hoa ngọt ngào lãng mạn, vị ngọt thanh tao của vải quyện hạt chia lách tách vui miệng, vừa đẹp da vừa giải nhiệt."
   ],
   "dimension": 768,
-  "total_count": 17
+  "total_count": 69
 }

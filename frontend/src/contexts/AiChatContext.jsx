@@ -119,6 +119,13 @@ export const AiChatProvider = ({ children }) => {
               : m
           );
         }
+
+        // Chống lặp tin nhắn nếu socket emit trùng lặp sự kiện ai_response
+        const lastMsg = prev[prev.length - 1];
+        if (lastMsg && lastMsg.role === 'assistant' && lastMsg.content === content) {
+          return prev;
+        }
+
         return [
           ...prev,
           { id: uuidv4(), role: 'assistant', content, suggestedItems: suggestedItems || [], isStreaming: false }

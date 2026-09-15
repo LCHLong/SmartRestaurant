@@ -164,15 +164,17 @@ exports.consult = async (req, res) => {
   const sessionRoom = `session_${sessionId}`;
   const tableRoom = `table_${tableId}`;
 
+  // Gộp room bằng chaining .to() để Socket.io tự động khử trùng lặp socket (tránh gửi lặp 2 lần)
   const emitToClient = (event, data) => {
-    io.to(sessionRoom).emit(event, data);
+    let target = io.to(sessionRoom);
     if (tableId && tableId !== 'unknown') {
-      io.to(tableRoom).emit(event, data);
+      target = target.to(tableRoom);
     }
+    target.emit(event, data);
   };
 
   try {
-    // 5. RAG — 2-Stage retrieval (song song lấy context & history)
+    // 5. RAG — Lấy lịch sử đơn hàng & lịch sử hội thoại song song
     const [ragResult, orderHistory, history] = await Promise.all([
       retrieveMenuContext(message, resolvedRestaurantId),
       getOrderHistory(userId),
@@ -182,12 +184,15 @@ exports.consult = async (req, res) => {
     const { context, fallbackUsed } = ragResult;
 
     // 6. Build payload cho Pipecat (kèm cờ A/B Testing)
+    // Variant A (Advancing RAG): để AI Service tự chạy Lõi Hybrid RAG toàn trình (menuContext = null)
+    // Variant B (Baseline RAG): dùng menuContext cơ bản từ Node.js
+    const isAdvanced = abVariant === 'variant_a_advanced';
     const pipecatPayload = {
       message,
       sessionId,
       tableId,
       cartItems,
-      menuContext: context,
+      menuContext: isAdvanced ? null : context,
       orderHistory,
       conversationHistory: history,
       fallbackUsed,
@@ -195,7 +200,7 @@ exports.consult = async (req, res) => {
       feedbackType: req.body.feedbackType,
       rejectedItems: req.body.rejectedItems,
       abVariant,
-      enableRerank: abVariant === 'variant_a_advanced'
+      enableRerank: isAdvanced
     };
 
     // 7. Stream từ Pipecat → emit Socket.io

@@ -234,6 +234,38 @@ class TestMetadataFilter(unittest.TestCase):
         self.assertIn("tôm", retriever.last_extracted_entities.allergens)
         self.assertIn("total_before_filter", retriever.last_filter_stats)
 
+    def test_12_meat_exclusion_on_negation_queries(self):
+        """Kiểm tra loại bỏ 100% món thịt khi khách nêu các biến thể phủ định thịt (thit / thịt / không muốn ăn / ngán)."""
+        test_queries = [
+            "tôi không muốn ăn món có thit",
+            "tôi không muốn ăn món có thịt",
+            "tôi không thích ăn thịt",
+            "tôi không ăn thịt",
+            "ngán thịt quá kiếm gì thanh đạm",
+            "không ăn món có thịt"
+        ]
+
+        for q in test_queries:
+            entities = self.extractor.extract(q)
+            self.assertIn("thịt", entities.allergens, f"Thực thể 'thịt' phải được bóc tách từ: {q}")
+
+            accepted, rejected = self.filter.filter_items(self.mock_menu_items, entities, self.extractor)
+            accepted_ids = [item["id"] for item in accepted]
+            rejected_ids = [item["id"] for item in rejected]
+
+            # Phở bò (item-1), Bún bò huế (item-2), Gỏi cuốn tôm thịt (item-3) PHẢI bị loại
+            self.assertNotIn("item-1", accepted_ids, f"Phở bò không được có trong accepted cho query: {q}")
+            self.assertNotIn("item-2", accepted_ids, f"Bún bò không được có trong accepted cho query: {q}")
+            self.assertNotIn("item-3", accepted_ids, f"Gỏi cuốn tôm thịt không được có trong accepted cho query: {q}")
+
+            self.assertIn("item-1", rejected_ids)
+            self.assertIn("item-2", rejected_ids)
+            self.assertIn("item-3", rejected_ids)
+
+            # Món không chứa thịt (Đậu hũ sốt nấm, Trà đào) được giữ
+            self.assertIn("item-5", accepted_ids)
+            self.assertIn("item-6", accepted_ids)
+
 
 if __name__ == "__main__":
     unittest.main()

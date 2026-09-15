@@ -46,6 +46,7 @@ from processors.fallback_handler import (
 )
 from processors.hybrid_retriever import HybridMenuRetriever
 from processors.query_reformulator import QueryReformulator
+from processors.metadata_filter import MetadataFilter, CulinaryEntityExtractor
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -148,11 +149,25 @@ class AriaConversationPipeline:
                 )
                 rerank_stats = self.retriever.last_rerank_stats or {}
             else:
-                # Nếu client truyền sẵn menu_context, thực hiện tái xếp hạng nếu bật enable_rerank
-                if enable_rerank and hasattr(self.retriever, "reranker"):
+                # Nếu client truyền sẵn menu_context, luôn áp dụng Hard-Filter trước khi xử lý tiếp
+                extractor = getattr(self.retriever, "extractor", None) or CulinaryEntityExtractor()
+                entities = extractor.extract(search_query)
+                clean_menu_context, _ = MetadataFilter.filter_items(menu_context, entities, extractor)
+
+                if not clean_menu_context:
+                    # Nếu client gửi context bị lọc rỗng, tự động kích hoạt Lõi Hybrid Retriever nội bộ
+                    grounded_candidates = self.retriever.retrieve(
+                        query=search_query,
+                        top_k=top_k,
+                        enable_rerank=enable_rerank,
+                        rerank_weight=rerank_weight,
+                    )
+                    rerank_stats = self.retriever.last_rerank_stats or {}
+                elif enable_rerank and hasattr(self.retriever, "reranker"):
+                    # Thực hiện tái xếp hạng nếu bật enable_rerank
                     grounded_candidates = self.retriever.reranker.rerank(
                         query=search_query,
-                        candidates=menu_context,
+                        candidates=clean_menu_context,
                         top_k=top_k,
                         rerank_weight=rerank_weight,
                     )
@@ -161,7 +176,7 @@ class AriaConversationPipeline:
                         "candidate_count": len(grounded_candidates),
                     }
                 else:
-                    grounded_candidates = menu_context[:top_k]
+                    grounded_candidates = clean_menu_context[:top_k]
 
             # Loại bỏ các món bị khách từ chối nếu có negative feedback
             if reformulation_res.excluded_items:

@@ -79,15 +79,25 @@ class CulinaryEntityExtractor:
         "thịt bò": ["bò", "bo", "thịt bò", "thit bo"],
         "thịt gà": ["gà", "ga", "thịt gà", "thit ga"],
         "thịt heo": ["heo", "lợn", "lon", "thịt heo", "thit heo", "thịt lợn", "thit lon"],
+        "thịt": [
+            "thịt", "thit", "heo", "bò", "bo", "gà", "ga", "lợn", "lon",
+            "thịt heo", "thit heo", "thịt bò", "thit bo", "thịt gà", "thit ga",
+            "thịt lợn", "thit lon", "thịt băm", "thit bam", "chả lụa", "cha lua",
+            "sườn", "suon", "mỡ", "mo", "thịt nướng", "thit nuong"
+        ],
     }
 
     # 2. Các mẫu ngữ cảnh biểu thị Phủ định / Dị ứng / Loại trừ
     EXCLUSION_PATTERNS = [
         r"(?:dị ứng|di ung)\s+(?:với|voi)?\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
         r"(?:không ăn được|khong an duoc)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
+        r"(?:không muốn ăn|khong muon an)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
+        r"(?:không thích ăn|khong thich an)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
+        r"(?:không muốn dùng|khong muon dung|không dùng|khong dung)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
+        r"(?:không muốn|khong muon|không thích|khong thich)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
         r"(?:không ăn|khong an)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
-        r"(?:kiêng|kieng)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
-        r"(?:đừng bỏ|dung bo|bỏ|bo|không lấy|khong lay|đừng cho|dung cho|không cho|khong cho)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
+        r"(?:kiêng|kieng|tránh|tranh|ngán|ngan)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
+        r"(?:đừng bỏ|dung bo|bỏ|bo|không lấy|khong lay|đừng cho|dung cho|không cho|khong cho|đừng có|dung co|không kèm|khong kem)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
         r"(?:không có|khong co)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
     ]
 
@@ -170,17 +180,25 @@ class CulinaryEntityExtractor:
         for regex in self._compiled_exclusions:
             for match in regex.finditer(text):
                 phrase = match.group(1).strip()
+                # Chuẩn hóa loại bỏ các từ đệm mở đầu ("món có", "các món", "đồ có", "thức ăn có", "món")
+                clean_phrase = re.sub(
+                    r"^(?:món có|mon co|các món|cac mon|đồ có|do co|thức ăn có|thuc an co|món|mon)\s+",
+                    "",
+                    phrase,
+                    flags=re.IGNORECASE
+                ).strip()
+
                 # Kiểm tra xem cụm từ bị loại trừ này tương ứng với nhóm dị ứng nào
                 matched_any = False
                 for group_name, aliases in self.ALLERGEN_GROUPS.items():
                     for alias in aliases:
-                        if alias in phrase:
+                        if alias in phrase or alias in clean_phrase:
                             detected_allergens.add(group_name)
                             detected_excluded.add(alias)
                             matched_any = True
-                if not matched_any and len(phrase.split()) <= 3:
+                if not matched_any and len(clean_phrase.split()) <= 3 and clean_phrase:
                     # Nếu là 1 thành phần cụ thể không nằm trong nhóm dị ứng chính (vd: "hành", "tiêu")
-                    detected_excluded.add(phrase)
+                    detected_excluded.add(clean_phrase)
 
         # 2. Quét các từ khóa dị ứng xuất hiện sau từ "dị ứng" đơn lẻ
         if "dị ứng" in text or "di ung" in text:
