@@ -159,10 +159,11 @@ export const AiChatProvider = ({ children }) => {
   }, [socket, sessionId, isOpen]);
 
   // ---- sendMessage ----
-  const sendMessage = useCallback(async (text) => {
+  const sendMessage = useCallback(async (text, options = {}) => {
     if (!text?.trim() || isLoading) return;
 
     const tableId = getTableId();
+    const { feedbackType = null, rejectedItems = [] } = options;
 
     // Thêm message của user vào history
     setMessages(prev => [
@@ -179,9 +180,6 @@ export const AiChatProvider = ({ children }) => {
       socket?.emit('join_room', `table_${tableId}`);
     }
 
-    setIsLoading(true);
-    streamingMsgIdRef.current = null;
-
     try {
       await api.post('/api/ai/consult', {
         tableId,
@@ -193,7 +191,9 @@ export const AiChatProvider = ({ children }) => {
           price: Number(c.price),
           quantity: c.quantity
         })),
-        ...(user?.id && { userId: user.id })
+        ...(user?.id && { userId: user.id }),
+        ...(feedbackType && { feedbackType }),
+        ...(rejectedItems?.length > 0 && { rejectedItems })
       });
       // Kết quả trả về qua Socket.io (ai_stream_token / ai_response)
     } catch (err) {
@@ -208,7 +208,38 @@ export const AiChatProvider = ({ children }) => {
         { id: uuidv4(), role: 'assistant', content: errMsg, suggestedItems: [], isStreaming: false, isError: true }
       ]);
     }
-  }, [isLoading, cart, sessionId, user]);
+  }, [isLoading, cart, sessionId, user, socket]);
+
+  // ---- sendFeedback (Bước 4.3 Telemetry Loop) ----
+  const sendFeedback = useCallback(async ({ messageId, query, answer, feedbackType, rejectedItems = [], contextIds = [] }) => {
+    const tableId = getTableId();
+
+    // 1. Cập nhật state UI của message ngay lập tức (optimistic update)
+    setMessages(prev => prev.map(m => m.id === messageId ? { ...m, userFeedback: feedbackType } : m));
+
+    // 2. Gửi telemetry tới Backend
+    try {
+      await api.post('/api/chat/feedback', {
+        sessionId,
+        tableId,
+        query: query || 'Tư vấn món',
+        answer: answer || '',
+        feedbackType,
+        rejectedItems,
+        contextIds
+      });
+    } catch (err) {
+      console.warn('Lỗi ghi nhận feedback:', err?.message);
+    }
+
+    // 3. Nếu là thumbs_down, tự động tìm kiếm món thay thế
+    if (feedbackType === 'thumbs_down') {
+      const dislikedText = rejectedItems.length > 0
+        ? `Tôi không thích ${rejectedItems.join(', ')}. Gợi ý cho tôi món khác thanh vị hơn nhé!`
+        : 'Tôi muốn đổi món khác thanh vị hơn, gợi ý giúp tôi!';
+      sendMessage(dislikedText, { feedbackType: 'thumbs_down', rejectedItems });
+    }
+  }, [sessionId, sendMessage]);
 
   // ---- Toggle widget ----
   const openChat = useCallback(() => {
@@ -242,6 +273,7 @@ export const AiChatProvider = ({ children }) => {
       isLoading,
       hasUnread,
       sendMessage,
+      sendFeedback,
       sessionId,
     }}>
       {children}

@@ -38,7 +38,9 @@ const consultSchema = Joi.object({
     })
   ).default([]),
   restaurantId: Joi.string().optional(),
-  userId: Joi.string().optional()
+  userId: Joi.string().optional(),
+  feedbackType: Joi.string().valid('thumbs_up', 'thumbs_down', 'detailed').optional(),
+  rejectedItems: Joi.array().items(Joi.string()).optional()
 });
 
 // ---------- Helpers ----------
@@ -160,7 +162,9 @@ exports.consult = async (req, res) => {
       orderHistory,
       conversationHistory: history,
       fallbackUsed,
-      restaurantId: resolvedRestaurantId
+      restaurantId: resolvedRestaurantId,
+      feedbackType: req.body.feedbackType,
+      rejectedItems: req.body.rejectedItems
     };
 
     // 6. Stream từ Pipecat → emit Socket.io

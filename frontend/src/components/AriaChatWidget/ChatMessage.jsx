@@ -5,12 +5,23 @@
  * - Assistant message: bubble trái + streaming cursor + mini card món
  */
 
+import { useState } from 'react';
 import { useCart } from '../../contexts/CartContext';
+import { useAiChat } from '../../contexts/AiChatContext';
 import toast from 'react-hot-toast';
 
 function formatPrice(price) {
   if (!price && price !== 0) return '';
   return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+}
+
+// Trích xuất tên món từ định dạng markdown **[Tên món]**
+function extractDishesFromMarkdown(text) {
+  if (!text) return [];
+  const matches = [...text.matchAll(/\*\*([^*]+)\*\*/g)];
+  return matches
+    .map(m => m[1].trim())
+    .filter(name => !name.includes('Aria') && !name.includes('Lưu ý') && !name.includes('Bàn'));
 }
 
 // Mini card cho món được gợi ý
@@ -62,7 +73,37 @@ function renderText(text) {
 
 export default function ChatMessage({ message }) {
   const { addToCart } = useCart();
+  const { sendFeedback } = useAiChat();
+  const [feedbackPending, setFeedbackPending] = useState(false);
   const isUser = message.role === 'user';
+
+  const handleFeedback = async (feedbackType) => {
+    if (feedbackPending || message.userFeedback) return;
+    setFeedbackPending(true);
+
+    const dislikedItems = message.suggestedItems?.length > 0
+      ? message.suggestedItems.map(i => i.name)
+      : extractDishesFromMarkdown(message.content);
+
+    const contextIds = message.suggestedItems?.map(i => i.id) || [];
+
+    if (sendFeedback) {
+      await sendFeedback({
+        messageId: message.id,
+        answer: message.content,
+        feedbackType,
+        rejectedItems: feedbackType === 'thumbs_down' ? dislikedItems : [],
+        contextIds
+      });
+    }
+
+    setFeedbackPending(false);
+    if (feedbackType === 'thumbs_up') {
+      toast.success('Cảm ơn bạn đã đánh giá! 😊', { duration: 1500 });
+    } else {
+      toast('Aria đang tìm món khác phù hợp hơn với bạn... 🍜', { icon: '🔄', duration: 2500 });
+    }
+  };
 
   const handleAddToCart = (item) => {
     addToCart({
@@ -139,6 +180,48 @@ export default function ChatMessage({ message }) {
             <span className="material-symbols-outlined text-sm">notifications</span>
             Gọi nhân viên bàn
           </button>
+        )}
+
+        {/* Thanh nút đánh giá Thumbs Up / Down (Bước 4.3 Kế Hoạch 05) */}
+        {!message.isStreaming && !message.isError && message.id !== 'aria-welcome-msg' && (
+          <div className="flex items-center gap-1.5 mt-2 ml-1">
+            <span className="text-[10px] text-gray-400 font-medium">Gợi ý này có hữu ích?</span>
+            <button
+              onClick={() => handleFeedback('thumbs_up')}
+              disabled={feedbackPending || !!message.userFeedback}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all duration-150 active:scale-95 ${
+                message.userFeedback === 'thumbs_up'
+                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs'
+                  : 'text-gray-500 hover:text-emerald-700 hover:bg-emerald-50 border border-gray-200'
+              }`}
+              title="Thích gợi ý này"
+              aria-label="Thích gợi ý này"
+            >
+              <span>👍</span>
+              {message.userFeedback === 'thumbs_up' ? (
+                <span className="text-[10px] text-emerald-800 font-bold">Hài lòng</span>
+              ) : null}
+            </button>
+
+            <button
+              onClick={() => handleFeedback('thumbs_down')}
+              disabled={feedbackPending || !!message.userFeedback}
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold transition-all duration-150 active:scale-95 ${
+                message.userFeedback === 'thumbs_down'
+                  ? 'bg-amber-100 text-amber-900 border border-amber-300 shadow-2xs'
+                  : 'text-gray-500 hover:text-rose-700 hover:bg-rose-50 border border-gray-200'
+              }`}
+              title="Đổi món khác"
+              aria-label="Đổi món khác"
+            >
+              <span>👎</span>
+              {message.userFeedback === 'thumbs_down' ? (
+                <span className="text-[10px] text-amber-900 font-bold">Đang tìm món khác...</span>
+              ) : (
+                <span className="text-[10px] font-medium text-gray-600">Đổi món</span>
+              )}
+            </button>
+          </div>
         )}
       </div>
     </div>
