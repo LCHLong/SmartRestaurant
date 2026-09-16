@@ -87,18 +87,20 @@ class CulinaryEntityExtractor:
         ],
     }
 
-    # 2. Các mẫu ngữ cảnh biểu thị Phủ định / Dị ứng / Loại trừ
+    STOP_BOUNDARIES = r"(?:,|;|\.|\?|!|\bnhưng\b|\bnhung\b|\bgợi ý\b|\bgoi y\b|\btìm\b|\btim\b|\bmuốn\b|\bmuon\b|\bthích\b|\bthich\b|\bcho tôi\b|\bcho toi\b|\bhãy\b|\bhay\b|\bưu tiên\b|\buu tien\b)"
+
+    # 2. Các mẫu ngữ cảnh biểu thị Phủ định / Dị ứng / Loại trừ (dừng lại tại dấu câu hoặc liên từ)
     EXCLUSION_PATTERNS = [
-        r"(?:dị ứng|di ung)\s+(?:với|voi)?\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
-        r"(?:không ăn được|khong an duoc)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
-        r"(?:không muốn ăn|khong muon an)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
-        r"(?:không thích ăn|khong thich an)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
-        r"(?:không muốn dùng|khong muon dung|không dùng|khong dung)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
-        r"(?:không muốn|khong muon|không thích|khong thich)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
-        r"(?:không ăn|khong an)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
-        r"(?:kiêng|kieng|tránh|tranh|ngán|ngan)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
-        r"(?:đừng bỏ|dung bo|bỏ|bo|không lấy|khong lay|đừng cho|dung cho|không cho|khong cho|đừng có|dung co|không kèm|khong kem)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
-        r"(?:không có|khong co)\s*([a-zA-Zà-ỹÀ-Ỹ\s]+)",
+        rf"(?:dị ứng|di ung)(?:\s+(?:với|voi))?\s+([^,.;?!]+?)(?={STOP_BOUNDARIES}|$)",
+        rf"(?:không ăn được|khong an duoc)\s+([^,.;?!]+?)(?={STOP_BOUNDARIES}|$)",
+        rf"(?:không muốn ăn|khong muon an)\s+([^,.;?!]+?)(?={STOP_BOUNDARIES}|$)",
+        rf"(?:không thích ăn|khong thich an)\s+([^,.;?!]+?)(?={STOP_BOUNDARIES}|$)",
+        rf"(?:không muốn dùng|khong muon dung|không dùng|khong dung)\s+([^,.;?!]+?)(?={STOP_BOUNDARIES}|$)",
+        rf"(?:không muốn|khong muon|không thích|khong thich)\s+([^,.;?!]+?)(?={STOP_BOUNDARIES}|$)",
+        rf"(?:không ăn|khong an)\s+([^,.;?!]+?)(?={STOP_BOUNDARIES}|$)",
+        rf"(?:kiêng|kieng|tránh|tranh|ngán|ngan)\s+([^,.;?!]+?)(?={STOP_BOUNDARIES}|$)",
+        rf"(?:đừng bỏ|dung bo|bỏ|bo|không lấy|khong lay|đừng cho|dung cho|không cho|khong cho|đừng có|dung co|không kèm|khong kem)\s+([^,.;?!]+?)(?={STOP_BOUNDARIES}|$)",
+        rf"(?:không có|khong co)\s+([^,.;?!]+?)(?={STOP_BOUNDARIES}|$)",
     ]
 
     # 3. Từ khóa chế độ ăn (Dietary Restrictions)
@@ -199,14 +201,6 @@ class CulinaryEntityExtractor:
                 if not matched_any and len(clean_phrase.split()) <= 3 and clean_phrase:
                     # Nếu là 1 thành phần cụ thể không nằm trong nhóm dị ứng chính (vd: "hành", "tiêu")
                     detected_excluded.add(clean_phrase)
-
-        # 2. Quét các từ khóa dị ứng xuất hiện sau từ "dị ứng" đơn lẻ
-        if "dị ứng" in text or "di ung" in text:
-            for group_name, aliases in self.ALLERGEN_GROUPS.items():
-                for alias in aliases:
-                    if re.search(rf"\b{re.escape(alias)}\b", text):
-                        detected_allergens.add(group_name)
-                        detected_excluded.add(alias)
 
         entities.allergens = sorted(list(detected_allergens))
         entities.excluded_ingredients = sorted(list(detected_excluded))
@@ -366,15 +360,33 @@ class MetadataFilter:
 
             # 3. Lọc Chế độ ăn Chay / Vegan
             if not rejection_reasons and ("chay" in entities.dietary_tags or "vegan" in entities.dietary_tags):
-                # Kiểm tra món có nhãn chay hoặc tên có chữ chay không
                 tags = [str(t).lower() for t in (raw_data.get("dietary_tags") or [])]
                 item_name = str(raw_data.get("name", "")).lower()
-                is_explicit_chay = any("chay" in t or "vegan" in t for t in tags) or "chay" in item_name
 
-                # Kiểm tra thành phần mặn (thịt, bò, heo, gà, tôm, cua, cá)
-                meat_keywords = ["thịt", "bò", "gà", "heo", "lợn", "tôm", "cua", "cá", "mực", "sườn", "chả lụa"]
-                contains_meat = any(re.search(rf"\b{re.escape(m)}\b", item_name) for m in meat_keywords) and not is_explicit_chay
+                # Trích xuất tên danh mục
+                cat_val = raw_data.get("category") or raw_data.get("categories") or ""
+                cat_name = (cat_val.get("name") if isinstance(cat_val, dict) else str(cat_val)).lower()
 
+                # Xác định có phải món chay, đồ uống hoặc tráng miệng không
+                is_explicit_chay = (
+                    any(t in ("chay", "vegan", "vegetarian") or "chay" in t or "vegan" in t or "vegetarian" in t for t in tags)
+                    or "chay" in item_name or "vegan" in item_name
+                    or "chay" in cat_name or "vegetarian" in cat_name
+                    or "đồ uống" in cat_name or "drinks" in cat_name
+                    or "tráng miệng" in cat_name or "dessert" in cat_name
+                )
+
+                # Kiểm tra thành phần mặn (thịt, bò, heo, gà, tôm, cua, cá, hải sản...)
+                meat_keywords = [
+                    "thịt", "bò", "gà", "heo", "lợn", "tôm", "cua", "cá", "mực", "sườn",
+                    "chả lụa", "hải sản", "xá xíu", "ba tê", "pâté", "cật", "nem lụi",
+                    "bacon", "ốc", "nghêu", "sò", "hàu", "bạch tuộc"
+                ]
+
+                full_text = f"{item_name} {raw_data.get('description', '')} {' '.join(raw_data.get('allergens', []) or [])}".lower()
+                contains_meat = any(re.search(rf"\b{re.escape(m)}\b", full_text) for m in meat_keywords)
+
+                # Nếu chứa thịt/hải sản hoặc không thuộc diện chay/đồ uống/tráng miệng -> Loại trừ
                 if contains_meat or not is_explicit_chay:
                     rejection_reasons.append("Không thỏa mãn chế độ ăn chay")
 

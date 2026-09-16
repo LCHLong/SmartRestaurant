@@ -15,13 +15,18 @@ const redis = require('../config/redisClient');
 const { getIO } = require('../config/socket');
 const { retrieveMenuContext, getOrderHistory } = require('../services/ragService');
 const { streamFromPipecat, isPipecatHealthy } = require('../services/pipecatClient');
+const { getAbVariant } = require('../utils/abVariant');
 const Joi = require('joi');
 
 // ---------- Config ----------
 const RATE_LIMIT_MAX = 10;       // request/phút/session
 const RATE_LIMIT_TTL = 60;       // 1 phút (giây)
 const SESSION_TTL = 1800;        // 30 phút
-const MAX_HISTORY_TURNS = 6;     // Giữ 6 lượt hội thoại gần nhất
+// Paper 01 yêu cầu 10 lượt (mỗi lượt = 1 cặp user+assistant = 2 phần tử)
+// Giới hạn 10 lượt ≈ 20 phần tử trong mảng history
+// Lý do: context window Groq LLaMA ~8K tokens, mỗi lượt ~150-200 tokens
+// → 10 lượt ≈ 2000 tokens cho history, còn đủ chỗ cho system prompt + menu context
+const MAX_HISTORY_TURNS = 10;
 const DEFAULT_RESTAURANT_ID = process.env.DEFAULT_RESTAURANT_ID || '1';
 
 // ---------- Validation Schema ----------
@@ -44,25 +49,6 @@ const consultSchema = Joi.object({
 });
 
 // ---------- Helpers ----------
-
-/**
- * Thuật toán băm nhất quán gán nhánh A/B testing dựa trên sessionId (Paper 01 - Bước 5.2)
- * Variant A (50%): Advancing RAG (2-Stage + Metadata Filter + Cross-Encoder Reranker)
- * Variant B (50%): Baseline RAG thông thường
- * @param {string} sessionId
- * @param {number} ratio Tỉ lệ phân bổ nhánh A (mặc định 0.5 = 50%)
- * @returns {'variant_a_advanced' | 'variant_b_baseline'}
- */
-function getAbVariant(sessionId, ratio = 0.5) {
-  if (!sessionId || typeof sessionId !== 'string') return 'variant_a_advanced';
-  let hash = 2166136261;
-  for (let i = 0; i < sessionId.length; i++) {
-    hash ^= sessionId.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  const score = (hash >>> 0) / 4294967296;
-  return score < ratio ? 'variant_a_advanced' : 'variant_b_baseline';
-}
 
 /**
  * Kiểm tra & tăng rate limit counter
@@ -271,4 +257,6 @@ exports.clearSession = async (req, res) => {
   }
 };
 
+// Re-export để các module khác có thể dùng trực tiếp từ aiController (backward compat)
 exports.getAbVariant = getAbVariant;
+

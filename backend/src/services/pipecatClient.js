@@ -53,28 +53,32 @@ function streamFromPipecat(payload, onToken, onDone, onError) {
     res.on('data', (chunk) => {
       buffer += chunk.toString();
 
-      // Parse SSE lines
-      const lines = buffer.split('\n');
-      buffer = lines.pop(); // giữ phần chưa đủ dòng
+      // SSE chuẩn W3C dùng \n\n để kết thúc mỗi event (không phải \n đơn)
+      // Split theo \n\n để tránh mất token khi TCP buffer bị cắt giữa chừng
+      const events = buffer.split('\n\n');
+      buffer = events.pop(); // giữ event chưa hoàn chỉnh (không có \n\n cuối)
 
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const raw = line.slice(6).trim();
+      for (const event of events) {
+        // Lấy dòng data: trong event (bỏ qua dòng id:, event:, comment:)
+        const dataLine = event.split('\n').find(l => l.startsWith('data: '));
+        if (!dataLine) continue;
+
+        const raw = dataLine.slice(6).trim();
         if (!raw || raw === '[DONE]') continue;
 
         try {
-          const event = JSON.parse(raw);
+          const parsedEvent = JSON.parse(raw);
 
-          if (event.type === 'token' && event.content) {
-            finalResult.text += event.content;
-            onToken(event.content);
-          } else if (event.type === 'done') {
-            finalResult.suggestedItems = event.suggestedItems || [];
-          } else if (event.type === 'error') {
-            onError(new Error(event.message || 'Pipecat pipeline error'));
+          if (parsedEvent.type === 'token' && parsedEvent.content) {
+            finalResult.text += parsedEvent.content;
+            onToken(parsedEvent.content);
+          } else if (parsedEvent.type === 'done') {
+            finalResult.suggestedItems = parsedEvent.suggestedItems || [];
+          } else if (parsedEvent.type === 'error') {
+            onError(new Error(parsedEvent.message || 'Pipecat pipeline error'));
           }
         } catch (_) {
-          // Bỏ qua dòng không parse được
+          // Bỏ qua event không parse được (vd: heartbeat, comment)
         }
       }
     });

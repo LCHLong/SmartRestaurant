@@ -20,8 +20,8 @@ HUMAN_HANDOFF_TRIGGER_KEYWORDS = [
     "gọi nhân viên", "gọi phục vụ", "gọi waiter", "call staff",
     "gặp nhân viên", "gặp phục vụ", "nhân viên phục vụ",
     "nói chuyện với người", "speak to human", "need help",
-    "đặc biệt", "yêu cầu riêng", "custom order",
-    "dị ứng nặng", "severe allergy", "vegan strict",
+    "yêu cầu đặc biệt", "yêu cầu riêng", "custom order",
+    "dị ứng nặng", "severe allergy",
 ]
 
 

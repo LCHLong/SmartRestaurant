@@ -150,7 +150,7 @@ class AriaConversationPipeline:
                 rerank_stats = self.retriever.last_rerank_stats or {}
             else:
                 # Nếu client truyền sẵn menu_context, luôn áp dụng Hard-Filter trước khi xử lý tiếp
-                extractor = getattr(self.retriever, "extractor", None) or CulinaryEntityExtractor()
+                extractor = getattr(self.retriever, "entity_extractor", None) or CulinaryEntityExtractor()
                 entities = extractor.extract(search_query)
                 clean_menu_context, _ = MetadataFilter.filter_items(menu_context, entities, extractor)
 

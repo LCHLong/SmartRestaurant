@@ -8,6 +8,7 @@ const Joi = require('joi');
 const crypto = require('crypto');
 const redis = require('../config/redisClient');
 const supabase = require('../config/supabaseClient');
+const { getAbVariant } = require('../utils/abVariant');
 
 // Bộ nhớ cache fallback in-memory phòng ngừa khi Redis / Supabase offline (Zero Crash)
 const memoryFeedbackStore = new Map();
@@ -23,17 +24,6 @@ const memoryAbMetrics = {
   variant_a_advanced: { impressions: 0, total: 0, thumbs_up: 0, thumbs_down: 0 },
   variant_b_baseline: { impressions: 0, total: 0, thumbs_up: 0, thumbs_down: 0 }
 };
-
-function resolveVariant(sessionId) {
-  if (!sessionId) return 'variant_a_advanced';
-  let hash = 2166136261;
-  for (let i = 0; i < sessionId.length; i++) {
-    hash ^= sessionId.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  const score = (hash >>> 0) / 4294967296;
-  return score < 0.5 ? 'variant_a_advanced' : 'variant_b_baseline';
-}
 
 // Joi Schema kiểm tra tính hợp lệ của request payload
 const feedbackSchema = Joi.object({
@@ -77,7 +67,7 @@ exports.submitFeedback = async (req, res) => {
       abVariant: inputVariant
     } = value;
 
-    const abVariant = inputVariant || resolveVariant(sessionId);
+    const abVariant = inputVariant || getAbVariant(sessionId);
 
     // Gán điểm số rating mặc định nếu không truyền
     let rating = value.rating;

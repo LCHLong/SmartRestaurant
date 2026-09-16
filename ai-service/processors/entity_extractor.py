@@ -82,13 +82,16 @@ def _find_menu_item(candidate: str, menu_lookup: dict) -> Optional[dict]:
     return None
 
 
-def _to_suggestion(item: dict) -> dict:
+def _to_suggestion(candidate: dict) -> dict:
     """Convert menu item sang suggestion format cho Frontend"""
+    raw = candidate.get("item", candidate) if isinstance(candidate, dict) else candidate
+    cat = raw.get("categories") or raw.get("category") or {}
+    cat_name = cat.get("name", "") if isinstance(cat, dict) else str(cat)
     return {
-        "id": item.get("id"),
-        "name": item.get("name"),
-        "price": item.get("price"),
-        "image_url": item.get("image_url"),
-        "description": item.get("ai_description") or item.get("description", ""),
-        "category": (item.get("categories") or {}).get("name", ""),
+        "id": candidate.get("id") or raw.get("id"),
+        "name": candidate.get("name") or raw.get("name"),
+        "price": raw.get("price", candidate.get("price")),
+        "image_url": raw.get("image_url", candidate.get("image_url")),
+        "description": raw.get("ai_description") or raw.get("description") or candidate.get("description", ""),
+        "category": cat_name,
     }
