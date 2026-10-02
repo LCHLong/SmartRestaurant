@@ -93,9 +93,81 @@ const sendStaffInvitation = async (email, full_name, password, token) => {
     return await sendEmail(email, "Lời mời tham gia Smart Restaurant - Xác thực tài khoản", html);
 };
 
+// Template 5: Gửi email xác nhận đặt bàn kèm QR code định danh (Phase 5)
+const sendReservationConfirmation = async ({
+    email,
+    customer_name,
+    booking_code,
+    reservation_date,
+    reservation_time,
+    guest_count,
+    special_requests,
+    qrImage,
+    cancelToken,
+    requiresDeposit,
+    deposit_amount,
+}) => {
+    const cancelLink = `${process.env.FRONTEND_URL}/reservations/cancel?token=${cancelToken}`;
+
+    const depositSection = requiresDeposit
+        ? `<div style="background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:12px 16px;margin-top:12px;">
+            <p style="margin:0;font-weight:bold;color:#856404;">⚠️ Yêu cầu đặt cọc (Nhóm ≥ 6 người)</p>
+            <p style="margin:6px 0 0;color:#533f03;">Số tiền cọc: <strong>${deposit_amount?.toLocaleString('vi-VN')}đ</strong></p>
+            <p style="margin:4px 0 0;font-size:12px;color:#533f03;">Vui lòng thanh toán cọc trong 24h để giữ chỗ.</p>
+          </div>`
+        : '';
+
+    const specialSection = special_requests
+        ? `<p style="margin:4px 0;"><strong>Ghi chú:</strong> ${special_requests}</p>`
+        : '';
+
+    const html = `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden;">
+            <div style="background:#2e7d32;padding:24px 20px;text-align:center;">
+                <h1 style="color:white;margin:0;font-size:22px;">🍽️ Smart Restaurant</h1>
+                <p style="color:#c8e6c9;margin:6px 0 0;font-size:14px;">Xác nhận đặt bàn thành công</p>
+            </div>
+            <div style="padding:24px 28px;">
+                <p style="font-size:16px;">Xin chào <strong>${customer_name}</strong>,</p>
+                <p>Chúng tôi đã nhận được yêu cầu đặt bàn của bạn:</p>
+                <div style="background:#f5f5f5;border-radius:8px;padding:16px 20px;margin:16px 0;">
+                    <p style="margin:4px 0;"><strong>📋 Mã đặt bàn:</strong>
+                        <span style="font-size:20px;font-weight:bold;color:#2e7d32;letter-spacing:2px;"> ${booking_code}</span>
+                    </p>
+                    <p style="margin:4px 0;"><strong>📅 Ngày:</strong> ${reservation_date}</p>
+                    <p style="margin:4px 0;"><strong>🕐 Giờ:</strong> ${reservation_time}</p>
+                    <p style="margin:4px 0;"><strong>👥 Số khách:</strong> ${guest_count} người</p>
+                    ${specialSection}
+                </div>
+                ${depositSection}
+                <div style="text-align:center;margin:24px 0;">
+                    <p style="color:#555;font-size:13px;margin-bottom:8px;">Xuất trình mã QR này khi đến nhà hàng để check-in:</p>
+                    <img src="${qrImage}" alt="QR ${booking_code}" width="160" height="160"
+                         style="border:3px solid #2e7d32;border-radius:8px;padding:6px;background:white;" />
+                    <p style="color:#888;font-size:11px;margin-top:6px;">Mã: <strong>${booking_code}</strong></p>
+                </div>
+                <div style="border-top:1px solid #eee;padding-top:16px;margin-top:16px;">
+                    <p style="font-size:13px;color:#555;">Nếu bạn muốn hủy đặt bàn:</p>
+                    <a href="${cancelLink}"
+                       style="display:inline-block;padding:10px 22px;background:#f44336;color:white;text-decoration:none;border-radius:6px;font-weight:bold;font-size:13px;">
+                       ❌ Hủy đặt bàn
+                    </a>
+                    <p style="color:#999;font-size:11px;margin-top:8px;">Link hủy có hiệu lực trong 24 giờ.</p>
+                </div>
+            </div>
+            <div style="background:#f9f9f9;padding:14px 28px;font-size:12px;color:#999;text-align:center;">
+                Smart Restaurant • Mọi thắc mắc vui lòng liên hệ trực tiếp với nhà hàng.
+            </div>
+        </div>
+    `;
+
+    return await sendEmail(email, `✅ Xác nhận đặt bàn [${booking_code}] - Smart Restaurant`, html);
+};
+
 module.exports = {
     sendResetPasswordEmail,
     sendWelcomeEmail,
     sendVerificationEmail,
-    sendStaffInvitation // Export thêm hàm mới
+    sendStaffInvitation,
+    sendReservationConfirmation,
 };

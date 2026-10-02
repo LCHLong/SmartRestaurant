@@ -63,6 +63,22 @@ const initSocket = (httpServer) => {
           socket.emit('error', { message: 'Unauthorized access to waiter room' });
           return;
         }
+      } else if (room === 'admin') {
+        // Phase 5: Admin room cho reservation & shift notifications
+        if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+          console.log(`❌ UNAUTHORIZED: User ${socket.id} tried to join admin room`);
+          socket.emit('error', { message: 'Unauthorized access to admin room' });
+          return;
+        }
+      } else if (room.startsWith('user_')) {
+        // Phase 5: User-specific room cho shift notifications
+        // Chỉ cho phép join room của chính mình
+        const roomUserId = room.replace('user_', '');
+        if (!user || user.id !== roomUserId) {
+          console.log(`❌ UNAUTHORIZED: User ${socket.id} tried to join user room ${room}`);
+          socket.emit('error', { message: 'Unauthorized: cannot join another user\'s room' });
+          return;
+        }
       } else if (room.startsWith('table_') || room.startsWith('session_')) {
         // Table rooms & AI session rooms là public cho khách hàng
         console.log(`📱 Guest/Customer joined room: ${room}`);

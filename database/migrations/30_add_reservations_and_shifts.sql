@@ -41,6 +41,7 @@ CREATE TABLE IF NOT EXISTS reservations (
     special_requests  TEXT DEFAULT NULL,
     buffer_minutes    INT DEFAULT 90, -- Khung thời gian dùng bữa đệm chống lấn giờ
     cancellation_reason TEXT DEFAULT NULL,
+    idempotency_key   VARCHAR(36) UNIQUE DEFAULT NULL, -- UUIDv4 từ client, chống double-submit
     created_at        TIMESTAMPTZ DEFAULT NOW(),
     updated_at        TIMESTAMPTZ DEFAULT NOW()
 );
@@ -102,6 +103,7 @@ CREATE INDEX IF NOT EXISTS idx_reservations_status ON reservations (status);
 CREATE INDEX IF NOT EXISTS idx_reservations_booking_code ON reservations (booking_code);
 CREATE INDEX IF NOT EXISTS idx_reservations_phone ON reservations (customer_phone);
 CREATE INDEX IF NOT EXISTS idx_reservations_table_id ON reservations (table_id) WHERE table_id IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_reservations_idempotency ON reservations (idempotency_key) WHERE idempotency_key IS NOT NULL;
 
 -- Tối ưu tra cứu lịch trực tuần & điểm danh nhân viên
 CREATE INDEX IF NOT EXISTS idx_shift_assignments_date_shift ON shift_assignments (shift_date, shift_id);

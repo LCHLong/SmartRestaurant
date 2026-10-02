@@ -71,6 +71,10 @@ app.use('/api/ai', require('./routes/aiRoutes'));
 app.use('/api/chat/feedback', require('./routes/feedbackRoutes'));
 app.use('/api/feedback', require('./routes/feedbackRoutes'));
 
+// Phase 5: Đặt bàn trước & Quản lý ca làm việc
+app.use('/api/reservations', require('./routes/reservationRoutes'));
+app.use('/api/shifts', require('./routes/shiftRoutes'));
+
 app.use('/api', testEmailRouter);
 
 // --- SERVE FRONTEND IN PRODUCTION ---

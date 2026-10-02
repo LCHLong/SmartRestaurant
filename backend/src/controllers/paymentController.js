@@ -215,7 +215,33 @@ exports.handleWebhook = async (req, res) => {
     // Xử lý sự kiện thanh toán thành công
     if (event.type === 'payment_intent.succeeded') {
         const paymentIntent = event.data.object;
-        const orderId = paymentIntent.metadata.orderId;
+        const orderId = paymentIntent.metadata?.orderId;
+        const reservationId = paymentIntent.metadata?.reservationId;
+
+        // Phase 5: Xử lý tiền cọc đặt bàn
+        if (reservationId) {
+            console.log(`💰 Thanh toán cọc thành công cho lượt đặt bàn: ${reservationId}`);
+            await supabase.from('reservations').update({
+                deposit_status: 'paid',
+                status: 'confirmed',
+                payment_intent_id: paymentIntent.id,
+                updated_at: new Date().toISOString()
+            }).eq('id', reservationId);
+
+            try {
+                const io = getIO();
+                io.to('waiter').emit('reservation_deposit_paid', {
+                    reservationId,
+                    bookingCode: paymentIntent.metadata?.bookingCode
+                });
+                io.to('admin').emit('reservation_deposit_paid', {
+                    reservationId,
+                    bookingCode: paymentIntent.metadata?.bookingCode
+                });
+            } catch (_) {}
+
+            return res.json({ received: true });
+        }
 
         console.log(`💰 Thanh toán thành công cho đơn: ${orderId}`);
 

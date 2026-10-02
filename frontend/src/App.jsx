@@ -16,11 +16,17 @@ import TableManagement from './pages/admin/TableManagement';
 import StaffManagement from './pages/admin/StaffManagement';
 import ModifierManagement from './pages/admin/ModifierManagement';
 import OrderManagement from './pages/admin/OrderManagement';
-import WaiterLayout from './layouts/WaiterLayout'; // Import WaiterLayout
-import OrderListPage from './pages/waiter/OrderListPage'; // Import OrderListPage
-import TableMapPage from './pages/waiter/TableMapPage'; // Import TableMapPage
+import ReservationManagement from './pages/admin/ReservationManagement'; // Phase 5
+import ShiftManagement from './pages/admin/ShiftManagement'; // Phase 5
+import WaiterLayout from './layouts/WaiterLayout';
+import OrderListPage from './pages/waiter/OrderListPage';
+import TableMapPage from './pages/waiter/TableMapPage';
+import MyShiftsPage from './pages/waiter/MyShiftsPage'; // Phase 5
 import KitchenDisplayPage from './pages/kitchen/KitchenDisplayPage';
-import CheckoutPage from './pages/customer/CustomerCheckoutPage'; // <-- Đảm bảo file này tồn tại
+import CheckoutPage from './pages/customer/CustomerCheckoutPage';
+import ReservationPage from './pages/customer/ReservationPage'; // Phase 5
+import ReservationLookupPage from './pages/customer/ReservationLookupPage'; // Phase 5
+import ReservationCancelPage from './pages/customer/ReservationCancelPage'; // Phase 5
 import WaiterBillPage from './pages/waiter/WaiterBillPage';
 import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import ResetPasswordPage from './pages/auth/ResetPasswordPage';
@@ -33,7 +39,7 @@ import CreateCouponPage from './pages/admin/CreateCouponPage';
 import CouponListPage from './pages/admin/CouponListPage';
 import EditCouponPage from './pages/admin/EditCouponPage';
 import { Toaster } from 'react-hot-toast';
-import GuestActiveOrdersBanner from './components/customer/GuestActiveOrdersBanner'; // Import Banner
+import GuestActiveOrdersBanner from './components/customer/GuestActiveOrdersBanner';
 import './App.css';
 
 function App() {
@@ -56,6 +62,9 @@ function App() {
         <Route path="/verify-email" element={<VerifyEmailPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reservations" element={<ReservationPage />} /> {/* Phase 5: Public reservation */}
+        <Route path="/reservations/lookup" element={<ReservationLookupPage />} /> {/* Phase 5 */}
+        <Route path="/reservations/cancel" element={<ReservationCancelPage />} /> {/* Phase 5 */}
 
         {/* Admin Routes */}
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
@@ -71,6 +80,8 @@ function App() {
             <Route path="tables" element={<TableManagement />} />
             <Route path="staff" element={<StaffManagement />} />
             <Route path="modifiers" element={<ModifierManagement />} />
+            <Route path="reservations" element={<ReservationManagement />} /> {/* Phase 5 */}
+            <Route path="shifts" element={<ShiftManagement />} /> {/* Phase 5 */}
           </Route>
         </Route>
 
@@ -92,6 +103,7 @@ function App() {
             <Route path="orders" element={<OrderListPage />} />
             <Route path="bill/:orderId" element={<WaiterBillPage />} />
             <Route path="map" element={<TableMapPage />} />
+            <Route path="shifts" element={<MyShiftsPage />} /> {/* Phase 5 */}
           </Route>
         </Route>
 

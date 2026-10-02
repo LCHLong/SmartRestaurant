@@ -76,6 +76,10 @@ const WaiterSidebar = () => {
                     <Link to="/waiter/map" className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium text-sm ${location.pathname === '/waiter/map' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-600'}`}>
                         <span className="material-symbols-outlined mr-3 text-[22px]">table_restaurant</span> {t('waiter.table_map')}
                     </Link>
+                    {/* Phase 5: Lịch trực */}
+                    <Link to="/waiter/shifts" className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium text-sm ${location.pathname === '/waiter/shifts' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-600'}`}>
+                        <span className="material-symbols-outlined mr-3 text-[22px]">calendar_month</span> Lịch Trực
+                    </Link>
                 </nav>
 
                 <div className="p-4 border-t border-gray-100 bg-gray-50/50 shrink-0">

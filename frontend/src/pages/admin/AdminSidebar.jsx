@@ -108,6 +108,14 @@ const AdminSidebar = () => {
                         <span className="material-symbols-outlined mr-3 text-[22px]">badge</span> {t('admin.staff')}
                     </Link>
 
+                    {/* Phase 5: Đặt bàn & Ca làm việc */}
+                    <Link to="/admin/reservations" className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium text-sm ${location.pathname === '/admin/reservations' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-600'}`}>
+                        <span className="material-symbols-outlined mr-3 text-[22px]">event_seat</span> Đặt bàn
+                    </Link>
+                    <Link to="/admin/shifts" className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium text-sm ${location.pathname === '/admin/shifts' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-600'}`}>
+                        <span className="material-symbols-outlined mr-3 text-[22px]">schedule</span> Ca làm việc
+                    </Link>
+
                     <div className="my-4 border-t border-gray-100"></div>
 
                     <Link to="/menu" className="flex items-center px-4 py-3 text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 rounded-xl transition-all font-medium text-sm">
