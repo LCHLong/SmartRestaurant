@@ -9,14 +9,18 @@ const transporter = nodemailer.createTransport({
 });
 
 // Hàm gửi mail chung
-const sendEmail = async (to, subject, htmlContent) => {
+const sendEmail = async (to, subject, htmlContent, attachments = []) => {
     try {
-        const info = await transporter.sendMail({
+        const mailOptions = {
             from: `"Smart Restaurant" <${process.env.EMAIL_USER}>`,
             to: to,
             subject: subject,
             html: htmlContent
-        });
+        };
+        if (attachments && attachments.length > 0) {
+            mailOptions.attachments = attachments;
+        }
+        const info = await transporter.sendMail(mailOptions);
         console.log(`📧 Email sent to ${to}: ${info.messageId}`);
         return true;
     } catch (error) {
@@ -121,6 +125,21 @@ const sendReservationConfirmation = async ({
         ? `<p style="margin:4px 0;"><strong>Ghi chú:</strong> ${special_requests}</p>`
         : '';
 
+    const attachments = [];
+    let qrImgSrc = qrImage;
+
+    if (qrImage && qrImage.startsWith('data:image/')) {
+        const base64Data = qrImage.split('base64,')[1];
+        if (base64Data) {
+            attachments.push({
+                filename: `qr-${booking_code}.png`,
+                content: Buffer.from(base64Data, 'base64'),
+                cid: 'reservation_qr'
+            });
+            qrImgSrc = 'cid:reservation_qr';
+        }
+    }
+
     const html = `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;border:1px solid #e0e0e0;border-radius:10px;overflow:hidden;">
             <div style="background:#2e7d32;padding:24px 20px;text-align:center;">
@@ -142,7 +161,7 @@ const sendReservationConfirmation = async ({
                 ${depositSection}
                 <div style="text-align:center;margin:24px 0;">
                     <p style="color:#555;font-size:13px;margin-bottom:8px;">Xuất trình mã QR này khi đến nhà hàng để check-in:</p>
-                    <img src="${qrImage}" alt="QR ${booking_code}" width="160" height="160"
+                    <img src="${qrImgSrc}" alt="QR ${booking_code}" width="160" height="160"
                          style="border:3px solid #2e7d32;border-radius:8px;padding:6px;background:white;" />
                     <p style="color:#888;font-size:11px;margin-top:6px;">Mã: <strong>${booking_code}</strong></p>
                 </div>
@@ -161,7 +180,7 @@ const sendReservationConfirmation = async ({
         </div>
     `;
 
-    return await sendEmail(email, `✅ Xác nhận đặt bàn [${booking_code}] - Smart Restaurant`, html);
+    return await sendEmail(email, `✅ Xác nhận đặt bàn [${booking_code}] - Smart Restaurant`, html, attachments);
 };
 
 module.exports = {

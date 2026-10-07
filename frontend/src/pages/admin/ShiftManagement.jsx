@@ -546,8 +546,9 @@ const ShiftManagement = () => {
                                     onChange={(e) => setAttendanceDate(e.target.value)}
                                     className="border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
                                 />
-                                <button onClick={fetchAttendance} className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-xl font-semibold hover:bg-emerald-700">
-                                    🔄 Tải lại
+                                <button onClick={fetchAttendance} className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-xl font-semibold hover:bg-emerald-700 flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-base">refresh</span>
+                                    Tải lại
                                 </button>
                             </div>
 
@@ -616,13 +617,19 @@ const ShiftManagement = () => {
                 <div>
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-lg font-semibold text-gray-700">Yêu cầu đổi ca</h2>
-                        <button onClick={fetchSwapRequests} className="px-4 py-2 bg-gray-100 text-gray-600 text-sm rounded-xl hover:bg-gray-200">
-                            🔄 Tải lại
+                        <button onClick={fetchSwapRequests} className="px-4 py-2 bg-gray-100 text-gray-600 text-sm rounded-xl hover:bg-gray-200 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-base">refresh</span>
+                            Tải lại
                         </button>
                     </div>
 
                     {swapRequests.length === 0 ? (
-                        <div className="text-center py-16 text-gray-400"><div className="text-4xl mb-2">🔄</div><p>Không có yêu cầu đổi ca nào</p></div>
+                        <div className="text-center py-16 text-gray-400">
+                            <div className="mb-2">
+                                <span className="material-symbols-outlined text-4xl text-gray-300">swap_horiz</span>
+                            </div>
+                            <p>Không có yêu cầu đổi ca nào</p>
+                        </div>
                     ) : (
                         <div className="space-y-3">
                             {swapRequests.map((req) => (

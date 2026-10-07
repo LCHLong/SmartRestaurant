@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import QRCode from 'react-qr-code';
 
 /**
  * ReservationPage.jsx — Giao diện Đặt bàn trước cho Khách hàng
@@ -153,16 +154,26 @@ const ReservationPage = () => {
                         </div>
 
                         {/* QR Code */}
-                        {bookingResult.qr_image && (
-                            <div className="flex flex-col items-center mb-6">
-                                <p className="text-gray-500 text-sm mb-2">Quét QR khi đến nhà hàng</p>
-                                <img
-                                    src={bookingResult.qr_image}
-                                    alt={`QR Code ${bookingResult.booking_code}`}
-                                    className="w-40 h-40 border-4 border-emerald-200 rounded-xl p-1"
-                                />
+                        <div className="flex flex-col items-center mb-6">
+                            <p className="text-gray-500 text-sm mb-2">Quét QR khi đến nhà hàng</p>
+                            <div className="p-3 bg-white border-4 border-emerald-200 rounded-2xl shadow-sm flex items-center justify-center">
+                                {bookingResult.qr_image ? (
+                                    <img
+                                        src={bookingResult.qr_image}
+                                        alt={`QR Code ${bookingResult.booking_code}`}
+                                        className="w-40 h-40 object-contain"
+                                    />
+                                ) : (
+                                    <QRCode
+                                        value={JSON.stringify({
+                                            booking_code: bookingResult.booking_code,
+                                            phone_last4: form.customer_phone?.slice(-4),
+                                        })}
+                                        size={160}
+                                    />
+                                )}
                             </div>
-                        )}
+                        </div>
 
                         {/* Thông tin */}
                         <div className="bg-gray-50 rounded-2xl p-4 space-y-2 text-sm">

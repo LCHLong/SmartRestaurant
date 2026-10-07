@@ -507,11 +507,15 @@ exports.lookupReservation = async (req, res) => {
       });
     }
 
+    const qrData = JSON.stringify({ booking_code: data.booking_code, phone_last4 });
+    const qrImage = await QRCode.toDataURL(qrData);
+
     return res.status(200).json({
       success: true,
       data: {
         ...data,
         customer_phone: maskPhone(data.customer_phone),
+        qr_image: qrImage,
       },
     });
   } catch (err) {
