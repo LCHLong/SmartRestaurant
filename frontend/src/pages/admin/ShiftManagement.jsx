@@ -27,21 +27,30 @@ const ShiftManagement = () => {
     const [editingShift, setEditingShift] = useState(null);
     const [showShiftForm, setShowShiftForm] = useState(false);
 
-    // Week navigation
+    // Helper định dạng ngày YYYY-MM-DD theo giờ địa phương (tránh lỗi timezone lệch ngày)
+    const formatLocalDate = (d) => {
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    // Week navigation - tính ngày Thứ 2 của tuần chứa date
     const getWeekStart = (date = new Date()) => {
         const d = new Date(date);
-        d.setDate(d.getDate() - d.getDay() + 1); // Monday
-        return d.toISOString().split('T')[0];
+        const day = d.getDay(); // 0 = CN, 1 = T2, ..., 6 = T7
+        const diff = day === 0 ? -6 : 1 - day; // Nếu là CN lùi 6 ngày, còn lại (1 - day) ngày
+        d.setDate(d.getDate() + diff);
+        return formatLocalDate(d);
     };
     const [weekStart, setWeekStart] = useState(getWeekStart());
 
     const getWeekDays = (start) => {
         const days = [];
-        const d = new Date(start + 'T00:00:00');
+        const [y, m, dNum] = start.split('-').map(Number);
         for (let i = 0; i < 7; i++) {
-            const day = new Date(d);
-            day.setDate(d.getDate() + i);
-            days.push(day.toISOString().split('T')[0]);
+            const dayObj = new Date(y, m - 1, dNum + i);
+            days.push(formatLocalDate(dayObj));
         }
         return days;
     };
@@ -361,21 +370,37 @@ const ShiftManagement = () => {
                     {/* Week navigation */}
                     <div className="flex items-center gap-4 mb-5">
                         <button
-                            onClick={() => { const d = new Date(weekStart + 'T00:00:00'); d.setDate(d.getDate() - 7); setWeekStart(d.toISOString().split('T')[0]); }}
-                            className="px-3 py-2 border border-gray-200 rounded-xl text-sm hover:bg-gray-50"
+                            onClick={() => {
+                                const [y, m, d] = weekStart.split('-').map(Number);
+                                const prev = new Date(y, m - 1, d - 7);
+                                setWeekStart(formatLocalDate(prev));
+                            }}
+                            className="px-3 py-2 border border-gray-200 rounded-xl text-sm hover:bg-gray-50 flex items-center gap-1 font-medium"
                         >
-                            ← Tuần trước
+                            <span className="material-symbols-outlined text-base">chevron_left</span>
+                            Tuần trước
                         </button>
-                        <span className="font-semibold text-gray-700">
+                        <button
+                            onClick={() => setWeekStart(getWeekStart())}
+                            className="px-3 py-2 border border-gray-200 rounded-xl text-xs hover:bg-gray-50 text-gray-600 font-medium"
+                        >
+                            Hôm nay
+                        </button>
+                        <span className="font-semibold text-gray-700 min-w-[200px] text-center">
                             {new Date(weekStart + 'T00:00:00').toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })}
                             {' '} – {' '}
                             {new Date(weekEnd + 'T00:00:00').toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                         </span>
                         <button
-                            onClick={() => { const d = new Date(weekStart + 'T00:00:00'); d.setDate(d.getDate() + 7); setWeekStart(d.toISOString().split('T')[0]); }}
-                            className="px-3 py-2 border border-gray-200 rounded-xl text-sm hover:bg-gray-50"
+                            onClick={() => {
+                                const [y, m, d] = weekStart.split('-').map(Number);
+                                const next = new Date(y, m - 1, d + 7);
+                                setWeekStart(formatLocalDate(next));
+                            }}
+                            className="px-3 py-2 border border-gray-200 rounded-xl text-sm hover:bg-gray-50 flex items-center gap-1 font-medium"
                         >
-                            Tuần sau →
+                            Tuần sau
+                            <span className="material-symbols-outlined text-base">chevron_right</span>
                         </button>
                     </div>
 
@@ -456,13 +481,32 @@ const ShiftManagement = () => {
                                                     const isUnderStaffed = currentWaiter < minWaiter;
 
                                                     return (
-                                                        <td key={day} className={`border border-gray-200 px-2 py-2 align-top ${isUnderStaffed && assignments.length > 0 ? 'bg-red-50' : 'bg-white'}`}>
+                                                        <td
+                                                            key={day}
+                                                            className={`border border-gray-200 px-2 py-2 align-top transition-colors ${
+                                                                isUnderStaffed ? 'bg-amber-50/50' : 'bg-white'
+                                                            }`}
+                                                        >
                                                             {assignments.length === 0 ? (
-                                                                <div className="text-center text-gray-300 text-xs py-2">—</div>
+                                                                <div
+                                                                    onClick={() => setAssignForm((p) => ({ ...p, shift_id: shift.id, shift_date: day }))}
+                                                                    className="text-center py-2 cursor-pointer group rounded hover:bg-blue-50/50 transition-colors"
+                                                                    title="Nhấn để gán nhân viên vào ca này"
+                                                                >
+                                                                    <span className="text-gray-300 text-xs block group-hover:hidden">—</span>
+                                                                    <span className="hidden group-hover:inline-block text-xs text-blue-600 font-semibold">
+                                                                        + Gán ca
+                                                                    </span>
+                                                                    {minWaiter > 0 && (
+                                                                        <div className="text-[10px] text-amber-600 font-medium mt-1">
+                                                                            Trống (Cần {minWaiter} waiter)
+                                                                        </div>
+                                                                    )}
+                                                                </div>
                                                             ) : (
                                                                 <div className="space-y-1">
                                                                     {assignments.map((a) => (
-                                                                        <div key={a.id} className="flex items-center justify-between gap-1 bg-gray-50 rounded-lg px-2 py-1">
+                                                                        <div key={a.id} className="flex items-center justify-between gap-1 bg-white border border-gray-200 rounded-lg px-2 py-1 shadow-xs">
                                                                             <div className="min-w-0">
                                                                                 <div className="text-xs font-semibold truncate">{a.user?.full_name}</div>
                                                                                 <div className="text-[10px] text-gray-400 capitalize">{a.user?.role}</div>
@@ -477,8 +521,8 @@ const ShiftManagement = () => {
                                                                         </div>
                                                                     ))}
                                                                     {isUnderStaffed && (
-                                                                        <div className="text-[10px] text-red-500 font-semibold text-center mt-1">
-                                                                            ⚠️ Thiếu {minWaiter - currentWaiter} waiter
+                                                                        <div className="text-[10px] text-amber-700 font-semibold text-center mt-1 bg-amber-100/70 py-0.5 rounded">
+                                                                            Thiếu {minWaiter - currentWaiter} waiter
                                                                         </div>
                                                                     )}
                                                                 </div>
