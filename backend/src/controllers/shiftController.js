@@ -14,13 +14,15 @@ const Joi = require('joi');
 const createShiftSchema = Joi.object({
   name: Joi.string().min(2).max(50).required().messages({ 'any.required': 'Tên ca là bắt buộc' }),
   start_time: Joi.string()
-    .pattern(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .pattern(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/)
     .required()
-    .messages({ 'string.pattern.base': 'Giờ bắt đầu phải đúng định dạng HH:mm' }),
+    .messages({ 'string.pattern.base': 'Giờ bắt đầu phải đúng định dạng HH:mm' })
+    .custom((val) => (val.length === 8 ? val.substring(0, 5) : val)),
   end_time: Joi.string()
-    .pattern(/^([01]\d|2[0-3]):[0-5]\d$/)
+    .pattern(/^([01]\d|2[0-3]):[0-5]\d(:[0-5]\d)?$/)
     .required()
-    .messages({ 'string.pattern.base': 'Giờ kết thúc phải đúng định dạng HH:mm' }),
+    .messages({ 'string.pattern.base': 'Giờ kết thúc phải đúng định dạng HH:mm' })
+    .custom((val) => (val.length === 8 ? val.substring(0, 5) : val)),
   min_staff: Joi.object({
     waiter: Joi.number().integer().min(0).default(2),
     kitchen: Joi.number().integer().min(0).default(2),

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import QRCode from 'react-qr-code';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -324,7 +325,16 @@ const ShiftManagement = () => {
                                 {shift.is_active && (
                                     <div className="flex gap-2 mt-3">
                                         <button
-                                            onClick={() => { setEditingShift(shift); setShiftForm({ name: shift.name, start_time: shift.start_time, end_time: shift.end_time, min_staff: shift.min_staff }); setShowShiftForm(true); }}
+                                            onClick={() => {
+                                                setEditingShift(shift);
+                                                setShiftForm({
+                                                    name: shift.name,
+                                                    start_time: shift.start_time?.slice(0, 5) || '',
+                                                    end_time: shift.end_time?.slice(0, 5) || '',
+                                                    min_staff: shift.min_staff || { waiter: 2, kitchen: 2, admin: 1 }
+                                                });
+                                                setShowShiftForm(true);
+                                            }}
                                             className="flex-1 py-1.5 border border-gray-200 text-gray-600 text-xs rounded-lg hover:bg-gray-50 flex items-center justify-center gap-1"
                                         >
                                             <span className="material-symbols-outlined text-xs">edit</span>
@@ -491,28 +501,40 @@ const ShiftManagement = () => {
                 <div>
                     <div className="flex flex-wrap items-start gap-6 mb-6">
                         {/* QR Token động */}
-                        <div className="bg-white border-2 border-emerald-400 rounded-2xl p-5 text-center shadow-sm">
+                        <div className="bg-white border-2 border-emerald-400 rounded-2xl p-5 text-center shadow-sm max-w-xs">
                             <h3 className="font-semibold text-gray-700 mb-2 flex items-center justify-center gap-1.5">
                                 <span className="material-symbols-outlined text-lg text-emerald-600">qr_code_2</span>
                                 Mã QR Điểm Danh Động
                             </h3>
                             {qrToken ? (
                                 <>
-                                    <div className="bg-gray-100 rounded-xl p-3 font-mono text-xs text-gray-600 break-all mb-2">
-                                        {qrToken.slice(0, 40)}...
+                                    <div className="bg-white p-3 rounded-2xl border border-gray-100 shadow-inner inline-block my-2">
+                                        <QRCode value={qrToken} size={150} level="M" />
                                     </div>
                                     <div className={`text-sm font-bold ${qrCountdown <= 10 ? 'text-red-600 animate-pulse' : 'text-emerald-600'}`}>
                                         Hết hạn sau: {qrCountdown}s
                                     </div>
-                                    <button onClick={refreshQRToken} className="mt-2 px-4 py-1.5 bg-emerald-600 text-white text-xs rounded-xl font-semibold hover:bg-emerald-700 inline-flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-xs">refresh</span>
-                                        Làm mới ngay
-                                    </button>
+                                    <div className="flex gap-2 justify-center mt-3">
+                                        <button
+                                            onClick={() => {
+                                                navigator.clipboard.writeText(qrToken);
+                                                toast.success('Đã sao chép token!');
+                                            }}
+                                            className="px-3 py-1.5 bg-gray-100 text-gray-700 text-xs rounded-xl font-medium hover:bg-gray-200 inline-flex items-center gap-1"
+                                        >
+                                            <span className="material-symbols-outlined text-xs">content_copy</span>
+                                            Copy token
+                                        </button>
+                                        <button onClick={refreshQRToken} className="px-3 py-1.5 bg-emerald-600 text-white text-xs rounded-xl font-semibold hover:bg-emerald-700 inline-flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-xs">refresh</span>
+                                            Làm mới
+                                        </button>
+                                    </div>
                                 </>
                             ) : (
-                                <div className="text-gray-400 text-sm">Đang tải token...</div>
+                                <div className="text-gray-400 text-sm py-8">Đang tải token...</div>
                             )}
-                            <p className="text-xs text-gray-400 mt-2">Token tự động làm mới mỗi 30 giây</p>
+                            <p className="text-xs text-gray-400 mt-2">Mã QR tự động làm mới mỗi 30 giây để bảo mật</p>
                         </div>
 
                         {/* Date picker */}
