@@ -46,23 +46,34 @@ const CustomerSidebar = () => {
                     <span className="font-bold text-[22px] tracking-wide bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">{t('common.appName')}</span>
                 </div>
 
-                {/* Cart Button for Mobile */}
-                <Link
-                    to={addingToOrder && getCartCount() === 0 ? `/orders/${addingToOrder}` : "/cart"}
-                    className={`relative p-2 rounded-md transition-colors ${addingToOrder ? 'text-amber-600 hover:bg-amber-50' : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-100'}`}
-                >
-                    <span className={`material-symbols-outlined text-2xl ${addingToOrder && getCartCount() === 0 ? 'animate-pulse' : ''}`}>shopping_cart</span>
-                    {getCartCount() > 0 ? (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm animate-pulse">
-                            {getCartCount()}
-                        </span>
-                    ) : addingToOrder ? (
-                        <span className="absolute -top-0 -right-0 flex h-2.5 w-2.5">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-                        </span>
-                    ) : null}
-                </Link>
+                <div className="flex items-center gap-2">
+                    <Link
+                        to="/reservations"
+                        className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition-colors"
+                        title={t('customer.menu.reservation')}
+                    >
+                        <span className="material-symbols-outlined text-[18px]">event_seat</span>
+                        <span>{t('customer.menu.reservation')}</span>
+                    </Link>
+
+                    {/* Cart Button for Mobile */}
+                    <Link
+                        to={addingToOrder && getCartCount() === 0 ? `/orders/${addingToOrder}` : "/cart"}
+                        className={`relative p-2 rounded-md transition-colors ${addingToOrder ? 'text-amber-600 hover:bg-amber-50' : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-100'}`}
+                    >
+                        <span className={`material-symbols-outlined text-2xl ${addingToOrder && getCartCount() === 0 ? 'animate-pulse' : ''}`}>shopping_cart</span>
+                        {getCartCount() > 0 ? (
+                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm animate-pulse">
+                                {getCartCount()}
+                            </span>
+                        ) : addingToOrder ? (
+                            <span className="absolute -top-0 -right-0 flex h-2.5 w-2.5">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+                            </span>
+                        ) : null}
+                    </Link>
+                </div>
             </div>
 
             {/* Mobile Overlay */}
@@ -109,6 +120,16 @@ const CustomerSidebar = () => {
                     <Link to="/menu" className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium ${location.pathname === '/menu' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-600'}`}>
                         <span className="material-symbols-outlined mr-3 text-[22px]">restaurant_menu</span>
                         <span className="text-sm">{t('customer.menu.title')}</span>
+                    </Link>
+
+                    <Link to="/reservations" className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium ${location.pathname === '/reservations' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-600'}`}>
+                        <span className="material-symbols-outlined mr-3 text-[22px]">event_seat</span>
+                        <span className="text-sm">{t('customer.menu.reservation')}</span>
+                    </Link>
+
+                    <Link to="/reservations/lookup" className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium ${location.pathname === '/reservations/lookup' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-600'}`}>
+                        <span className="material-symbols-outlined mr-3 text-[22px]">search</span>
+                        <span className="text-sm">{t('customer.menu.reservation_lookup')}</span>
                     </Link>
 
 

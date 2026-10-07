@@ -205,11 +205,11 @@ export default function CartPage() {
     // Helper function to get target type label
     const getTargetTypeLabel = (targetType) => {
         switch (targetType) {
-            case 'all': return `🌐 ${t('customer.cart.all')}`;
-            case 'guest': return `👤 ${t('customer.cart.guest')}`;
-            case 'customer': return `👥 ${t('customer.cart.member')}`;
-            case 'new_user': return `🆕 ${t('customer.cart.new_user')}`;
-            default: return '';
+            case 'all': return { icon: 'public', text: t('customer.cart.all') };
+            case 'guest': return { icon: 'person', text: t('customer.cart.guest') };
+            case 'customer': return { icon: 'groups', text: t('customer.cart.member') };
+            case 'new_user': return { icon: 'fiber_new', text: t('customer.cart.new_user') };
+            default: return null;
         }
     };
 
@@ -307,7 +307,9 @@ export default function CartPage() {
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center px-4">
                 <div className="text-center bg-white rounded-2xl shadow-lg p-6 sm:p-12 max-w-md w-full">
-                    <div className="text-5xl sm:text-6xl mb-4">🛒</div>
+                    <div className="mb-4">
+                        <span className="material-symbols-outlined text-5xl sm:text-6xl text-gray-300">shopping_cart</span>
+                    </div>
                     <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">{t('customer.cart.empty_title')}</h2>
                     <p className="text-sm sm:text-base text-gray-600 mb-6">{t('customer.cart.empty_desc')}</p>
 
@@ -379,7 +381,10 @@ export default function CartPage() {
                 {/* Info message when table is from QR code */}
                 {qrTableId && !existingOrderId && (
                     <div className="mb-6 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl">
-                        <p className="font-semibold">📱 {t('customer.cart.qr_scanned')}</p>
+                        <p className="font-semibold flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-lg">qr_code_scanner</span>
+                            {t('customer.cart.qr_scanned')}
+                        </p>
                         <p className="text-sm mt-1">
                             {t('customer.cart.table_selected', { table: localStorage.getItem('qr_table_number') || tables.find(t => t.id === qrTableId)?.table_number || '...' })}
                         </p>
@@ -390,7 +395,10 @@ export default function CartPage() {
                 {existingOrderId && (
                     <div className="mb-4 sm:mb-6 bg-blue-50 border border-blue-200 text-blue-700 px-3 sm:px-4 py-3 rounded-lg sm:rounded-xl flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
                         <div className="flex-1">
-                            <p className="font-semibold text-sm sm:text-base">📝 {t('customer.cart.adding_to_existing')}</p>
+                            <p className="font-semibold text-sm sm:text-base flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-lg">edit_note</span>
+                                {t('customer.cart.adding_to_existing')}
+                            </p>
                             <p className="text-xs sm:text-sm mt-1">{t('customer.cart.adding_to_order_id', { id: existingOrderId.slice(0, 8) })}</p>
                         </div>
                         <button
@@ -508,7 +516,10 @@ export default function CartPage() {
                     {/* Voucher Section - Only show when creating new order */}
                     {!existingOrderId && (
                         <div className="mb-4 pb-4 border-b border-gray-200">
-                            <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3">🎟️ {t('customer.cart.voucher_title')}</h3>
+                            <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-xl text-emerald-600">loyalty</span>
+                                {t('customer.cart.voucher_title')}
+                            </h3>
 
                             {!appliedVoucher ? (
                                 <>
@@ -540,63 +551,71 @@ export default function CartPage() {
                                         <div>
                                             <button
                                                 onClick={() => setShowVoucherList(!showVoucherList)}
-                                                className="text-emerald-600 text-xs sm:text-sm font-semibold hover:underline mb-2"
+                                                className="text-emerald-600 text-xs sm:text-sm font-semibold hover:underline mb-2 flex items-center gap-1"
                                             >
-                                                {showVoucherList ? '▼' : '▶'} {t('customer.cart.view_vouchers')} ({availableVouchers.length})
+                                                <span className="material-symbols-outlined text-sm">
+                                                    {showVoucherList ? 'expand_more' : 'chevron_right'}
+                                                </span>
+                                                {t('customer.cart.view_vouchers')} ({availableVouchers.length})
                                             </button>
 
                                             {showVoucherList && (
                                                 <div className="space-y-2 max-h-64 overflow-y-auto">
-                                                    {availableVouchers.map((voucher) => (
-                                                        <div
-                                                            key={voucher.id}
-                                                            onClick={() => handleSelectVoucher(voucher)}
-                                                            className={`p-3 border rounded-lg transition-colors ${voucher.canUse
-                                                                ? 'border-emerald-200 cursor-pointer hover:bg-emerald-50 bg-white'
-                                                                : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-                                                                }`}
-                                                        >
-                                                            <div className="flex justify-between items-start gap-2">
-                                                                <div className="flex-1">
-                                                                    {/* Code and Icon */}
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className="text-base">
-                                                                            {voucher.canUse ? '✅' : '🔒'}
-                                                                        </span>
-                                                                        <p className={`font-bold text-sm ${voucher.canUse ? 'text-emerald-600' : 'text-gray-500'
-                                                                            }`}>
-                                                                            {voucher.code}
-                                                                        </p>
+                                                    {availableVouchers.map((voucher) => {
+                                                        const targetInfo = getTargetTypeLabel(voucher.target_type);
+                                                        return (
+                                                            <div
+                                                                key={voucher.id}
+                                                                onClick={() => handleSelectVoucher(voucher)}
+                                                                className={`p-3 border rounded-lg transition-colors ${voucher.canUse
+                                                                    ? 'border-emerald-200 cursor-pointer hover:bg-emerald-50 bg-white'
+                                                                    : 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+                                                                    }`}
+                                                            >
+                                                                <div className="flex justify-between items-start gap-2">
+                                                                    <div className="flex-1">
+                                                                        {/* Code and Icon */}
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="material-symbols-outlined text-base">
+                                                                                {voucher.canUse ? 'check_circle' : 'lock'}
+                                                                            </span>
+                                                                            <p className={`font-bold text-sm ${voucher.canUse ? 'text-emerald-600' : 'text-gray-500'
+                                                                                }`}>
+                                                                                {voucher.code}
+                                                                            </p>
+                                                                        </div>
+
+                                                                        {/* Title */}
+                                                                        <p className="text-xs text-gray-600 mt-1">{voucher.title}</p>
+
+                                                                        {/* Target Type Badge */}
+                                                                        <div className="flex items-center gap-2 mt-2">
+                                                                            {targetInfo && (
+                                                                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded flex items-center gap-1">
+                                                                                    <span className="material-symbols-outlined text-xs">{targetInfo.icon}</span>
+                                                                                    {targetInfo.text}
+                                                                                </span>
+                                                                            )}
+                                                                            <span className="text-xs text-gray-500">
+                                                                                {t('customer.cart.min_order')}: {voucher.min_order_value.toLocaleString('vi-VN')}đ
+                                                                            </span>
+                                                                        </div>
+
+                                                                        {/* Reason if cannot use */}
+                                                                        {!voucher.canUse && voucher.reason && (
+                                                                            <p className="text-xs text-red-600 mt-2 flex items-start gap-1">
+                                                                                <span className="material-symbols-outlined text-xs">warning</span>
+                                                                                <span>{voucher.reason}</span>
+                                                                            </p>
+                                                                        )}
+
+                                                                        {/* Remaining uses */}
+                                                                        {voucher.canUse && voucher.remainingUses !== null && (
+                                                                            <p className="text-xs text-gray-500 mt-1">
+                                                                                {t('customer.cart.remaining')}: {voucher.remainingUses} {t('customer.cart.uses')}
+                                                                            </p>
+                                                                        )}
                                                                     </div>
-
-                                                                    {/* Title */}
-                                                                    <p className="text-xs text-gray-600 mt-1">{voucher.title}</p>
-
-                                                                    {/* Target Type Badge */}
-                                                                    <div className="flex items-center gap-2 mt-2">
-                                                                        <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                                                                            {getTargetTypeLabel(voucher.target_type)}
-                                                                        </span>
-                                                                        <span className="text-xs text-gray-500">
-                                                                            {t('customer.cart.min_order')}: {voucher.min_order_value.toLocaleString('vi-VN')}đ
-                                                                        </span>
-                                                                    </div>
-
-                                                                    {/* Reason if cannot use */}
-                                                                    {!voucher.canUse && voucher.reason && (
-                                                                        <p className="text-xs text-red-600 mt-2 flex items-start gap-1">
-                                                                            <span>⚠️</span>
-                                                                            <span>{voucher.reason}</span>
-                                                                        </p>
-                                                                    )}
-
-                                                                    {/* Remaining uses */}
-                                                                    {voucher.canUse && voucher.remainingUses !== null && (
-                                                                        <p className="text-xs text-gray-500 mt-1">
-                                                                            {t('customer.cart.remaining')}: {voucher.remainingUses} {t('customer.cart.uses')}
-                                                                        </p>
-                                                                    )}
-                                                                </div>
 
                                                                 {/* Discount Value */}
                                                                 <div className="text-right">
@@ -610,7 +629,8 @@ export default function CartPage() {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    ))}
+                                                    );
+                                                })}
                                                 </div>
                                             )}
                                         </div>

@@ -547,6 +547,8 @@ i18n
                         menu: {
                             title: 'Menu',
                             subtitle: 'Discover delicious food',
+                            reservation: 'Book a Table',
+                            reservation_lookup: 'Lookup Reservation',
                             back_to_admin: 'Back to Admin',
                             my_orders: 'My Orders',
                             profile: 'Profile',
@@ -1303,6 +1305,8 @@ i18n
                         menu: {
                             title: 'Thực đơn',
                             subtitle: 'Khám phá món ăn ngon',
+                            reservation: 'Đặt bàn',
+                            reservation_lookup: 'Tra cứu đặt bàn',
                             back_to_admin: 'Quay về Admin',
                             my_orders: 'Đơn của tôi',
                             profile: 'Tài khoản',

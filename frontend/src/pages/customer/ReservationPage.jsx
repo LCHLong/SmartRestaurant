@@ -134,7 +134,9 @@ const ReservationPage = () => {
                 <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
                     {/* Header */}
                     <div className="bg-gradient-to-r from-emerald-600 to-green-500 px-8 py-10 text-center">
-                        <div className="text-6xl mb-3">🎉</div>
+                        <div className="mb-3">
+                            <span className="material-symbols-outlined text-6xl text-white">celebration</span>
+                        </div>
                         <h1 className="text-2xl font-bold text-white">Đặt bàn thành công!</h1>
                         <p className="text-emerald-100 mt-1 text-sm">Nhà hàng sẽ xác nhận sớm nhất</p>
                     </div>
@@ -185,13 +187,17 @@ const ReservationPage = () => {
                         {/* Cọc */}
                         {bookingResult.requires_deposit && (
                             <div className="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm">
-                                <p className="font-bold text-amber-700">⚠️ Yêu cầu đặt cọc (Nhóm ≥ 6 người)</p>
+                                <p className="font-bold text-amber-700 flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-base text-amber-600">warning</span>
+                                    Yêu cầu đặt cọc (Nhóm ≥ 6 người)
+                                </p>
                                 <p className="text-amber-600 mt-1">
                                     Số tiền cọc: <strong>{bookingResult.deposit_amount?.toLocaleString('vi-VN')}đ</strong>
                                 </p>
                                 {bookingResult.deposit_paid ? (
-                                    <div className="mt-2 text-emerald-700 font-bold bg-emerald-100 rounded-lg p-2 text-center">
-                                        ✅ Đã thanh toán cọc thành công!
+                                    <div className="mt-2 text-emerald-700 font-bold bg-emerald-100 rounded-lg p-2 text-center flex items-center justify-center gap-1.5">
+                                        <span className="material-symbols-outlined text-base text-emerald-600">check_circle</span>
+                                        Đã thanh toán cọc thành công!
                                     </div>
                                 ) : (
                                     <div className="mt-3">
@@ -205,9 +211,10 @@ const ReservationPage = () => {
                                                     toast.error('Thanh toán cọc thất bại');
                                                 }
                                             }}
-                                            className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded-xl transition-colors shadow-sm text-sm"
+                                            className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded-xl transition-colors shadow-sm text-sm flex items-center justify-center gap-1.5"
                                         >
-                                            💳 Thanh toán cọc ngay ({bookingResult.deposit_amount?.toLocaleString('vi-VN')}đ)
+                                            <span className="material-symbols-outlined text-base">credit_card</span>
+                                            Thanh toán cọc ngay ({bookingResult.deposit_amount?.toLocaleString('vi-VN')}đ)
                                         </button>
                                         <p className="text-amber-600 text-xs mt-1 text-center">Hỗ trợ thẻ ATM / Visa / QR Code</p>
                                     </div>
@@ -217,8 +224,9 @@ const ReservationPage = () => {
 
                         {/* Email notice */}
                         {form.customer_email && (
-                            <p className="text-center text-gray-400 text-xs mt-4">
-                                📧 Email xác nhận đã được gửi tới {form.customer_email}
+                            <p className="text-center text-gray-400 text-xs mt-4 flex items-center justify-center gap-1">
+                                <span className="material-symbols-outlined text-sm">mail</span>
+                                Email xác nhận đã được gửi tới {form.customer_email}
                             </p>
                         )}
 
@@ -281,7 +289,10 @@ const ReservationPage = () => {
 
                         {parseInt(form.guest_count) >= 6 && (
                             <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm">
-                                <p className="text-amber-700 font-semibold">⚠️ Nhóm ≥ 6 người yêu cầu đặt cọc</p>
+                                <p className="text-amber-700 font-semibold flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-base text-amber-600">warning</span>
+                                    Nhóm ≥ 6 người yêu cầu đặt cọc
+                                </p>
                                 <p className="text-amber-600 mt-1">Ước tính: <strong>{(parseInt(form.guest_count) * 50000).toLocaleString('vi-VN')}đ</strong></p>
                             </div>
                         )}
@@ -304,7 +315,10 @@ const ReservationPage = () => {
                                         Đang xử lý...
                                     </span>
                                 ) : (
-                                    '✅ Xác nhận đặt bàn'
+                                    <span className="flex items-center justify-center gap-1.5">
+                                        <span className="material-symbols-outlined text-lg">check_circle</span>
+                                        Xác nhận đặt bàn
+                                    </span>
                                 )}
                             </button>
                         </div>
@@ -320,7 +334,9 @@ const ReservationPage = () => {
             <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-emerald-600 to-green-500 px-8 py-8 text-center rounded-t-3xl">
-                    <div className="text-4xl mb-2">🍽️</div>
+                    <div className="mb-2">
+                        <span className="material-symbols-outlined text-4xl text-white">event_seat</span>
+                    </div>
                     <h1 className="text-2xl font-bold text-white">Đặt bàn trước</h1>
                     <p className="text-emerald-100 text-sm mt-1">Đảm bảo có chỗ khi bạn đến</p>
                 </div>
@@ -416,7 +432,10 @@ const ReservationPage = () => {
                                 </button>
                                 <span className="text-sm text-gray-400">người</span>
                                 {parseInt(form.guest_count) >= 6 && (
-                                    <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full">⚠️ Cần đặt cọc</span>
+                                    <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-xs">warning</span>
+                                        Cần đặt cọc
+                                    </span>
                                 )}
                             </div>
                         </div>
@@ -436,7 +455,10 @@ const ReservationPage = () => {
                                     Đang kiểm tra...
                                 </span>
                             ) : (
-                                '🔍 Kiểm tra bàn trống'
+                                <span className="flex items-center justify-center gap-1.5">
+                                    <span className="material-symbols-outlined text-lg">search</span>
+                                    Kiểm tra bàn trống
+                                </span>
                             )}
                         </button>
 
@@ -448,8 +470,9 @@ const ReservationPage = () => {
                             }`}>
                                 {availableInfo.available_tables > 0 ? (
                                     <div>
-                                        <p className="text-emerald-700 font-semibold">
-                                            ✅ Còn {availableInfo.available_tables} bàn phù hợp cho {form.guest_count} người!
+                                        <p className="text-emerald-700 font-semibold flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-base">check_circle</span>
+                                            Còn {availableInfo.available_tables} bàn phù hợp cho {form.guest_count} người!
                                         </p>
                                         <p className="text-emerald-600 text-xs mt-1">
                                             Khung giờ {form.reservation_time} ngày {form.reservation_date} — Sẵn sàng đặt bàn.
@@ -457,8 +480,9 @@ const ReservationPage = () => {
                                     </div>
                                 ) : (
                                     <div>
-                                        <p className="text-red-700 font-semibold">
-                                            ❌ Không còn bàn trống trong khung giờ này
+                                        <p className="text-red-700 font-semibold flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-base">cancel</span>
+                                            Không còn bàn trống trong khung giờ này
                                         </p>
                                         <p className="text-red-600 text-xs mt-1">Vui lòng chọn giờ khác hoặc liên hệ nhà hàng.</p>
                                     </div>
@@ -493,8 +517,9 @@ const ReservationPage = () => {
                     </button>
 
                     {/* Buffer warning note */}
-                    <p className="text-center text-xs text-gray-400">
-                        ℹ️ Hệ thống giữ chỗ theo khung 90 phút. Mỗi bàn cần trả trước giờ hẹn của khách tiếp theo.
+                    <p className="text-center text-xs text-gray-400 flex items-center justify-center gap-1">
+                        <span className="material-symbols-outlined text-xs">info</span>
+                        Hệ thống giữ chỗ theo khung 90 phút. Mỗi bàn cần trả trước giờ hẹn của khách tiếp theo.
                     </p>
                 </div>
             </div>

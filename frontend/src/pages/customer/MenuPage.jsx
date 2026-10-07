@@ -295,28 +295,39 @@ export default function MenuPage() {
                             <p className="text-gray-500 mt-1 text-sm">{t('customer.menu.subtitle')}</p>
                         </div>
 
-                        {/* Desktop Cart Button */}
-                        <button
-                            onClick={() => navigate(addingToOrder && getCartCount() === 0 ? `/orders/${addingToOrder}` : '/cart')}
-                            className={`hidden md:flex items-center gap-3 px-5 py-2.5 bg-white border ${addingToOrder ? 'border-amber-300 text-amber-700 hover:border-amber-400' : 'border-gray-200 text-gray-700 hover:text-emerald-600 hover:border-emerald-200'} rounded-xl shadow-sm hover:shadow-md transition-all group`}
-                        >
-                            <div className="relative">
-                                <span className={`material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform ${addingToOrder && getCartCount() === 0 ? 'animate-pulse text-amber-500' : ''}`}>shopping_cart</span>
-                                {getCartCount() > 0 ? (
-                                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
-                                        {getCartCount()}
-                                    </span>
-                                ) : addingToOrder ? (
-                                    <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                                        <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
-                                    </span>
-                                ) : null}
-                            </div>
-                            <span className="font-bold text-sm">
-                                {t('customer.cart.title')}
-                            </span>
-                        </button>
+                        {/* Desktop Header Actions */}
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={() => navigate('/reservations')}
+                                className="hidden md:flex items-center gap-2 px-4 py-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 rounded-xl shadow-sm hover:shadow transition-all group font-semibold text-sm"
+                            >
+                                <span className="material-symbols-outlined text-[20px] text-emerald-600 group-hover:scale-110 transition-transform">event_seat</span>
+                                <span>{t('customer.menu.reservation')}</span>
+                            </button>
+
+                            {/* Desktop Cart Button */}
+                            <button
+                                onClick={() => navigate(addingToOrder && getCartCount() === 0 ? `/orders/${addingToOrder}` : '/cart')}
+                                className={`hidden md:flex items-center gap-3 px-5 py-2.5 bg-white border ${addingToOrder ? 'border-amber-300 text-amber-700 hover:border-amber-400' : 'border-gray-200 text-gray-700 hover:text-emerald-600 hover:border-emerald-200'} rounded-xl shadow-sm hover:shadow-md transition-all group`}
+                            >
+                                <div className="relative">
+                                    <span className={`material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform ${addingToOrder && getCartCount() === 0 ? 'animate-pulse text-amber-500' : ''}`}>shopping_cart</span>
+                                    {getCartCount() > 0 ? (
+                                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
+                                            {getCartCount()}
+                                        </span>
+                                    ) : addingToOrder ? (
+                                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                                        </span>
+                                    ) : null}
+                                </div>
+                                <span className="font-bold text-sm">
+                                    {t('customer.cart.title')}
+                                </span>
+                            </button>
+                        </div>
                     </div>
 
                     {/* Read-Only Mode Banner */}

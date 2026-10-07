@@ -55,14 +55,26 @@ const ReservationLookupPage = () => {
 
     const getStatusVN = (status) => {
         const m = {
-            pending: '⏳ Chờ xác nhận',
-            confirmed: '✅ Đã xác nhận',
-            seated: '🪑 Đang ngồi',
-            completed: '✔️ Hoàn thành',
-            cancelled: '❌ Đã hủy',
-            no_show: '🚫 Không đến',
+            pending: 'Chờ xác nhận',
+            confirmed: 'Đã xác nhận',
+            seated: 'Đang ngồi',
+            completed: 'Hoàn thành',
+            cancelled: 'Đã hủy',
+            no_show: 'Không đến',
         };
         return m[status] || status;
+    };
+
+    const getStatusIcon = (status) => {
+        const m = {
+            pending: 'hourglass_empty',
+            confirmed: 'check_circle',
+            seated: 'table_restaurant',
+            completed: 'task_alt',
+            cancelled: 'cancel',
+            no_show: 'block',
+        };
+        return m[status] || 'info';
     };
 
     const formatDate = (dateStr) => {
@@ -77,7 +89,9 @@ const ReservationLookupPage = () => {
             <div className="w-full max-w-md">
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="text-5xl mb-3">🔍</div>
+                    <div className="mb-3">
+                        <span className="material-symbols-outlined text-5xl text-emerald-600">search</span>
+                    </div>
                     <h1 className="text-2xl font-bold text-gray-800">Tra cứu đặt bàn</h1>
                     <p className="text-gray-500 text-sm mt-2">Nhập mã đặt bàn và số điện thoại để xem thông tin</p>
                 </div>
@@ -110,7 +124,7 @@ const ReservationLookupPage = () => {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-60"
+                            className="w-full bg-emerald-600 text-white py-3 rounded-xl font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
                         >
                             {loading ? (
                                 <span className="flex items-center justify-center gap-2">
@@ -118,7 +132,10 @@ const ReservationLookupPage = () => {
                                     Đang tra cứu...
                                 </span>
                             ) : (
-                                '🔍 Tra cứu'
+                                <>
+                                    <span className="material-symbols-outlined text-lg">search</span>
+                                    Tra cứu
+                                </>
                             )}
                         </button>
                     </form>
@@ -127,7 +144,9 @@ const ReservationLookupPage = () => {
                 {/* Not found */}
                 {notFound && (
                     <div className="bg-red-50 border border-red-200 rounded-2xl p-4 text-center">
-                        <div className="text-3xl mb-2">😕</div>
+                        <div className="mb-2">
+                            <span className="material-symbols-outlined text-4xl text-red-400">search_off</span>
+                        </div>
                         <p className="text-red-700 font-semibold">Không tìm thấy đặt bàn</p>
                         <p className="text-red-500 text-sm mt-1">Vui lòng kiểm tra lại mã đặt bàn và số điện thoại.</p>
                     </div>
@@ -139,7 +158,10 @@ const ReservationLookupPage = () => {
                         {/* Status header */}
                         <div className={`px-6 py-4 border-b ${getStatusColor(result.status)}`}>
                             <div className="flex items-center justify-between">
-                                <span className="font-bold text-lg">{getStatusVN(result.status)}</span>
+                                <span className="font-bold text-lg flex items-center gap-1.5">
+                                    <span className="material-symbols-outlined text-xl">{getStatusIcon(result.status)}</span>
+                                    {getStatusVN(result.status)}
+                                </span>
                                 <span className="font-mono font-bold text-sm">{result.booking_code}</span>
                             </div>
                         </div>
@@ -154,21 +176,33 @@ const ReservationLookupPage = () => {
 
                             {/* Booking info */}
                             <div className="bg-gray-50 rounded-2xl p-4 space-y-2">
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">📅 Ngày</span>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-base">calendar_today</span>
+                                        Ngày
+                                    </span>
                                     <span className="font-semibold text-gray-800">{formatDate(result.reservation_date)}</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">🕐 Giờ đến</span>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-base">schedule</span>
+                                        Giờ đến
+                                    </span>
                                     <span className="font-semibold text-gray-800">{result.reservation_time}</span>
                                 </div>
-                                <div className="flex justify-between text-sm">
-                                    <span className="text-gray-500">👥 Số khách</span>
+                                <div className="flex justify-between items-center text-sm">
+                                    <span className="text-gray-500 flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-base">group</span>
+                                        Số khách
+                                    </span>
                                     <span className="font-semibold text-gray-800">{result.guest_count} người</span>
                                 </div>
                                 {result.tables && (
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">🪑 Bàn</span>
+                                    <div className="flex justify-between items-center text-sm">
+                                        <span className="text-gray-500 flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-base">table_restaurant</span>
+                                            Bàn
+                                        </span>
                                         <span className="font-semibold text-gray-800">
                                             Bàn {result.tables.table_number} ({result.tables.location})
                                         </span>
@@ -185,9 +219,10 @@ const ReservationLookupPage = () => {
                             {/* Deposit info */}
                             {result.deposit_amount > 0 && (
                                 <div className={`rounded-xl p-4 text-sm ${result.deposit_status === 'paid' ? 'bg-emerald-50 border border-emerald-200' : 'bg-amber-50 border border-amber-200'}`}>
-                                    <p className={`font-semibold ${result.deposit_status === 'paid' ? 'text-emerald-700' : 'text-amber-700'}`}>
-                                        💰 Đặt cọc: {result.deposit_amount?.toLocaleString('vi-VN')}đ
-                                        {result.deposit_status === 'paid' ? ' ✓ Đã thanh toán' : ' — Chưa thanh toán'}
+                                    <p className={`font-semibold flex items-center gap-1.5 ${result.deposit_status === 'paid' ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                        <span className="material-symbols-outlined text-base">payments</span>
+                                        Đặt cọc: {result.deposit_amount?.toLocaleString('vi-VN')}đ
+                                        {result.deposit_status === 'paid' ? ' (Đã thanh toán)' : ' (Chưa thanh toán)'}
                                     </p>
                                 </div>
                             )}

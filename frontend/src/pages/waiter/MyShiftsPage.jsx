@@ -170,22 +170,27 @@ const MyShiftsPage = () => {
     return (
         <div className="bg-white p-6 rounded-2xl shadow-lg min-h-[85vh]">
             <div className="flex justify-between items-center mb-6">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800">📅 Lịch Trực Của Tôi</h1>
-                    <p className="text-gray-500 text-sm mt-1">Xem lịch, điểm danh và đổi ca</p>
+                <div className="flex items-center gap-3">
+                    <span className="material-symbols-outlined text-3xl text-emerald-600">calendar_month</span>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-800">Lịch Trực Của Tôi</h1>
+                        <p className="text-gray-500 text-sm mt-0.5">Xem lịch, điểm danh và đổi ca</p>
+                    </div>
                 </div>
                 <div className="flex gap-2">
                     <button
                         onClick={() => setActiveTab('schedule')}
-                        className={`px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === 'schedule' ? 'bg-emerald-600 text-white' : 'border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                        className={`flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === 'schedule' ? 'bg-emerald-600 text-white' : 'border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
                     >
-                        📅 Lịch trực
+                        <span className="material-symbols-outlined text-[18px]">calendar_month</span>
+                        <span>Lịch trực</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('swap')}
-                        className={`relative px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === 'swap' ? 'bg-emerald-600 text-white' : 'border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                        className={`relative flex items-center gap-1.5 px-4 py-2 text-sm font-semibold rounded-xl transition-colors ${activeTab === 'swap' ? 'bg-emerald-600 text-white' : 'border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
                     >
-                        🔄 Đổi ca
+                        <span className="material-symbols-outlined text-[18px]">swap_horiz</span>
+                        <span>Đổi ca</span>
                         {pendingSwapRequests.length > 0 && (
                             <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
                                 {pendingSwapRequests.length}
@@ -226,7 +231,7 @@ const MyShiftsPage = () => {
                         <div className="flex justify-center py-20"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500" /></div>
                     ) : myShifts.length === 0 ? (
                         <div className="text-center py-20 text-gray-400">
-                            <div className="text-5xl mb-3">🗓️</div>
+                            <span className="material-symbols-outlined text-5xl mb-3 text-gray-300">event_busy</span>
                             <p>Bạn không có ca trực nào trong tuần này</p>
                         </div>
                     ) : (
@@ -246,17 +251,20 @@ const MyShiftsPage = () => {
                                                 <div key={shift.id} className="flex items-center justify-between px-4 py-4 bg-white">
                                                     <div>
                                                         <div className="font-semibold text-gray-800">{shift.shifts?.name}</div>
-                                                        <div className="text-sm text-gray-500 mt-0.5">
-                                                            🕐 {shift.shifts?.start_time} – {shift.shifts?.end_time}
+                                                        <div className="text-sm text-gray-500 mt-0.5 flex items-center gap-1">
+                                                            <span className="material-symbols-outlined text-[15px] text-gray-400">schedule</span>
+                                                            <span>{shift.shifts?.start_time} – {shift.shifts?.end_time}</span>
                                                         </div>
                                                         {shift.check_in_time && (
-                                                            <div className="text-xs text-emerald-600 mt-0.5">
-                                                                ✓ Vào: {new Date(shift.check_in_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                                            <div className="text-xs text-emerald-600 mt-0.5 flex items-center gap-1">
+                                                                <span className="material-symbols-outlined text-xs">login</span>
+                                                                <span>Vào: {new Date(shift.check_in_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
                                                             </div>
                                                         )}
                                                         {shift.check_out_time && (
-                                                            <div className="text-xs text-gray-400 mt-0.5">
-                                                                ✓ Ra: {new Date(shift.check_out_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
+                                                            <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                                                                <span className="material-symbols-outlined text-xs">logout</span>
+                                                                <span>Ra: {new Date(shift.check_out_time).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}</span>
                                                             </div>
                                                         )}
                                                     </div>
@@ -268,27 +276,30 @@ const MyShiftsPage = () => {
                                                         {date === today && shift.status === 'scheduled' && (
                                                             <button
                                                                 onClick={() => setCheckInModal({ assignmentId: shift.id, shiftName: shift.shifts?.name })}
-                                                                className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-xl hover:bg-emerald-700"
+                                                                className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-xl hover:bg-emerald-700 inline-flex items-center gap-1"
                                                             >
-                                                                📱 Điểm danh
+                                                                <span className="material-symbols-outlined text-xs">qr_code_scanner</span>
+                                                                Điểm danh
                                                             </button>
                                                         )}
                                                         {/* Check-out */}
                                                         {date === today && shift.status === 'checked_in' && (
                                                             <button
                                                                 onClick={() => handleCheckOut(shift.id, shift.shifts?.name)}
-                                                                className="px-3 py-1.5 bg-gray-600 text-white text-xs font-semibold rounded-xl hover:bg-gray-700"
+                                                                className="px-3 py-1.5 bg-gray-600 text-white text-xs font-semibold rounded-xl hover:bg-gray-700 inline-flex items-center gap-1"
                                                             >
-                                                                ✓ Kết thúc ca
+                                                                <span className="material-symbols-outlined text-xs">logout</span>
+                                                                Kết thúc ca
                                                             </button>
                                                         )}
                                                         {/* Đổi ca */}
                                                         {shift.status === 'scheduled' && (
                                                             <button
                                                                 onClick={() => setSwapModal({ assignmentId: shift.id, shiftName: shift.shifts?.name, shiftDate: date })}
-                                                                className="px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-semibold rounded-xl hover:bg-gray-50"
+                                                                className="px-3 py-1.5 border border-gray-200 text-gray-600 text-xs font-semibold rounded-xl hover:bg-gray-50 inline-flex items-center gap-1"
                                                             >
-                                                                🔄 Đổi ca
+                                                                <span className="material-symbols-outlined text-xs">swap_horiz</span>
+                                                                Đổi ca
                                                             </button>
                                                         )}
                                                     </div>
@@ -308,20 +319,35 @@ const MyShiftsPage = () => {
                     {/* Yêu cầu mình nhận */}
                     {pendingSwapRequests.length > 0 && (
                         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                            <h3 className="font-semibold text-amber-700 mb-3">📬 Yêu cầu đổi ca gửi đến bạn</h3>
+                            <h3 className="font-semibold text-amber-700 mb-3 flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-lg">mail</span>
+                                Yêu cầu đổi ca gửi đến bạn
+                            </h3>
                             {pendingSwapRequests.map((req) => (
                                 <div key={req.id} className="bg-white rounded-xl p-4 shadow-sm mb-2">
                                     <div className="flex items-start justify-between">
                                         <div>
                                             <div className="font-semibold">{req.requester?.full_name} muốn đổi ca với bạn</div>
-                                            <div className="text-sm text-gray-500 mt-1">
-                                                📅 Ca {req.shift_assignments?.shifts?.name} — {req.shift_assignments?.shift_date}
+                                            <div className="text-sm text-gray-500 mt-1 flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-xs text-gray-400">calendar_today</span>
+                                                <span>Ca {req.shift_assignments?.shifts?.name} — {req.shift_assignments?.shift_date}</span>
                                             </div>
-                                            {req.reason && <div className="text-sm text-gray-400 mt-1">💬 {req.reason}</div>}
+                                            {req.reason && (
+                                                <div className="text-sm text-gray-400 mt-1 flex items-center gap-1">
+                                                    <span className="material-symbols-outlined text-xs text-gray-400">chat</span>
+                                                    <span>{req.reason}</span>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex gap-2 ml-4">
-                                            <button onClick={() => handleRespondSwap(req.id, 'accept')} className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-xl hover:bg-emerald-700">✅ Đồng ý</button>
-                                            <button onClick={() => handleRespondSwap(req.id, 'reject')} className="px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-xl hover:bg-red-50">✕ Từ chối</button>
+                                            <button onClick={() => handleRespondSwap(req.id, 'accept')} className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-xl hover:bg-emerald-700 inline-flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-xs">check_circle</span>
+                                                Đồng ý
+                                            </button>
+                                            <button onClick={() => handleRespondSwap(req.id, 'reject')} className="px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-xl hover:bg-red-50 inline-flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-xs">close</span>
+                                                Từ chối
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -331,9 +357,15 @@ const MyShiftsPage = () => {
 
                     {/* Lịch sử yêu cầu của mình */}
                     <div>
-                        <h3 className="font-semibold text-gray-700 mb-3">📋 Lịch sử yêu cầu đổi ca</h3>
+                        <h3 className="font-semibold text-gray-700 mb-3 flex items-center gap-1.5">
+                            <span className="material-symbols-outlined text-lg">history</span>
+                            Lịch sử yêu cầu đổi ca
+                        </h3>
                         {mySwapRequests.length === 0 ? (
-                            <div className="text-center py-12 text-gray-400"><div className="text-4xl mb-2">🔄</div><p>Chưa có yêu cầu đổi ca nào</p></div>
+                            <div className="text-center py-12 text-gray-400">
+                                <span className="material-symbols-outlined text-4xl mb-2 text-gray-300">swap_horiz</span>
+                                <p>Chưa có yêu cầu đổi ca nào</p>
+                            </div>
                         ) : (
                             <div className="space-y-3">
                                 {mySwapRequests.map((req) => (
@@ -365,7 +397,10 @@ const MyShiftsPage = () => {
             {checkInModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6">
-                        <h3 className="text-lg font-bold text-gray-800 mb-1">📱 Điểm danh vào ca</h3>
+                        <h3 className="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-xl text-emerald-600">qr_code_scanner</span>
+                            Điểm danh vào ca
+                        </h3>
                         <p className="text-gray-500 text-sm mb-4">Ca: <strong>{checkInModal.shiftName}</strong></p>
                         <label className="block text-sm font-medium text-gray-700 mb-2">Nhập hoặc quét token QR từ màn hình quầy thu ngân:</label>
                         <input
@@ -377,14 +412,19 @@ const MyShiftsPage = () => {
                             autoFocus
                         />
                         <p className="text-xs text-amber-600 bg-amber-50 rounded-xl px-3 py-2 mb-4">
-                            ⚠️ Token chỉ có hiệu lực 30 giây và chỉ hoạt động trong mạng Wifi nội bộ của nhà hàng.
+                            Token chỉ có hiệu lực 30 giây và chỉ hoạt động trong mạng Wifi nội bộ của nhà hàng.
                         </p>
                         <div className="flex gap-3">
                             <button onClick={() => { setCheckInModal(null); setQrInput(''); }} className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl font-semibold text-sm hover:bg-gray-50">
                                 Hủy
                             </button>
-                            <button onClick={handleCheckIn} disabled={checkingIn || !qrInput.trim()} className="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-emerald-700 disabled:opacity-60">
-                                {checkingIn ? 'Đang xử lý...' : '✅ Xác nhận điểm danh'}
+                            <button onClick={handleCheckIn} disabled={checkingIn || !qrInput.trim()} className="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-emerald-700 disabled:opacity-60 inline-flex items-center justify-center gap-1">
+                                {checkingIn ? 'Đang xử lý...' : (
+                                    <>
+                                        <span className="material-symbols-outlined text-xs">check_circle</span>
+                                        Xác nhận điểm danh
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>
@@ -395,7 +435,10 @@ const MyShiftsPage = () => {
             {swapModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6">
-                        <h3 className="text-lg font-bold text-gray-800 mb-1">🔄 Yêu cầu đổi ca</h3>
+                        <h3 className="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-xl text-emerald-600">swap_horiz</span>
+                            Yêu cầu đổi ca
+                        </h3>
                         <p className="text-gray-500 text-sm mb-4">
                             Ca: <strong>{swapModal.shiftName}</strong> — {swapModal.shiftDate}
                         </p>
@@ -429,8 +472,13 @@ const MyShiftsPage = () => {
                             <button onClick={() => { setSwapModal(null); setSwapTargetUserId(''); setSwapReason(''); }} className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl font-semibold text-sm hover:bg-gray-50">
                                 Hủy
                             </button>
-                            <button onClick={handleSubmitSwap} disabled={submittingSwap} className="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-emerald-700 disabled:opacity-60">
-                                {submittingSwap ? 'Đang gửi...' : '📨 Gửi yêu cầu'}
+                            <button onClick={handleSubmitSwap} disabled={submittingSwap} className="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-emerald-700 disabled:opacity-60 inline-flex items-center justify-center gap-1">
+                                {submittingSwap ? 'Đang gửi...' : (
+                                    <>
+                                        <span className="material-symbols-outlined text-xs">send</span>
+                                        Gửi yêu cầu
+                                    </>
+                                )}
                             </button>
                         </div>
                     </div>

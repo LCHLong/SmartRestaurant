@@ -97,7 +97,9 @@ export default function MyOrdersPage() {
                 {/* Orders List */}
                 {orders.length === 0 ? (
                     <div className="text-center bg-white rounded-xl sm:rounded-2xl shadow-lg p-8 sm:p-12">
-                        <div className="text-5xl sm:text-6xl mb-3 sm:mb-4">📋</div>
+                        <div className="mb-3 sm:mb-4">
+                            <span className="material-symbols-outlined text-5xl sm:text-6xl text-gray-300">receipt_long</span>
+                        </div>
                         <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">{t('customer.orders.empty_title')}</h2>
                         <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">{t('customer.orders.empty_desc')}</p>
                         <button

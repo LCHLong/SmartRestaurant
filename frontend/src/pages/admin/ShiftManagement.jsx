@@ -190,17 +190,20 @@ const ShiftManagement = () => {
     };
 
     const tabs = [
-        { id: 'shifts', label: '⚙️ Ca làm việc' },
-        { id: 'roster', label: '📅 Phân ca tuần' },
-        { id: 'attendance', label: '✅ Điểm danh' },
-        { id: 'swap', label: '🔄 Đổi ca' },
+        { id: 'shifts', label: 'Ca làm việc', icon: 'schedule' },
+        { id: 'roster', label: 'Phân ca tuần', icon: 'calendar_month' },
+        { id: 'attendance', label: 'Điểm danh', icon: 'fact_check' },
+        { id: 'swap', label: 'Đổi ca', icon: 'swap_horiz' },
     ];
 
     return (
         <div className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">👥 Quản lý Ca làm việc</h1>
-                <p className="text-gray-500 text-sm mt-1">Xếp lịch, điểm danh và quản lý đổi ca nhân viên</p>
+            <div className="mb-6 flex items-center gap-3">
+                <span className="material-symbols-outlined text-3xl text-emerald-600">groups</span>
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Quản lý Ca làm việc</h1>
+                    <p className="text-gray-500 text-sm mt-0.5">Xếp lịch, điểm danh và quản lý đổi ca nhân viên</p>
+                </div>
             </div>
 
             {/* Tabs */}
@@ -209,13 +212,14 @@ const ShiftManagement = () => {
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
-                        className={`px-4 py-2.5 text-sm font-semibold rounded-t-xl transition-colors ${
+                        className={`flex items-center gap-2 px-4 py-2.5 text-sm font-semibold rounded-t-xl transition-colors ${
                             activeTab === tab.id
                                 ? 'bg-emerald-600 text-white border-b-2 border-emerald-600'
                                 : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
                         }`}
                     >
-                        {tab.label}
+                        <span className="material-symbols-outlined text-[18px]">{tab.icon}</span>
+                        <span>{tab.label}</span>
                     </button>
                 ))}
             </div>
@@ -303,8 +307,9 @@ const ShiftManagement = () => {
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <h3 className="font-bold text-gray-800">{shift.name}</h3>
-                                        <p className="text-gray-500 text-sm mt-0.5">
-                                            🕐 {shift.start_time} — {shift.end_time}
+                                        <p className="text-gray-500 text-sm mt-0.5 flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-[15px] text-gray-400">schedule</span>
+                                            <span>{shift.start_time} — {shift.end_time}</span>
                                         </p>
                                     </div>
                                     <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${shift.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
@@ -312,23 +317,25 @@ const ShiftManagement = () => {
                                     </span>
                                 </div>
                                 <div className="mt-3 flex gap-3 text-xs text-gray-600">
-                                    <span>🧑‍💼 Waiter: {shift.min_staff?.waiter || 0}</span>
-                                    <span>👨‍🍳 Bếp: {shift.min_staff?.kitchen || 0}</span>
-                                    <span>👤 Quản lý: {shift.min_staff?.admin || 0}</span>
+                                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">room_service</span> Waiter: {shift.min_staff?.waiter || 0}</span>
+                                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">restaurant</span> Bếp: {shift.min_staff?.kitchen || 0}</span>
+                                    <span className="flex items-center gap-1"><span className="material-symbols-outlined text-[14px]">manage_accounts</span> Quản lý: {shift.min_staff?.admin || 0}</span>
                                 </div>
                                 {shift.is_active && (
                                     <div className="flex gap-2 mt-3">
                                         <button
                                             onClick={() => { setEditingShift(shift); setShiftForm({ name: shift.name, start_time: shift.start_time, end_time: shift.end_time, min_staff: shift.min_staff }); setShowShiftForm(true); }}
-                                            className="flex-1 py-1.5 border border-gray-200 text-gray-600 text-xs rounded-lg hover:bg-gray-50"
+                                            className="flex-1 py-1.5 border border-gray-200 text-gray-600 text-xs rounded-lg hover:bg-gray-50 flex items-center justify-center gap-1"
                                         >
-                                            ✏️ Sửa
+                                            <span className="material-symbols-outlined text-xs">edit</span>
+                                            Sửa
                                         </button>
                                         <button
                                             onClick={() => handleDeleteShift(shift.id, shift.name)}
-                                            className="flex-1 py-1.5 border border-red-200 text-red-600 text-xs rounded-lg hover:bg-red-50"
+                                            className="flex-1 py-1.5 border border-red-200 text-red-600 text-xs rounded-lg hover:bg-red-50 flex items-center justify-center gap-1"
                                         >
-                                            🚫 Vô hiệu
+                                            <span className="material-symbols-outlined text-xs">block</span>
+                                            Vô hiệu
                                         </button>
                                     </div>
                                 )}
@@ -485,7 +492,10 @@ const ShiftManagement = () => {
                     <div className="flex flex-wrap items-start gap-6 mb-6">
                         {/* QR Token động */}
                         <div className="bg-white border-2 border-emerald-400 rounded-2xl p-5 text-center shadow-sm">
-                            <h3 className="font-semibold text-gray-700 mb-2">📱 Mã QR Điểm Danh Động</h3>
+                            <h3 className="font-semibold text-gray-700 mb-2 flex items-center justify-center gap-1.5">
+                                <span className="material-symbols-outlined text-lg text-emerald-600">qr_code_2</span>
+                                Mã QR Điểm Danh Động
+                            </h3>
                             {qrToken ? (
                                 <>
                                     <div className="bg-gray-100 rounded-xl p-3 font-mono text-xs text-gray-600 break-all mb-2">
@@ -494,8 +504,9 @@ const ShiftManagement = () => {
                                     <div className={`text-sm font-bold ${qrCountdown <= 10 ? 'text-red-600 animate-pulse' : 'text-emerald-600'}`}>
                                         Hết hạn sau: {qrCountdown}s
                                     </div>
-                                    <button onClick={refreshQRToken} className="mt-2 px-4 py-1.5 bg-emerald-600 text-white text-xs rounded-xl font-semibold hover:bg-emerald-700">
-                                        🔄 Làm mới ngay
+                                    <button onClick={refreshQRToken} className="mt-2 px-4 py-1.5 bg-emerald-600 text-white text-xs rounded-xl font-semibold hover:bg-emerald-700 inline-flex items-center gap-1">
+                                        <span className="material-symbols-outlined text-xs">refresh</span>
+                                        Làm mới ngay
                                     </button>
                                 </>
                             ) : (

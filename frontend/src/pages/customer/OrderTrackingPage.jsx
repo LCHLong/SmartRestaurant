@@ -133,9 +133,9 @@ export default function OrderTrackingPage() {
 
     // 3. Cấu hình Timeline (3 Bước chuẩn Backend)
     const statusSteps = [
-        { key: 'pending', label: t('customer.tracking.pending'), icon: '📝', color: 'blue' },
-        { key: 'processing', label: t('customer.tracking.preparing'), icon: '👨‍🍳', color: 'yellow' },
-        { key: 'completed', label: t('customer.tracking.completed'), icon: '🎉', color: 'green' }
+        { key: 'pending', label: t('customer.tracking.pending'), icon: 'receipt_long', color: 'blue' },
+        { key: 'processing', label: t('customer.tracking.preparing'), icon: 'restaurant', color: 'yellow' },
+        { key: 'completed', label: t('customer.tracking.completed'), icon: 'celebration', color: 'green' }
     ];
 
     // Helper map status
@@ -166,7 +166,9 @@ export default function OrderTrackingPage() {
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
                 <div className="text-center bg-white rounded-2xl shadow-lg p-6 sm:p-8 max-w-md w-full">
-                    <div className="text-3xl sm:text-4xl mb-4">😕</div>
+                    <div className="mb-4">
+                        <span className="material-symbols-outlined text-4xl text-gray-300">search_off</span>
+                    </div>
                     <h2 className="text-lg sm:text-xl font-bold text-gray-800 mb-2">{t('customer.orders.empty_title')}</h2>
                     <button onClick={() => navigate('/menu')} className="mt-4 px-6 py-2 bg-emerald-500 text-white rounded-lg w-full sm:w-auto">
                         {t('customer.orders.back_to_menu')}
@@ -249,7 +251,7 @@ export default function OrderTrackingPage() {
                                                         : 'bg-white text-gray-300 border-gray-100'
                                                         } ${isCurrent ? 'scale-125 ring-4 ring-emerald-50' : ''}`}
                                                 >
-                                                    {step.icon}
+                                                    <span className="material-symbols-outlined text-lg leading-none">{step.icon}</span>
                                                 </div>
                                                 <p className={`mt-3 text-xs font-bold uppercase tracking-wider transition-colors duration-300 ${isActive ? 'text-emerald-700' : 'text-gray-400'}`}>
                                                     {step.label}

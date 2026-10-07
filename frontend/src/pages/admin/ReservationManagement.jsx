@@ -89,9 +89,12 @@ const ReservationManagement = () => {
 
     return (
         <div className="p-6">
-            <div className="mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">📋 Quản lý Đặt bàn</h1>
-                <p className="text-gray-500 text-sm mt-1">Xem và xử lý tất cả đặt bàn trước</p>
+            <div className="mb-6 flex items-center gap-3">
+                <span className="material-symbols-outlined text-3xl text-emerald-600">event_seat</span>
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-800">Quản lý Đặt bàn</h1>
+                    <p className="text-gray-500 text-sm mt-0.5">Xem và xử lý tất cả đặt bàn trước</p>
+                </div>
             </div>
 
             {/* Filters */}
@@ -111,9 +114,10 @@ const ReservationManagement = () => {
                 </select>
                 <button
                     onClick={fetchReservations}
-                    className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-xl font-semibold hover:bg-emerald-700"
+                    className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-xl font-semibold hover:bg-emerald-700 inline-flex items-center gap-1.5"
                 >
-                    🔄 Tải lại
+                    <span className="material-symbols-outlined text-sm">refresh</span>
+                    Tải lại
                 </button>
             </div>
 
@@ -139,7 +143,7 @@ const ReservationManagement = () => {
                 </div>
             ) : reservations.length === 0 ? (
                 <div className="text-center py-20 text-gray-400">
-                    <div className="text-5xl mb-3">📅</div>
+                    <span className="material-symbols-outlined text-5xl mb-3 text-gray-300">event_busy</span>
                     <p>Không có đặt bàn nào trong ngày {date}</p>
                 </div>
             ) : (
@@ -163,8 +167,9 @@ const ReservationManagement = () => {
                                         <div className="font-semibold text-gray-800">{r.customer_name}</div>
                                         <div className="text-xs font-mono text-gray-400 mt-0.5">{r.booking_code}</div>
                                         {r.special_requests && (
-                                            <div className="text-xs text-gray-400 mt-0.5 italic truncate max-w-[160px]" title={r.special_requests}>
-                                                📝 {r.special_requests}
+                                            <div className="text-xs text-gray-400 mt-0.5 italic truncate max-w-[160px] flex items-center gap-1" title={r.special_requests}>
+                                                <span className="material-symbols-outlined text-[13px] text-gray-400">edit_note</span>
+                                                <span className="truncate">{r.special_requests}</span>
                                             </div>
                                         )}
                                     </td>
@@ -175,7 +180,10 @@ const ReservationManagement = () => {
                                     <td className="px-4 py-3">
                                         <span className="font-semibold">{r.guest_count}</span> người
                                         {r.deposit_amount > 0 && (
-                                            <div className="text-xs text-amber-600 mt-0.5">💰 Cọc: {r.deposit_amount?.toLocaleString('vi-VN')}đ</div>
+                                            <div className="text-xs text-amber-600 mt-0.5 flex items-center gap-0.5">
+                                                <span className="material-symbols-outlined text-[13px] text-amber-500">payments</span>
+                                                <span>Cọc: {r.deposit_amount?.toLocaleString('vi-VN')}đ</span>
+                                            </div>
                                         )}
                                     </td>
                                     <td className="px-4 py-3">
@@ -202,25 +210,28 @@ const ReservationManagement = () => {
                                             {r.status === 'pending' && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'confirmed')}
-                                                    className="px-2.5 py-1 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700"
+                                                    className="px-2.5 py-1 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 inline-flex items-center justify-center gap-1"
                                                 >
-                                                    ✓ Xác nhận
+                                                    <span className="material-symbols-outlined text-xs">check</span>
+                                                    Xác nhận
                                                 </button>
                                             )}
                                             {['pending', 'confirmed'].includes(r.status) && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'seated')}
-                                                    className="px-2.5 py-1 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700"
+                                                    className="px-2.5 py-1 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 inline-flex items-center justify-center gap-1"
                                                 >
-                                                    🪑 Check-in
+                                                    <span className="material-symbols-outlined text-xs">table_restaurant</span>
+                                                    Check-in
                                                 </button>
                                             )}
                                             {r.status === 'seated' && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'completed')}
-                                                    className="px-2.5 py-1 bg-gray-600 text-white text-xs font-semibold rounded-lg hover:bg-gray-700"
+                                                    className="px-2.5 py-1 bg-gray-600 text-white text-xs font-semibold rounded-lg hover:bg-gray-700 inline-flex items-center justify-center gap-1"
                                                 >
-                                                    ✅ Xong
+                                                    <span className="material-symbols-outlined text-xs">check_circle</span>
+                                                    Xong
                                                 </button>
                                             )}
                                             {['pending', 'confirmed'].includes(r.status) && (
@@ -228,15 +239,21 @@ const ReservationManagement = () => {
                                                     <button
                                                         onClick={() => handleReallocate(r.id, r.customer_name)}
                                                         disabled={reallocatingId === r.id}
-                                                        className="px-2.5 py-1 bg-amber-500 text-white text-xs font-semibold rounded-lg hover:bg-amber-600 disabled:opacity-60"
+                                                        className="px-2.5 py-1 bg-amber-500 text-white text-xs font-semibold rounded-lg hover:bg-amber-600 disabled:opacity-60 inline-flex items-center justify-center gap-1"
                                                     >
-                                                        {reallocatingId === r.id ? '...' : '🔀 Đổi bàn'}
+                                                        {reallocatingId === r.id ? '...' : (
+                                                            <>
+                                                                <span className="material-symbols-outlined text-xs">sync_alt</span>
+                                                                Đổi bàn
+                                                            </>
+                                                        )}
                                                     </button>
                                                     <button
                                                         onClick={() => handleUpdateStatus(r.id, 'cancelled')}
-                                                        className="px-2.5 py-1 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50"
+                                                        className="px-2.5 py-1 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 inline-flex items-center justify-center gap-1"
                                                     >
-                                                        ✕ Hủy
+                                                        <span className="material-symbols-outlined text-xs">close</span>
+                                                        Hủy
                                                     </button>
                                                 </>
                                             )}

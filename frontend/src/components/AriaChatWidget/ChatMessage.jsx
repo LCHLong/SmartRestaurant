@@ -197,7 +197,7 @@ export default function ChatMessage({ message }) {
               title="Thích gợi ý này"
               aria-label="Thích gợi ý này"
             >
-              <span>👍</span>
+              <span className="material-symbols-outlined text-sm">thumb_up</span>
               {message.userFeedback === 'thumbs_up' ? (
                 <span className="text-[10px] text-emerald-800 font-bold">Hài lòng</span>
               ) : null}
@@ -214,7 +214,7 @@ export default function ChatMessage({ message }) {
               title="Đổi món khác"
               aria-label="Đổi món khác"
             >
-              <span>👎</span>
+              <span className="material-symbols-outlined text-sm">thumb_down</span>
               {message.userFeedback === 'thumbs_down' ? (
                 <span className="text-[10px] text-amber-900 font-bold">Đang tìm món khác...</span>
               ) : (

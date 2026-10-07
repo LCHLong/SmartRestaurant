@@ -80,7 +80,7 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
         {/* Header */}
         <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-orange-500 to-pink-500 rounded-t-2xl">
           <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-sm shadow">
-            🤖
+            <span className="material-symbols-outlined text-xl">smart_toy</span>
           </div>
           <div className="flex-1">
             <p className="text-white font-semibold text-sm leading-none">Aria</p>
@@ -101,7 +101,7 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
         <div className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 scroll-smooth">
           {messages.length === 0 && !isLoading && (
             <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 px-6">
-              <span className="text-4xl mb-3">🍽️</span>
+              <span className="material-symbols-outlined text-4xl mb-3 text-orange-400">restaurant</span>
               <p className="text-sm font-medium text-gray-500">Xin chào! Aria đang chào bạn...</p>
               <p className="text-xs mt-1">Bạn muốn ăn gì hôm nay?</p>
             </div>
@@ -195,7 +195,7 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
         {isOpen ? (
           <span className="material-symbols-outlined text-2xl">close</span>
         ) : (
-          <span className="text-2xl select-none">🤖</span>
+          <span className="material-symbols-outlined text-2xl select-none">smart_toy</span>
         )}
 
         {/* Badge unread */}

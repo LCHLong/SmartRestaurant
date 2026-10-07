@@ -888,7 +888,9 @@ const TableManagement = () => {
                             <div className="space-y-4">
                                 <div className="flex justify-center p-6 bg-gray-50 rounded-2xl">
                                     <div className="text-center">
-                                        <div className="text-4xl mb-2">🪑</div>
+                                        <div className="mb-2">
+                                            <span className="material-symbols-outlined text-4xl text-emerald-600">table_restaurant</span>
+                                        </div>
                                         <div className="text-2xl font-black text-gray-900 uppercase">{t('table.table_label')} {selectedTable.table_number}</div>
                                     </div>
                                 </div>

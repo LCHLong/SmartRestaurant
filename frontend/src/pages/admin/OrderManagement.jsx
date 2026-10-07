@@ -547,8 +547,9 @@ const OrderManagement = () => {
                                                 </span>
                                             </div>
                                             {item.notes && (
-                                                <p className="text-xs text-gray-500 italic mt-1">
-                                                    📝 {item.notes}
+                                                <p className="text-xs text-gray-500 italic mt-1 flex items-center gap-1">
+                                                    <span className="material-symbols-outlined text-xs text-gray-400">edit_note</span>
+                                                    {item.notes}
                                                 </p>
                                             )}
                                             {item.order_item_modifiers?.length > 0 && (

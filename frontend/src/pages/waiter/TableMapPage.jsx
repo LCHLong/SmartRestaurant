@@ -167,14 +167,26 @@ const TableMapPage = () => {
     const getStatusLabel = (table) => {
         if (!table.is_active) return <span className="text-red-500">• Không hoạt động</span>;
         const isOverstay = overstayAlerts.some((a) => a.table_id === table.id);
-        if (isOverstay) return <span className="text-red-600 font-bold animate-pulse">⚠️ Nguy cơ trễ giờ</span>;
+        if (isOverstay) return (
+            <span className="text-red-600 font-bold animate-pulse inline-flex items-center gap-1">
+                <span className="material-symbols-outlined text-xs">warning</span>
+                Nguy cơ trễ giờ
+            </span>
+        );
         const statusMap = {
-            available: '✅ Trống',
-            occupied: '🍽️ Đang dùng',
-            reserved: '📋 Đã đặt',
-            dirty: '🧹 Đang dọn',
+            available: { label: 'Trống', icon: 'check_circle' },
+            occupied: { label: 'Đang dùng', icon: 'restaurant' },
+            reserved: { label: 'Đã đặt', icon: 'event_seat' },
+            dirty: { label: 'Đang dọn', icon: 'cleaning_services' },
         };
-        return statusMap[table.status] || table.status;
+        const item = statusMap[table.status];
+        if (!item) return table.status;
+        return (
+            <span className="inline-flex items-center gap-1">
+                <span className="material-symbols-outlined text-xs">{item.icon}</span>
+                <span>{item.label}</span>
+            </span>
+        );
     };
 
     const getStatusColor = (status) => {
@@ -213,8 +225,11 @@ const TableMapPage = () => {
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight">
-                        {activeTab === 'map' ? '🗺️ Sơ đồ bàn thông minh' : '📋 Lịch Đặt Bàn'}
+                    <h2 className="text-3xl font-extrabold text-gray-800 tracking-tight flex items-center gap-2">
+                        <span className="material-symbols-outlined text-3xl text-emerald-600">
+                            {activeTab === 'map' ? 'grid_view' : 'event_seat'}
+                        </span>
+                        <span>{activeTab === 'map' ? 'Sơ đồ bàn thông minh' : 'Lịch Đặt Bàn'}</span>
                     </h2>
                     <p className="text-gray-500 mt-1 text-sm">Cập nhật tự động theo thời gian thực</p>
                 </div>
@@ -246,7 +261,7 @@ const TableMapPage = () => {
             {overstayAlerts.length > 0 && (
                 <div className="mb-6 bg-red-50 border-2 border-red-400 rounded-2xl p-4">
                     <div className="flex items-center gap-2 mb-3">
-                        <span className="text-red-600 text-xl animate-bounce">⚠️</span>
+                        <span className="material-symbols-outlined text-red-600 text-2xl animate-bounce">warning</span>
                         <h3 className="font-bold text-red-700">Cảnh báo Overstay — Cần hành động ngay!</h3>
                     </div>
                     <div className="space-y-2">
@@ -262,11 +277,16 @@ const TableMapPage = () => {
                                 <button
                                     onClick={() => handleReallocate(alert.reservation_id, alert.customer_name)}
                                     disabled={reallocatingId === alert.reservation_id}
-                                    className="ml-4 px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-60 whitespace-nowrap"
+                                    className="ml-4 px-4 py-2 bg-red-600 text-white text-sm font-semibold rounded-xl hover:bg-red-700 transition-colors disabled:opacity-60 whitespace-nowrap inline-flex items-center gap-1"
                                 >
                                     {reallocatingId === alert.reservation_id
                                         ? <span className="flex items-center gap-1"><div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" /> Đang đổi...</span>
-                                        : '🔀 Đổi bàn ngay'}
+                                        : (
+                                            <>
+                                                <span className="material-symbols-outlined text-xs">sync_alt</span>
+                                                Đổi bàn ngay
+                                            </>
+                                        )}
                                 </button>
                             </div>
                         ))}
@@ -316,14 +336,16 @@ const TableMapPage = () => {
 
                                     {/* Buffer Flag: Nhãn "Sắp có khách đặt" */}
                                     {bufferInfo && !overstayAlert && (
-                                        <div className="absolute bottom-0 left-0 right-0 bg-amber-500 text-white text-[10px] font-bold text-center py-1 px-2 truncate">
-                                            📋 Đặt lúc {bufferInfo.reservation_time} ({bufferInfo.minutes_until}p)
+                                        <div className="absolute bottom-0 left-0 right-0 bg-amber-500 text-white text-[10px] font-bold text-center py-1 px-2 truncate flex items-center justify-center gap-1">
+                                            <span className="material-symbols-outlined text-[12px]">event_seat</span>
+                                            <span>Đặt lúc {bufferInfo.reservation_time} ({bufferInfo.minutes_until}p)</span>
                                         </div>
                                     )}
 
                                     {/* Capacity badge */}
-                                    <div className="absolute top-2 right-2 bg-black bg-opacity-10 rounded-full px-2 py-0.5 text-[10px] font-bold opacity-70">
-                                        {table.capacity}👤
+                                    <div className="absolute top-2 right-2 bg-black bg-opacity-10 rounded-full px-2 py-0.5 text-[10px] font-bold opacity-70 flex items-center gap-0.5">
+                                        <span>{table.capacity}</span>
+                                        <span className="material-symbols-outlined text-[10px]">person</span>
                                     </div>
 
                                     {/* 1-Click Reallocate button nếu có overstay alert */}
@@ -331,9 +353,14 @@ const TableMapPage = () => {
                                         <button
                                             onClick={(e) => { e.stopPropagation(); handleReallocate(overstayAlert.reservation_id, overstayAlert.customer_name); }}
                                             disabled={reallocatingId === overstayAlert.reservation_id}
-                                            className="absolute bottom-1 left-1 right-1 bg-red-600 text-white text-[10px] font-bold py-1 rounded-lg hover:bg-red-700 transition-colors"
+                                            className="absolute bottom-1 left-1 right-1 bg-red-600 text-white text-[10px] font-bold py-1 rounded-lg hover:bg-red-700 transition-colors inline-flex items-center justify-center gap-1"
                                         >
-                                            {reallocatingId === overstayAlert.reservation_id ? '...' : '🔀 Đổi bàn'}
+                                            {reallocatingId === overstayAlert.reservation_id ? '...' : (
+                                                <>
+                                                    <span className="material-symbols-outlined text-[11px]">sync_alt</span>
+                                                    Đổi bàn
+                                                </>
+                                            )}
                                         </button>
                                     )}
                                 </div>
@@ -390,7 +417,7 @@ const TableMapPage = () => {
                         </div>
                     ) : reservations.length === 0 ? (
                         <div className="text-center py-16 text-gray-400">
-                            <div className="text-5xl mb-3">📅</div>
+                            <span className="material-symbols-outlined text-5xl mb-3 text-gray-300">event_busy</span>
                             <p>Không có đặt bàn nào trong ngày {resvDate}</p>
                         </div>
                     ) : (
@@ -407,13 +434,16 @@ const TableMapPage = () => {
                                                 <span className="font-mono text-xs bg-gray-100 px-2 py-0.5 rounded text-gray-500">{r.booking_code}</span>
                                             </div>
                                             <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                                                <span>🕐 <strong>{r.reservation_time}</strong> – {r.end_time}</span>
-                                                <span>👥 <strong>{r.guest_count}</strong> người</span>
-                                                <span>📞 {r.customer_phone}</span>
-                                                {r.tables && <span>🪑 Bàn <strong>{r.tables.table_number}</strong> ({r.tables.location})</span>}
+                                                <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-gray-400">schedule</span><strong>{r.reservation_time}</strong> – {r.end_time}</span>
+                                                <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-gray-400">group</span><strong>{r.guest_count}</strong> người</span>
+                                                <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-gray-400">call</span>{r.customer_phone}</span>
+                                                {r.tables && <span className="inline-flex items-center gap-1"><span className="material-symbols-outlined text-[16px] text-gray-400">table_restaurant</span>Bàn <strong>{r.tables.table_number}</strong> ({r.tables.location})</span>}
                                             </div>
                                             {r.special_requests && (
-                                                <p className="text-sm text-gray-500 mt-1 italic">📝 {r.special_requests}</p>
+                                                <p className="text-sm text-gray-500 mt-1 italic flex items-center gap-1">
+                                                    <span className="material-symbols-outlined text-xs text-gray-400">edit_note</span>
+                                                    <span>{r.special_requests}</span>
+                                                </p>
                                             )}
                                         </div>
 
@@ -422,25 +452,28 @@ const TableMapPage = () => {
                                             {r.status === 'pending' && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'confirmed')}
-                                                    className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700"
+                                                    className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 inline-flex items-center justify-center gap-1"
                                                 >
-                                                    ✓ Xác nhận
+                                                    <span className="material-symbols-outlined text-xs">check</span>
+                                                    Xác nhận
                                                 </button>
                                             )}
                                             {['pending', 'confirmed'].includes(r.status) && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'seated')}
-                                                    className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700"
+                                                    className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 inline-flex items-center justify-center gap-1"
                                                 >
-                                                    🪑 Check-in
+                                                    <span className="material-symbols-outlined text-xs">table_restaurant</span>
+                                                    Check-in
                                                 </button>
                                             )}
                                             {r.status === 'seated' && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'completed')}
-                                                    className="px-3 py-1.5 bg-gray-600 text-white text-xs font-semibold rounded-lg hover:bg-gray-700"
+                                                    className="px-3 py-1.5 bg-gray-600 text-white text-xs font-semibold rounded-lg hover:bg-gray-700 inline-flex items-center justify-center gap-1"
                                                 >
-                                                    ✅ Hoàn thành
+                                                    <span className="material-symbols-outlined text-xs">check_circle</span>
+                                                    Hoàn thành
                                                 </button>
                                             )}
                                             {['pending', 'confirmed'].includes(r.status) && (
@@ -448,15 +481,21 @@ const TableMapPage = () => {
                                                     <button
                                                         onClick={() => handleReallocate(r.id, r.customer_name)}
                                                         disabled={reallocatingId === r.id}
-                                                        className="px-3 py-1.5 bg-amber-500 text-white text-xs font-semibold rounded-lg hover:bg-amber-600 disabled:opacity-60"
+                                                        className="px-3 py-1.5 bg-amber-500 text-white text-xs font-semibold rounded-lg hover:bg-amber-600 disabled:opacity-60 inline-flex items-center justify-center gap-1"
                                                     >
-                                                        {reallocatingId === r.id ? '...' : '🔀 Đổi bàn'}
+                                                        {reallocatingId === r.id ? '...' : (
+                                                            <>
+                                                                <span className="material-symbols-outlined text-xs">sync_alt</span>
+                                                                Đổi bàn
+                                                            </>
+                                                        )}
                                                     </button>
                                                     <button
                                                         onClick={() => handleUpdateStatus(r.id, 'cancelled')}
-                                                        className="px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50"
+                                                        className="px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 inline-flex items-center justify-center gap-1"
                                                     >
-                                                        ✕ Hủy
+                                                        <span className="material-symbols-outlined text-xs">close</span>
+                                                        Hủy
                                                     </button>
                                                 </>
                                             )}

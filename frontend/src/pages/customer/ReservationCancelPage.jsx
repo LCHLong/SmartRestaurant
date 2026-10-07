@@ -50,7 +50,9 @@ const ReservationCancelPage = () => {
             <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center">
                 {status === 'confirm' && (
                     <>
-                        <div className="text-5xl mb-4">⚠️</div>
+                        <div className="mb-4">
+                            <span className="material-symbols-outlined text-5xl text-amber-500">warning</span>
+                        </div>
                         <h1 className="text-xl font-bold text-gray-800 mb-2">Xác nhận hủy đặt bàn</h1>
                         <p className="text-gray-500 text-sm mb-6">
                             Bạn có chắc chắn muốn hủy lượt đặt bàn này không?<br />
@@ -66,7 +68,7 @@ const ReservationCancelPage = () => {
                             <button
                                 onClick={handleCancel}
                                 disabled={cancelling}
-                                className="flex-1 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:opacity-60 text-sm"
+                                className="flex-1 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors disabled:opacity-60 text-sm flex items-center justify-center gap-1.5"
                             >
                                 {cancelling ? (
                                     <span className="flex items-center justify-center gap-2">
@@ -74,7 +76,10 @@ const ReservationCancelPage = () => {
                                         Đang hủy...
                                     </span>
                                 ) : (
-                                    '❌ Xác nhận hủy'
+                                    <>
+                                        <span className="material-symbols-outlined text-lg">close</span>
+                                        Xác nhận hủy
+                                    </>
                                 )}
                             </button>
                         </div>
@@ -83,7 +88,9 @@ const ReservationCancelPage = () => {
 
                 {status === 'success' && (
                     <>
-                        <div className="text-5xl mb-4">✅</div>
+                        <div className="mb-4">
+                            <span className="material-symbols-outlined text-5xl text-emerald-500">check_circle</span>
+                        </div>
                         <h1 className="text-xl font-bold text-gray-800 mb-2">Hủy thành công</h1>
                         <p className="text-gray-500 text-sm mb-6">{message}</p>
                         <Link
@@ -97,7 +104,9 @@ const ReservationCancelPage = () => {
 
                 {status === 'error' && (
                     <>
-                        <div className="text-5xl mb-4">❌</div>
+                        <div className="mb-4">
+                            <span className="material-symbols-outlined text-5xl text-rose-500">cancel</span>
+                        </div>
                         <h1 className="text-xl font-bold text-gray-800 mb-2">Không thể hủy</h1>
                         <p className="text-gray-500 text-sm mb-6">{message}</p>
                         <div className="flex flex-col gap-3">
