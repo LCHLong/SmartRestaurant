@@ -216,7 +216,7 @@ const ReservationManagement = () => {
                                                     Xác nhận
                                                 </button>
                                             )}
-                                            {['pending', 'confirmed'].includes(r.status) && (
+                                            {r.status === 'confirmed' && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'seated')}
                                                     className="px-2.5 py-1 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 inline-flex items-center justify-center gap-1"
@@ -234,28 +234,28 @@ const ReservationManagement = () => {
                                                     Xong
                                                 </button>
                                             )}
+                                            {r.status === 'confirmed' && (
+                                                <button
+                                                    onClick={() => handleReallocate(r.id, r.customer_name)}
+                                                    disabled={reallocatingId === r.id}
+                                                    className="px-2.5 py-1 bg-amber-500 text-white text-xs font-semibold rounded-lg hover:bg-amber-600 disabled:opacity-60 inline-flex items-center justify-center gap-1"
+                                                >
+                                                    {reallocatingId === r.id ? '...' : (
+                                                        <>
+                                                            <span className="material-symbols-outlined text-xs">sync_alt</span>
+                                                            Đổi bàn
+                                                        </>
+                                                    )}
+                                                </button>
+                                            )}
                                             {['pending', 'confirmed'].includes(r.status) && (
-                                                <>
-                                                    <button
-                                                        onClick={() => handleReallocate(r.id, r.customer_name)}
-                                                        disabled={reallocatingId === r.id}
-                                                        className="px-2.5 py-1 bg-amber-500 text-white text-xs font-semibold rounded-lg hover:bg-amber-600 disabled:opacity-60 inline-flex items-center justify-center gap-1"
-                                                    >
-                                                        {reallocatingId === r.id ? '...' : (
-                                                            <>
-                                                                <span className="material-symbols-outlined text-xs">sync_alt</span>
-                                                                Đổi bàn
-                                                            </>
-                                                        )}
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleUpdateStatus(r.id, 'cancelled')}
-                                                        className="px-2.5 py-1 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 inline-flex items-center justify-center gap-1"
-                                                    >
-                                                        <span className="material-symbols-outlined text-xs">close</span>
-                                                        Hủy
-                                                    </button>
-                                                </>
+                                                <button
+                                                    onClick={() => handleUpdateStatus(r.id, 'cancelled')}
+                                                    className="px-2.5 py-1 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 inline-flex items-center justify-center gap-1"
+                                                >
+                                                    <span className="material-symbols-outlined text-xs">close</span>
+                                                    Hủy
+                                                </button>
                                             )}
                                         </div>
                                     </td>

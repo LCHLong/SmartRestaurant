@@ -617,10 +617,10 @@ exports.checkInReservation = async (req, res) => {
       return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Không tìm thấy đặt bàn' } });
     }
 
-    if (!['pending', 'confirmed'].includes(reservation.status)) {
+    if (reservation.status !== 'confirmed') {
       return res.status(400).json({
         success: false,
-        error: { code: 'INVALID_STATUS', message: `Không thể check-in ở trạng thái ${reservation.status}` },
+        error: { code: 'INVALID_STATUS', message: 'Chỉ có thể check-in khi đặt bàn đã ở trạng thái Đã xác nhận (confirmed)' },
       });
     }
 
@@ -710,6 +710,13 @@ exports.reallocateTable = async (req, res) => {
 
     if (resError || !reservation) {
       return res.status(404).json({ success: false, error: { code: 'NOT_FOUND', message: 'Không tìm thấy đặt bàn' } });
+    }
+
+    if (reservation.status !== 'confirmed') {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_STATUS', message: 'Chỉ có thể đổi bàn cho lượt đặt đã được xác nhận (confirmed)' },
+      });
     }
 
     // Tìm bàn trống tương đương (capacity >= guest_count, không phải bàn hiện tại)

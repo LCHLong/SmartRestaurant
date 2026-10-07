@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Html5Qrcode } from 'html5-qrcode';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 
@@ -21,6 +22,8 @@ const MyShiftsPage = () => {
     const [checkInModal, setCheckInModal] = useState(null); // { assignmentId, shiftName }
     const [qrInput, setQrInput] = useState('');
     const [checkingIn, setCheckingIn] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
+    const scannerRef = useRef(null);
 
     // Swap modal
     const [swapModal, setSwapModal] = useState(null); // { assignmentId }
@@ -60,13 +63,49 @@ const MyShiftsPage = () => {
 
     const fetchMySwapRequests = useCallback(async () => {
         try {
-            const res = await api.get('/api/shifts/swap-requests');
+            const res = await api.get('/api/shifts/swap-requests/my');
             setMySwapRequests(res.data.data || []);
         } catch (_) {}
     }, []);
 
     useEffect(() => { fetchMyShifts(); }, [fetchMyShifts]);
     useEffect(() => { fetchStaff(); fetchMySwapRequests(); }, []);
+
+    // Stop scanner on unmount or modal close
+    const stopScanner = useCallback(async () => {
+        if (scannerRef.current) {
+            try {
+                await scannerRef.current.stop();
+                scannerRef.current.clear();
+            } catch (_) {}
+            scannerRef.current = null;
+        }
+        setIsScanning(false);
+    }, []);
+
+    const startScanner = async () => {
+        setIsScanning(true);
+        setTimeout(async () => {
+            try {
+                const html5QrCode = new Html5Qrcode('qr-reader-container');
+                scannerRef.current = html5QrCode;
+                await html5QrCode.start(
+                    { facingMode: 'environment' },
+                    { fps: 10, qrbox: { width: 220, height: 220 } },
+                    async (decodedText) => {
+                        toast.success('Đã nhận diện mã QR!');
+                        setQrInput(decodedText.trim());
+                        await stopScanner();
+                    },
+                    () => {}
+                );
+            } catch (err) {
+                console.error(err);
+                toast.error('Không thể truy cập camera. Vui lòng cấp quyền hoặc nhập/dán token thủ công.');
+                setIsScanning(false);
+            }
+        }, 300);
+    };
 
     // ─── Check-in / Check-out ────────────────────────────────────────────────
 
@@ -79,6 +118,7 @@ const MyShiftsPage = () => {
                 assignment_id: checkInModal.assignmentId,
             });
             toast.success(`✅ Điểm danh vào ca ${checkInModal.shiftName} thành công!`);
+            await stopScanner();
             setCheckInModal(null);
             setQrInput('');
             fetchMyShifts();
@@ -396,29 +436,109 @@ const MyShiftsPage = () => {
             {/* ─── MODAL: ĐIỂM DANH ─── */}
             {checkInModal && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6">
-                        <h3 className="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
-                            <span className="material-symbols-outlined text-xl text-emerald-600">qr_code_scanner</span>
-                            Điểm danh vào ca
-                        </h3>
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-2">
+                            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+                                <span className="material-symbols-outlined text-xl text-emerald-600">qr_code_scanner</span>
+                                Điểm danh vào ca
+                            </h3>
+                            <button
+                                onClick={async () => {
+                                    await stopScanner();
+                                    setCheckInModal(null);
+                                    setQrInput('');
+                                }}
+                                className="text-gray-400 hover:text-gray-600 p-1 rounded-lg"
+                            >
+                                <span className="material-symbols-outlined text-xl">close</span>
+                            </button>
+                        </div>
                         <p className="text-gray-500 text-sm mb-4">Ca: <strong>{checkInModal.shiftName}</strong></p>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Nhập hoặc quét token QR từ màn hình quầy thu ngân:</label>
-                        <input
-                            type="text"
-                            value={qrInput}
-                            onChange={(e) => setQrInput(e.target.value)}
-                            placeholder="Dán token QR vào đây..."
-                            className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-400 mb-4"
-                            autoFocus
-                        />
+
+                        {/* Scanner Viewport */}
+                        <div className="mb-4">
+                            {!isScanning ? (
+                                <button
+                                    type="button"
+                                    onClick={startScanner}
+                                    className="w-full py-3 bg-emerald-50 hover:bg-emerald-100 border-2 border-dashed border-emerald-400 rounded-2xl text-emerald-700 font-semibold text-sm flex flex-col items-center justify-center gap-1 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined text-2xl text-emerald-600">photo_camera</span>
+                                    <span>Bật camera để quét mã QR</span>
+                                    <span className="text-[11px] text-gray-500 font-normal">Hướng camera về màn hình mã QR của Admin</span>
+                                </button>
+                            ) : (
+                                <div className="space-y-2">
+                                    <div
+                                        id="qr-reader-container"
+                                        className="w-full bg-black rounded-2xl overflow-hidden min-h-[220px]"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={stopScanner}
+                                        className="w-full py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold flex items-center justify-center gap-1"
+                                    >
+                                        <span className="material-symbols-outlined text-sm">videocam_off</span>
+                                        Tắt camera
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="relative flex py-2 items-center">
+                            <div className="flex-grow border-t border-gray-200"></div>
+                            <span className="flex-shrink mx-3 text-gray-400 text-xs uppercase font-medium">hoặc nhập token</span>
+                            <div className="flex-grow border-t border-gray-200"></div>
+                        </div>
+
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Mã Token QR:</label>
+                        <div className="flex gap-2 mb-2">
+                            <input
+                                type="text"
+                                value={qrInput}
+                                onChange={(e) => setQrInput(e.target.value)}
+                                placeholder="Dán token QR vào đây..."
+                                className="flex-1 border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                            />
+                            <button
+                                type="button"
+                                onClick={async () => {
+                                    try {
+                                        const text = await navigator.clipboard.readText();
+                                        if (text) {
+                                            setQrInput(text.trim());
+                                            toast.success('Đã dán token!');
+                                        }
+                                    } catch (e) {
+                                        toast.error('Không thể đọc clipboard. Vui lòng bấm Ctrl+V / Cmd+V');
+                                    }
+                                }}
+                                className="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-semibold flex items-center gap-1 border border-gray-200 shrink-0"
+                                title="Dán nhanh từ Clipboard"
+                            >
+                                <span className="material-symbols-outlined text-sm">content_paste</span>
+                                Dán
+                            </button>
+                        </div>
                         <p className="text-xs text-amber-600 bg-amber-50 rounded-xl px-3 py-2 mb-4">
-                            Token chỉ có hiệu lực 30 giây và chỉ hoạt động trong mạng Wifi nội bộ của nhà hàng.
+                            Token có tại <strong>Quản lý ca làm việc &gt; Điểm danh</strong> trên màn hình Admin/Thu ngân (Đổi mới mỗi 30s).
                         </p>
                         <div className="flex gap-3">
-                            <button onClick={() => { setCheckInModal(null); setQrInput(''); }} className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl font-semibold text-sm hover:bg-gray-50">
+                            <button
+                                onClick={async () => {
+                                    await stopScanner();
+                                    setCheckInModal(null);
+                                    setQrInput('');
+                                }}
+                                className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl font-semibold text-sm hover:bg-gray-50"
+                            >
                                 Hủy
                             </button>
-                            <button onClick={handleCheckIn} disabled={checkingIn || !qrInput.trim()} className="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-emerald-700 disabled:opacity-60 inline-flex items-center justify-center gap-1">
+                            <button
+                                onClick={handleCheckIn}
+                                disabled={checkingIn || !qrInput.trim()}
+                                className="flex-1 bg-emerald-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-emerald-700 disabled:opacity-60 inline-flex items-center justify-center gap-1"
+                            >
                                 {checkingIn ? 'Đang xử lý...' : (
                                     <>
                                         <span className="material-symbols-outlined text-xs">check_circle</span>
