@@ -9,12 +9,12 @@ Viết một PROPOSAL hoàn chỉnh, sẵn sàng trình bày cho người ra quy
 - Người đọc proposal: dev
 
 # HÀNH VI CỐT LÕI CỦA AI (phải xuyên suốt proposal)
-1. Khách nhắn tự nhiên, vd "Tôi muốn đặt bàn". AI nhận diện ý định, rồi thu thập qua hội thoại: ngày, giờ, số người (người lớn/trẻ em), chi nhánh, yêu cầu đặc biệt (vị trí ngồi, ghế trẻ em, sinh nhật, dị ứng…).
+1. Khách nhắn tự nhiên, ví dụ "Tôi muốn đặt bàn". AI nhận diện ý định, rồi thu thập qua hội thoại: ngày, giờ, số người (người lớn/trẻ em), chi nhánh, yêu cầu đặc biệt (vị trí ngồi, ghế trẻ em, sinh nhật, dị ứng…).
 2. Khách ĐÃ ĐĂNG NHẬP: AI tự lấy họ tên, SĐT, email (và sở thích/lịch sử nếu có) từ phiên đăng nhập để điền sẵn; không hỏi lại thứ đã có, chỉ xác nhận ngắn gọn. Khách chỉ cần trò chuyện và cung cấp phần còn thiếu, không phải điền form hay thao tác thêm.
 3. Khách CHƯA đăng nhập: chỉ hỏi tối thiểu (họ tên, SĐT), xác minh SĐT khi cần, gợi ý đăng nhập cho lần sau.
 4. Một câu có thể chứa nhiều thông tin ("bàn 4 người tối mai 7h"): AI trích xuất hết, chỉ hỏi phần thiếu, mỗi lượt tối đa 1–2 câu hỏi.
 5. Kiểm tra bàn trống theo thời gian thực; hết chỗ thì đề xuất giờ/chi nhánh khác hoặc đưa vào danh sách chờ.
-6. Trước khi ghi nhận, tóm tắt đơn và xin xác nhận ngay trong hội thoại (vd "ok"). Chỉ báo "đặt thành công" khi hệ thống trả về mã đặt bàn.
+6. Trước khi ghi nhận, tóm tắt đơn và xin xác nhận ngay trong hội thoại (ví dụ "ok"). Chỉ báo "đặt thành công" khi hệ thống trả về mã đặt bàn.
 7. Sau khi đặt: gửi xác nhận + nhắc lịch; khách có thể đổi giờ/huỷ ngay trong khung chat.
 
 # NGUYÊN TẮC THIẾT KẾ BẮT BUỘC (từ kinh nghiệm triển khai thực tế)
@@ -32,7 +32,7 @@ Viết một PROPOSAL hoàn chỉnh, sẵn sàng trình bày cho người ra quy
 3. Mục tiêu & KPI đo lường được (baseline → mục tiêu, cách đo)
 4. Phạm vi: trong / ngoài / để giai đoạn 2
 5. Trải nghiệm & luồng hội thoại: luồng chính (đã đăng nhập), luồng khách vãng lai, luồng đổi/huỷ, bảng ngoại lệ (tình huống → hành vi AI), 3 kịch bản hội thoại mẫu có lời thoại cụ thể
-6. Kiến trúc kỹ thuật: sơ đồ tổng thể và sơ đồ tuần tự (Mermaid); bảng tool/API (tên, input, output, khi nào gọi, vd get_user_profile, check_availability, hold_table, create_reservation, modify_reservation, cancel_reservation, handoff_to_human); quản lý trạng thái hội thoại; tích hợp hệ thống hiện có; lựa chọn mô hình LLM (khuyến nghị + lý do + phương án thay thế); bảo mật & dữ liệu cá nhân
+6. Kiến trúc kỹ thuật: sơ đồ tổng thể và sơ đồ tuần tự (Mermaid); bảng tool/API (tên, input, output, khi nào gọi, ví dụ get_user_profile, check_availability, hold_table, create_reservation, modify_reservation, cancel_reservation, handoff_to_human); quản lý trạng thái hội thoại; tích hợp hệ thống hiện có; lựa chọn mô hình LLM (khuyến nghị + lý do + phương án thay thế); bảo mật & dữ liệu cá nhân
 7. Đánh giá chất lượng: bộ test hội thoại (có ca khó); chỉ số (tỷ lệ hoàn tất đặt bàn, độ chính xác trích xuất thông tin, tỷ lệ sai/bịa thông tin, tỷ lệ chuyển nhân viên, số lượt trao đổi trung bình, độ trễ, CSAT, tỷ lệ no-show); giám sát sau triển khai
 8. Lộ trình: PoC → Pilot → Mở rộng; mỗi giai đoạn có thời gian, đầu ra, tiêu chí go/no-go
 9. Nguồn lực & chi phí: đội ngũ, hạ tầng, chi phí LLM trên mỗi lượt đặt bàn (nêu công thức, giả định)
