@@ -11,22 +11,22 @@
 
 ### Những gì đã có — KHÔNG cần build lại
 
-| Thành phần | File | Trạng thái | Chi tiết |
-|-----------|------|-----------|---------|
-| Backend API đặt bàn | `backend/src/routes/reservationRoutes.js` | ✅ Hoàn chỉnh | CRUD đầy đủ, rate limit, auth |
-| Kiểm tra bàn trống | `GET /api/reservations/available-slots` | ✅ Hoàn chỉnh | Buffer 90 phút, chống overlap |
-| Tạo đặt bàn | `POST /api/reservations` | ✅ Hoàn chỉnh | Idempotency-Key, optionalAuth |
-| Tra cứu đặt bàn | `GET /api/reservations/lookup` | ✅ Hoàn chỉnh | booking_code + phone_last4 |
-| Hủy qua email | `POST /api/reservations/cancel-by-token` | ✅ Hoàn chỉnh | Signed JWT, TTL 24h |
-| Chống đặt trùng | `Idempotency-Key` header | ✅ Có sẵn | Lưu trong DB |
-| Che thông tin PII | `maskPhone()`, `maskEmail()` | ✅ Có sẵn | Tuân thủ NĐ 13/2023 |
-| Socket.io real-time | `socket.js` | ✅ Có sẵn | Broadcast `new_reservation` tới waiter/admin |
-| Email xác nhận + QR | `emailService.js` | ✅ Có sẵn | Tự động sau đặt bàn |
-| AI chat widget (Aria) | `AiChatContext.jsx` | ✅ Có sẵn | Streaming SSE qua Socket.io |
-| Session Redis | `ai_session:{sessionId}` | ✅ Có sẵn | TTL 30 phút, 10-turn history |
-| LLM inference | Groq API — `llama-3.3-70b-versatile` | ✅ Đang chạy | TTFT < 400ms |
-| RAG pipeline | `aria_pipeline.py` | ✅ Hoàn chỉnh | Hybrid FAISS + BM25 + Reranker |
-| Auth backend | JWT, `optionalAuth`, `verifyToken` | ✅ Có sẵn | Gắn `user_id` nếu đã login |
+| Thành phần | File / Module | Trạng thái | Chi tiết kỹ thuật |
+|-----------|---------------|------------|-------------------|
+| Backend API đặt bàn | `backend/src/routes/reservationRoutes.js` | ✅ Đã có (API) | CRUD đầy đủ, rate limit, auth middleware |
+| Kiểm tra bàn trống | `GET /api/reservations/available-slots` | ✅ Đã có (API) | Buffer 90 phút, thuật toán chống overlap bàn |
+| Tạo đặt bàn | `POST /api/reservations` | ✅ Đã có (API) | Hỗ trợ Idempotency-Key, optionalAuth |
+| Tra cứu đặt bàn | `GET /api/reservations/lookup` | ✅ Đã có (API) | Tra cứu qua booking_code + phone_last4 |
+| Hủy qua email | `POST /api/reservations/cancel-by-token` | ✅ Đã có (API) | Token JWT ký điện tử, TTL 24h |
+| Chống đặt trùng | `Idempotency-Key` header | ✅ Đã có (Cơ chế) | Lưu hash trong DB, chống đặt lặp |
+| Che thông tin PII | `maskPhone()`, `maskEmail()` | ✅ Đã có (Cơ chế) | Masking dữ liệu nhạy cảm theo NĐ 13/2023 |
+| Socket.io real-time | `socket.js` | ✅ Đã có (Cơ chế) | Broadcast `new_reservation` tới waiter/admin room |
+| Email xác nhận + QR | `emailService.js` | ✅ Đã có (Service) | Gửi email kèm QR code tự động sau khi tạo bàn |
+| AI chat widget (Aria) | `AiChatContext.jsx` | ✅ Đã có (UI Component) | Widget chat real-time, streaming SSE qua Socket.io |
+| Session Redis | `ai_session:{sessionId}` | ✅ Đã có (Hạ tầng) | TTL 30 phút, lưu 10-turn conversation history |
+| LLM inference | Groq API — `llama-3.3-70b-versatile` | ✅ Đang hoạt động | Cloud LLM đang chạy ổn định, TTFT < 400ms |
+| RAG pipeline | `aria_pipeline.py` | ✅ Đã có (AI Pipeline) | Hybrid FAISS + BM25 + BGE Reranker tư vấn món |
+| Auth backend | JWT, `optionalAuth`, `verifyToken` | ✅ Đã có (Middleware) | Tự động giải mã token gắn `req.user` khi đã login |
 
 ### Những gì CHƯA có — Cần build thêm
 
@@ -80,19 +80,26 @@ Hiện tại, SmartRestaurant vận hành hai kênh tương tác độc lập tr
 ### 2.2 Phân Tích Đứt Gãy Trải Nghiệm (UX Journey Breakage)
 Điểm nghẽn lớn nhất trong hệ thống hiện nay nằm ở sự **cô lập hoàn toàn giữa 2 kênh**:
 
-```
-[Khách hỏi món ngon] ──> [Aria tư vấn món hấp dẫn] ──> [Khách cao hứng: "Đặt bàn tối nay nhé"]
-                                                                      │
-                                                ┌─────────────────────┴─────────────────────┐
-                                                ▼                                           ▼
-                                      [HIỆN TRẠNG: ĐỨT GÃY]                       [KỲ VỌNG: CONVERSATIONAL]
-                                      Aria: "Em không hỗ trợ đặt bàn,              Aria: "Dạ được! Tối nay anh đi
-                                      vui lòng vào Form đặt bàn nhé!"             mấy người, lúc mấy giờ ạ?"
-                                                │                                           │
-                                      Khách phải đóng chat, tự tìm                Khách chốt đơn ngay trong 2 câu,
-                                      trang Form, gõ lại từ đầu SĐT/tên           tự điền tên/SĐT, nhận mã đặt bàn.
-                                                │                                           │
-                                       Tỷ lệ DROP-OFF rất cao                      Tăng tỷ lệ hoàn tất & doanh thu!
+```mermaid
+flowchart TD
+    A["👤 Khách hỏi món ngon"] --> B["🤖 Aria tư vấn món hấp dẫn (RAG)"]
+    B --> C["💡 Khách nảy sinh nhu cầu: 'Đặt bàn tối nay nhé'"]
+    
+    C --> D{"So sánh luồng xử lý"}
+    
+    subgraph S1 ["❌ HIỆN TRẠNG: ĐỨT GÃY TRẢI NGHIỆM"]
+        D -->|Hiện tại| E["Aria từ chối: 'Em không hỗ trợ đặt bàn...'"]
+        E --> F["Khách phải đóng chat, tự điều hướng tìm Form"]
+        F --> G["Nhập lại từ đầu ngày / giờ / tên / SĐT"]
+        G --> H["⚠️ Tỷ lệ DROP-OFF cao, thất thoát khách hàng"]
+    end
+    
+    subgraph S2 ["✅ KỲ VỌNG: CONVERSATIONAL BOOKING"]
+        D -->|Đề xuất| I["Aria tiếp nhận: 'Dạ được! Tối nay anh đi mấy người?'"]
+        I --> J["Thu thập thông tin trong 1-2 câu, auto-fill tài khoản"]
+        J --> K["Tự động gọi API backend tạo đơn đặt bàn"]
+        K --> L["🎉 Xác nhận thành công ngay trong chat, giữ chân khách"]
+    end
 ```
 
 ### 2.3 Bảng Điểm Nghẽn Nghiệp Vụ
@@ -134,46 +141,31 @@ Hiện tại, SmartRestaurant vận hành hai kênh tương tác độc lập tr
 
 ---
 
-## 4. Phạm Vi & Chiến Lược Phân Kỳ
+## 4. Phạm Vi Triển Khai Theo Giai Đoạn
 
-### 4.1 Chiến Lược Phân Kỳ (Phasing Strategy)
-Để đảm bảo tính khả thi, kiểm soát rủi ro và không làm gián đoạn hệ thống đang vận hành, dự án được cấu trúc thành 2 giai đoạn kế tiếp nhau:
+Dự án phân kỳ thành 2 giai đoạn: **Giai đoạn 1 (PoC, 2.5 tuần)** tập trung luồng cốt lõi trên Staging; **Giai đoạn 2 (Pilot & Mở rộng, Tuần 4–8)** bổ sung nghiệp vụ nâng cao và thử nghiệm trên 20% traffic thực tế.
 
-* **Giai đoạn 1 — PoC (Proof of Concept, Tuần 1–3):** 
-  * Tập trung kiểm chứng tính khả thi kỹ thuật trên môi trường Staging/Nội bộ.
-  * Trọng tâm: Xây dựng luồng đặt bàn hội thoại cốt lõi (**Core Happy Path**), kiểm chứng khả năng trích xuất thông tin tiếng Việt của mô hình, đảm bảo Tool Calling gọi chính xác API backend và kiểm thử hồi quy để không làm suy giảm tính năng RAG tư vấn món sẵn có.
-* **Giai đoạn 2 — Pilot & Mở Rộng (Tuần 4–8):**
-  * Đưa tính năng ra môi trường Production với quy mô thử nghiệm có kiểm soát (~20% lưu lượng thực tế) trước khi mở rộng 100%.
-  * Trọng tâm: Bổ sung các tính năng vòng đời sau khi đặt bàn (tra cứu, thay đổi giờ, hủy bàn), tích hợp nhắc hẹn tự động, hỗ trợ đa kênh (Zalo OA, Messenger) và đo lường các chỉ số kinh doanh thực tế.
+### 4.1 Giai Đoạn 1 — PoC (Trọng Tâm Kỹ Thuật)
 
-### 4.2 Nguyên Tắc Quản Lý Phạm Vi (Scope Management)
-Việc phân định ranh giới phạm vi nhằm ngăn ngừa rủi ro **Scope Creep** (phình to phạm vi dự án ngoài tầm kiểm soát) và tối ưu hóa nguồn lực:
-* **Trong phạm vi (In-Scope):** Các hạng mục tính năng cam kết phải hoàn thành và đạt tiêu chuẩn nghiệm thu của giai đoạn đó.
-* **Ngoài phạm vi (Out-of-Scope):** Các tính năng chủ động loại trừ (chưa thực hiện trong giai đoạn hiện tại) nhằm giữ tiến độ gọn nhẹ, tập trung giải quyết điểm nghẽn lớn nhất trước.
+* **Trong phạm vi (Cam kết bàn giao):**
+  - Mở rộng Aria chat widget: thêm intent đặt bàn song song với tư vấn món ăn.
+  - Thu thập thông tin qua ngôn ngữ tự nhiên (Slot filling: ngày, giờ, số lượng khách, khu vực).
+  - Tích hợp Tool Calling gọi API backend: `GET /api/reservations/available-slots` và `POST /api/reservations`.
+  - Tự động điền thông tin khách đã đăng nhập từ `req.user` (Auto-fill Zero-friction).
+  - Chuyển giao nhân viên (Human Handoff) qua Socket.io tới **Admin** và **Waiter** Dashboard cho các ca ngoại lệ.
+  - Xử lý ngôn ngữ tự nhiên tiếng Việt (chuẩn hóa cách nói ngày giờ và số lượng).
+* **Ngoài phạm vi (Chưa làm trong PoC):**
+  - Thay đổi giờ hoặc hủy đặt bàn qua chat.
+  - Cổng thanh toán cọc trực tiếp bên trong cửa sổ chat.
+  - Mở rộng đa kênh (Zalo OA, Facebook Messenger).
+  - Đặt trước món ăn (Pre-order món) trong cùng phiên hội thoại.
 
-### 4.3 Chi Tiết Phạm Vi Theo Giai Đoạn
-
-#### Trong phạm vi (Giai đoạn 1 — PoC)
-- Mở rộng Aria chat widget: thêm intent đặt bàn song song với tư vấn món ăn.
-- Thu thập thông tin đặt bàn qua ngôn ngữ tự nhiên (Slot filling: ngày, giờ, số lượng khách, khu vực).
-- Tích hợp Tool Calling gọi API `GET /api/reservations/available-slots` kiểm tra bàn trống.
-- Tích hợp Tool Calling gọi API `POST /api/reservations` tạo đặt bàn chính thức.
-- Tự động điền thông tin khách đã đăng nhập từ `req.user` (Auto-fill Zero-friction).
-- Cơ chế chuyển giao nhân viên (**Human Handoff**) thông báo đồng thời tới **Admin** và **Waiter** cho các trường hợp ngoại lệ.
-- Ngôn ngữ hỗ trợ: Tiếng Việt (chuẩn hóa cách nói ngày giờ và số lượng).
-
-#### Ngoài phạm vi (Giai đoạn 1 — PoC)
-- Thay đổi giờ hoặc hủy đặt bàn qua chat (dành cho Giai đoạn 2).
-- Tích hợp cổng thanh toán cọc trực tiếp bên trong cửa sổ chat (dành cho Giai đoạn 2).
-- Mở rộng ra các kênh nhắn tin bên thứ ba: Zalo OA, Facebook Messenger (dành cho Giai đoạn 2).
-- Đặt trước món ăn (Pre-order món) trong cùng phiên hội thoại đặt bàn (dành cho Giai đoạn 2).
-
-#### Hạng mục mở rộng (Giai đoạn 2 — Pilot)
-- Hỗ trợ nghiệp vụ sau đặt chỗ: `modify_reservation` (đổi giờ/ngày) và `cancel_reservation` (hủy đặt bàn) qua chat.
+### 4.2 Giai Đoạn 2 — Pilot & Mở Rộng (Nghiệp Vụ Nâng Cao)
+- Nghiệp vụ sau đặt bàn: đổi giờ/ngày (`modify_reservation`) và hủy bàn (`cancel_reservation`) qua chat.
 - Hệ thống nhắc lịch tự động 24h trước giờ hẹn qua SMS/Email/Zalo.
-- Pre-order thực đơn món ăn ngay sau khi chốt bàn thành công.
-- Tích hợp kênh Zalo Mini App / Zalo OA và Messenger.
-- Upsell / Cross-sell món ăn đặc trưng kèm ưu đãi cá nhân hóa.
+- Gợi ý đặt trước món ăn (Pre-order món) ngay sau khi chốt bàn thành công.
+- Tích hợp chatbot lên Zalo Mini App / Zalo OA và Facebook Messenger.
+- Gợi ý món ăn kèm ưu đãi cá nhân hóa (Upsell / Cross-sell).
 
 ---
 
