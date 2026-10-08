@@ -150,6 +150,7 @@ flowchart TD
 3. **Hướng 3: Trợ lý tiếp nhận đặt bàn bằng ngôn ngữ tự nhiên (Conversational Booking Concierge):**
    - *Mục tiêu:* Khách hàng có thể nhắn tin hoặc ra lệnh giọng nói bằng một câu tự nhiên (ví dụ: *"Đặt bàn 4 người tối thứ 7 lúc 19h chỗ thoáng mát"*), hệ thống tự động trích xuất thông tin và tạo lịch đặt bàn.
    - *Hướng kỹ thuật có thể chọn:* Nâng cấp trợ lý AI "Aria" có sẵn với kỹ thuật **Function Calling / Tool Calling** và phản hồi qua luồng **SSE Streaming**.
+   - *Tài liệu chi tiết:* Đã có thiết kế hoàn chỉnh tại [01_proposal_ai_dat_ban.md](ai-dat-ban/01_proposal_ai_dat_ban.md) và [02_coding_spec_ai_dat_ban.md](ai-dat-ban/02_coding_spec_ai_dat_ban.md).
 
 4. **Hướng 4: Dự báo nhu cầu đặt bàn & khách hàng (Demand Forecasting):**
    - *Mục tiêu:* Dự đoán số lượng khách và các khung giờ cao điểm theo ngày lễ/thời tiết dựa trên lịch sử đặt bàn, giúp quản lý chủ động bố trí nhân lực từ sớm.

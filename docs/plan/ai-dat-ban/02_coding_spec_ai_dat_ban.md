@@ -1,7 +1,7 @@
 # CODING SPEC: Mở Rộng Aria — Đặt Bàn Qua Hội Thoại
 
 > **Dùng file này để giao cho AI code.** Đọc theo thứ tự từ trên xuống, làm xong task nào đánh dấu ✅.  
-> Dự án: `/home/hung/KLTN/demo_res/SmartRestaurant/`
+> Dự án: `SmartRestaurant` (Phase 5 - Giai đoạn 2: Trợ lý AI Đặt bàn)
 
 ---
 
@@ -1074,3 +1074,21 @@ Mock API trả available=0 → AI đề xuất giờ khác
 ---
 
 *File này được tạo từ phân tích source code thực tế. Mọi function signature, API path, và file path đều khớp với code hiện có.*
+
+---
+
+## 📋 BẢNG TỔNG HỢP VẤN ĐỀ CẦN XỬ LÝ & ĐỒNG BỘ KIẾN TRÚC
+
+> Bảng rà soát kỹ thuật đối chiếu giữa file Coding Spec này với source code thực tế của SmartRestaurant và tài liệu [Proposal v2.0](01_proposal_ai_dat_ban.md):
+
+| STT | Vấn đề phát hiện | Vị trí ảnh hưởng | Mức độ | Rủi ro kỹ thuật | Giải pháp khắc phục đề xuất |
+|:---:|---|---|:---:|---|---|
+| **01** | **Mâu thuẫn phạm vi Frontend (Option B)** | Dòng 34: `frontend/.../AiChatContext.jsx ❌ Không sửa` | 🔴 **Nghiêm trọng** | Không có UI Booking Card trực quan và thiếu socket listener handoff theo thỏa thuận Proposal Option B. | Đồng bộ bảng file: Phân bổ 0.2 Frontend Dev dựng component Booking Card và thêm socket listener `ai_handoff_alert`. |
+| **02** | **Thiếu Structured Data trong SSE & Socket** | Task 5 (`aria_pipeline.py`) & `pipecatClient.js`, `aiController.js` | 🔴 **Nghiêm trọng** | AI chỉ stream text thuần, client không nhận được object JSON của đơn đặt bàn để kích hoạt thẻ Booking Card. | Thêm trường `reservation: {...}` vào SSE event `done` (hoặc event `reservation_created`) để Node.js emit sang Socket.io. |
+| **03** | **Gán `user_id` nội bộ không hoạt động** | Task 2 gửi `X-Internal-User-Id` nhưng `reservationController.js:332` chỉ đọc `req.user.id` | 🔴 **Nghiêm trọng** | Đơn đặt bàn tạo bởi AI cho khách đã đăng nhập luôn bị mất liên kết tài khoản (`user_id = null`). | Thêm task sửa `reservationController.js`: gán `insertData.user_id = req.headers['x-internal-user-id'] \|\| req.user?.id`. |
+| **04** | **Nguy cơ nghẽn Rate Limiter nội bộ** | `reservationRoutes.js:27-39` giới hạn 5 req / 15 phút / IP | 🔴 **Nghiêm trọng** | Nhiều khách đặt bàn qua AI sẽ chung IP của container AI-Service, khách thứ 6 trở đi sẽ bị chặn HTTP 429. | Thêm middleware bypass hoặc whitelist `bookingRateLimiter` khi request chứa `X-Internal-Service` secret hợp lệ. |
+| **05** | **Bảo mật Internal Endpoint & Tên cột DB** | Task 9 (`userRoutes.js` / `userController.js`), hardcode plain text `aria-ai` | 🟡 **Trung bình** | Lộ header cố định, thiếu an toàn. Nghi vấn tên cột `full_name` chưa được chốt. | Dùng biến môi trường `INTERNAL_SERVICE_SECRET`; chốt tên cột trong bảng `users` là `full_name` (đã xác thực từ code). |
+| **06** | **Validator giờ đóng cửa & Luồng Handoff** | Task 3 (`datetime_parser.py:471`), Task 5 (`aria_pipeline.py:584`) | 🟡 **Trung bình** | Cho phép đặt lúc 21:45 dù đóng cửa 21:30 (do chỉ check `hour`); FSM chưa kích hoạt logic chuyển `HANDOFF` khi nhóm > 10 người. | Sửa validator kiểm tra `time <= "21:30"`; bổ sung trigger chuyển FSM sang `HANDOFF` và gửi event socket cảnh báo phục vụ. |
+| **07** | **Thiếu quy trình thanh toán Cọc (Deposit)** | Task 5 `_build_success_response()` chỉ in text nhắc cọc | 🟡 **Trung bình** | Khách đặt nhóm ≥ 6 người không biết cách nộp cọc qua Stripe/online, dễ gây tắc nghẽn vận hành. | Bổ sung hướng dẫn / link tạo `deposit-intent` (Stripe) trong response hoặc quy định rõ nhân viên liên hệ thu cọc. |
+| **08** | **Độ phủ Test Cases chưa đầy đủ** | Cuối spec chỉ có 4 test cases sơ sài (T01–T04) | 🟢 **Cải tiến** | Thiếu kịch bản kiểm thử cho edge cases, đổi giờ, huỷ bàn, và handoff. | Đồng bộ trọn bộ **25 test cases (T01–T25)** đã chuẩn hóa ở Proposal v2.0 để kiểm thử toàn diện. |
+| **09** | **Dọn dẹp đường dẫn môi trường cũ** | Dòng 4 spec chứa path `/home/hung/KLTN/...` | 🟢 **Dọn dẹp** | Gây nhầm lẫn môi trường làm việc khi chuyển giao tài liệu. | Đã chuẩn hóa lại thông tin dự án `SmartRestaurant (Phase 5 - Giai đoạn 2)`. |
