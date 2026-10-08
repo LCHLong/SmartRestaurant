@@ -37,7 +37,7 @@
 | Slot filling (ngày/giờ/số người) | Không có entity extractor cho thông tin đặt bàn | **Trung bình** |
 | Conversation state machine | Pipeline không có state (chỉ buffer history) | **Trung bình** |
 | `hold_table` endpoint | Backend chưa có endpoint giữ bàn tạm riêng | **Thấp** |
-| `get_user_profile` tool | `userId` được truyền vào aiController nhưng không dùng để đọc profile | **Thấp** |
+| `get_user_info` tool | JWT `req.user` chỉ chứa `{id, role}`, cần tool query bảng `users` để lấy `full_name`, `phone`, `email` | **Thấp** |
 | Sửa system prompt Aria | Prompt hard-coded "từ chối đặt bàn" | **Thấp** |
 
 ---
@@ -143,7 +143,8 @@ flowchart TD
 
 ## 4. Phạm Vi Triển Khai Theo Giai Đoạn
 
-Dự án phân kỳ thành 2 giai đoạn: **Giai đoạn 1 (PoC, 2.5 tuần)** tập trung luồng cốt lõi trên Staging; **Giai đoạn 2 (Pilot & Mở rộng, Tuần 4–8)** bổ sung nghiệp vụ nâng cao và thử nghiệm trên 20% traffic thực tế.
+Dự án phân kỳ thành 2 giai đoạn: **Giai đoạn 1 (PoC, 2.5 tuần)** tập trung luồng cốt lõi trên Staging; **Giai đoạn 2 (Pilot & Mở rộng, Tuần 4–8)** bổ sung nghiệp vụ nâng cao và thử nghiệm trên 20% traffic thực tế.  
+*Phạm vi cơ sở:* Nhà hàng vận hành theo mô hình **1 cơ sở duy nhất** (`DEFAULT_RESTAURANT_ID = 1`), quy trình đặt bàn không yêu cầu khách chọn chi nhánh.
 
 ### 4.1 Giai Đoạn 1 — PoC (Trọng Tâm Kỹ Thuật)
 
@@ -151,7 +152,8 @@ Dự án phân kỳ thành 2 giai đoạn: **Giai đoạn 1 (PoC, 2.5 tuần)** 
   - Mở rộng Aria chat widget: thêm intent đặt bàn song song với tư vấn món ăn.
   - Thu thập thông tin qua ngôn ngữ tự nhiên (Slot filling: ngày, giờ, số lượng khách, khu vực).
   - Tích hợp Tool Calling gọi API backend: `GET /api/reservations/available-slots` và `POST /api/reservations`.
-  - Tự động điền thông tin khách đã đăng nhập từ `req.user` (Auto-fill Zero-friction).
+  - Tự động điền thông tin khách đã đăng nhập: Gọi tool `get_user_info` truy vấn `full_name`, `phone`, `email` từ bảng `users` dựa vào `req.user.id` (vì token JWT chỉ chứa `{ id, role }`).
+  - Giao diện Frontend (Phương án B): Bổ sung thẻ xác nhận đặt bàn trực quan (**Booking Card** hiển thị mã QR, mã đặt bàn, ngày giờ) trong `AiChatContext.jsx` và socket listener cho `ai_handoff_alert` trên Waiter/Admin Dashboard.
   - Chuyển giao nhân viên (Human Handoff) qua Socket.io tới **Admin** và **Waiter** Dashboard cho các ca ngoại lệ.
   - Xử lý ngôn ngữ tự nhiên tiếng Việt (chuẩn hóa cách nói ngày giờ và số lượng).
 * **Ngoài phạm vi (Chưa làm trong PoC):**
@@ -175,14 +177,14 @@ Dự án phân kỳ thành 2 giai đoạn: **Giai đoạn 1 (PoC, 2.5 tuần)** 
 
 ```
 Khách nhắn → Aria detect intent "đặt bàn"
-  → Lấy name/phone từ req.user (đã có sẵn trong aiController)
+  → Gọi tool get_user_info(req.user.id) truy vấn bảng users lấy name/phone/email
   → Xác nhận ngắn: "Chào [Tên]! Đặt bàn cho bạn nhé."
-  → Thu thập slot còn thiếu (1–2 câu/lượt): ngày, giờ, số người
+  → Thu thập slot còn thiếu (1–2 câu/lượt): ngày, giờ, số người (mặc định tại quán)
   → Khi đủ slot → gọi tool: check_availability(date, time, guests)
     ├─ [Có bàn] → hiển thị tóm tắt, hỏi xác nhận
     │     → Khách xác nhận ("ok", "đồng ý") 
     │     → gọi tool: create_reservation(...)
-    │     → Thông báo thành công + booking_code
+    │     → Thông báo thành công + hiển thị Booking Card trực quan (Mã đặt bàn + QR Code)
     └─ [Hết bàn] → đề xuất giờ khác (gọi lại check_availability)
           → Khách không muốn / cần hỗ trợ → Handoff tới Waiter & Admin
 ```
@@ -396,7 +398,7 @@ sequenceDiagram
 |------|-------|--------|-------------|---------|
 | `check_availability` | `{date: YYYY-MM-DD, time: HH:mm, guest_count: int}` | `{available: bool, available_tables: int, tables: [...]}` | Sau khi đủ slot ngày+giờ+số người | Gọi `GET /api/reservations/available-slots` sẵn có |
 | `create_reservation` | `{customer_name, customer_phone, guest_count, date, time, special_requests?}` | `{success, booking_code, qr_image, requires_deposit}` | Sau khi khách xác nhận ("ok") | Gọi `POST /api/reservations` sẵn có; dùng `session_id` làm Idempotency-Key |
-| `get_user_info` | `{user_id}` từ `req.user` | `{name, phone, email}` | Ngay khi detect intent "đặt bàn" và user đã login | `userId` đã truyền vào aiController, cần query Supabase |
+| `get_user_info` | `{user_id}` từ `req.user.id` | `{full_name, phone, email}` | Ngay khi detect intent "đặt bàn" và user đã login | Query bảng `users` từ Supabase (do JWT token chỉ chứa `{id, role}`) |
 | `handoff_to_human` | `{session_id, summary, reason, target_roles: ["admin", "waiter"]}` | `{isHandoff: true, notified_roles: ["admin", "waiter"]}` | Nhóm lớn (>10 người), cần cọc ghép bàn, lỗi API, khách yêu cầu | Backend phát Socket.io tới cả 2 room `waiter` và `admin` |
 
 **Giai đoạn 2 (bổ sung thêm):**
@@ -603,7 +605,7 @@ Việc ứng dụng các công cụ AI hiện đại (Agentic Coding, Synthetic 
 |----------|----------------------------------|-----------|
 | **Mục tiêu** | Aria hoàn tất đặt bàn end-to-end trên staging; vượt qua 25 ca test; tư vấn món an toàn 100% | **2.5 tuần** |
 | **Tuần 1 (Ngày 1–4)** | • Sửa System Prompt Aria + phân luồng Intent Router.<br>• Dùng AI sinh `reservation_tools.py` và bộ parser ngày giờ tiếng Việt `date_time_parser.py`.<br>• Kiểm thử bước đầu khả năng gọi tool của Groq Llama-3.3-70b. | Ngày 1–4 |
-| **Tuần 2 (Ngày 5–8)** | • Thiết lập Conversation State Machine trên Redis.<br>• Tích hợp Auto-fill dữ liệu người dùng từ `req.user`.<br>• Tích hợp cơ chế Human Handoff phát Socket.io tới **Waiter** và **Admin** Dashboard. | Ngày 5–8 |
+| **Tuần 2 (Ngày 5–8)** | • Thiết lập Conversation State Machine trên Redis.<br>• Tích hợp Auto-fill dữ liệu người dùng qua tool `get_user_info` từ bảng `users`.<br>• Frontend: Dựng component Booking Card (hiển thị mã QR, chi tiết đơn) trong widget chat và listener `ai_handoff_alert` cho Waiter/Admin.<br>• Tích hợp cơ chế Human Handoff phát Socket.io tới **Waiter** và **Admin** Dashboard. | Ngày 5–8 |
 | **Tuần 3 (Ngày 9–13)** | • Xây dựng pipeline LLM-as-a-Judge đánh giá tự động.<br>• Chạy tự động 25 ca kiểm thử T01–T25 + bộ 200 câu synthetic test.<br>• Regression test toàn diện tính năng tư vấn món; Tối ưu prompt và chuẩn bị Demo. | Ngày 9–13 |
 | **Đầu ra PoC** | Demo 3 kịch bản chính; 25 ca T01–T25 pass; Staging ổn định; Báo cáo đánh giá tự động. | Cuối ngày 13 |
 | **Tiêu chí Go** | Hoàn tất $\ge 80\%$ trên bộ test mở rộng (25 ca); LLM-as-a-Judge accuracy $\ge 95\%$; không hallucination bàn trống; Latency P95 $\le 3$s; Tư vấn món giữ nguyên 100%. | |
@@ -636,7 +638,7 @@ Việc ứng dụng các công cụ AI hiện đại (Agentic Coding, Synthetic 
 | **AI/Prompt Engineer (Python)** | 1 người, Full-time (4 tuần) | **1 người, Tập trung (2.5 tuần)** | Thiết kế kiến trúc prompt, định nghĩa tool schema, review và chuẩn hóa mã nguồn do AI sinh |
 | **Backend Dev (Node.js)** | 0.5 người (4 tuần) | **0.2 người (2.5 tuần)** | Cấu hình event Socket.io cho Admin/Waiter room, review endpoint `hold_table` |
 | **QA Engineer** | 0.5 người (4 tuần) | **0.2 người (2.5 tuần)** | Thiết kế Rubric tiêu chí đánh giá cho LLM-as-a-Judge, kiểm tra ngẫu nhiên kết quả tự động |
-| **Frontend Dev** | 0 người (GĐ 1) | **0 người (GĐ 1)** | Giữ nguyên component `AiChatContext.jsx` hiện tại |
+| **Frontend Dev** | 0.25 người | **0.2 người (2.5 tuần)** | Dựng component Booking Card (hiển thị mã QR, chi tiết đặt bàn) trong `AiChatContext.jsx` và socket listener `ai_handoff_alert` trên Waiter/Admin Dashboard (Phương án B) |
 
 > 💡 **Hiệu quả:** Tổng nỗ lực kỹ thuật giảm hơn **40% man-days**, nhân sự chuyển từ các tác vụ lặp lại (viết boilerplate, chat tay từng ca kiểm thử) sang giám sát chất lượng và tối ưu hóa logic nghiệp vụ.
 
@@ -692,7 +694,8 @@ Lợi ích ròng = Tiết kiệm nhân sự + Doanh thu thêm từ 24/7 - Chi ph
 - Chi phí tăng thêm: **500.000 VNĐ/tháng**
 - **Lợi ích ròng: ~15.200.000 VNĐ/tháng**
 
-> Chi phí xây dựng PoC: [ƯỚC TÍNH] 1 AI dev × 1 tháng = biến số theo mức lương. Với lợi ích ròng thận trọng ~5M/tháng, **hoàn vốn trong 2–4 tháng** nếu triển khai thành công.
+> Chi phí xây dựng PoC: [ƯỚC TÍNH] 1 AI dev × 1 tháng = biến số theo mức lương. Với lợi ích ròng thận trọng ~5M/tháng, **hoàn vốn trong 2–4 tháng** nếu triển khai thành công.  
+> *Ghi chú mô phỏng:* Các con số doanh thu và chi phí trên là mô hình giả lập tài chính (Business Simulation) nhằm thuyết minh tính khả thi kinh doanh và bài toán ứng dụng thực tiễn của giải pháp công nghệ phục vụ báo cáo Khóa luận tốt nghiệp (KLTN).
 
 ---
 
@@ -700,23 +703,23 @@ Lợi ích ròng = Tiết kiệm nhân sự + Doanh thu thêm từ 24/7 - Chi ph
 
 ### Câu hỏi kỹ thuật cần xác nhận ngay
 
-| # | Câu hỏi | Ảnh hưởng |
-|---|---------|----------|
-| Q1 | Groq `llama-3.3-70b` có hỗ trợ function calling ổn định không? (test thực tế 50 lượt) | Quyết định giữ Groq hay migrate sang Gemini |
-| Q2 | `userId` từ `req.user` có đủ để query tên/SĐT từ Supabase không? Table nào? | Thiết kế `get_user_info` tool |
-| Q3 | Cần `hold_table` endpoint riêng hay có thể dùng Idempotency-Key của `create_reservation` để chống trùng? | Có cần thêm endpoint backend không |
-| Q4 | Nhà hàng có bao nhiêu chi nhánh? API phân biệt chi nhánh ở field nào? | Slot filling cần biết list chi nhánh |
-| Q5 | `streamFromPipecat` trong `pipecatClient.js` có hỗ trợ trả về structured data (tool call result) không? | Thiết kế protocol giữa Node.js và Python |
+| # | Câu hỏi | Trạng thái & Ảnh hưởng |
+|---|---------|------------------------|
+| Q1 | Groq `llama-3.3-70b` có hỗ trợ function calling ổn định không? (test thực tế 50 lượt) | Quyết định giữ Groq hay migrate sang Gemini Flash |
+| Q2 | Truy vấn thông tin user để auto-fill | ✅ **ĐÃ XÁC NHẬN:** Token JWT chỉ chứa `{id, role}`; tool `get_user_info` query bảng `users` (`full_name`, `phone`, `email`) theo `req.user.id` |
+| Q3 | Cần `hold_table` endpoint riêng hay có thể dùng Idempotency-Key của `create_reservation` để chống trùng? | Quyết định có cần thêm endpoint backend không (đề xuất hoãn sang Giai đoạn 2) |
+| Q4 | Nhà hàng có bao nhiêu chi nhánh? | ✅ **ĐÃ XÁC NHẬN:** Vận hành mô hình **1 cơ sở duy nhất** (`DEFAULT_RESTAURANT_ID = 1`), không phân nhánh trong slot filling |
+| Q5 | `streamFromPipecat` trong `pipecatClient.js` có hỗ trợ trả về structured data (tool call result) không? | Thiết kế protocol truyền dữ liệu giữa Node.js và Python service |
 
 ### Bước tiếp theo (Kế hoạch 2.5 tuần thực thi)
 
-1. **Tuần 1 (Ngày 1–2):** Test kiểm chứng Groq function calling với mock tools (trả lời Q1); xác thực schema Supabase `users`/`profiles` (trả lời Q2).
+1. **Tuần 1 (Ngày 1–2):** Test kiểm chứng Groq function calling với mock tools (trả lời Q1); xác thực protocol structured data qua Pipecat (trả lời Q5).
 2. **Tuần 1 (Ngày 3–4):** Mở rộng System Prompt Aria, thiết lập Intent Router; dùng AI assistant sinh `reservation_tools.py` và parser ngày giờ tiếng Việt `date_time_parser.py`.
-3. **Tuần 2 (Ngày 5–6):** Cấu hình State Machine phân lập trên Redis; tích hợp Auto-fill dữ liệu từ `req.user`.
+3. **Tuần 2 (Ngày 5–6):** Cấu hình State Machine phân lập trên Redis; tích hợp Auto-fill dữ liệu từ `get_user_info` và dựng Booking Card trên Frontend.
 4. **Tuần 2 (Ngày 7–8):** Tích hợp Human Handoff phát Socket.io tới **Waiter** và **Admin** Dashboard; chốt giải pháp Q3 (`hold_table` endpoint).
 5. **Tuần 3 (Ngày 9–11):** Xây dựng pipeline kiểm thử tự động LLM-as-a-Judge; chạy tự động 25 ca kiểm thử T01–T25 và 200 câu synthetic dataset.
 6. **Tuần 3 (Ngày 12–13):** Regression test toàn diện tính năng tư vấn món; chuẩn bị báo cáo nghiệm thu & Demo Go/No-Go cho Pilot.
 
 ---
 
-*Proposal v2.0 này được viết dựa trên phân tích trực tiếp source code tại `/home/hung/KLTN/demo_res/SmartRestaurant/`. Các con số [ƯỚC TÍNH] cần thay bằng số liệu thực tế sau PoC.*
+*Proposal v2.0 này được viết dựa trên phân tích trực tiếp source code tại dự án SmartRestaurant. Các con số [ƯỚC TÍNH] cần thay bằng số liệu thực tế sau PoC.*
