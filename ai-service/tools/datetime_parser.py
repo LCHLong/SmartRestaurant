@@ -106,6 +106,27 @@ def parse_date(text: str) -> Tuple[Optional[str], bool]:
             except ValueError:
                 pass
 
+    # 3c. Ngày trong tháng: "ngày 15", "15 tây", "ngày 20", "cuối tuần"
+    if "cuối tuần" in text:
+        days_ahead = (5 - today.weekday()) % 7
+        if days_ahead == 0:
+            days_ahead = 7
+        return (today + timedelta(days=days_ahead)).strftime("%Y-%m-%d"), False
+
+    day_match = re.search(r'(?:ngày\s*)?(\d{1,2})\s*(?:tây|\b)', text)
+    if day_match and ("ngày" in text or "tây" in text):
+        day = int(day_match.group(1))
+        if 1 <= day <= 31:
+            try:
+                target_date = date_cls(today.year, today.month, day)
+                if target_date < today:
+                    next_month = today.month + 1 if today.month < 12 else 1
+                    next_year = today.year if today.month < 12 else today.year + 1
+                    target_date = date_cls(next_year, next_month, day)
+                return target_date.strftime("%Y-%m-%d"), False
+            except ValueError:
+                pass
+
     return None, False
 
 
@@ -123,12 +144,13 @@ def parse_time(text: str, pending_ambiguous_hour: Optional[int] = None) -> Tuple
     is_afternoon = any(k in text for k in ["chiều", "buổi chiều", "pm"])
     is_evening = any(k in text for k in ["tối", "buổi tối", "đêm", "khuya"])
 
-    # Regex bắt các kiểu giờ: 7h30, 7:30, 19h, 19:00, 7 giờ 30, 7 giờ
+    # Regex bắt các kiểu giờ: 7h30, 7:30, 19h, 19:00, 7 giờ 30, 7 giờ, 7h rưỡi, lúc 18...
     time_patterns = [
-        r'(\d{1,2})[h:giờ]\s*(\d{2})',
-        r'(\d{1,2})\s*h(?!\d)',
-        r'(\d{1,2})\s*giờ(?!\s*\d)',
+        r'(\d{1,2})\s*(?:h|g|:|\s*giờ\s*)\s*(\d{2})',
+        r'(\d{1,2})\s*(?:h|g|\s*giờ)?\s*(?:rưỡi|ruoi)',
+        r'(\d{1,2})\s*(?:h|g|\s*giờ)(?!\d)',
         r'\b(\d{1,2}):(\d{2})\b',
+        r'^(?:lúc|vào|tầm|khoảng)?\s*([1-9]|1\d|2[0-3])\s*(?:h|g|giờ)?$',
     ]
 
     hour: Optional[int] = None
@@ -138,7 +160,9 @@ def parse_time(text: str, pending_ambiguous_hour: Optional[int] = None) -> Tuple
         m = re.search(pat, text)
         if m:
             hour = int(m.group(1))
-            if len(m.groups()) >= 2 and m.group(2):
+            if "rưỡi" in text or "ruoi" in text:
+                minute = 30
+            elif len(m.groups()) >= 2 and m.group(2):
                 minute = int(m.group(2))
             break
 

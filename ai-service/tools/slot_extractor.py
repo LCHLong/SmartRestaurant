@@ -13,13 +13,13 @@ import re
 from typing import Optional, Dict, Any, Tuple
 from tools.datetime_parser import parse_date, parse_time
 
-VN_PHONE_REGEX = re.compile(r'(?:\+84|0)[35789]\d{8}\b')
-LANDLINE_PHONE_REGEX = re.compile(r'(?:\+84|0)2\d{9}\b')
+VN_PHONE_REGEX = re.compile(r'(?:\+84[\s.-]?|0)[35789](?:[\s.-]?\d){8}\b')
+LANDLINE_PHONE_REGEX = re.compile(r'(?:\+84[\s.-]?|0)2(?:[\s.-]?\d){9}\b')
 
 
 def extract_phone(text: str) -> Tuple[Optional[str], Optional[str]]:
     """
-    Trích xuất và chuẩn hoá số điện thoại Việt Nam.
+    Trích xuất và chuẩn hoá số điện thoại Việt Nam (hỗ trợ dấu cách, chấm, gạch ngang).
     Returns:
         (phone_normalized, warning_message)
     """
@@ -29,10 +29,12 @@ def extract_phone(text: str) -> Tuple[Optional[str], Optional[str]]:
 
     m = VN_PHONE_REGEX.search(text)
     if m:
-        phone = m.group(0)
-        if phone.startswith("+84"):
-            phone = "0" + phone[3:]
-        return phone, None
+        phone_raw = m.group(0)
+        digits = re.sub(r'[\s.-]', '', phone_raw)
+        if digits.startswith("+84"):
+            digits = "0" + digits[3:]
+        if len(digits) == 10:
+            return digits, None
 
     # Tìm chuỗi số bất thường nếu người dùng nhập số điện thoại sai định dạng (VD: 123456)
     number_sequences = re.findall(r'\b\d{5,15}\b', text)
@@ -51,14 +53,15 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
     """
     Trích xuất số lượng khách.
     Hỗ trợ trường hợp: "2 người lớn và 1 trẻ em" -> tổng 3 khách, ghi chú "1 trẻ em".
+    Hỗ trợ câu trả lời ngắn: "2", "4", "4 ng", "4 người", "đi 4"...
     
     Returns:
         (total_guests: int or None, note: str or None)
     """
-    text_lower = text.lower()
+    text_lower = text.lower().strip()
 
-    # Trường hợp: X người lớn và Y trẻ em / em bé
-    adult_child_pattern = r'(\d+)\s*(?:người\s*lớn|lớn).*?(?:và|\+|,)?\s*(\d+)\s*(?:trẻ\s*em|em\s*bé|bé)'
+    # Trường hợp: X người lớn và Y trẻ em / em bé / bé / nhỏ
+    adult_child_pattern = r'(\d+)\s*(?:người\s*lớn|lớn).*?(?:và|\+|,)?\s*(\d+)\s*(?:trẻ\s*em|em\s*bé|bé|nhỏ)'
     m_combo = re.search(adult_child_pattern, text_lower)
     if m_combo:
         adults = int(m_combo.group(1))
@@ -67,15 +70,20 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
         note = f"{children} trẻ em"
         return total, note
 
+    # Trường hợp câu trả lời chỉ có số (hoặc số kèm từ phụ nhẹ): "2", "4", "4 ng", "khoảng 4", "tầm 4"
+    single_num = re.search(r'^(?:dạ|khoảng|tầm|đi|đặt|cho)?\s*(\d{1,2})\s*(?:người|khách|pax|chỗ|bạn|ng|ạ|nhe|nhé|nha)?$', text_lower)
+    if single_num:
+        val = int(single_num.group(1))
+        if 1 <= val <= 100:
+            return val, None
+
     # Các mẫu số lượng khách thông thường
     patterns = [
-        r'(\d+)\s*người',
-        r'(\d+)\s*khách',
-        r'bàn\s*(\d+)\s*(?:người|khách)?',
-        r'(\d+)\s*pax',
-        r'nhóm\s*(\d+)',
-        r'(\d+)\s*chỗ',
-        r'(\d+)\s*suất',
+        r'(\d+)\s*(?:người|khách|pax|chỗ|suất|bạn|ng|thành\s*viên|đứa)',
+        r'bàn\s*(\d+)\s*(?:người|khách|chỗ)?',
+        r'nhóm\s*(?:có\s*)?(\d+)',
+        r'đi\s*(\d+)\s*(?:người|khách)?',
+        r'(\d+)\s*(?:người\s*lớn|lớn)',
     ]
 
     for pat in patterns:
@@ -87,7 +95,7 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
 
     # Mẫu đổi ý: "đi X người thôi", "đổi thành X người"
     correction_patterns = [
-        r'(?:đi|thành|đổi\s*thành|thôi|chỉ)\s*(\d+)\s*người',
+        r'(?:đi|thành|đổi\s*thành|thôi|chỉ)\s*(\d+)\s*(?:người|khách)?',
     ]
     for pat in correction_patterns:
         m = re.search(pat, text_lower)
@@ -141,6 +149,8 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
     - "Mình là Nam"
     - "Tên tôi là Nguyễn Văn A"
     - "Tôi là Lan"
+    - "Tên Nam, 0912345678"
+    - "Hùng, 0999999999, vuhung@gmail.com"
     - Trả lời tên ngắn khi đang được hỏi tên
     """
     text_clean = text
@@ -151,9 +161,22 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
     # Loại bỏ cả email format nếu có còn sót
     text_clean = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}', ' ', text_clean)
 
-    # Pattern rõ ràng: "mình là...", "tên là...", "tôi là..."
+    def _sanitize(name_str: str) -> Optional[str]:
+        # Bỏ các hư từ xưng hô / trợ từ cuối câu: nha, nhé, nhe, ạ, nè, đây, ơi, nhá, với, giúp
+        cleaned = re.sub(r'\b(?:nha|nhé|nhe|ạ|nè|đây|ơi|nhá|với|giúp)\b', '', name_str, flags=re.IGNORECASE)
+        # Loại bỏ triệt để các dấu câu thừa như dấu phẩy, chấm, hai chấm...
+        clean = re.sub(r'[,.:;!?~_\-/\(\)\[\]"\'`]+', ' ', cleaned)
+        words = [w.strip() for w in clean.split() if w.strip()]
+        if not words:
+            return None
+        formatted = " ".join(w.capitalize() for w in words)
+        if 2 <= len(formatted) <= 40:
+            return formatted
+        return None
+
+    # Pattern rõ ràng: "mình là...", "tên là...", "tên: ...", "tôi tên...", "đặt cho..."
     intro_patterns = [
-        r'(?:tôi\s*tên\s*là|tên\s*mình\s*là|tên\s*tôi\s*là|mình\s*là|tôi\s*là|em\s*là)\s+([A-ZÀ-Ỹa-zà-ỹ\s]{2,30})',
+        r'(?:tên\s*(?:khách|người\s*đặt)?\s*(?:là|:|\s)\s*|tôi\s*tên\s*(?:là|:)?\s*|mình\s*tên\s*(?:là|:)?\s*|em\s*tên\s*(?:là|:)?\s*|tên\s*mình\s*là\s*|tên\s*tôi\s*là\s*|mình\s*là\s*|tôi\s*là\s*|em\s*là\s*|đặt\s*cho\s+)([A-ZÀ-Ỹa-zà-ỹ\s]{2,30})',
     ]
     for pat in intro_patterns:
         m = re.search(pat, text_clean, re.IGNORECASE)
@@ -161,21 +184,24 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
             raw_name = m.group(1).strip()
             # Cắt trước dấu phẩy, chấm hoặc các từ bắt đầu phần đặt bàn / sđt / email
             parts = re.split(r'[,.\d]|\b(?:đặt|bàn|sđt|số|điện\s*thoại|phone|email|mail|nhé|nha|ạ|vào|ngày|lúc)\b', raw_name, flags=re.IGNORECASE)
-            name = parts[0].strip()
-            if 2 <= len(name) <= 40:
-                return " ".join(w.capitalize() for w in name.split())
+            name = _sanitize(parts[0])
+            if name:
+                return name
 
     # Nếu đang thiếu tên và câu thoại ngắn (1-4 từ), không chứa các từ khoá ngày/giờ/đặt bàn
     slots = current_state.get("slots", {})
     if not slots.get("customer_name") and not current_state.get("user_info", {}).get("is_logged_in"):
-        words = text_clean.strip().split()
+        clean_text = re.sub(r'[,.:;!?~_\-/\(\)\[\]"\'`]+', ' ', text_clean).strip()
+        # Cắt bỏ các từ nhãn sđt / email nếu còn sót sau khi đã tách phone/email
+        clean_text = re.split(r'\b(?:sđt|sdt|số|điện\s*thoại|phone|email|mail|đt)\b', clean_text, flags=re.IGNORECASE)[0].strip()
+        words = [w for w in clean_text.split() if w]
         if 1 <= len(words) <= 4:
             ignore_keywords = [
                 "đặt", "bàn", "ok", "được", "hủy", "thôi", "hôm", "mai", "giờ", "tối",
                 "trưa", "sáng", "người", "khách", "không", "có", "chỗ", "alo"
             ]
-            if not any(w.lower() in ignore_keywords for w in words) and not re.search(r'\d', text_clean):
-                return " ".join(w.capitalize() for w in words)
+            if not any(w.lower() in ignore_keywords for w in words) and not re.search(r'\d', clean_text):
+                return _sanitize(" ".join(words))
 
     return None
 
@@ -184,14 +210,27 @@ def is_confirmation(message: str) -> bool:
     """Kiểm tra câu đồng ý xác nhận đặt bàn."""
     msg = message.lower().strip()
     # Loại bỏ các từ phủ định
-    if any(k in msg for k in ["không", "chưa", "hủy", "thôi", "đổi", "sửa"]):
+    if any(k in msg for k in ["không", "chưa", "hủy", "thôi", "đổi", "sửa", "khoan"]):
         return False
+
     confirms = [
         "ok", "oke", "okay", "được", "đồng ý", "xác nhận", "yes", "yep",
         "đặt đi", "đặt thôi", "chốt", "chốt luôn", "đúng rồi", "chuẩn rồi",
-        "đồng ý nhé", "xác nhận nhé", "đặt bàn nha", "nhất trí"
+        "đồng ý nhé", "xác nhận nhé", "đặt bàn nha", "nhất trí", "đặt luôn",
+        "tiến hành đi", "tiến hành", "chốt đơn", "đúng rồi nha", "ok em", "chuẩn",
+        "chính xác", "duyệt", "dạ", "ừ", "uh", "uk", "vâng", "dạ vâng", "lên đơn",
+        "chốt đi", "chốt nha", "được nha", "được nhé", "ok nha", "ok nhé", "rồi nhé",
+        "đúng nhé", "tạo đơn", "đặt giúp"
     ]
-    return any(c in msg for c in confirms)
+    words = set(re.findall(r'\b\w+\b', msg))
+    for c in confirms:
+        if " " in c:
+            if c in msg:
+                return True
+        else:
+            if c in words or msg == c:
+                return True
+    return False
 
 
 def is_cancellation(message: str) -> bool:

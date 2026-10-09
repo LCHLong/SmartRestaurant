@@ -48,7 +48,7 @@ export const AiChatProvider = ({ children }) => {
   const [messages, setMessages] = useState([defaultWelcome]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
-  const [sessionId] = useState(() => {
+  const [sessionId, setSessionId] = useState(() => {
     // Tái sử dụng session trong cùng tab nếu có
     const saved = sessionStorage.getItem('aria_session_id');
     if (saved) return saved;
@@ -59,6 +59,27 @@ export const AiChatProvider = ({ children }) => {
 
   // Ref cho streaming message đang build
   const streamingMsgIdRef = useRef(null);
+
+  // Reset session và xóa sạch lịch sử khi người dùng đăng nhập hoặc đăng xuất thành guest
+  const prevUserRef = useRef(user?.id || null);
+  useEffect(() => {
+    const currentUserId = user?.id || null;
+    if (prevUserRef.current !== currentUserId) {
+      const oldSessionId = sessionId;
+      prevUserRef.current = currentUserId;
+
+      const newId = uuidv4();
+      sessionStorage.setItem('aria_session_id', newId);
+      setSessionId(newId);
+      setMessages([defaultWelcome]);
+      setIsLoading(false);
+      streamingMsgIdRef.current = null;
+
+      if (oldSessionId) {
+        api.delete(`/api/ai/session/${oldSessionId}`).catch(() => {});
+      }
+    }
+  }, [user]);
 
   // Lấy tableId từ localStorage (set sau khi scan QR)
   const getTableId = () =>
@@ -270,6 +291,19 @@ export const AiChatProvider = ({ children }) => {
     };
   }, [sessionId]);
 
+  const resetSession = useCallback(() => {
+    const oldSessionId = sessionId;
+    const newId = uuidv4();
+    sessionStorage.setItem('aria_session_id', newId);
+    setSessionId(newId);
+    setMessages([defaultWelcome]);
+    setIsLoading(false);
+    streamingMsgIdRef.current = null;
+    if (oldSessionId) {
+      api.delete(`/api/ai/session/${oldSessionId}`).catch(() => {});
+    }
+  }, [sessionId]);
+
   return (
     <AiChatContext.Provider value={{
       isOpen,
@@ -282,6 +316,7 @@ export const AiChatProvider = ({ children }) => {
       sendMessage,
       sendFeedback,
       sessionId,
+      resetSession,
     }}>
       {children}
     </AiChatContext.Provider>

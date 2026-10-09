@@ -171,11 +171,55 @@ class AriaConversationPipeline:
             res_state = await get_state(session_id or "default")
             is_res_intent = self._is_reservation_intent(message) or reservation_mode
 
+            # Đồng bộ trạng thái đăng nhập: nếu user_id là None (guest/đã logout) nhưng state cũ vẫn lưu user_info
+            if not user_id and res_state.get("user_info", {}).get("is_logged_in"):
+                res_state["user_info"] = {
+                    "is_logged_in": False,
+                    "user_id": None,
+                    "name": None,
+                    "phone": None,
+                    "email": None,
+                }
+                slots = res_state.get("slots", {})
+                slots["customer_name"] = None
+                slots["customer_phone"] = None
+                slots["customer_email"] = None
+                await save_state(session_id or "default", res_state)
+            elif user_id and res_state.get("user_info", {}).get("user_id") != user_id:
+                try:
+                    user_profile = await get_user_info(user_id)
+                    if user_profile:
+                        res_state["user_info"] = {
+                            "is_logged_in": True,
+                            "user_id": user_id,
+                            "name": user_profile.get("name"),
+                            "phone": user_profile.get("phone"),
+                            "email": user_profile.get("email"),
+                        }
+                        slots = res_state.get("slots", {})
+                        slots["customer_name"] = None
+                        slots["customer_phone"] = None
+                        slots["customer_email"] = None
+                        await save_state(session_id or "default", res_state)
+                except Exception:
+                    pass
+
             # Nếu đang ở flow đặt bàn HOẶC phát hiện intent mới
             if (res_state.get("fsm_state") not in ("IDLE", "DONE", "HANDOFF")) or is_res_intent:
                 # Nếu mới bắt đầu và user đã login -> nạp user_info để auto-fill
                 if res_state.get("fsm_state") in ("IDLE", "DONE", "HANDOFF") and is_res_intent:
                     res_state["fsm_state"] = "COLLECTING_SLOTS"
+                    res_state["slots"] = {
+                        "date": None,
+                        "time": None,
+                        "time_ambiguous": False,
+                        "pending_ambiguous_hour": None,
+                        "guests": None,
+                        "customer_name": None,
+                        "customer_phone": None,
+                        "customer_email": None,
+                        "special_requests": None,
+                    }
                     if user_id:
                         try:
                             user_profile = await get_user_info(user_id)
@@ -189,6 +233,14 @@ class AriaConversationPipeline:
                                 }
                         except Exception:
                             pass
+                    else:
+                        res_state["user_info"] = {
+                            "is_logged_in": False,
+                            "user_id": None,
+                            "name": None,
+                            "phone": None,
+                            "email": None,
+                        }
                     await save_state(session_id or "default", res_state)
 
                 async for sse_item in self._handle_reservation_turn(
@@ -488,8 +540,22 @@ class AriaConversationPipeline:
                     })
                     return
 
-            # Nếu khách không trả lời "ok" mà đổi slot (Slot correction - Proposal T16)
-            # Tiếp tục chạy xuống logic trích xuất slot bên dưới
+            else:
+                # Khách đang ở AWAITING_CONFIRMATION nhưng không xác nhận:
+                # Kiểm tra xem khách có ý định đổi slot (ngày, giờ, số người, tên...) hay không
+                extracted_changes = extract_all_slots(message, state)
+                has_slot_change = any(extracted_changes.get(k) is not None for k in ["date", "time", "guests", "customer_name", "customer_phone", "customer_email", "special_requests"])
+                if not has_slot_change:
+                    # Khách không xác nhận và cũng không đổi slot -> nhắc nhẹ nhàng, không lặp lại toàn bộ thẻ
+                    resp = "Dạ, thông tin đặt bàn của bạn đã sẵn sàng. Bạn có muốn điều chỉnh thông tin nào hay xác nhận ('ok' / 'xác nhận') để Aria tiến hành chốt bàn luôn ạ?"
+                    for t in self._chunk_tokens(resp):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {
+                        "suggestedItems": [],
+                        "groundedItems": [],
+                        "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+                    })
+                    return
 
         # 3. Trích xuất slots từ tin nhắn hiện tại
         extracted = extract_all_slots(message, state)

@@ -269,8 +269,13 @@ exports.clearSession = async (req, res) => {
   }
 
   try {
-    await redis.del(`ai_session:${sessionId}`);
-    await redis.del(`ai_ratelimit:${sessionId}`);
+    if (redis && typeof redis.del === 'function') {
+      await Promise.all([
+        redis.del(`ai_session:${sessionId}`),
+        redis.del(`ai_ratelimit:${sessionId}`),
+        redis.del(`reservation_state:${sessionId}`)
+      ]);
+    }
     return res.status(200).json({ success: true, message: 'Session cleared' });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to clear session' });
