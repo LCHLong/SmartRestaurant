@@ -103,8 +103,8 @@ export const AiChatProvider = ({ children }) => {
       });
     };
 
-    // Nhận final response với suggestedItems
-    const onResponse = ({ sessionId: sid, content, suggestedItems }) => {
+    // Nhận final response với suggestedItems và reservation
+    const onResponse = ({ sessionId: sid, content, suggestedItems, reservation }) => {
       if (sid !== sessionId) return;
       setIsLoading(false);
 
@@ -115,7 +115,7 @@ export const AiChatProvider = ({ children }) => {
         if (streamingId) {
           return prev.map(m =>
             m.id === streamingId
-              ? { ...m, content, suggestedItems: suggestedItems || [], isStreaming: false }
+              ? { ...m, content, suggestedItems: suggestedItems || [], reservation: reservation || null, isStreaming: false }
               : m
           );
         }
@@ -128,7 +128,7 @@ export const AiChatProvider = ({ children }) => {
 
         return [
           ...prev,
-          { id: uuidv4(), role: 'assistant', content, suggestedItems: suggestedItems || [], isStreaming: false }
+          { id: uuidv4(), role: 'assistant', content, suggestedItems: suggestedItems || [], reservation: reservation || null, isStreaming: false }
         ];
       });
 

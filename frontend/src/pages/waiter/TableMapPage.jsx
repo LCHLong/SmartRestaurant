@@ -92,6 +92,10 @@ const TableMapPage = () => {
             fetchOverstayAlerts();
             toast('📋 Có lượt đặt bàn mới!', { icon: '🔔' });
         });
+        socket.on('ai_handoff_alert', (payload) => {
+            const reasonText = payload?.reason === 'GROUP_SIZE_EXCEEDED' ? 'Nhóm đoàn lớn cần hỗ trợ' : (payload?.summary || 'Khách cần nhân viên hỗ trợ đặt chỗ');
+            toast(`🛎️ [Aria Handoff] ${reasonText}`, { duration: 6000 });
+        });
         socket.on('reservation_reallocated', (data) => {
             toast.success(`✅ Đã đổi bàn cho ${data.customer_name} sang bàn ${data.new_table_number}`);
             fetchTables(currentPage);
@@ -243,14 +247,16 @@ const TableMapPage = () => {
                     <div className="flex rounded-xl overflow-hidden border border-gray-200">
                         <button
                             onClick={() => setActiveTab('map')}
-                            className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'map' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                            className={`px-4 py-2 text-sm font-semibold transition-colors inline-flex items-center gap-1.5 ${activeTab === 'map' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                         >
+                            <span className="material-symbols-outlined text-base">grid_view</span>
                             Sơ đồ
                         </button>
                         <button
                             onClick={() => setActiveTab('reservations')}
-                            className={`px-4 py-2 text-sm font-semibold transition-colors ${activeTab === 'reservations' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
+                            className={`px-4 py-2 text-sm font-semibold transition-colors inline-flex items-center gap-1.5 ${activeTab === 'reservations' ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-50'}`}
                         >
+                            <span className="material-symbols-outlined text-base">event_seat</span>
                             Đặt bàn
                         </button>
                     </div>
@@ -374,17 +380,19 @@ const TableMapPage = () => {
                             <button
                                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                                 disabled={currentPage === 1}
-                                className={`p-3 rounded-xl border-2 transition-all ${currentPage === 1 ? 'border-gray-100 text-gray-300' : 'border-gray-200 text-gray-600 hover:border-emerald-500 hover:text-emerald-500'}`}
+                                className={`px-3 py-1.5 rounded-xl border-2 transition-all inline-flex items-center gap-1 font-medium text-sm ${currentPage === 1 ? 'border-gray-100 text-gray-300' : 'border-gray-200 text-gray-600 hover:border-emerald-500 hover:text-emerald-500'}`}
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
+                                <span className="material-symbols-outlined text-base">chevron_left</span>
+                                Trước
                             </button>
-                            <span className="text-gray-500 font-medium">Trang {currentPage} / {totalPages}</span>
+                            <span className="text-gray-500 font-medium text-sm">Trang {currentPage} / {totalPages}</span>
                             <button
                                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                                 disabled={currentPage === totalPages}
-                                className={`p-3 rounded-xl border-2 transition-all ${currentPage === totalPages ? 'border-gray-100 text-gray-300' : 'border-gray-200 text-gray-600 hover:border-emerald-500 hover:text-emerald-500'}`}
+                                className={`px-3 py-1.5 rounded-xl border-2 transition-all inline-flex items-center gap-1 font-medium text-sm ${currentPage === totalPages ? 'border-gray-100 text-gray-300' : 'border-gray-200 text-gray-600 hover:border-emerald-500 hover:text-emerald-500'}`}
                             >
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" /></svg>
+                                Sau
+                                <span className="material-symbols-outlined text-base">chevron_right</span>
                             </button>
                         </div>
                     )}
@@ -405,8 +413,9 @@ const TableMapPage = () => {
                         />
                         <button
                             onClick={fetchReservations}
-                            className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-xl font-semibold hover:bg-emerald-700"
+                            className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-xl font-semibold hover:bg-emerald-700 inline-flex items-center gap-1.5 transition-colors"
                         >
+                            <span className="material-symbols-outlined text-sm">refresh</span>
                             Tải lại
                         </button>
                     </div>
@@ -452,7 +461,7 @@ const TableMapPage = () => {
                                             {r.status === 'pending' && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'confirmed')}
-                                                    className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 inline-flex items-center justify-center gap-1"
+                                                    className="px-3 py-1.5 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 inline-flex items-center justify-center gap-1 transition-colors"
                                                 >
                                                     <span className="material-symbols-outlined text-xs">check</span>
                                                     Xác nhận
@@ -461,16 +470,16 @@ const TableMapPage = () => {
                                             {r.status === 'confirmed' && (
                                                  <button
                                                      onClick={() => handleUpdateStatus(r.id, 'seated')}
-                                                     className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 inline-flex items-center justify-center gap-1"
+                                                     className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 inline-flex items-center justify-center gap-1 transition-colors"
                                                  >
-                                                    <span className="material-symbols-outlined text-xs">table_restaurant</span>
-                                                    Check-in
+                                                     <span className="material-symbols-outlined text-xs">table_restaurant</span>
+                                                     Check-in
                                                  </button>
-                                            )}
+                                             )}
                                             {r.status === 'seated' && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'completed')}
-                                                    className="px-3 py-1.5 bg-gray-600 text-white text-xs font-semibold rounded-lg hover:bg-gray-700 inline-flex items-center justify-center gap-1"
+                                                    className="px-3 py-1.5 bg-gray-600 text-white text-xs font-semibold rounded-lg hover:bg-gray-700 inline-flex items-center justify-center gap-1 transition-colors"
                                                 >
                                                     <span className="material-symbols-outlined text-xs">check_circle</span>
                                                     Hoàn thành
@@ -480,9 +489,14 @@ const TableMapPage = () => {
                                                 <button
                                                     onClick={() => handleReallocate(r.id, r.customer_name)}
                                                     disabled={reallocatingId === r.id}
-                                                    className="px-3 py-1.5 bg-amber-500 text-white text-xs font-semibold rounded-lg hover:bg-amber-600 disabled:opacity-60 inline-flex items-center justify-center gap-1"
+                                                    className="px-3 py-1.5 bg-amber-500 text-white text-xs font-semibold rounded-lg hover:bg-amber-600 disabled:opacity-60 inline-flex items-center justify-center gap-1 transition-colors"
                                                 >
-                                                    {reallocatingId === r.id ? '...' : (
+                                                    {reallocatingId === r.id ? (
+                                                        <span className="flex items-center gap-1">
+                                                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                            Đang đổi...
+                                                        </span>
+                                                    ) : (
                                                         <>
                                                             <span className="material-symbols-outlined text-xs">sync_alt</span>
                                                             Đổi bàn
@@ -493,7 +507,7 @@ const TableMapPage = () => {
                                             {['pending', 'confirmed'].includes(r.status) && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'cancelled')}
-                                                    className="px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 inline-flex items-center justify-center gap-1"
+                                                    className="px-3 py-1.5 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 inline-flex items-center justify-center gap-1 transition-colors"
                                                 >
                                                     <span className="material-symbols-outlined text-xs">close</span>
                                                     Hủy

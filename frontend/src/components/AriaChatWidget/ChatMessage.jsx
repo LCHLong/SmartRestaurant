@@ -53,6 +53,88 @@ function SuggestedItemCard({ item, onAdd }) {
   );
 }
 
+// Card xác nhận đặt bàn trực quan cho khách
+function BookingConfirmationCard({ reservation }) {
+  const [copied, setCopied] = useState(false);
+  if (!reservation) return null;
+
+  const copyCode = () => {
+    navigator.clipboard?.writeText(reservation.booking_code);
+    setCopied(true);
+    toast.success('Đã sao chép mã đặt bàn!');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="mt-2.5 bg-gradient-to-br from-orange-50 via-white to-amber-50 border border-orange-200 rounded-2xl p-3.5 shadow-sm max-w-[95%]">
+      <div className="flex items-center justify-between pb-2 mb-2 border-b border-orange-100">
+        <div className="flex items-center gap-1.5 text-emerald-700 font-bold text-xs">
+          <span className="material-symbols-outlined text-sm text-emerald-600">verified</span>
+          Đặt bàn thành công
+        </div>
+        <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold uppercase">
+          {reservation.status || 'Chờ xác nhận'}
+        </span>
+      </div>
+
+      <div className="flex items-center justify-between bg-white rounded-xl p-2.5 border border-orange-100 mb-2.5">
+        <div>
+          <div className="text-[10px] text-gray-500 font-medium">Mã đặt bàn</div>
+          <div className="text-base font-extrabold text-orange-600 tracking-wide">
+            {reservation.booking_code}
+          </div>
+        </div>
+        <button
+          onClick={copyCode}
+          className="flex items-center gap-1 px-2.5 py-1 text-xs bg-orange-100 hover:bg-orange-200 text-orange-700 font-semibold rounded-lg transition-colors cursor-pointer"
+          title="Sao chép mã"
+        >
+          <span className="material-symbols-outlined text-sm">{copied ? 'check' : 'content_copy'}</span>
+          <span>{copied ? 'Đã chép' : 'Chép mã'}</span>
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-xs text-gray-700 mb-2">
+        <div className="flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-sm text-orange-500">calendar_month</span>
+          <span>{reservation.reservation_date}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-sm text-orange-500">schedule</span>
+          <span>{reservation.reservation_time}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="material-symbols-outlined text-sm text-orange-500">group</span>
+          <span>{reservation.guest_count} khách</span>
+        </div>
+        <div className="flex items-center gap-1.5 truncate">
+          <span className="material-symbols-outlined text-sm text-orange-500">person</span>
+          <span className="truncate">{reservation.customer_name}</span>
+        </div>
+      </div>
+
+      {reservation.requires_deposit && (
+        <div className="mt-2 text-[11px] bg-amber-50 text-amber-800 border border-amber-200 rounded-xl p-2 flex items-start gap-1.5">
+          <span className="material-symbols-outlined text-sm text-amber-600 shrink-0">info</span>
+          <span>
+            Nhóm ≥ 6 người: Cọc <strong>{Number(reservation.deposit_amount).toLocaleString('vi-VN')}đ</strong>. Nhân viên sẽ liên hệ để xác nhận giữ chỗ.
+          </span>
+        </div>
+      )}
+
+      <div className="mt-2.5 pt-2 border-t border-orange-100 flex items-center justify-between">
+        <a
+          href={`/reservation/lookup?code=${reservation.booking_code}`}
+          className="text-xs text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1 hover:underline"
+        >
+          <span>Xem chi tiết đơn</span>
+          <span className="material-symbols-outlined text-xs">arrow_forward</span>
+        </a>
+      </div>
+    </div>
+  );
+}
+
 // Render markdown-light: **bold** và dòng mới
 function renderText(text) {
   if (!text) return null;
@@ -157,6 +239,11 @@ export default function ChatMessage({ message }) {
             </p>
           )}
         </div>
+
+        {/* Booking Confirmation Card khi đặt bàn thành công */}
+        {!message.isStreaming && message.reservation && (
+          <BookingConfirmationCard reservation={message.reservation} />
+        )}
 
         {/* Mini cards gợi ý món */}
         {!message.isStreaming && message.suggestedItems?.length > 0 && (

@@ -82,6 +82,10 @@ class ChatRequest(BaseModel):
     topK: int = 5
     feedbackType: Optional[str] = None
     rejectedItems: list[str] = []
+    userId: Optional[str] = None
+    user_id: Optional[str] = None
+    reservationMode: bool = False
+    reservation_mode: bool = False
 
 
 # ---------- Endpoints ----------
@@ -107,6 +111,8 @@ async def chat(request: ChatRequest):
     Node.js Gateway forward request vào đây, nhận SSE stream,
     rồi emit từng token qua Socket.io đến browser.
     """
+    effective_user_id = request.userId or request.user_id
+    effective_reservation_mode = request.reservationMode or request.reservation_mode
 
     async def event_generator():
         try:
@@ -118,6 +124,8 @@ async def chat(request: ChatRequest):
                 conversation_history=[h.model_dump() for h in request.conversationHistory],
                 table_id=request.tableId,
                 session_id=request.sessionId,
+                user_id=effective_user_id,
+                reservation_mode=effective_reservation_mode,
                 fallback_used=request.fallbackUsed,
                 restaurant_id=request.restaurantId,
                 enable_rerank=request.enableRerank,

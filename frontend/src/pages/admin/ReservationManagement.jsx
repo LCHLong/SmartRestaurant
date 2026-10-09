@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { useSocket } from '../../contexts/SocketContext';
 
 /**
  * ReservationManagement.jsx — Quản lý đặt bàn (Admin)
@@ -8,6 +9,7 @@ import toast from 'react-hot-toast';
  * xem đầy đủ thông tin khách (PII), check-in, đổi bàn 1-click
  */
 const ReservationManagement = () => {
+    const socket = useSocket();
     const [reservations, setReservations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -34,6 +36,30 @@ const ReservationManagement = () => {
     }, [date, statusFilter, page]);
 
     useEffect(() => { fetchReservations(); }, [fetchReservations]);
+
+    // Socket real-time: new_reservation & ai_handoff_alert
+    useEffect(() => {
+        if (!socket) return;
+        socket.emit('join_room', 'admin');
+
+        const onNewRes = () => {
+            fetchReservations();
+            toast('📋 Có lượt đặt bàn mới!', { icon: '🔔' });
+        };
+
+        const onHandoff = (payload) => {
+            const summary = payload?.summary || 'Khách hàng cần hỗ trợ đặc biệt qua trợ lý Aria';
+            toast(`🛎️ [Aria Handoff] ${summary}`, { duration: 7000 });
+        };
+
+        socket.on('new_reservation', onNewRes);
+        socket.on('ai_handoff_alert', onHandoff);
+
+        return () => {
+            socket.off('new_reservation', onNewRes);
+            socket.off('ai_handoff_alert', onHandoff);
+        };
+    }, [socket, fetchReservations]);
 
     const handleUpdateStatus = async (id, status) => {
         try {
@@ -124,14 +150,17 @@ const ReservationManagement = () => {
             {/* Stats bar */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {[
-                    { label: 'Tổng hôm nay', value: stats.total, color: 'text-gray-700' },
-                    { label: 'Chờ xác nhận', value: stats.pending, color: 'text-amber-600' },
-                    { label: 'Đã xác nhận', value: stats.confirmed, color: 'text-blue-600' },
-                    { label: 'Đang ngồi', value: stats.seated, color: 'text-emerald-600' },
+                    { label: 'Tổng hôm nay', value: stats.total, color: 'text-gray-700', bg: 'bg-gray-50', icon: 'calendar_today', iconColor: 'text-gray-500' },
+                    { label: 'Chờ xác nhận', value: stats.pending, color: 'text-amber-600', bg: 'bg-amber-50/50', icon: 'hourglass_empty', iconColor: 'text-amber-500' },
+                    { label: 'Đã xác nhận', value: stats.confirmed, color: 'text-blue-600', bg: 'bg-blue-50/50', icon: 'check_circle', iconColor: 'text-blue-500' },
+                    { label: 'Đang ngồi', value: stats.seated, color: 'text-emerald-600', bg: 'bg-emerald-50/50', icon: 'table_restaurant', iconColor: 'text-emerald-500' },
                 ].map((s) => (
-                    <div key={s.label} className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                        <p className="text-xs text-gray-500">{s.label}</p>
-                        <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
+                    <div key={s.label} className={`border border-gray-100 rounded-2xl p-4 shadow-sm flex items-center justify-between ${s.bg}`}>
+                        <div>
+                            <p className="text-xs font-medium text-gray-500">{s.label}</p>
+                            <p className={`text-2xl font-bold mt-1 ${s.color}`}>{s.value}</p>
+                        </div>
+                        <span className={`material-symbols-outlined text-2xl ${s.iconColor}`}>{s.icon}</span>
                     </div>
                 ))}
             </div>
@@ -147,7 +176,7 @@ const ReservationManagement = () => {
                     <p>Không có đặt bàn nào trong ngày {date}</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
                     <table className="w-full text-sm">
                         <thead className="bg-gray-50 border-b border-gray-200">
                             <tr>
@@ -168,20 +197,23 @@ const ReservationManagement = () => {
                                         <div className="text-xs font-mono text-gray-400 mt-0.5">{r.booking_code}</div>
                                         {r.special_requests && (
                                             <div className="text-xs text-gray-400 mt-0.5 italic truncate max-w-[160px] flex items-center gap-1" title={r.special_requests}>
-                                                <span className="material-symbols-outlined text-[13px] text-gray-400">edit_note</span>
+                                                <span className="material-symbols-outlined text-xs text-gray-400">edit_note</span>
                                                 <span className="truncate">{r.special_requests}</span>
                                             </div>
                                         )}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <div className="font-semibold">{r.reservation_time}</div>
-                                        <div className="text-xs text-gray-400">→ {r.end_time}</div>
+                                        <div className="font-semibold flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-xs text-gray-400">schedule</span>
+                                            <span>{r.reservation_time}</span>
+                                        </div>
+                                        <div className="text-xs text-gray-400 ml-4">→ {r.end_time}</div>
                                     </td>
                                     <td className="px-4 py-3">
                                         <span className="font-semibold">{r.guest_count}</span> người
                                         {r.deposit_amount > 0 && (
-                                            <div className="text-xs text-amber-600 mt-0.5 flex items-center gap-0.5">
-                                                <span className="material-symbols-outlined text-[13px] text-amber-500">payments</span>
+                                            <div className="text-xs text-amber-600 mt-0.5 flex items-center gap-1">
+                                                <span className="material-symbols-outlined text-xs text-amber-500">payments</span>
                                                 <span>Cọc: {r.deposit_amount?.toLocaleString('vi-VN')}đ</span>
                                             </div>
                                         )}
@@ -189,16 +221,27 @@ const ReservationManagement = () => {
                                     <td className="px-4 py-3">
                                         {r.tables ? (
                                             <div>
-                                                <div className="font-semibold">Bàn {r.tables.table_number}</div>
-                                                <div className="text-xs text-gray-400">{r.tables.location}</div>
+                                                <div className="font-semibold flex items-center gap-1">
+                                                    <span className="material-symbols-outlined text-xs text-emerald-600">table_restaurant</span>
+                                                    <span>Bàn {r.tables.table_number}</span>
+                                                </div>
+                                                <div className="text-xs text-gray-400 ml-4">{r.tables.location}</div>
                                             </div>
                                         ) : (
                                             <span className="text-gray-400 text-xs">Chưa gán</span>
                                         )}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <div>{r.customer_phone}</div>
-                                        {r.customer_email && <div className="text-xs text-gray-400">{r.customer_email}</div>}
+                                        <div className="flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-xs text-gray-400">call</span>
+                                            <span>{r.customer_phone}</span>
+                                        </div>
+                                        {r.customer_email && (
+                                            <div className="text-xs text-gray-400 flex items-center gap-1 mt-0.5">
+                                                <span className="material-symbols-outlined text-xs text-gray-400">mail</span>
+                                                <span>{r.customer_email}</span>
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="px-4 py-3">
                                         <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${getStatusColor(r.status)}`}>
@@ -210,7 +253,7 @@ const ReservationManagement = () => {
                                             {r.status === 'pending' && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'confirmed')}
-                                                    className="px-2.5 py-1 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 inline-flex items-center justify-center gap-1"
+                                                    className="px-2.5 py-1 bg-blue-600 text-white text-xs font-semibold rounded-lg hover:bg-blue-700 inline-flex items-center justify-center gap-1 transition-colors"
                                                 >
                                                     <span className="material-symbols-outlined text-xs">check</span>
                                                     Xác nhận
@@ -219,7 +262,7 @@ const ReservationManagement = () => {
                                             {r.status === 'confirmed' && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'seated')}
-                                                    className="px-2.5 py-1 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 inline-flex items-center justify-center gap-1"
+                                                    className="px-2.5 py-1 bg-emerald-600 text-white text-xs font-semibold rounded-lg hover:bg-emerald-700 inline-flex items-center justify-center gap-1 transition-colors"
                                                 >
                                                     <span className="material-symbols-outlined text-xs">table_restaurant</span>
                                                     Check-in
@@ -228,7 +271,7 @@ const ReservationManagement = () => {
                                             {r.status === 'seated' && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'completed')}
-                                                    className="px-2.5 py-1 bg-gray-600 text-white text-xs font-semibold rounded-lg hover:bg-gray-700 inline-flex items-center justify-center gap-1"
+                                                    className="px-2.5 py-1 bg-gray-600 text-white text-xs font-semibold rounded-lg hover:bg-gray-700 inline-flex items-center justify-center gap-1 transition-colors"
                                                 >
                                                     <span className="material-symbols-outlined text-xs">check_circle</span>
                                                     Xong
@@ -238,9 +281,14 @@ const ReservationManagement = () => {
                                                 <button
                                                     onClick={() => handleReallocate(r.id, r.customer_name)}
                                                     disabled={reallocatingId === r.id}
-                                                    className="px-2.5 py-1 bg-amber-500 text-white text-xs font-semibold rounded-lg hover:bg-amber-600 disabled:opacity-60 inline-flex items-center justify-center gap-1"
+                                                    className="px-2.5 py-1 bg-amber-500 text-white text-xs font-semibold rounded-lg hover:bg-amber-600 disabled:opacity-60 inline-flex items-center justify-center gap-1 transition-colors"
                                                 >
-                                                    {reallocatingId === r.id ? '...' : (
+                                                    {reallocatingId === r.id ? (
+                                                        <span className="flex items-center gap-1">
+                                                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                                            Đang đổi...
+                                                        </span>
+                                                    ) : (
                                                         <>
                                                             <span className="material-symbols-outlined text-xs">sync_alt</span>
                                                             Đổi bàn
@@ -251,7 +299,7 @@ const ReservationManagement = () => {
                                             {['pending', 'confirmed'].includes(r.status) && (
                                                 <button
                                                     onClick={() => handleUpdateStatus(r.id, 'cancelled')}
-                                                    className="px-2.5 py-1 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 inline-flex items-center justify-center gap-1"
+                                                    className="px-2.5 py-1 border border-red-200 text-red-600 text-xs font-semibold rounded-lg hover:bg-red-50 inline-flex items-center justify-center gap-1 transition-colors"
                                                 >
                                                     <span className="material-symbols-outlined text-xs">close</span>
                                                     Hủy
@@ -270,17 +318,19 @@ const ReservationManagement = () => {
                             <button
                                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                                 disabled={page === 1}
-                                className="px-4 py-2 rounded-xl border border-gray-200 text-sm disabled:opacity-50 hover:bg-gray-50"
+                                className="px-3 py-1.5 rounded-xl border border-gray-200 text-sm disabled:opacity-50 hover:bg-gray-50 inline-flex items-center gap-1 font-medium transition-colors"
                             >
-                                ← Trước
+                                <span className="material-symbols-outlined text-sm">chevron_left</span>
+                                Trước
                             </button>
-                            <span className="text-sm text-gray-500">Trang {page} / {pagination.totalPages}</span>
+                            <span className="text-sm text-gray-500 font-medium">Trang {page} / {pagination.totalPages}</span>
                             <button
                                 onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                                 disabled={page === pagination.totalPages}
-                                className="px-4 py-2 rounded-xl border border-gray-200 text-sm disabled:opacity-50 hover:bg-gray-50"
+                                className="px-3 py-1.5 rounded-xl border border-gray-200 text-sm disabled:opacity-50 hover:bg-gray-50 inline-flex items-center gap-1 font-medium transition-colors"
                             >
-                                Sau →
+                                Sau
+                                <span className="material-symbols-outlined text-sm">chevron_right</span>
                             </button>
                         </div>
                     )}

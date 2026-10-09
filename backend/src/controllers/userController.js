@@ -183,3 +183,52 @@ exports.getMyOrders = async (req, res) => {
         });
     }
 };
+
+/**
+ * 4. GET BASIC INFO (INTERNAL ENDPOINT)
+ * Cho phép AI service lấy thông tin cơ bản của user theo userId để auto-fill đặt bàn.
+ * Chỉ cho phép gọi nội bộ (kiểm tra X-Internal-Service hoặc X-Internal-Secret).
+ */
+exports.getBasicInfo = async (req, res) => {
+    try {
+        const internalSecret = process.env.INTERNAL_SERVICE_SECRET || 'aria-ai-internal-service-secret';
+        const isInternal = req.headers['x-internal-service'] === 'aria-ai' || req.headers['x-internal-secret'] === internalSecret;
+        if (!isInternal) {
+            return res.status(403).json({
+                success: false,
+                message: 'Forbidden: Endpoint này chỉ dành cho dịch vụ nội bộ'
+            });
+        }
+
+        const { id } = req.params;
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('id, full_name, phone, email')
+            .eq('id', id)
+            .single();
+
+        if (error || !user) {
+            return res.status(404).json({
+                success: false,
+                message: 'Không tìm thấy người dùng'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: {
+                id: user.id,
+                name: user.full_name || '',
+                phone: user.phone || '',
+                email: user.email || ''
+            }
+        });
+    } catch (err) {
+        console.error('Get Basic Info Error:', err);
+        res.status(500).json({
+            success: false,
+            message: 'Lỗi server khi lấy thông tin người dùng',
+            error: err.message
+        });
+    }
+};

@@ -12,4 +12,7 @@ router.get('/orders', verifyToken, userController.getMyOrders);
 router.post('/claim-orders', verifyToken, guestOrderController.claimGuestOrders);
 router.post('/avatar', verifyToken, uploadController.uploadAvatarMiddleware, uploadController.uploadAvatar);
 
+// Internal route cho AI service lấy thông tin user
+router.get('/:id/basic-info', userController.getBasicInfo);
+
 module.exports = router;

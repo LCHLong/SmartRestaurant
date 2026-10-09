@@ -328,9 +328,12 @@ exports.createReservation = async (req, res) => {
       insertData.idempotency_key = idempotencyKey;
     }
 
-    // Gắn user_id nếu là khách đã đăng nhập
-    if (req.user && req.user.id) {
-      insertData.user_id = req.user.id;
+    // Gắn user_id nếu là khách đã đăng nhập (trực tiếp hoặc gọi qua internal AI service)
+    const internalSecret = process.env.INTERNAL_SERVICE_SECRET || 'aria-ai-internal-service-secret';
+    const isInternal = req.headers['x-internal-service'] === 'aria-ai' || req.headers['x-internal-secret'] === internalSecret;
+    const effectiveUserId = (req.user && req.user.id) || (isInternal ? req.headers['x-internal-user-id'] : null);
+    if (effectiveUserId) {
+      insertData.user_id = effectiveUserId;
     }
 
     const { data: reservation, error: insertError } = await supabase

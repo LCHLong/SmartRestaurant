@@ -182,6 +182,7 @@ exports.consult = async (req, res) => {
       conversationHistory: history,
       fallbackUsed,
       restaurantId: resolvedRestaurantId,
+      userId: userId || null,
       feedbackType: req.body.feedbackType,
       rejectedItems: req.body.rejectedItems,
       abVariant,
@@ -200,17 +201,36 @@ exports.consult = async (req, res) => {
         emitToClient('ai_stream_token', { sessionId, token, abVariant });
       },
 
-      // onDone: emit final response + suggested items
+      // onDone: emit final response + suggested items + reservation
       async (result) => {
         const finalText = result.text || fullResponse;
         const suggestedItems = result.suggestedItems || [];
+        const reservation = result.reservation || null;
 
         emitToClient('ai_response', {
           sessionId,
           content: finalText,
           suggestedItems,
+          reservation,
           abVariant
         });
+
+        // Handoff Alert cho Waiter và Admin
+        if (result.isHandoff) {
+          const handoffPayload = result.handoffPayload || {
+            sessionId,
+            tableId,
+            reason: 'ASSISTANCE_REQUIRED',
+            summary: message,
+            timestamp: new Date().toISOString()
+          };
+          try {
+            io.to('waiter').emit('ai_handoff_alert', handoffPayload);
+            io.to('admin').emit('ai_handoff_alert', handoffPayload);
+          } catch (e) {
+            console.error('[aiController] Socket emit handoff error:', e.message);
+          }
+        }
 
         // 8. Lưu lịch sử hội thoại
         await saveSessionHistory(sessionId, history, message, finalText);

@@ -74,6 +74,13 @@ function streamFromPipecat(payload, onToken, onDone, onError) {
             onToken(parsedEvent.content);
           } else if (parsedEvent.type === 'done') {
             finalResult.suggestedItems = parsedEvent.suggestedItems || [];
+            if (parsedEvent.reservation) {
+              finalResult.reservation = parsedEvent.reservation;
+            }
+            if (parsedEvent.isHandoff) {
+              finalResult.isHandoff = true;
+              finalResult.handoffPayload = parsedEvent.handoffPayload || null;
+            }
           } else if (parsedEvent.type === 'error') {
             onError(new Error(parsedEvent.message || 'Pipecat pipeline error'));
           }

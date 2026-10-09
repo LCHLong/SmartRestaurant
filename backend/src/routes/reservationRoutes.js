@@ -29,6 +29,11 @@ const bookingRateLimiter = rateLimit({
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => {
+    // Miễn rate limit cho các cuộc gọi nội bộ từ AI service
+    const internalSecret = process.env.INTERNAL_SERVICE_SECRET || 'aria-ai-internal-service-secret';
+    return req.headers['x-internal-service'] === 'aria-ai' || req.headers['x-internal-secret'] === internalSecret;
+  },
   message: {
     success: false,
     error: {
