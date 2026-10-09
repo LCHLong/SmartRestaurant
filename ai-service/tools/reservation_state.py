@@ -28,7 +28,9 @@ def _get_default_state() -> Dict[str, Any]:
             "guests": None,
             "customer_name": None,
             "customer_phone": None,
+            "customer_email": None,
             "special_requests": None,
+            "pending_ambiguous_hour": None,
         },
         "user_info": {
             "is_logged_in": False,

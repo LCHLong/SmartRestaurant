@@ -418,7 +418,7 @@ exports.createReservation = async (req, res) => {
  */
 exports.getReservations = async (req, res) => {
   try {
-    const { date, status, page = 1, limit = 20 } = req.query;
+    const { date, from_date, to_date, status, page = 1, limit = 20 } = req.query;
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const offset = (pageNum - 1) * limitNum;
@@ -437,7 +437,16 @@ exports.getReservations = async (req, res) => {
       .order('reservation_time', { ascending: true })
       .range(offset, offset + limitNum - 1);
 
-    if (date) query = query.eq('reservation_date', date);
+    if (from_date && to_date) {
+      query = query.gte('reservation_date', from_date).lte('reservation_date', to_date);
+    } else if (from_date) {
+      query = query.gte('reservation_date', from_date);
+    } else if (to_date) {
+      query = query.lte('reservation_date', to_date);
+    } else if (date) {
+      query = query.eq('reservation_date', date);
+    }
+
     if (status) query = query.eq('status', status);
 
     const { data, error, count } = await query;

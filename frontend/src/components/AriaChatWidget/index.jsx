@@ -88,17 +88,19 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
           </div>
           {/* Dot online */}
           <span className="w-2 h-2 rounded-full bg-green-300 shadow" />
+          {/* Close button in header */}
           <button
+            type="button"
             onClick={closeChat}
-            className="text-white/80 hover:text-white transition-colors"
+            className="w-8 h-8 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-colors"
             aria-label="Đóng chat"
           >
-            <span className="material-symbols-outlined text-xl">expand_more</span>
+            <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
 
         {/* Messages */}
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-0.5 scroll-smooth">
+        <div className="flex-1 overflow-y-auto px-3 pt-3 pb-1 space-y-0.5 scroll-smooth">
           {messages.length === 0 && !isLoading && (
             <div className="flex flex-col items-center justify-center h-full text-center text-gray-400 px-6">
               <span className="material-symbols-outlined text-4xl mb-3 text-orange-400">restaurant</span>
@@ -113,7 +115,7 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
 
           {/* Loading indicator khi chờ server phản hồi */}
           {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-            <div className="flex gap-2 mb-3">
+            <div className="flex gap-2 mb-2">
               <div className="w-7 h-7 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                 A
               </div>
@@ -132,13 +134,14 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
 
         {/* Quick suggestions */}
         {messages.length <= 1 && (
-          <div className="px-3 pb-2 flex gap-2 overflow-x-auto scrollbar-hide">
+          <div className="px-3 py-1 flex gap-2 overflow-x-auto scrollbar-hide">
             {['Gợi ý món hôm nay 🍜', 'Món không cay 🥗', 'Đồ uống ngon 🥤'].map(q => (
               <button
                 key={q}
+                type="button"
                 onClick={() => sendMessage(q)}
                 disabled={isLoading}
-                className="flex-shrink-0 text-xs bg-orange-50 border border-orange-200 text-orange-600 rounded-full px-3 py-1.5 hover:bg-orange-100 transition-colors disabled:opacity-50"
+                className="flex-shrink-0 text-xs bg-orange-50 border border-orange-200 text-orange-600 rounded-full px-3 py-1 hover:bg-orange-100 transition-colors disabled:opacity-50"
               >
                 {q}
               </button>
@@ -147,7 +150,7 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
         )}
 
         {/* Input bar */}
-        <div className="px-3 pb-3 pt-2 border-t border-gray-100">
+        <div className="px-3 pb-2.5 pt-1.5 border-t border-gray-100 bg-white/70">
           <div className="flex items-end gap-2 bg-gray-50 rounded-xl border border-gray-200 px-3 py-2 focus-within:border-orange-400 focus-within:ring-1 focus-within:ring-orange-200 transition-all">
             <textarea
               ref={inputRef}
@@ -161,6 +164,7 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
               style={{ lineHeight: '1.4' }}
             />
             <button
+              type="button"
               onClick={handleSend}
               disabled={!inputText.trim() || isLoading}
               className="flex-shrink-0 w-8 h-8 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white flex items-center justify-center transition-all active:scale-95"
@@ -179,6 +183,7 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
 
       {/* ======= FLOATING BUBBLE ======= */}
       <button
+        type="button"
         onClick={toggleChat}
         className={`
           fixed bottom-5 right-4 z-50
@@ -186,16 +191,16 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
           bg-gradient-to-br from-orange-500 to-pink-500
           text-white shadow-lg
           flex items-center justify-center
-          transition-all duration-300 ease-out
+          transition-transform duration-300 ease-out
           hover:scale-110 active:scale-95
-          ${isOpen ? 'rotate-12' : 'rotate-0'}
+          ${isOpen ? 'rotate-90' : 'rotate-0'}
         `}
         aria-label={isOpen ? 'Đóng Aria chat' : 'Mở Aria chat'}
       >
         {isOpen ? (
-          <span className="material-symbols-outlined text-2xl">close</span>
+          <span className="material-symbols-outlined text-2xl text-white">close</span>
         ) : (
-          <span className="material-symbols-outlined text-2xl select-none">smart_toy</span>
+          <span className="material-symbols-outlined text-2xl text-white select-none">smart_toy</span>
         )}
 
         {/* Badge unread */}
@@ -203,9 +208,9 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
           <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-white animate-pulse" />
         )}
 
-        {/* Pulse ring khi idle */}
+        {/* Pulse ring khi idle (chỉ khi đóng chat) */}
         {!isOpen && !hasUnread && (
-          <span className="absolute inset-0 rounded-full bg-orange-400 opacity-30 animate-ping" />
+          <span className="absolute inset-0 rounded-full bg-orange-400 opacity-30 animate-ping pointer-events-none" />
         )}
       </button>
     </>

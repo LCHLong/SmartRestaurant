@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import QRCode from 'react-qr-code';
@@ -8,6 +9,7 @@ import QRCode from 'react-qr-code';
  * Khách hàng nhập mã đặt bàn + 4 số cuối điện thoại để xem thông tin
  */
 const ReservationLookupPage = () => {
+    const navigate = useNavigate();
     const [form, setForm] = useState({ booking_code: '', phone_last4: '' });
     const [result, setResult] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -88,6 +90,18 @@ const ReservationLookupPage = () => {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 flex items-center justify-center p-4">
             <div className="w-full max-w-md">
+                {/* Back button */}
+                <div className="mb-4">
+                    <button
+                        type="button"
+                        onClick={() => navigate(-1)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white/80 hover:bg-white rounded-xl shadow-sm border border-gray-200/60 transition-all active:scale-95"
+                    >
+                        <span className="material-symbols-outlined text-lg">arrow_back</span>
+                        Quay lại
+                    </button>
+                </div>
+
                 {/* Header */}
                 <div className="text-center mb-8">
                     <div className="mb-3">

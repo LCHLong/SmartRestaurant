@@ -135,7 +135,7 @@ def extract_special_requests(text: str) -> list[str]:
     return requests
 
 
-def extract_name(text: str, current_state: dict, phone_found: Optional[str] = None) -> Optional[str]:
+def extract_name(text: str, current_state: dict, phone_found: Optional[str] = None, email_found: Optional[str] = None) -> Optional[str]:
     """
     Trích xuất tên người dùng từ tin nhắn:
     - "Mình là Nam"
@@ -145,7 +145,11 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
     """
     text_clean = text
     if phone_found:
-        text_clean = text_clean.replace(phone_found, "").strip()
+        text_clean = text_clean.replace(phone_found, " ").strip()
+    if email_found:
+        text_clean = text_clean.replace(email_found, " ").strip()
+    # Loại bỏ cả email format nếu có còn sót
+    text_clean = re.sub(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}', ' ', text_clean)
 
     # Pattern rõ ràng: "mình là...", "tên là...", "tôi là..."
     intro_patterns = [
@@ -155,8 +159,8 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
         m = re.search(pat, text_clean, re.IGNORECASE)
         if m:
             raw_name = m.group(1).strip()
-            # Cắt trước dấu phẩy, chấm hoặc các từ bắt đầu phần đặt bàn / sđt
-            parts = re.split(r'[,.\d]|\b(?:đặt|bàn|sđt|số|điện\s*thoại|phone|nhé|nha|ạ|vào|ngày|lúc)\b', raw_name, flags=re.IGNORECASE)
+            # Cắt trước dấu phẩy, chấm hoặc các từ bắt đầu phần đặt bàn / sđt / email
+            parts = re.split(r'[,.\d]|\b(?:đặt|bàn|sđt|số|điện\s*thoại|phone|email|mail|nhé|nha|ạ|vào|ngày|lúc)\b', raw_name, flags=re.IGNORECASE)
             name = parts[0].strip()
             if 2 <= len(name) <= 40:
                 return " ".join(w.capitalize() for w in name.split())
@@ -201,11 +205,23 @@ def is_cancellation(message: str) -> bool:
     return any(c in msg for c in cancels)
 
 
+EMAIL_REGEX = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
+
+
+def extract_email(text: str) -> Optional[str]:
+    """Trích xuất địa chỉ email từ tin nhắn."""
+    m = EMAIL_REGEX.search(text)
+    if m:
+        return m.group(0).lower().strip()
+    return None
+
+
 def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
     """
     Trích xuất toàn bộ slot có trong câu của người dùng.
     """
     extracted: Dict[str, Any] = {}
+    pending_hour = current_state.get("slots", {}).get("pending_ambiguous_hour")
 
     # 1. Ngày
     date_str, date_ambiguous = parse_date(message)
@@ -213,12 +229,14 @@ def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
         extracted["date"] = date_str
 
     # 2. Giờ
-    time_str, time_ambiguous = parse_time(message)
+    time_str, time_ambiguous, amb_hour = parse_time(message, pending_ambiguous_hour=pending_hour)
     if time_str:
         extracted["time"] = time_str
         extracted["time_ambiguous"] = False
+        extracted["pending_ambiguous_hour"] = None
     elif time_ambiguous:
         extracted["time_ambiguous"] = True
+        extracted["pending_ambiguous_hour"] = amb_hour or 7
 
     # 3. Số khách
     guests, child_note = extract_guests(message)
@@ -232,12 +250,17 @@ def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
     if phone_warning:
         extracted["phone_warning"] = phone_warning
 
-    # 5. Tên
-    name = extract_name(message, current_state, phone)
+    # 5. Email
+    email = extract_email(message)
+    if email:
+        extracted["customer_email"] = email
+
+    # 6. Tên
+    name = extract_name(message, current_state, phone, email)
     if name:
         extracted["customer_name"] = name
 
-    # 6. Yêu cầu đặc biệt
+    # 7. Yêu cầu đặc biệt
     specials = extract_special_requests(message)
     if child_note:
         specials.append(child_note)

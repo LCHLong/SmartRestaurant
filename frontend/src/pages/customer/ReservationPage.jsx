@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import QRCode from 'react-qr-code';
@@ -9,6 +10,7 @@ import QRCode from 'react-qr-code';
  * xác nhận thành công với mã QR đặt chỗ
  */
 const ReservationPage = () => {
+    const navigate = useNavigate();
     const [step, setStep] = useState(1); // 1: Form, 2: Confirm, 3: Success
     const [loading, setLoading] = useState(false);
     const [checking, setChecking] = useState(false);
@@ -341,7 +343,17 @@ const ReservationPage = () => {
 
     // ─── Step 1: Form đặt bàn ────────────────────────────────────────────
     return (
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-100 flex flex-col items-center justify-center p-4">
+            <div className="w-full max-w-lg mb-4">
+                <button
+                    type="button"
+                    onClick={() => navigate(-1)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 bg-white/80 hover:bg-white rounded-xl shadow-sm border border-gray-200/60 transition-all active:scale-95"
+                >
+                    <span className="material-symbols-outlined text-lg">arrow_back</span>
+                    Quay lại
+                </button>
+            </div>
             <div className="bg-white rounded-3xl shadow-2xl max-w-lg w-full">
                 {/* Header */}
                 <div className="bg-gradient-to-r from-emerald-600 to-green-500 px-8 py-8 text-center rounded-t-3xl">

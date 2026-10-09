@@ -109,12 +109,12 @@ def parse_date(text: str) -> Tuple[Optional[str], bool]:
     return None, False
 
 
-def parse_time(text: str) -> Tuple[Optional[str], bool]:
+def parse_time(text: str, pending_ambiguous_hour: Optional[int] = None) -> Tuple[Optional[str], bool, Optional[int]]:
     """
     Parse chuỗi tiếng Việt tìm giờ đặt bàn.
     
     Returns:
-        (time_str: "HH:MM" hoặc None, is_ambiguous: bool)
+        (time_str: "HH:MM" hoặc None, is_ambiguous: bool, ambiguous_hour: int hoặc None)
     """
     text = text.lower().strip()
 
@@ -142,45 +142,56 @@ def parse_time(text: str) -> Tuple[Optional[str], bool]:
                 minute = int(m.group(2))
             break
 
+    # Nếu không tìm thấy số giờ trong câu, nhưng có pending_ambiguous_hour từ turn trước
+    # và câu này chỉ là câu trả lời buổi (VD: "tối", "buổi tối", "tối nha", "sáng", "chiều")
     if hour is None:
-        return None, False
+        if pending_ambiguous_hour is not None:
+            if is_evening:
+                h = pending_ambiguous_hour + 12 if pending_ambiguous_hour < 12 else pending_ambiguous_hour
+                return f"{h:02d}:00", False, None
+            if is_afternoon:
+                h = pending_ambiguous_hour + 12 if pending_ambiguous_hour < 12 else pending_ambiguous_hour
+                return f"{h:02d}:00", False, None
+            if is_morning or is_noon:
+                return f"{pending_ambiguous_hour:02d}:00", False, None
+        return None, False, None
 
     # Trường hợp người dùng nhập giờ 24h: 13h..23h
     if 13 <= hour <= 23:
         if 0 <= minute <= 59:
-            return f"{hour:02d}:{minute:02d}", False
-        return None, True
+            return f"{hour:02d}:{minute:02d}", False, None
+        return None, True, hour
 
     # Trường hợp 12h: trưa hoặc đêm
     if hour == 12:
         if is_evening or "đêm" in text:
-            return "00:00", False
-        return f"12:{minute:02d}", False
+            return "00:00", False, None
+        return f"12:{minute:02d}", False, None
 
     # Trường hợp 0h:
     if hour == 0:
-        return f"00:{minute:02d}", False
+        return f"00:{minute:02d}", False, None
 
     # Với các giờ từ 1 đến 11:
     if is_evening:
         hour += 12
-        return f"{hour:02d}:{minute:02d}", False
+        return f"{hour:02d}:{minute:02d}", False, None
 
     if is_afternoon:
         if hour < 12:
             hour += 12
-        return f"{hour:02d}:{minute:02d}", False
+        return f"{hour:02d}:{minute:02d}", False, None
 
     if is_noon:
         # 11h trưa -> 11:00, 12h trưa -> 12:00
-        return f"{hour:02d}:{minute:02d}", False
+        return f"{hour:02d}:{minute:02d}", False, None
 
     if is_morning:
-        return f"{hour:02d}:{minute:02d}", False
+        return f"{hour:02d}:{minute:02d}", False, None
 
     # Không có từ chỉ buổi:
     # Nếu là 1h..11h -> Không rõ sáng hay tối!
-    return None, True
+    return None, True, hour
 
 
 def validate_reservation_time(

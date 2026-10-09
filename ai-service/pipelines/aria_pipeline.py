@@ -396,7 +396,7 @@ class AriaConversationPipeline:
                 user_info = state["user_info"]
                 name = slots.get("customer_name") or user_info.get("name") or "Quý khách"
                 phone = slots.get("customer_phone") or user_info.get("phone") or "0900000000"
-                email = user_info.get("email")
+                email = slots.get("customer_email") or user_info.get("email")
 
                 try:
                     res_data = await create_reservation(
@@ -420,6 +420,7 @@ class AriaConversationPipeline:
                         amt = res_data.get("deposit_amount", slots["guests"] * 50000)
                         dep_note = f"\n⚠️ **Lưu ý:** Nhóm ≥ 6 người cần đặt cọc **{amt:,.0f} VNĐ** (50k/người). Nhân viên sẽ liên hệ hướng dẫn thanh toán cọc nhé."
 
+                    email_note = f" và email **{email}**" if email else ""
                     resp = (
                         f"🎉 **Đặt bàn thành công!**\n\n"
                         f"• Mã đặt bàn: **{res_data.get('booking_code')}**\n"
@@ -427,7 +428,7 @@ class AriaConversationPipeline:
                         f"• Số lượng: **{slots['guests']} người**\n"
                         f"• Tên: **{name}** · SĐT: **{_mask_phone(phone)}**\n"
                         f"{dep_note}\n\n"
-                        f"Nhà hàng sẽ gửi thông báo xác nhận và chuẩn bị bàn đón bạn thật chu đáo. Bạn có cần xem thêm món ngon trước không ạ?"
+                        f"Nhà hàng đã gửi vé xác nhận có mã QR qua SĐT{email_note} và chuẩn bị bàn đón bạn thật chu đáo. Bạn có cần xem thêm món ngon trước không ạ?"
                     )
 
                     for t in self._chunk_tokens(resp):
@@ -502,9 +503,12 @@ class AriaConversationPipeline:
 
         # Cập nhật slot mới
         slots = state["slots"]
-        for key in ["date", "time", "guests", "customer_name", "customer_phone", "special_requests"]:
+        for key in ["date", "time", "guests", "customer_name", "customer_phone", "customer_email", "special_requests"]:
             if extracted.get(key) is not None:
                 slots[key] = extracted[key]
+
+        if "pending_ambiguous_hour" in extracted:
+            slots["pending_ambiguous_hour"] = extracted["pending_ambiguous_hour"]
 
         # 4. Kiểm tra nhóm quá đông (> 10 người) -> Handoff ngay (Proposal T07)
         if slots.get("guests") and slots["guests"] > 10:
@@ -540,7 +544,7 @@ class AriaConversationPipeline:
 
         # 5.1 Kiểm tra câu hỏi chen ngang (Context Distraction - Proposal T20)
         # Nếu câu thoại không chứa slot mới nào, không phải xác nhận/hủy, và có vẻ là câu hỏi
-        has_new_slot = any(extracted.get(k) is not None for k in ["date", "time", "guests", "customer_name", "customer_phone"])
+        has_new_slot = any(extracted.get(k) is not None for k in ["date", "time", "guests", "customer_name", "customer_phone", "customer_email"])
         if not has_new_slot and any(q in message.lower() for q in ["đỗ xe", "gửi xe", "wifi", "ở đâu", "mở cửa", "mấy giờ", "có món", "món gì"]):
             # Trả lời câu hỏi phụ
             ans = ""
@@ -585,8 +589,10 @@ class AriaConversationPipeline:
 
         # 7. Nếu người dùng nhập giờ mơ hồ (VD: "7h" không rõ sáng/tối - Proposal T02)
         if extracted.get("time_ambiguous") and not slots.get("time"):
+            amb_h = slots.get("pending_ambiguous_hour") or 7
+            slots["pending_ambiguous_hour"] = amb_h
             await save_state(session_id, state)
-            resp = "Bạn muốn đặt bàn lúc **7h sáng** hay **7h tối (19:00)** ạ?"
+            resp = f"Bạn muốn đặt bàn lúc **{amb_h}h sáng** hay **{amb_h}h tối ({amb_h + 12}:00)** ạ?"
             for t in self._chunk_tokens(resp):
                 yield self._sse("token", {"content": t})
             yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
@@ -631,6 +637,7 @@ class AriaConversationPipeline:
                 user_info = state["user_info"]
                 name = slots.get("customer_name") or user_info.get("name") or "Quý khách"
                 phone = slots.get("customer_phone") or user_info.get("phone") or ""
+                email = slots.get("customer_email") or user_info.get("email") or ""
 
                 dep_text = ""
                 if slots["guests"] >= 6:
@@ -638,12 +645,13 @@ class AriaConversationPipeline:
                     dep_text = f"\n• Cọc bàn: **{amt:,.0f} VNĐ** (50.000đ/người)"
 
                 special_text = f"\n• Ghi chú: **{slots['special_requests']}**" if slots.get("special_requests") else ""
+                email_text = f" · Email: **{email}**" if email else ""
 
                 resp = (
                     f"Dạ còn bàn trống ạ! Aria tóm tắt lại thông tin đặt bàn:\n\n"
                     f"📅 Ngày: **{slots['date']}** lúc **{slots['time']}**\n"
                     f"👥 Số khách: **{slots['guests']} người**\n"
-                    f"👤 Khách hàng: **{name}** · SĐT: **{_mask_phone(phone)}**"
+                    f"👤 Khách hàng: **{name}** · SĐT: **{_mask_phone(phone)}**{email_text}"
                     f"{special_text}"
                     f"{dep_text}\n\n"
                     f"Bạn xác nhận đặt bàn không ạ? (Trả lời **'ok'** hoặc **'xác nhận'**)"
@@ -689,7 +697,7 @@ class AriaConversationPipeline:
         if not slots.get("guests"):
             missing.append("guests")
 
-        # Nếu chưa đăng nhập thì cần hỏi Tên và SĐT
+        # Nếu chưa đăng nhập thì bắt buộc cần Tên và SĐT
         if not user_info.get("is_logged_in"):
             if not slots.get("customer_name"):
                 missing.append("customer_name")
@@ -708,7 +716,7 @@ class AriaConversationPipeline:
             "time": "bạn muốn đến lúc mấy giờ?",
             "guests": "nhóm bạn dự kiến đi bao nhiêu người?",
             "customer_name": "cho Aria xin họ tên của bạn để đặt bàn nhé?",
-            "customer_phone": "cho Aria xin số điện thoại di động để gửi xác nhận nhé?",
+            "customer_phone": "cho Aria xin số điện thoại di động (và email nếu có) để gửi vé xác nhận nhé?",
         }
 
         # Chỉ hỏi tối đa 2 câu một lúc để tránh hỏi dồn dập
@@ -725,7 +733,7 @@ class AriaConversationPipeline:
             return f"{greeting}bạn muốn đặt bàn ngày nào và bao nhiêu người ạ?"
         # Nếu thiếu name + phone
         if first == "customer_name" and second == "customer_phone":
-            return f"{greeting}cho Aria xin họ tên và số điện thoại liên hệ của bạn nhé?"
+            return f"{greeting}cho Aria xin họ tên, số điện thoại (và email nếu bạn muốn nhận vé xác nhận kèm mã QR) nhé?"
 
         return f"{greeting}{questions[first]} Và {questions[second]}"
 

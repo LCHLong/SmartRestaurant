@@ -62,14 +62,26 @@ def test_t01_one_shot_extraction():
 
 def test_t02_ambiguous_time():
     """T02: Giờ mơ hồ không rõ sáng/tối."""
-    t_str, ambiguous = parse_time("cho mình đặt bàn lúc 7h")
+    t_str, ambiguous, amb_h = parse_time("cho mình đặt bàn lúc 7h")
     assert t_str is None
     assert ambiguous is True
+    assert amb_h == 7
 
     # 7h tối -> rõ ràng
-    t_str2, ambiguous2 = parse_time("7h tối")
+    t_str2, ambiguous2, amb_h2 = parse_time("7h tối")
     assert t_str2 == "19:00"
     assert ambiguous2 is False
+    assert amb_h2 is None
+
+    # Khách chỉ trả lời "tối" sau khi có pending_ambiguous_hour = 7
+    t_str3, amb3, _ = parse_time("tối", pending_ambiguous_hour=7)
+    assert t_str3 == "19:00"
+    assert amb3 is False
+
+    # Khách chỉ trả lời "buổi sáng" sau khi có pending_ambiguous_hour = 7
+    t_str4, amb4, _ = parse_time("buổi sáng", pending_ambiguous_hour=7)
+    assert t_str4 == "07:00"
+    assert amb4 is False
 
 
 def test_t03_relative_weekday():
@@ -470,3 +482,85 @@ async def test_t20_mid_flow_question_then_continue():
     text2 = extract_text_from_sse(chunks2)
     assert "đỗ xe" in text2
     assert "Quay lại thông tin đặt bàn" in text2
+
+
+@pytest.mark.asyncio
+async def test_email_extraction_and_booking():
+    """Kiểm tra trích xuất email của khách và truyền đúng vào create_reservation."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_email_booking"
+    future_date = (now_vn().date() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+    with patch("pipelines.aria_pipeline.check_availability", new_callable=AsyncMock) as mock_check, \
+         patch("pipelines.aria_pipeline.create_reservation", new_callable=AsyncMock) as mock_create:
+
+        mock_check.return_value = {"available": True, "available_tables": 2}
+        mock_create.return_value = {
+            "booking_code": "SR-EMAIL123",
+            "reservation_date": future_date,
+            "reservation_time": "19:00",
+            "guest_count": 2,
+            "requires_deposit": False
+        }
+
+        # Turn 1: Khách cung cấp thông tin gồm cả email
+        chunks1 = []
+        async for sse in pipeline.process(
+            message=f"Mình là Khang 0987654321 email khang@gmail.com, đặt bàn 2 người ngày {future_date} lúc 19:00",
+            session_id=session_id
+        ):
+            chunks1.append(sse)
+
+        state = await get_state(session_id)
+        assert state["slots"]["customer_email"] == "khang@gmail.com"
+        assert state["fsm_state"] == "AWAITING_CONFIRMATION"
+
+        # Turn 2: Khách xác nhận
+        chunks2 = []
+        async for sse in pipeline.process(
+            message="ok",
+            session_id=session_id
+        ):
+            chunks2.append(sse)
+
+        mock_create.assert_called_once()
+        _, kwargs = mock_create.call_args
+        assert kwargs["customer_email"] == "khang@gmail.com"
+        assert kwargs["customer_name"] == "Khang"
+        assert kwargs["customer_phone"] == "0987654321"
+
+
+@pytest.mark.asyncio
+async def test_multi_turn_ambiguous_resolution():
+    """Kiểm tra giải quyết giờ mơ hồ qua 2 lượt thoại mà không bị hỏi lại lần 2."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_amb_resolution"
+    future_date = (now_vn().date() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+    # Turn 1: Nói 7h (mơ hồ)
+    chunks1 = []
+    async for sse in pipeline.process(
+        message=f"Cho mình đặt bàn ngày {future_date} lúc 7h đi 3 người",
+        session_id=session_id
+    ):
+        chunks1.append(sse)
+
+    text1 = extract_text_from_sse(chunks1)
+    assert "7h sáng" in text1 and "7h tối (19:00)" in text1
+    state1 = await get_state(session_id)
+    assert state1["slots"]["pending_ambiguous_hour"] == 7
+
+    # Turn 2: Khách chỉ trả lời ngắn "tối nhé"
+    chunks2 = []
+    async for sse in pipeline.process(
+        message="tối nhé",
+        session_id=session_id
+    ):
+        chunks2.append(sse)
+
+    text2 = extract_text_from_sse(chunks2)
+    # Không được hỏi lại câu hỏi "7h sáng hay 7h tối" nữa
+    assert "7h sáng hay 7h tối" not in text2
+    state2 = await get_state(session_id)
+    assert state2["slots"]["time"] == "19:00"
+    assert state2["slots"]["pending_ambiguous_hour"] is None

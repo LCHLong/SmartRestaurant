@@ -12,7 +12,11 @@ const ReservationManagement = () => {
     const socket = useSocket();
     const [reservations, setReservations] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    // Chế độ lọc thời gian: 'today' | 'week' | 'month' | 'single' | 'custom' | 'all'
+    const [dateFilterType, setDateFilterType] = useState('today');
+    const [singleDate, setSingleDate] = useState(new Date().toISOString().split('T')[0]);
+    const [fromDate, setFromDate] = useState('');
+    const [toDate, setToDate] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [page, setPage] = useState(1);
     const [pagination, setPagination] = useState({ total: 0, totalPages: 1 });
@@ -20,10 +24,47 @@ const ReservationManagement = () => {
     const [checkingInId, setCheckingInId] = useState(null);
     const [selectedResv, setSelectedResv] = useState(null);
 
+    const getDateRangeParams = useCallback(() => {
+        const todayStr = new Date().toISOString().split('T')[0];
+        const now = new Date();
+
+        if (dateFilterType === 'today') {
+            return { date: todayStr };
+        }
+        if (dateFilterType === 'single') {
+            return { date: singleDate || todayStr };
+        }
+        if (dateFilterType === 'week') {
+            // 7 ngày qua hoặc tuần này: từ đầu tuần đến cuối tuần
+            const dayOfWeek = now.getDay() || 7; // 1 (Mon) - 7 (Sun)
+            const mon = new Date(now);
+            mon.setDate(now.getDate() - dayOfWeek + 1);
+            const sun = new Date(mon);
+            sun.setDate(mon.getDate() + 6);
+            return {
+                from_date: mon.toISOString().split('T')[0],
+                to_date: sun.toISOString().split('T')[0],
+            };
+        }
+        if (dateFilterType === 'month') {
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+            return { from_date: firstDay, to_date: lastDay };
+        }
+        if (dateFilterType === 'custom') {
+            const p = {};
+            if (fromDate) p.from_date = fromDate;
+            if (toDate) p.to_date = toDate;
+            return p;
+        }
+        return {}; // 'all': không lọc ngày
+    }, [dateFilterType, singleDate, fromDate, toDate]);
+
     const fetchReservations = useCallback(async () => {
         setLoading(true);
         try {
-            const params = { date, page, limit: 20 };
+            const dateParams = getDateRangeParams();
+            const params = { ...dateParams, page, limit: 20 };
             if (statusFilter) params.status = statusFilter;
             const res = await api.get('/api/reservations', { params });
             setReservations(res.data.data || []);
@@ -33,7 +74,7 @@ const ReservationManagement = () => {
         } finally {
             setLoading(false);
         }
-    }, [date, statusFilter, page]);
+    }, [getDateRangeParams, statusFilter, page]);
 
     useEffect(() => { fetchReservations(); }, [fetchReservations]);
 
@@ -124,33 +165,73 @@ const ReservationManagement = () => {
             </div>
 
             {/* Filters */}
-            <div className="flex flex-wrap gap-3 mb-6">
-                <input
-                    type="date"
-                    value={date}
-                    onChange={(e) => { setDate(e.target.value); setPage(1); }}
-                    className="border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                />
-                <select
-                    value={statusFilter}
-                    onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                    className="border border-gray-200 rounded-xl px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
-                >
-                    {statusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </select>
-                <button
-                    onClick={fetchReservations}
-                    className="px-4 py-2 bg-emerald-600 text-white text-sm rounded-xl font-semibold hover:bg-emerald-700 inline-flex items-center gap-1.5"
-                >
-                    <span className="material-symbols-outlined text-sm">refresh</span>
-                    Tải lại
-                </button>
+            <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm mb-6 flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-gray-400 text-lg">calendar_month</span>
+                    <select
+                        value={dateFilterType}
+                        onChange={(e) => { setDateFilterType(e.target.value); setPage(1); }}
+                        className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 font-medium text-gray-700 bg-gray-50/50"
+                    >
+                        <option value="today">Hôm nay</option>
+                        <option value="single">Chọn một ngày</option>
+                        <option value="week">Tuần này</option>
+                        <option value="month">Tháng này</option>
+                        <option value="custom">Khoảng ngày tùy chỉnh</option>
+                        <option value="all">Tất cả thời gian</option>
+                    </select>
+                </div>
+
+                {dateFilterType === 'single' && (
+                    <input
+                        type="date"
+                        value={singleDate}
+                        onChange={(e) => { setSingleDate(e.target.value); setPage(1); }}
+                        className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                    />
+                )}
+
+                {dateFilterType === 'custom' && (
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 font-medium">Từ</span>
+                        <input
+                            type="date"
+                            value={fromDate}
+                            onChange={(e) => { setFromDate(e.target.value); setPage(1); }}
+                            className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        />
+                        <span className="text-xs text-gray-500 font-medium">Đến</span>
+                        <input
+                            type="date"
+                            value={toDate}
+                            onChange={(e) => { setToDate(e.target.value); setPage(1); }}
+                            className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400"
+                        />
+                    </div>
+                )}
+
+                <div className="flex items-center gap-2 ml-auto">
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+                        className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 font-medium text-gray-700 bg-gray-50/50"
+                    >
+                        {statusOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                    </select>
+                    <button
+                        onClick={fetchReservations}
+                        className="px-3.5 py-2 bg-emerald-600 text-white text-sm rounded-xl font-semibold hover:bg-emerald-700 inline-flex items-center gap-1.5 transition-colors shadow-sm active:scale-95"
+                    >
+                        <span className="material-symbols-outlined text-sm">refresh</span>
+                        Làm mới
+                    </button>
+                </div>
             </div>
 
             {/* Stats bar */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                 {[
-                    { label: 'Tổng hôm nay', value: stats.total, color: 'text-gray-700', bg: 'bg-gray-50', icon: 'calendar_today', iconColor: 'text-gray-500' },
+                    { label: 'Tổng số lượt', value: stats.total, color: 'text-gray-700', bg: 'bg-gray-50', icon: 'calendar_today', iconColor: 'text-gray-500' },
                     { label: 'Chờ xác nhận', value: stats.pending, color: 'text-amber-600', bg: 'bg-amber-50/50', icon: 'hourglass_empty', iconColor: 'text-amber-500' },
                     { label: 'Đã xác nhận', value: stats.confirmed, color: 'text-blue-600', bg: 'bg-blue-50/50', icon: 'check_circle', iconColor: 'text-blue-500' },
                     { label: 'Đang ngồi', value: stats.seated, color: 'text-emerald-600', bg: 'bg-emerald-50/50', icon: 'table_restaurant', iconColor: 'text-emerald-500' },
@@ -171,9 +252,10 @@ const ReservationManagement = () => {
                     <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-emerald-500" />
                 </div>
             ) : reservations.length === 0 ? (
-                <div className="text-center py-20 text-gray-400">
+                <div className="text-center py-20 text-gray-400 bg-white rounded-2xl border border-gray-100 shadow-sm">
                     <span className="material-symbols-outlined text-5xl mb-3 text-gray-300">event_busy</span>
-                    <p>Không có đặt bàn nào trong ngày {date}</p>
+                    <p className="font-medium text-gray-600">Không có đặt bàn nào trong khoảng thời gian đã chọn</p>
+                    <p className="text-xs text-gray-400 mt-1">Hãy thử chọn mốc thời gian khác hoặc làm mới danh sách</p>
                 </div>
             ) : (
                 <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
