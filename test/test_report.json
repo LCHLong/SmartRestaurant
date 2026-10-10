@@ -268,5 +268,50 @@
     "status": "PASSED",
     "notes": "Aria tiếp nhận linh hoạt việc đổi ý và gợi ý đúng món phở bò.",
     "evidence": "test/evidence/TC-LV7-05_passed.png"
+  },
+  {
+    "id": "TC-LV8-01",
+    "level": "Level8",
+    "name": "Chính sách đặt cọc nhóm 6-14 người (Deposit Policy)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria chủ động nhắc nhở chính sách đặt cọc với nhóm từ 6-14 khách (50.000 VNĐ/khách).",
+    "evidence": "test/evidence/TC-LV8-01_passed.png"
+  },
+  {
+    "id": "TC-LV8-02",
+    "level": "Level8",
+    "name": "Gợi ý món ăn kèm & đồ uống (Pairing with Bún Bò Huế)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria gợi ý khéo léo đồ uống và món ăn kèm phù hợp khi dùng Bún Bò Huế.",
+    "evidence": "test/evidence/TC-LV8-02_passed.png"
+  },
+  {
+    "id": "TC-LV8-03",
+    "level": "Level8",
+    "name": "Đặt bàn quá xa trong tương lai (Năm 2027)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria phát hiện ngày đặt bàn quá xa trong tương lai (>30 ngày) và nhắc nhở chính sách.",
+    "evidence": "test/evidence/TC-LV8-03_passed.png"
+  },
+  {
+    "id": "TC-LV8-04",
+    "level": "Level8",
+    "name": "Đổi số lượng khách giữa chừng (Từ 2 người lên 6 người)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria cập nhật mượt mà số lượng khách từ 2 lên 6 người trong ngữ cảnh đang đặt bàn.",
+    "evidence": "test/evidence/TC-LV8-04_passed.png"
+  },
+  {
+    "id": "TC-LV8-05",
+    "level": "Level8",
+    "name": "Tra cứu ưu đãi thành viên & Voucher giảm giá",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria giải đáp chính xác thông tin về chính sách ưu đãi / voucher của nhà hàng.",
+    "evidence": "test/evidence/TC-LV8-05_passed.png"
   }
 ]

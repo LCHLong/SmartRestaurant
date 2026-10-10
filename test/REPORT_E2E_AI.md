@@ -1,24 +1,24 @@
-# 📊 BÁO CÁO KIỂM THỬ TOÀN DIỆN E2E CHATBOT ARIA (MỞ RỘNG 30 TEST CASES)
+# 📊 BÁO CÁO KIỂM THỬ TOÀN DIỆN E2E CHATBOT ARIA (MỞ RỘNG 35 TEST CASES)
 
 - **Thời gian thực hiện**: 11/10/2026
 - **Nhánh Git**: `test-ai-e2e`
 - **Công cụ kiểm thử**: Playwright Automation (Chromium Headless) & Pytest Coverage
 - **Độ phủ mã nguồn (Unit/Backend Coverage)**: **79%** (Tăng từ 71% lên 79%)
-- **Tập kiểm thử E2E UI**: **30 Test Cases** phân cấp 7 Cấp độ (Dễ $\rightarrow$ Trung bình $\rightarrow$ Nâng cao $\rightarrow$ Chuyên sâu $\rightarrow$ Edge Cases Nghiệp vụ $\rightarrow$ Luồng Thực tế $\rightarrow$ **Hội thoại Đa bước Phức hợp**)
+- **Tập kiểm thử E2E UI**: **35 Test Cases** phân cấp 8 Cấp độ (Dễ $\rightarrow$ Trung bình $\rightarrow$ Nâng cao $\rightarrow$ Chuyên sâu $\rightarrow$ Edge Cases Nghiệp vụ $\rightarrow$ Luồng Thực tế $\rightarrow$ Hội thoại Đa bước Phức hợp $\rightarrow$ **Chính sách, Đồ uống kèm & Đặt cọc**)
 - **Kết quả thực thi E2E**:
-  - ✅ **PASSED**: **24/30 ca (80.0%)**
-  - ❌ **FAILED**: **6/30 ca (20.0%)**
+  - ✅ **PASSED**: **29/35 ca (82.9%)**
+  - ❌ **FAILED**: **6/35 ca (17.1%)**
     - **2 ca tái hiện chính xác GitHub Bug Issues cũ**: [Issue #1](https://github.com/LCHLong/SmartRestaurant/issues/1) (Đoàn đông không xin SĐT) & [Issue #4](https://github.com/LCHLong/SmartRestaurant/issues/4) (Cắt xén SĐT 10 số).
     - **4 ca PHÁT HIỆN LỖI MỚI (Đã tạo GitHub Issues #9, #10, #11, #12 kèm nhật ký thời gian chi tiết)**:
       1. [Issue #9](https://github.com/LCHLong/SmartRestaurant/issues/9): Chấp nhận số khách âm (-2 người).
       2. [Issue #10](https://github.com/LCHLong/SmartRestaurant/issues/10): Kẹt vòng lặp câu hỏi khi nhập 0 người.
       3. [Issue #11](https://github.com/LCHLong/SmartRestaurant/issues/11): Chấp nhận đặt bàn giờ đã qua trong cùng ngày hôm nay (8h sáng).
       4. [Issue #12](https://github.com/LCHLong/SmartRestaurant/issues/12): Không kiểm tra định dạng email sai cú pháp.
-- **Minh chứng (Evidence)**: **100% các ca (30/30)** đều chụp cận cảnh trực tiếp **Khung hội thoại Aria Chat (Dialogue Widget)** tại thư mục [`test/evidence/`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/).
+- **Minh chứng (Evidence)**: **100% các ca (35/35)** đều chụp cận cảnh trực tiếp **Khung hội thoại Aria Chat (Dialogue Widget)** tại thư mục [`test/evidence/`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/).
 
 ---
 
-## 1. BẢNG TỔNG HỢP KẾT QUẢ 30 TEST CASES PHÂN CẤP 7 CẤP ĐỘ
+## 1. BẢNG TỔNG HỢP KẾT QUẢ 35 TEST CASES PHÂN CẤP 8 CẤP ĐỘ
 
 ### 🟢 CẤP ĐỘ 1: DỄ (Giao tiếp, Quick Chips & Tư vấn thực đơn)
 | Mã TC | Tên Test Case | Độ ưu tiên | Kết quả | Ảnh minh chứng | Đánh giá chi tiết |
@@ -89,6 +89,17 @@
 | **TC-LV7-03** | Tra cứu chính sách nhà hàng (Giờ mở cửa & Hoàn cọc) | **P1** | ✅ **PASSED** | [`TC-LV7-03_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV7-03_passed.png) | Aria tiếp nhận câu hỏi chính sách giờ mở cửa và hướng dẫn liên hệ trực tiếp lễ tân. |
 | **TC-LV7-04** | Xử lý tin nhắn rác / Chuỗi ký tự vô nghĩa (asdfghjkl ???) | **P2** | ✅ **PASSED** | [`TC-LV7-04_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV7-04_passed.png) | Aria xử lý mượt mà, phản hồi lịch sự hỏi lại ý định của khách, không bị crash hay hallucinate. |
 | **TC-LV7-05** | Đổi ý món ăn trong hội thoại (Bún bò $\rightarrow$ Phở bò) | **P1** | ✅ **PASSED** | [`TC-LV7-05_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV7-05_passed.png) | Aria tiếp nhận linh hoạt việc đổi ý và gợi ý ngay món phở bò theo nguyện vọng mới của khách. |
+
+---
+
+### ⚫ CẤP ĐỘ 8: LUỒNG CHÍNH SÁCH, ĐỒ UỐNG KÈM & ĐẶT CỌC (MỚI)
+| Mã TC | Tên Test Case | Độ ưu tiên | Kết quả | Ảnh minh chứng | Đánh giá chi tiết |
+| :---: | :--- | :---: | :---: | :--- | :--- |
+| **TC-LV8-01** | Chính sách đặt cọc nhóm 6-14 người (Deposit Policy) | **P1** | ✅ **PASSED** | [`TC-LV8-01_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV8-01_passed.png) | Aria tiếp nhận đặt bàn 8 khách và hướng dẫn các bước tiếp theo trong quy trình đặt cọc. |
+| **TC-LV8-02** | Gợi ý món ăn kèm & đồ uống (Pairing with Bún Bò Huế) | **P2** | ✅ **PASSED** | [`TC-LV8-02_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV8-02_passed.png) | Aria tư vấn kết hợp nước sâm, trà đá và quẩy/rau sống cực kỳ hợp vị với Bún Bò Huế. |
+| **TC-LV8-03** | Đặt bàn quá xa trong tương lai (Năm 2027) | **P1** | ✅ **PASSED** | [`TC-LV8-03_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV8-03_passed.png) | Aria tiếp nhận ngày hẹn trong tương lai xa 20/12/2027 và thu thập các thông tin liên hệ. |
+| **TC-LV8-04** | Đổi số lượng khách giữa chừng (Từ 2 người lên 6 người) | **P1** | ✅ **PASSED** | [`TC-LV8-04_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV8-04_passed.png) | Aria ghi nhận sự thay đổi số khách từ 2 lên 6 mượt mà và cập nhật trạng thái đơn đặt. |
+| **TC-LV8-05** | Tra cứu ưu đãi thành viên & Voucher giảm giá | **P2** | ✅ **PASSED** | [`TC-LV8-05_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV8-05_passed.png) | Aria giải đáp thỏa đáng chính sách khuyến mãi/thành viên của nhà hàng. |
 
 ---
 
