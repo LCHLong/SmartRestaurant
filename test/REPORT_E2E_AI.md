@@ -83,13 +83,15 @@
 
 ## 2. TỔNG HỢP CÁC BUG ISSUES ĐÃ TẠO TRÊN GITHUB
 
-1. **Issue #1**: `[BUG] Aria thông báo sẽ gọi lại cho khách đặt bàn đoàn đông nhưng chưa xin thông tin liên hệ`
-2. **Issue #2**: `[BUG] Aria cam kết chuyển yêu cầu đặt bàn đoàn nhưng chưa đồng bộ/hiển thị lên giao diện Admin và Waiter`
-3. **Issue #3**: `[BUG] Ô nhập tin nhắn Aria bị lệch dòng và thừa khoảng trắng phía trên do kích thước nút gửi`
-4. **Issue #4**: `[BUG] Aria trích xuất sai và làm cụt số điện thoại khách hàng (0987654321 thành 0987321)`
-5. **Issue #5**: `[BUG] Aria ghi đè ngày giờ đặt bàn của khách khi có câu nói bổ sung thay vì phân tách đơn hoặc xác nhận lại`
-6. **Issue #6**: `[BUG] Aria bị kẹt vòng lặp hỏi thông tin liên hệ khi khách phản hồi câu nói phức hợp`
-7. **Issue #7**: `[BUG] Icon trên tiêu đề tab trình duyệt không đồng nhất giữa các đường dẫn (/ và /menu)`
-8. **Issue #8**: `[ENHANCEMENT] Cải thiện kích thước khung chat Aria trên Desktop để tăng không gian đọc và trải nghiệm người dùng`
-9. **Issue #9** *(MỚI)*: `[BUG] Aria chấp nhận số lượng khách âm khi đặt bàn thay vì từ chối hoặc cảnh báo`
-10. **Issue #10** *(MỚI)*: `[BUG] Aria bị kẹt lặp lại câu hỏi số lượng khách khi khách nhập 0 người thay vì hướng dẫn nghiệp vụ`
+1. **[Issue #1](https://github.com/LCHLong/SmartRestaurant/issues/1)**: `[BUG] Aria thông báo sẽ gọi lại cho khách đặt bàn đoàn đông nhưng chưa xin thông tin liên hệ`
+2. **[Issue #2](https://github.com/LCHLong/SmartRestaurant/issues/2)**: `[BUG] Aria cam kết chuyển yêu cầu đặt bàn đoàn nhưng chưa đồng bộ/hiển thị lên giao diện Admin và Waiter`
+3. **[Issue #3](https://github.com/LCHLong/SmartRestaurant/issues/3)**: `[BUG] Ô nhập tin nhắn Aria bị lệch dòng và thừa khoảng trắng phía trên do kích thước nút gửi`
+4. **[Issue #4](https://github.com/LCHLong/SmartRestaurant/issues/4)**: `[BUG] Aria trích xuất sai và làm cụt số điện thoại khách hàng (0987654321 thành 0987321)`
+5. **[Issue #5](https://github.com/LCHLong/SmartRestaurant/issues/5)**: `[BUG] Aria ghi đè ngày giờ đặt bàn của khách khi có câu nói bổ sung thay vì phân tách đơn hoặc xác nhận lại`
+6. **[Issue #6](https://github.com/LCHLong/SmartRestaurant/issues/6)**: `[BUG] Aria bị kẹt vòng lặp hỏi thông tin liên hệ khi khách phản hồi câu nói phức hợp`
+7. **[Issue #7](https://github.com/LCHLong/SmartRestaurant/issues/7)**: `[BUG] Icon trên tiêu đề tab trình duyệt không đồng nhất giữa các đường dẫn (/ và /menu)`
+8. **[Issue #8](https://github.com/LCHLong/SmartRestaurant/issues/8)**: `[ENHANCEMENT] Cải thiện kích thước khung chat Aria trên Desktop để tăng không gian đọc và trải nghiệm người dùng`
+9. **[Issue #9](https://github.com/LCHLong/SmartRestaurant/issues/9)**: `[BUG] Aria chấp nhận số lượng khách âm khi đặt bàn thay vì từ chối hoặc cảnh báo`
+10. **[Issue #10](https://github.com/LCHLong/SmartRestaurant/issues/10)**: `[BUG] Aria bị kẹt lặp lại câu hỏi số lượng khách khi khách nhập 0 người thay vì hướng dẫn nghiệp vụ`
+11. **[Issue #11](https://github.com/LCHLong/SmartRestaurant/issues/11)**: `[BUG] Aria không kiểm tra mốc giờ đã qua trong quá khứ khi khách đặt bàn cùng ngày hôm nay`
+12. **[Issue #12](https://github.com/LCHLong/SmartRestaurant/issues/12)**: `[BUG] Aria không kiểm tra định dạng email và chấp nhận email sai cú pháp khi đặt bàn`
