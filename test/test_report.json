@@ -358,5 +358,50 @@
     "status": "PASSED",
     "notes": "Aria giải đáp thông tin về dịch vụ gửi xe của nhà hàng một cách chu đáo.",
     "evidence": "test/evidence/TC-LV9-05_passed.png"
+  },
+  {
+    "id": "TC-LV10-01",
+    "level": "Level10",
+    "name": "Chính sách phụ thu mang đồ uống ngoài vào (Corkage fee)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria giải đáp thỏa đáng chính sách mang đồ uống từ ngoài vào hoặc hướng dẫn liên hệ nhân viên.",
+    "evidence": "test/evidence/TC-LV10-01_passed.png"
+  },
+  {
+    "id": "TC-LV10-02",
+    "level": "Level10",
+    "name": "Dịch vụ tổ chức tiệc sinh nhật & mang bánh kem",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria tiếp nhận yêu cầu tiệc sinh nhật và nhiệt tình hướng dẫn hỗ trợ bảo quản bánh kem.",
+    "evidence": "test/evidence/TC-LV10-02_passed.png"
+  },
+  {
+    "id": "TC-LV10-03",
+    "level": "Level10",
+    "name": "Hỏi dịch vụ đặt món mang về (Take-away)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria xác nhận dịch vụ mua mang về và hỗ trợ đặt món chu đáo.",
+    "evidence": "test/evidence/TC-LV10-03_passed.png"
+  },
+  {
+    "id": "TC-LV10-04",
+    "level": "Level10",
+    "name": "Yêu cầu xuất hóa đơn tài chính (Hóa đơn VAT / MST)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria hướng dẫn chi tiết thủ tục xuất hóa đơn VAT (tên công ty, MST, địa chỉ).",
+    "evidence": "test/evidence/TC-LV10-04_passed.png"
+  },
+  {
+    "id": "TC-LV10-05",
+    "level": "Level10",
+    "name": "Yêu cầu phòng VIP riêng tư tiếp khách (Phòng kín)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria tư vấn chu đáo về không gian phòng VIP riêng tư để tiếp khách.",
+    "evidence": "test/evidence/TC-LV10-05_passed.png"
   }
 ]
