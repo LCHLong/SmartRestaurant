@@ -35,7 +35,9 @@ async def get_restaurant_settings() -> Dict[str, Any]:
         "restaurant_name": "Nhà hàng thông minh",
         "wifi_password": "12345678",
         "vat_rate": "8",
-        "currency": "VND"
+        "currency": "VND",
+        "address": "123 Đường Ẩm Thực, Quận 1, TP.HCM",
+        "hotline": "0901.234.567"
     }
 
     try:

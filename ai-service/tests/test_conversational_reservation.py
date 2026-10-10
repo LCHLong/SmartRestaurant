@@ -564,3 +564,134 @@ async def test_multi_turn_ambiguous_resolution():
     state2 = await get_state(session_id)
     assert state2["slots"]["time"] == "19:00"
     assert state2["slots"]["pending_ambiguous_hour"] is None
+
+
+@pytest.mark.asyncio
+async def test_pause_and_switch_to_menu():
+    """Khách đang đặt bàn nói 'khoan đặt đã, tư vấn món trước' -> Tạm dừng flow và tư vấn món."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_pause_switch"
+    await clear_state(session_id)
+
+    state = _get_default_state()
+    state["fsm_state"] = "COLLECTING_SLOTS"
+    state["slots"]["date"] = "2026-10-15"
+    await save_state(session_id, state)
+
+    chunks = []
+    async for sse in pipeline.process(
+        message="khoan đặt đã, tư vấn món trước",
+        session_id=session_id
+    ):
+        chunks.append(sse)
+
+    text = extract_text_from_sse(chunks)
+    assert "tạm dừng" in text
+    st = await get_state(session_id)
+    assert st["fsm_state"] == "IDLE"
+
+
+@pytest.mark.asyncio
+async def test_mid_flow_dish_query_preserves_slots():
+    """Khách đang trong flow hỏi về món 'quán có món lẩu thái không?' -> Trả lời RAG và giữ nguyên slots."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_mid_flow_dish"
+    await clear_state(session_id)
+
+    state = _get_default_state()
+    state["fsm_state"] = "COLLECTING_SLOTS"
+    state["slots"]["date"] = "2026-10-15"
+    state["slots"]["time"] = "19:00"
+    state["slots"]["guests"] = 4
+    await save_state(session_id, state)
+
+    chunks = []
+    async for sse in pipeline.process(
+        message="quán có món lẩu thái không?",
+        session_id=session_id
+    ):
+        chunks.append(sse)
+
+    text = extract_text_from_sse(chunks)
+    assert "Lẩu" in text or "Tom Yum" in text
+    assert "Quay lại thông tin đặt bàn" in text
+
+    st = await get_state(session_id)
+    assert st["fsm_state"] == "COLLECTING_SLOTS"
+    assert st["slots"]["date"] == "2026-10-15"
+    assert st["slots"]["time"] == "19:00"
+    assert st["slots"]["guests"] == 4
+    assert st["slots"]["customer_name"] is None
+
+
+@pytest.mark.asyncio
+async def test_mid_flow_quan_ban_gi_no_name_pollution():
+    """Khách hỏi 'quán bán gì' -> Không gán tên khách là 'Quán Bán Gì'."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_no_pollution"
+    await clear_state(session_id)
+
+    state = _get_default_state()
+    state["fsm_state"] = "COLLECTING_SLOTS"
+    state["slots"]["date"] = "2026-10-15"
+    state["slots"]["time"] = "19:00"
+    state["slots"]["guests"] = 4
+    await save_state(session_id, state)
+
+    chunks = []
+    async for sse in pipeline.process(
+        message="quán bán gì",
+        session_id=session_id
+    ):
+        chunks.append(sse)
+
+    st = await get_state(session_id)
+    assert st["slots"]["customer_name"] != "Quán Bán Gì"
+    assert st["slots"]["customer_name"] is None
+
+
+@pytest.mark.asyncio
+async def test_awaiting_confirmation_facility_query():
+    """Khách đang ở AWAITING_CONFIRMATION hỏi 'quán có chỗ để ô tô không?' -> Trả lời bãi xe và giữ trạng thái."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_awaiting_parking"
+    await clear_state(session_id)
+
+    state = _get_default_state()
+    state["fsm_state"] = "AWAITING_CONFIRMATION"
+    state["slots"] = {
+        "date": "2026-10-15",
+        "time": "19:00",
+        "guests": 4,
+        "customer_name": "Nam",
+        "customer_phone": "0912345678"
+    }
+    await save_state(session_id, state)
+
+    chunks = []
+    async for sse in pipeline.process(
+        message="quán có chỗ để ô tô không?",
+        session_id=session_id
+    ):
+        chunks.append(sse)
+
+    text = extract_text_from_sse(chunks)
+    assert "đỗ xe" in text
+    assert "xác nhận" in text
+
+    st = await get_state(session_id)
+    assert st["fsm_state"] == "AWAITING_CONFIRMATION"
+
+
+def test_cancellation_variations():
+    """Kiểm tra các câu thoại tạm dừng / hủy / quay lại menu tiếng Việt."""
+    assert is_cancellation("khoan đặt đã") is True
+    assert is_cancellation("khoan đặt, tư vấn món trước") is True
+    assert is_cancellation("tư vấn món trước đi") is True
+    assert is_cancellation("tạm dừng") is True
+    assert is_cancellation("để sau đi") is True
+    assert is_cancellation("cho tôi xem thực đơn trước") is True
+    assert is_cancellation("quay lại menu") is True
+    assert is_cancellation("đặt thôi") is False
+    assert is_cancellation("chốt thôi") is False
+

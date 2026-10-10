@@ -188,19 +188,38 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
             if name:
                 return name
 
-    # Nếu đang thiếu tên và câu thoại ngắn (1-4 từ), không chứa các từ khoá ngày/giờ/đặt bàn
+    # Nếu đang thiếu tên và câu thoại ngắn (1-4 từ), không chứa các từ khoá ngày/giờ/đặt bàn/món ăn
     slots = current_state.get("slots", {})
     if not slots.get("customer_name") and not current_state.get("user_info", {}).get("is_logged_in"):
+        if "?" in text or "¿" in text:
+            return None
+
         clean_text = re.sub(r'[,.:;!?~_\-/\(\)\[\]"\'`]+', ' ', text_clean).strip()
         # Cắt bỏ các từ nhãn sđt / email nếu còn sót sau khi đã tách phone/email
         clean_text = re.split(r'\b(?:sđt|sdt|số|điện\s*thoại|phone|email|mail|đt)\b', clean_text, flags=re.IGNORECASE)[0].strip()
         words = [w for w in clean_text.split() if w]
         if 1 <= len(words) <= 4:
-            ignore_keywords = [
-                "đặt", "bàn", "ok", "được", "hủy", "thôi", "hôm", "mai", "giờ", "tối",
-                "trưa", "sáng", "người", "khách", "không", "có", "chỗ", "alo"
-            ]
-            if not any(w.lower() in ignore_keywords for w in words) and not re.search(r'\d', clean_text):
+            non_name_keywords = {
+                # Từ để hỏi & câu hỏi
+                "gì", "sao", "nào", "đâu", "ai", "mấy", "bao", "nhiêu", "thế", "chưa", "hả", "hử", "nhỉ",
+                "phải", "không", "ko", "k", "hông", "hổng", "chi", "được", "ạ",
+                # Món ăn & ẩm thực & menu
+                "món", "menu", "thực", "đơn", "ăn", "uống", "bán", "nấu", "nướng", "lẩu", "xào", "chiên",
+                "hấp", "quán", "nhà", "hàng", "bếp", "combo", "set", "rượu", "bia", "nước", "trà", "giá",
+                "tiền", "bill", "chay", "mặn", "hải", "sản", "thịt", "cá", "gà", "bò", "heo", "mực",
+                "tôm", "ốc", "cua", "rau", "canh", "cơm", "mì", "bún", "phở", "bánh", "ngon", "cay", "ngọt",
+                # Điều hướng & hành động
+                "đặt", "bàn", "ok", "oke", "okay", "hủy", "thôi", "khoan", "dừng", "tạm", "chờ", "đợi",
+                "sau", "xem", "tư", "vấn", "gợi", "ý", "hỏi", "tìm", "chọn", "giúp", "alo", "chào", "hello",
+                "hi", "ơi", "nhé", "nha", "đây", "nè", "chỗ", "người", "khách", "giờ", "hôm", "tối",
+                "trưa", "sáng", "chiều", "ngày",
+                # Tiện ích & dịch vụ
+                "xe", "đỗ", "gửi", "wifi", "pass", "mật", "khẩu", "cửa", "mở", "đóng", "phòng", "vip", "hút", "thuốc"
+            }
+            # Nếu chỉ có 1 từ mà là "mai" (ngày mai) -> không phải tên
+            if len(words) == 1 and words[0].lower() == "mai":
+                return None
+            if not any(w.lower() in non_name_keywords for w in words) and not re.search(r'\d', clean_text):
                 return _sanitize(" ".join(words))
 
     return None
@@ -234,14 +253,79 @@ def is_confirmation(message: str) -> bool:
 
 
 def is_cancellation(message: str) -> bool:
-    """Kiểm tra câu hủy quy trình đặt bàn (Proposal T17)."""
+    """Kiểm tra câu hủy / tạm dừng / thoát quy trình đặt bàn (Proposal T17)."""
     msg = message.lower().strip()
+
+    # Loại trừ trường hợp câu xác nhận tiến hành
+    if any(k in msg for k in ["đặt thôi", "chốt thôi", "tiến hành thôi", "ăn thôi"]):
+        return False
+
     cancels = [
         "hủy", "thôi", "không đặt", "cancel", "không cần", "bỏ qua",
         "không đặt nữa", "thôi không đặt", "thôi phiền quá", "dừng lại",
-        "để khi khác", "để dịp khác"
+        "để khi khác", "để dịp khác", "khoan đặt", "khoan đã", "khoan hãy",
+        "tạm dừng", "dừng đặt", "tạm hoãn", "chưa muốn đặt", "chưa đặt",
+        "để sau", "để lúc khác", "khi khác đặt", "từ từ đã", "từ từ hãy",
+        "chưa cần đặt", "chưa cần", "quay lại menu", "về menu", "về trang chủ",
+        "thoát", "tư vấn món trước", "xem menu trước", "xem thực đơn trước",
+        "tư vấn trước", "xem món trước", "xem món đã"
     ]
-    return any(c in msg for c in cancels)
+    if any(c in msg for c in cancels):
+        return True
+
+    # Kiểm tra các từ dừng riêng biệt
+    if re.search(r'\b(khoan|dừng|thôi|thoát)\b', msg):
+        return True
+
+    return False
+
+
+def check_side_query_intent(message: str) -> Tuple[bool, str]:
+    """
+    Phân loại câu hỏi phụ / tư vấn trong khi đang trong flow đặt bàn:
+    Returns:
+        (is_side_query: bool, query_type: 'FACILITY_INFO' | 'MENU_CONSULTATION' | 'NONE')
+    """
+    msg = message.lower().strip()
+
+    # 1. Câu hỏi về thông tin / tiện ích / dịch vụ nhà hàng (Facility & Restaurant Info)
+    facility_keywords = [
+        "đỗ xe", "gửi xe", "bãi xe", "bãi đỗ", "bãi giữ", "chỗ để xe", "ô tô", "xe máy",
+        "wifi", "wi-fi", "mật khẩu wifi", "pass wifi",
+        "mở cửa", "đóng cửa", "mấy giờ mở", "mấy giờ đóng", "giờ hoạt động", "giờ mở",
+        "địa chỉ", "ở đâu", "vị trí", "đường nào", "quán ở", "chỗ nào", "tìm đường",
+        "phòng riêng", "phòng vip", "hút thuốc", "ghế trẻ em", "ghế em bé", "ghế ăn dặm",
+        "hotline", "số điện thoại nhà hàng", "sđt nhà hàng", "liên hệ", "vat", "hóa đơn"
+    ]
+    if any(k in msg for k in facility_keywords):
+        return True, "FACILITY_INFO"
+
+    # 2. Câu hỏi / yêu cầu tư vấn về thực đơn / món ăn / giá cả (Menu & Culinary Consultation)
+    menu_phrases = [
+        "món", "thực đơn", "menu", "ăn gì", "uống gì", "món gì", "có món", "món ngon",
+        "đặc sản", "best seller", "bán chạy", "nổi tiếng", "ngon nhất", "bảng giá",
+        "giá bao nhiêu", "bao nhiêu tiền", "nhiêu tiền", "giá cả", "giá tiền", "giá sao",
+        "hải sản", "món chay", "tráng miệng", "khai vị", "đồ uống", "nước ngọt",
+        "phần ăn", "khuyến mãi", "ưu đãi", "giảm giá", "voucher",
+        "tư vấn món", "tư vấn giúp", "tư vấn cho", "gợi ý món", "cho xem menu", "xem menu",
+        "cho xem thực đơn", "xem thực đơn", "quán bán gì", "có gì ăn", "có gì ngon"
+    ]
+    if any(k in msg for k in menu_phrases):
+        return True, "MENU_CONSULTATION"
+
+    # Các từ món ăn ngắn cần khớp ranh giới từ (tránh "gà" trong "ngày", "bò" trong "bóng")
+    if re.search(r'\b(lẩu|nướng|bò|gà|heo|cá|mực|tôm|cua|chay|bia|rượu|combo|set)\b', msg):
+        return True, "MENU_CONSULTATION"
+
+    # 3. Dấu hiệu câu hỏi nghi vấn nói chung
+    if "?" in msg or "¿" in msg:
+        return True, "MENU_CONSULTATION"
+
+    question_markers = ["thế nào", "sao thế", "không ạ", "ko ạ", "được không", "được ko", "hả em", "hả quán"]
+    if any(q in msg for q in question_markers):
+        return True, "MENU_CONSULTATION"
+
+    return False, "NONE"
 
 
 EMAIL_REGEX = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')

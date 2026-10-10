@@ -56,6 +56,7 @@ from tools.slot_extractor import (
     extract_all_slots,
     is_confirmation,
     is_cancellation,
+    check_side_query_intent,
 )
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
@@ -250,24 +251,97 @@ class AriaConversationPipeline:
                     user_id=user_id,
                     menu_context=menu_context,
                     t_start=t_start,
+                    cart_items=cart_items,
+                    order_history=order_history,
+                    conversation_history=conversation_history,
+                    table_id=table_id,
+                    fallback_used=fallback_used,
+                    restaurant_id=restaurant_id,
+                    enable_rerank=enable_rerank,
+                    top_k=top_k,
+                    rerank_weight=rerank_weight,
+                    feedback_type=feedback_type,
+                    rejected_items=rejected_items,
                 ):
                     yield sse_item
-                return  # Kết thúc lượt thoại đặt bàn, không chạy tiếp RAG
+                return  # Kết thúc lượt thoại đặt bàn
 
-            # ── 3. Tái cấu trúc truy vấn thích ứng (Query Reformulator) ─────────
-            reformulation_res = self.reformulator.reformulate(
-                query=message,
+            # ── 3. Luồng tư vấn thực đơn RAG chuẩn (Consultation Flow) ───────────
+            async for sse_item in self._handle_consultation_flow(
+                message=message,
+                menu_context=menu_context,
+                cart_items=cart_items,
+                order_history=order_history,
                 conversation_history=conversation_history,
+                table_id=table_id,
+                fallback_used=fallback_used,
+                restaurant_id=restaurant_id,
+                enable_rerank=enable_rerank,
+                top_k=top_k,
+                rerank_weight=rerank_weight,
                 feedback_type=feedback_type,
                 rejected_items=rejected_items,
+                t_start=t_start,
+            ):
+                yield sse_item
+
+        except Exception as e:
+            yield self._sse("error", {"message": f"Aria Pipeline error: {str(e)}"})
+
+    async def _handle_consultation_flow(
+        self,
+        message: str,
+        menu_context: Optional[List[Dict[str, Any]]],
+        cart_items: Optional[List[Dict[str, Any]]],
+        order_history: Optional[List[Dict[str, Any]]],
+        conversation_history: Optional[List[Dict[str, Any]]],
+        table_id: str,
+        fallback_used: bool,
+        restaurant_id: Optional[str],
+        enable_rerank: bool,
+        top_k: int,
+        rerank_weight: Optional[float],
+        feedback_type: Optional[str],
+        rejected_items: Optional[List[str]],
+        t_start: float,
+        prefix_message: Optional[str] = None,
+        postfix_message: Optional[str] = None,
+    ) -> AsyncGenerator[str, None]:
+        """
+        Luồng tư vấn thực đơn (Hybrid RAG: BM25 + FAISS + Reranker + LLM Stream).
+        Hỗ trợ prefix_message và postfix_message khi được gọi từ luồng đặt bàn.
+        """
+        if prefix_message:
+            for t in self._chunk_tokens(prefix_message):
+                yield self._sse("token", {"content": t})
+
+        # 1. Tái cấu trúc truy vấn thích ứng (Query Reformulator)
+        reformulation_res = self.reformulator.reformulate(
+            query=message,
+            conversation_history=conversation_history,
+            feedback_type=feedback_type,
+            rejected_items=rejected_items,
+        )
+        search_query = reformulation_res.standalone_query
+
+        # 2. Truy xuất RAG động (Dynamic RAG Retrieval + Reranking)
+        grounded_candidates: List[Dict[str, Any]] = []
+        rerank_stats: Dict[str, Any] = {}
+
+        if not menu_context:
+            grounded_candidates = self.retriever.retrieve(
+                query=search_query,
+                top_k=top_k,
+                enable_rerank=enable_rerank,
+                rerank_weight=rerank_weight,
             )
-            search_query = reformulation_res.standalone_query
+            rerank_stats = self.retriever.last_rerank_stats or {}
+        else:
+            extractor = getattr(self.retriever, "entity_extractor", None) or CulinaryEntityExtractor()
+            entities = extractor.extract(search_query)
+            clean_menu_context, _ = MetadataFilter.filter_items(menu_context, entities, extractor)
 
-            # ── 4. Truy xuất RAG động (Dynamic RAG Retrieval + Reranking) ──────
-            grounded_candidates: List[Dict[str, Any]] = []
-            rerank_stats: Dict[str, Any] = {}
-
-            if not menu_context:
+            if not clean_menu_context:
                 grounded_candidates = self.retriever.retrieve(
                     query=search_query,
                     top_k=top_k,
@@ -275,143 +349,132 @@ class AriaConversationPipeline:
                     rerank_weight=rerank_weight,
                 )
                 rerank_stats = self.retriever.last_rerank_stats or {}
+            elif enable_rerank and hasattr(self.retriever, "reranker"):
+                grounded_candidates = self.retriever.reranker.rerank(
+                    query=search_query,
+                    candidates=clean_menu_context,
+                    top_k=top_k,
+                    rerank_weight=rerank_weight,
+                )
+                rerank_stats = {
+                    "engine": self.retriever.reranker.engine_type,
+                    "candidate_count": len(grounded_candidates),
+                }
             else:
-                extractor = getattr(self.retriever, "entity_extractor", None) or CulinaryEntityExtractor()
-                entities = extractor.extract(search_query)
-                clean_menu_context, _ = MetadataFilter.filter_items(menu_context, entities, extractor)
+                grounded_candidates = clean_menu_context[:top_k]
 
-                if not clean_menu_context:
-                    grounded_candidates = self.retriever.retrieve(
-                        query=search_query,
-                        top_k=top_k,
-                        enable_rerank=enable_rerank,
-                        rerank_weight=rerank_weight,
-                    )
-                    rerank_stats = self.retriever.last_rerank_stats or {}
-                elif enable_rerank and hasattr(self.retriever, "reranker"):
-                    grounded_candidates = self.retriever.reranker.rerank(
-                        query=search_query,
-                        candidates=clean_menu_context,
-                        top_k=top_k,
-                        rerank_weight=rerank_weight,
-                    )
-                    rerank_stats = {
-                        "engine": self.retriever.reranker.engine_type,
-                        "candidate_count": len(grounded_candidates),
-                    }
-                else:
-                    grounded_candidates = clean_menu_context[:top_k]
+        if reformulation_res.excluded_items:
+            grounded_candidates = [
+                c for c in grounded_candidates
+                if c.get("name") not in reformulation_res.excluded_items
+            ]
 
-            if reformulation_res.excluded_items:
-                grounded_candidates = [
-                    c for c in grounded_candidates
-                    if c.get("name") not in reformulation_res.excluded_items
-                ]
+        # 3. Grounded Knowledge Base Prompt Template
+        grounded_menu_text = format_grounded_candidates(grounded_candidates, max_items=top_k)
 
-            # ── 5. Grounded Knowledge Base Prompt Template ─────────────────────
-            grounded_menu_text = format_grounded_candidates(grounded_candidates, max_items=top_k)
+        dynamic_ctx = build_dynamic_context(
+            menu_context=[],
+            cart_items=cart_items,
+            order_history=order_history,
+            table_id=table_id,
+            fallback_used=fallback_used,
+            restaurant_id=restaurant_id,
+        )
 
-            dynamic_ctx = build_dynamic_context(
-                menu_context=[],
-                cart_items=cart_items,
-                order_history=order_history,
-                table_id=table_id,
-                fallback_used=fallback_used,
-                restaurant_id=restaurant_id,
-            )
+        fallback_hint = ""
+        if fallback_used:
+            fb_info = get_fallback_context(grounded_candidates, tier=2)
+            fallback_hint = build_fallback_prompt_hint(fb_info, fallback_used)
 
-            fallback_hint = ""
-            if fallback_used:
-                fb_info = get_fallback_context(grounded_candidates, tier=2)
-                fallback_hint = build_fallback_prompt_hint(fb_info, fallback_used)
+        system_prompt = build_grounded_system_prompt(
+            grounded_menu_text=grounded_menu_text,
+            dynamic_context=dynamic_ctx,
+            fallback_hint=fallback_hint,
+        )
 
-            system_prompt = build_grounded_system_prompt(
-                grounded_menu_text=grounded_menu_text,
-                dynamic_context=dynamic_ctx,
-                fallback_hint=fallback_hint,
-            )
+        # 4. Conversation Memory Buffer
+        messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
+        recent_history = conversation_history[-self.max_history_turns:] if conversation_history else []
+        for turn in recent_history:
+            role = turn.get("role", "user")
+            content = turn.get("content", "")
+            groq_role = "assistant" if role in ("assistant", "ai") else "user"
+            messages.append({"role": groq_role, "content": content})
 
-            # ── 6. Conversation Memory Buffer ──────────────────────────────────
-            messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
-            recent_history = conversation_history[-self.max_history_turns:]
-            for turn in recent_history:
-                role = turn.get("role", "user")
-                content = turn.get("content", "")
-                groq_role = "assistant" if role in ("assistant", "ai") else "user"
-                messages.append({"role": groq_role, "content": content})
+        messages.append({"role": "user", "content": message})
 
-            messages.append({"role": "user", "content": message})
+        # 5. Khởi tạo Stream (Groq API hoặc Offline Fallback)
+        full_text = ""
+        ttft_ms: Optional[float] = None
+        client = _get_client()
 
-            # ── 7. Khởi tạo Stream (Groq API hoặc Offline Fallback) ─────────────
-            full_text = ""
-            ttft_ms: Optional[float] = None
-            client = _get_client()
+        if client and os.getenv("GROQ_API_KEY"):
+            try:
+                stream = await client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    stream=True,
+                    temperature=0.5,
+                    max_tokens=350,
+                    top_p=0.9,
+                )
 
-            if client and os.getenv("GROQ_API_KEY"):
-                try:
-                    stream = await client.chat.completions.create(
-                        model=self.model,
-                        messages=messages,
-                        stream=True,
-                        temperature=0.5,
-                        max_tokens=350,
-                        top_p=0.9,
-                    )
-
-                    async for chunk in stream:
-                        delta = chunk.choices[0].delta if chunk.choices else None
-                        token = (delta.content or "") if delta else ""
-                        if token:
-                            if ttft_ms is None:
-                                ttft_ms = (time.perf_counter() - t_start) * 1000
-                            full_text += token
-                            yield self._sse("token", {"content": token})
-                except Exception:
-                    async for token in self._stream_offline_grounded(message, grounded_candidates):
+                async for chunk in stream:
+                    delta = chunk.choices[0].delta if chunk.choices else None
+                    token = (delta.content or "") if delta else ""
+                    if token:
                         if ttft_ms is None:
                             ttft_ms = (time.perf_counter() - t_start) * 1000
                         full_text += token
                         yield self._sse("token", {"content": token})
-            else:
+            except Exception:
                 async for token in self._stream_offline_grounded(message, grounded_candidates):
                     if ttft_ms is None:
                         ttft_ms = (time.perf_counter() - t_start) * 1000
                     full_text += token
                     yield self._sse("token", {"content": token})
+        else:
+            async for token in self._stream_offline_grounded(message, grounded_candidates):
+                if ttft_ms is None:
+                    ttft_ms = (time.perf_counter() - t_start) * 1000
+                full_text += token
+                yield self._sse("token", {"content": token})
 
-            if ttft_ms is None:
-                ttft_ms = (time.perf_counter() - t_start) * 1000
+        if ttft_ms is None:
+            ttft_ms = (time.perf_counter() - t_start) * 1000
 
-            suggested_items = extract_suggested_items(full_text, grounded_candidates)
-            total_time_ms = (time.perf_counter() - t_start) * 1000
+        # Nếu có lời nhắc postfix (quay lại đặt bàn)
+        if postfix_message:
+            for t in self._chunk_tokens(postfix_message):
+                yield self._sse("token", {"content": t})
 
-            yield self._sse("done", {
-                "suggestedItems": suggested_items,
-                "groundedItems": [
-                    {
-                        "name": c.get("name"),
-                        "price": c.get("item", c).get("price", c.get("price", 0)),
-                        "final_rank": c.get("final_rank"),
-                        "combined_score": c.get("combined_score"),
-                    }
-                    for c in grounded_candidates
-                ],
-                "metrics": {
-                    "ttft_ms": round(ttft_ms, 2),
-                    "total_time_ms": round(total_time_ms, 2),
-                    "rag_count": len(grounded_candidates),
-                    "rerank_engine": rerank_stats.get("engine", "offline_fallback"),
-                    "reformulation": {
-                        "is_reformulated": reformulation_res.is_reformulated,
-                        "type": reformulation_res.reformulation_type,
-                        "standalone_query": search_query,
-                        "latency_ms": reformulation_res.latency_ms,
-                    },
+        suggested_items = extract_suggested_items(full_text, grounded_candidates)
+        total_time_ms = (time.perf_counter() - t_start) * 1000
+
+        yield self._sse("done", {
+            "suggestedItems": suggested_items,
+            "groundedItems": [
+                {
+                    "name": c.get("name"),
+                    "price": c.get("item", c).get("price", c.get("price", 0)),
+                    "final_rank": c.get("final_rank"),
+                    "combined_score": c.get("combined_score"),
                 }
-            })
-
-        except Exception as e:
-            yield self._sse("error", {"message": f"Aria Pipeline error: {str(e)}"})
+                for c in grounded_candidates
+            ],
+            "metrics": {
+                "ttft_ms": round(ttft_ms, 2),
+                "total_time_ms": round(total_time_ms, 2),
+                "rag_count": len(grounded_candidates),
+                "rerank_engine": rerank_stats.get("engine", "offline_fallback"),
+                "reformulation": {
+                    "is_reformulated": reformulation_res.is_reformulated,
+                    "type": reformulation_res.reformulation_type,
+                    "standalone_query": search_query,
+                    "latency_ms": reformulation_res.latency_ms,
+                },
+            }
+        })
 
     async def _handle_reservation_turn(
         self,
@@ -421,14 +484,49 @@ class AriaConversationPipeline:
         user_id: Optional[str],
         menu_context: Optional[List[Dict[str, Any]]],
         t_start: float,
+        cart_items: Optional[List[Dict[str, Any]]] = None,
+        order_history: Optional[List[Dict[str, Any]]] = None,
+        conversation_history: Optional[List[Dict[str, Any]]] = None,
+        table_id: str = "T01",
+        fallback_used: bool = False,
+        restaurant_id: Optional[str] = None,
+        enable_rerank: bool = True,
+        top_k: int = 5,
+        rerank_weight: Optional[float] = None,
+        feedback_type: Optional[str] = None,
+        rejected_items: Optional[List[str]] = None,
     ) -> AsyncGenerator[str, None]:
         """
         Bộ máy trạng thái (FSM) xử lý lượt hội thoại đặt bàn.
         """
-        # 1. Khách hủy giữa chừng (Proposal T17)
+        # 1. Khách hủy hoặc tạm dừng giữa chừng (Proposal T17)
         if is_cancellation(message):
             await clear_state(session_id)
-            resp = "Dạ, Aria đã hủy tiến trình đặt bàn rồi ạ. Bạn có muốn Aria tư vấn thêm món ngon nào của quán không?"
+            is_side_query, q_type = check_side_query_intent(message)
+            if is_side_query and q_type == "MENU_CONSULTATION":
+                # Khách tạm dừng / hủy để xem thực đơn -> Chuyển sang tư vấn món ngay
+                prefix = "Dạ, Aria đã tạm dừng tiến trình đặt bàn rồi ạ. Về thực đơn và các món của quán:\n\n"
+                async for item in self._handle_consultation_flow(
+                    message=message,
+                    menu_context=menu_context,
+                    cart_items=cart_items,
+                    order_history=order_history,
+                    conversation_history=conversation_history,
+                    table_id=table_id,
+                    fallback_used=fallback_used,
+                    restaurant_id=restaurant_id,
+                    enable_rerank=enable_rerank,
+                    top_k=top_k,
+                    rerank_weight=rerank_weight,
+                    feedback_type=feedback_type,
+                    rejected_items=rejected_items,
+                    t_start=t_start,
+                    prefix_message=prefix,
+                ):
+                    yield item
+                return
+
+            resp = "Dạ, Aria đã tạm dừng tiến trình đặt bàn rồi ạ. Bạn có muốn Aria tư vấn thêm món ngon nào của quán không?"
             for t in self._chunk_tokens(resp):
                 yield self._sse("token", {"content": t})
             yield self._sse("done", {
@@ -545,9 +643,43 @@ class AriaConversationPipeline:
                 # Kiểm tra xem khách có ý định đổi slot (ngày, giờ, số người, tên...) hay không
                 extracted_changes = extract_all_slots(message, state)
                 has_slot_change = any(extracted_changes.get(k) is not None for k in ["date", "time", "guests", "customer_name", "customer_phone", "customer_email", "special_requests"])
+                is_side_query, q_type = check_side_query_intent(message)
+
+                if not has_slot_change and is_side_query:
+                    if q_type == "MENU_CONSULTATION":
+                        postfix = "\n\n*(Thông tin đặt bàn trước đó của bạn vẫn đang được lưu. Bạn có muốn xác nhận đặt bàn luôn ('ok' / 'xác nhận') không ạ, hoặc cần Aria tư vấn thêm món nào nữa không?)*"
+                        async for item in self._handle_consultation_flow(
+                            message=message,
+                            menu_context=menu_context,
+                            cart_items=cart_items,
+                            order_history=order_history,
+                            conversation_history=conversation_history,
+                            table_id=table_id,
+                            fallback_used=fallback_used,
+                            restaurant_id=restaurant_id,
+                            enable_rerank=enable_rerank,
+                            top_k=top_k,
+                            rerank_weight=rerank_weight,
+                            feedback_type=feedback_type,
+                            rejected_items=rejected_items,
+                            t_start=t_start,
+                            postfix_message=postfix,
+                        ):
+                            yield item
+                        return
+                    elif q_type == "FACILITY_INFO":
+                        settings = await get_restaurant_settings()
+                        ans = self._answer_facility_question(message, settings)
+                        reminder = "Thông tin đặt bàn của bạn đã sẵn sàng. Bạn có muốn xác nhận ('ok' / 'xác nhận') hay cần điều chỉnh gì không ạ? (Hoặc có thể nói 'khoan đặt' để tạm dừng nhé)"
+                        full_resp = f"{ans}\n\n*({reminder})*"
+                        for t in self._chunk_tokens(full_resp):
+                            yield self._sse("token", {"content": t})
+                        yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
+                        return
+
                 if not has_slot_change:
                     # Khách không xác nhận và cũng không đổi slot -> nhắc nhẹ nhàng, không lặp lại toàn bộ thẻ
-                    resp = "Dạ, thông tin đặt bàn của bạn đã sẵn sàng. Bạn có muốn điều chỉnh thông tin nào hay xác nhận ('ok' / 'xác nhận') để Aria tiến hành chốt bàn luôn ạ?"
+                    resp = "Dạ, thông tin đặt bàn của bạn đã sẵn sàng. Bạn có muốn điều chỉnh thông tin nào hay xác nhận ('ok' / 'xác nhận') để Aria tiến hành chốt bàn luôn ạ? (Hoặc có thể nói 'khoan đặt' để tạm dừng nhé)"
                     for t in self._chunk_tokens(resp):
                         yield self._sse("token", {"content": t})
                     yield self._sse("done", {
@@ -609,26 +741,42 @@ class AriaConversationPipeline:
         wifi_password = settings.get("wifi_password", "12345678")
 
         # 5.1 Kiểm tra câu hỏi chen ngang (Context Distraction - Proposal T20)
-        # Nếu câu thoại không chứa slot mới nào, không phải xác nhận/hủy, và có vẻ là câu hỏi
         has_new_slot = any(extracted.get(k) is not None for k in ["date", "time", "guests", "customer_name", "customer_phone", "customer_email"])
-        if not has_new_slot and any(q in message.lower() for q in ["đỗ xe", "gửi xe", "wifi", "ở đâu", "mở cửa", "mấy giờ", "có món", "món gì"]):
-            # Trả lời câu hỏi phụ
-            ans = ""
-            if "đỗ xe" in message.lower() or "gửi xe" in message.lower():
-                ans = f"Dạ, {restaurant_name} có bãi đỗ xe ô tô và xe máy rộng rãi, có bảo vệ trông giữ miễn phí ạ."
-            elif "wifi" in message.lower():
-                ans = f"Dạ, quán có wifi tốc độ cao miễn phí (tên wifi: {restaurant_name}, pass: {wifi_password}) ạ."
-            else:
-                ans = f"Dạ, {restaurant_name} mở cửa đón khách từ {open_time} đến {close_time} hàng ngày với nhiều món ăn đặc sắc ạ."
+        is_side_query, q_type = check_side_query_intent(message)
 
-            missing = self._get_missing_slots(state)
-            reminder = self._build_slot_question(missing, state)
-            full_resp = f"{ans}\n\n*(Quay lại thông tin đặt bàn: {reminder})*"
-
-            for t in self._chunk_tokens(full_resp):
-                yield self._sse("token", {"content": t})
-            yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
-            return
+        if not has_new_slot and is_side_query:
+            if q_type == "FACILITY_INFO":
+                ans = self._answer_facility_question(message, settings)
+                missing = self._get_missing_slots(state)
+                reminder = self._build_slot_question(missing, state)
+                full_resp = f"{ans}\n\n*(Quay lại thông tin đặt bàn: {reminder})*"
+                for t in self._chunk_tokens(full_resp):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
+                return
+            elif q_type == "MENU_CONSULTATION":
+                missing = self._get_missing_slots(state)
+                slot_q = self._build_slot_question(missing, state)
+                postfix = f"\n\n*(Quay lại thông tin đặt bàn: {slot_q} Hoặc bạn có thể nói 'khoan đặt' nếu muốn tìm hiểu thực đơn trước nhé!)*"
+                async for item in self._handle_consultation_flow(
+                    message=message,
+                    menu_context=menu_context,
+                    cart_items=cart_items,
+                    order_history=order_history,
+                    conversation_history=conversation_history,
+                    table_id=table_id,
+                    fallback_used=fallback_used,
+                    restaurant_id=restaurant_id,
+                    enable_rerank=enable_rerank,
+                    top_k=top_k,
+                    rerank_weight=rerank_weight,
+                    feedback_type=feedback_type,
+                    rejected_items=rejected_items,
+                    t_start=t_start,
+                    postfix_message=postfix,
+                ):
+                    yield item
+                return
 
         # 6. Kiểm tra tính hợp lệ của ngày giờ (nếu có đủ date và time)
         if slots.get("date") and slots.get("time"):
@@ -802,6 +950,38 @@ class AriaConversationPipeline:
             return f"{greeting}cho Aria xin họ tên, số điện thoại (và email nếu bạn muốn nhận vé xác nhận kèm mã QR) nhé?"
 
         return f"{greeting}{questions[first]} Và {questions[second]}"
+
+    @staticmethod
+    def _answer_facility_question(message: str, settings: Dict[str, Any]) -> str:
+        """Trả lời các câu hỏi tiện ích, dịch vụ, địa chỉ, giờ mở cửa của nhà hàng."""
+        msg = message.lower()
+        restaurant_name = settings.get("restaurant_name", "Nhà hàng")
+        open_time = settings.get("open_time", "08:00")
+        close_time = settings.get("close_time", "22:00")
+        wifi_password = settings.get("wifi_password", "12345678")
+        address = settings.get("address", "123 Đường Ẩm Thực, Quận 1, TP.HCM")
+        hotline = settings.get("hotline", "0901.234.567")
+
+        if any(k in msg for k in ["đỗ xe", "gửi xe", "bãi xe", "bãi đỗ", "bãi giữ", "chỗ để xe", "ô tô", "xe máy"]):
+            return f"Dạ, {restaurant_name} có bãi đỗ xe ô tô và xe máy rộng rãi, an toàn, có bảo vệ trông giữ miễn phí ạ."
+        if any(k in msg for k in ["wifi", "wi-fi", "mật khẩu", "pass"]):
+            return f"Dạ, quán có wifi tốc độ cao miễn phí (Tên wifi: {restaurant_name}, Mật khẩu: {wifi_password}) ạ."
+        if any(k in msg for k in ["mở cửa", "đóng cửa", "mấy giờ", "giờ hoạt động", "giờ mở"]):
+            return f"Dạ, {restaurant_name} mở cửa đón khách từ {open_time} đến {close_time} hàng ngày với nhiều món ăn đặc sắc ạ."
+        if any(k in msg for k in ["địa chỉ", "ở đâu", "vị trí", "đường nào", "chỗ nào", "tìm đường", "quán ở"]):
+            return f"Dạ, {restaurant_name} tọa lạc tại {address} ạ."
+        if any(k in msg for k in ["ghế trẻ em", "ghế em bé", "ghế ăn dặm"]):
+            return f"Dạ, nhà hàng có trang bị sẵn ghế ăn dặm cho trẻ em, sạch sẽ và an toàn chu đáo ạ."
+        if any(k in msg for k in ["phòng riêng", "phòng vip"]):
+            return f"Dạ, quán có các phòng VIP riêng tư ấm cúng dành cho gia đình hoặc tiếp khách đối tác ạ."
+        if any(k in msg for k in ["hút thuốc"]):
+            return f"Dạ, để bảo đảm không gian dùng bữa trong lành, khu vực phòng lạnh không hút thuốc; quán có bố trí khu vực ngoài trời thoáng mát cho quý khách có nhu cầu ạ."
+        if any(k in msg for k in ["hotline", "số điện thoại", "sđt", "liên hệ"]):
+            return f"Dạ, số hotline hỗ trợ khách hàng của nhà hàng là {hotline} ạ."
+        if any(k in msg for k in ["vat", "hóa đơn"]):
+            return f"Dạ, nhà hàng có xuất hóa đơn đỏ (VAT) điện tử đầy đủ theo yêu cầu của quý khách ạ."
+
+        return f"Dạ, {restaurant_name} mở cửa từ {open_time} đến {close_time} hàng ngày tại {address} ạ."
 
     async def _stream_offline_grounded(
         self,
