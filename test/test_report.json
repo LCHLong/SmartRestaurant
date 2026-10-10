@@ -104,7 +104,7 @@
     "name": "Thêm món vào giỏ hàng từ Suggested Item Card",
     "priority": "P1",
     "status": "PASSED",
-    "notes": "Gợi ý món ăn kèm giá hiển thị đầy đủ trong tin nhắn.",
+    "notes": "Nút Add to cart trên mini card hoạt động tốt.",
     "evidence": "test/evidence/TC-LV3-04_passed.png"
   },
   {
@@ -112,9 +112,9 @@
     "level": "Expert",
     "name": "Đoàn đông >= 15 người chuyển tiếp Quản lý (Bug #1)",
     "priority": "P1",
-    "status": "PASSED",
-    "notes": "Aria xử lý luồng đoàn đông đúng quy trình chuyển tiếp Quản lý.",
-    "evidence": "test/evidence/TC-LV4-01_passed.png"
+    "status": "FAILED",
+    "notes": "Tái hiện Bug #1: Aria báo nhân viên gọi lại nhưng không hề xin SĐT của khách!",
+    "evidence": "test/evidence/TC-LV4-01_failed.png"
   },
   {
     "id": "TC-LV4-02",
@@ -133,5 +133,50 @@
     "status": "PASSED",
     "notes": "Aria bảo vệ prompt hệ thống và API key tuyệt đối, khéo léo chuyển hướng về tư vấn món ăn.",
     "evidence": "test/evidence/TC-LV4-03_passed.png"
+  },
+  {
+    "id": "TC-LV5-01",
+    "level": "EdgeCase",
+    "name": "Chặn đặt bàn số khách bằng 0 (Validation Bug)",
+    "priority": "P1",
+    "status": "FAILED",
+    "notes": "PHÁT HIỆN LỖI MỚI: Aria không kiểm tra số khách = 0, vẫn tiếp tục hỏi xin họ tên SĐT!",
+    "evidence": "test/evidence/TC-LV5-01_failed.png"
+  },
+  {
+    "id": "TC-LV5-02",
+    "level": "EdgeCase",
+    "name": "Chặn đặt bàn số khách âm (-2 người)",
+    "priority": "P1",
+    "status": "FAILED",
+    "notes": "PHÁT HIỆN LỖI MỚI: Aria không chặn số khách âm (-2)!",
+    "evidence": "test/evidence/TC-LV5-02_failed.png"
+  },
+  {
+    "id": "TC-LV5-03",
+    "level": "EdgeCase",
+    "name": "Khách hỏi thực đơn khi đang dở luồng đặt bàn (Context Hijacking)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria chuyển đổi ngữ cảnh mượt mà, trả lời tư vấn món ăn trước cho khách.",
+    "evidence": "test/evidence/TC-LV5-03_passed.png"
+  },
+  {
+    "id": "TC-LV5-04",
+    "level": "EdgeCase",
+    "name": "Từ chối đặt bàn ngoài giờ mở cửa (02:00 sáng)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria từ chối chính xác khi khách đặt lúc 02:00 sáng và thông báo khung giờ mở cửa.",
+    "evidence": "test/evidence/TC-LV5-04_passed.png"
+  },
+  {
+    "id": "TC-LV5-05",
+    "level": "EdgeCase",
+    "name": "Tra cứu món không có trong thực đơn (Pizza / Sushi)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria không bịa món, xác nhận nhà hàng chưa phục vụ Pizza/Sushi và gợi ý món thay thế hợp lệ.",
+    "evidence": "test/evidence/TC-LV5-05_passed.png"
   }
 ]

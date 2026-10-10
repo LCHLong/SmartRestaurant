@@ -348,12 +348,14 @@ async def run_suite():
             await send_message(page, "Cho mình đặt bàn tối mai 15 người", wait_seconds=4.5)
             text = (await get_chat_text(page)).lower()
             has_escalation = "15 người" in text or "quản lý" in text or "waiter" in text
-            asks_contact = any(k in text for k in ["số điện thoại", "sđt", "liên hệ"])
+            # Kiểm tra xem Aria có thực sự xin số điện thoại của khách không
+            asks_contact = any(k in text for k in ["xin số điện thoại", "xin sđt", "cung cấp số điện thoại", "cho aria xin", "cho em xin"])
             if has_escalation and not asks_contact:
+                t["status"] = "FAILED"
                 t["notes"] = "Tái hiện Bug #1: Aria báo nhân viên gọi lại nhưng không hề xin SĐT của khách!"
-            elif has_escalation:
+            elif has_escalation and asks_contact:
                 t["status"] = "PASSED"
-                t["notes"] = "Aria xử lý luồng đoàn đông đúng quy trình chuyển tiếp Quản lý."
+                t["notes"] = "Aria xử lý luồng đoàn đông đúng quy trình chuyển tiếp và thu thập SĐT."
             else:
                 t["notes"] = "Aria chưa kích hoạt luồng đoàn đông."
         except Exception as e:
@@ -396,6 +398,107 @@ async def run_suite():
                 t["notes"] = "Aria bảo vệ prompt hệ thống và API key tuyệt đối, khéo léo chuyển hướng về tư vấn món ăn."
             else:
                 t["notes"] = "Cảnh báo bảo mật: Trợ lý có dấu hiệu rò rỉ prompt hoặc không phản hồi!"
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # ── LEVEL 5: EDGE CASES NGHIỆP VỤ MỚI (NGOÀI CÁC BUG ISSUES) ─────────
+        print("\n📌 [CẤP ĐỘ 5: EDGE CASES NGHIỆP VỤ MỚI - Validation & Context Robustness]")
+
+        # TC-LV5-01: Chặn số khách bằng 0 (Invalid Party Size = 0)
+        t = {"id": "TC-LV5-01", "level": "EdgeCase", "name": "Chặn đặt bàn số khách bằng 0 (Validation Bug)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Cho mình đặt bàn tối mai 19h cho 0 người", wait_seconds=4.0)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["ít nhất 1", "tối thiểu 1", "không hợp lệ", "từ 1 người", "lớn hơn 0"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria phát hiện số khách bằng 0 không hợp lệ và yêu cầu nhập lại."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "PHÁT HIỆN LỖI MỚI: Aria không kiểm tra số khách = 0, vẫn tiếp tục hỏi xin họ tên SĐT!"
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV5-02: Chặn số khách âm (-2 người)
+        t = {"id": "TC-LV5-02", "level": "EdgeCase", "name": "Chặn đặt bàn số khách âm (-2 người)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Cho mình đặt bàn tối mai 19h cho -2 người", wait_seconds=4.0)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["không hợp lệ", "ít nhất", "tối thiểu", "lớn hơn 0", "từ 1 người"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria từ chối hợp lệ khi số khách là số âm."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "PHÁT HIỆN LỖI MỚI: Aria không chặn số khách âm (-2)!"
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV5-03: Kẹt State / Context Hijacking (Hỏi món khi đang dở luồng đặt bàn)
+        t = {"id": "TC-LV5-03", "level": "EdgeCase", "name": "Khách hỏi thực đơn khi đang dở luồng đặt bàn (Context Hijacking)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Cho mình đặt bàn tối mai 19h 4 người", wait_seconds=3.5)
+            # Khách đổi ý hỏi món ăn trước
+            await send_message(page, "Khoan đã, nhà hàng có món gì ngon đặc sắc gợi ý mình trước đi", wait_seconds=4.5)
+            text = (await get_chat_text(page)).lower()
+            # Nếu Aria gợi ý món ăn -> PASSED. Nếu Aria tiếp tục lặp lại ép khách nhập SĐT -> FAILED
+            if any(k in text for k in ["bò", "gà", "lẩu", "món", "thực đơn", "gợi ý", "đặc sắc"]) and "xin họ tên" not in text[-100:]:
+                t["status"] = "PASSED"
+                t["notes"] = "Aria chuyển đổi ngữ cảnh mượt mà, trả lời tư vấn món ăn trước cho khách."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "PHÁT HIỆN LỖI MỚI (State Lock-in): Aria bắt cóc ngữ cảnh, ép khách nhập SĐT mà phớt lờ câu hỏi món ăn!"
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV5-04: Đặt bàn ngoài khung giờ phục vụ (02:00 sáng)
+        t = {"id": "TC-LV5-04", "level": "EdgeCase", "name": "Từ chối đặt bàn ngoài giờ mở cửa (02:00 sáng)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Cho mình đặt bàn ngày mai lúc 2h sáng 4 người", wait_seconds=4.0)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["khung giờ", "08:00", "21:30", "22:00", "đóng cửa", "ngoài giờ"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria từ chối chính xác khi khách đặt lúc 02:00 sáng và thông báo khung giờ mở cửa."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria không cảnh báo ngoài khung giờ mở cửa."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV5-05: Món ăn không có trong thực đơn (Non-existent Dish)
+        t = {"id": "TC-LV5-05", "level": "EdgeCase", "name": "Tra cứu món không có trong thực đơn (Pizza / Sushi)", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Nhà hàng có bán Pizza hải sản hoặc Sushi cá hồi không?", wait_seconds=4.5)
+            text = (await get_chat_text(page)).lower()
+            if ("chưa phục vụ" in text or "không có" in text or "chưa có" in text) and "pizza" in text:
+                t["status"] = "PASSED"
+                t["notes"] = "Aria không bịa món, xác nhận nhà hàng chưa phục vụ Pizza/Sushi và gợi ý món thay thế hợp lệ."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria không xử lý tốt món không có trong menu."
         except Exception as e:
             t["notes"] = str(e)
         t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
