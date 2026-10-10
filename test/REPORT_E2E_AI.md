@@ -6,15 +6,16 @@
 - **Độ phủ mã nguồn (Unit/Backend Coverage)**: **79%** (Tăng từ 71% lên 79%)
 - **Tập kiểm thử E2E UI**: **45 Test Cases** phân cấp 10 Cấp độ (Dễ $\rightarrow$ Trung bình $\rightarrow$ Nâng cao $\rightarrow$ Chuyên sâu $\rightarrow$ Edge Cases Nghiệp vụ $\rightarrow$ Luồng Thực tế $\rightarrow$ Hội thoại Đa bước Phức hợp $\rightarrow$ Chính sách, Đồ uống kèm & Đặt cọc $\rightarrow$ Dinh dưỡng, Món trẻ em, Thời gian & Tiện ích $\rightarrow$ **Rượu bia tự mang, Tiệc sinh nhật, Mua mang về & Hóa đơn VAT**)
 - **Kết quả thực thi E2E**:
-  - ✅ **PASSED**: **38/45 ca (84.4%)**
-  - ❌ **FAILED**: **7/45 ca (15.6%)**
+  - ✅ **PASSED**: **34/45 ca (75.6%)**
+  - ❌ **FAILED**: **11/45 ca (24.4%)**
     - **2 ca tái hiện chính xác GitHub Bug Issues cũ**: [Issue #1](https://github.com/LCHLong/SmartRestaurant/issues/1) (Đoàn đông không xin SĐT) & [Issue #4](https://github.com/LCHLong/SmartRestaurant/issues/4) (Cắt xén SĐT 10 số).
-    - **5 ca PHÁT HIỆN LỖI MỚI (Đã tạo GitHub Issues #9, #10, #11, #12 và ghi nhận Bug mới ở TC-LV10-02)**:
-      1. [Issue #9](https://github.com/LCHLong/SmartRestaurant/issues/9): Chấp nhận số khách âm (-2 người).
-      2. [Issue #10](https://github.com/LCHLong/SmartRestaurant/issues/10): Kẹt vòng lặp câu hỏi khi nhập 0 người.
-      3. [Issue #11](https://github.com/LCHLong/SmartRestaurant/issues/11): Chấp nhận đặt bàn giờ đã qua trong cùng ngày hôm nay (8h sáng).
-      4. [Issue #12](https://github.com/LCHLong/SmartRestaurant/issues/12): Không kiểm tra định dạng email sai cú pháp.
-      5. **Bug mới tại TC-LV10-02**: Khách hỏi về dịch vụ trang trí tiệc sinh nhật & giữ lạnh bánh kem, nhưng Aria phớt lờ câu hỏi chính sách/dịch vụ, chỉ hỏi máy móc giờ đến và số khách.
+    - **4 ca PHÁT HIỆN LỖI ĐÃ TẠO ISSUE**: [Issue #9](https://github.com/LCHLong/SmartRestaurant/issues/9) (Số khách âm), [Issue #10](https://github.com/LCHLong/SmartRestaurant/issues/10) (Kẹt 0 người), [Issue #11](https://github.com/LCHLong/SmartRestaurant/issues/11) (Giờ quá khứ cùng ngày), [Issue #12](https://github.com/LCHLong/SmartRestaurant/issues/12) (Email sai cú pháp).
+    - **5 lỗi nghiệp vụ & trả lời lạc đề MỚI ĐƯỢC PHÁT HIỆN (TC-LV9-05, TC-LV10-01, TC-LV10-02, TC-LV10-03, TC-LV10-04)**:
+      1. **TC-LV9-05**: Hỏi bãi đỗ xe ô tô ➔ Trả lời lạc đề gợi ý Bún Riêu Cua Đồng.
+      2. **TC-LV10-01**: Hỏi phí khui rượu vang mang từ nhà ➔ Trả lời lạc đề gợi ý Phở Bò Tái Nạm.
+      3. **TC-LV10-02**: Hỏi trang trí sinh nhật & giữ lạnh bánh kem ➔ Bỏ qua câu hỏi, chỉ hỏi máy móc giờ và số khách.
+      4. **TC-LV10-03**: Hỏi mua mang về (take-away) ➔ Bỏ qua chính sách mang về, chỉ gợi ý món như ăn tại chỗ.
+      5. **TC-LV10-04**: Hỏi hóa đơn tài chính VAT & MST ➔ Trả lời lạc đề gợi ý Bún Bò Huế.
 - **Minh chứng (Evidence)**: **100% các ca (45/45)** đều chụp cận cảnh trực tiếp **Khung hội thoại Aria Chat (Dialogue Widget)** với cơ chế cuộn thông minh hiển thị trọn vẹn câu hỏi và câu trả lời tại thư mục [`test/evidence/`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/).
 
 ---
@@ -109,24 +110,24 @@
 | :---: | :--- | :---: | :---: | :--- | :--- |
 | **TC-LV9-01** | Gợi ý món ăn cho trẻ nhỏ (Không cay, dễ nhai, dinh dưỡng) | **P2** | ✅ **PASSED** | [`TC-LV9-01_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-01_passed.png) | Aria đề xuất các món dịu nhẹ, dinh dưỡng (súp, cháo, mì ý bò băm, bánh flan) phù hợp khẩu vị trẻ em. |
 | **TC-LV9-02** | Tư vấn món ăn Eat-Clean / Low-Carb (Nhiều đạm, ít tinh bột) | **P2** | ✅ **PASSED** | [`TC-LV9-02_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-02_passed.png) | Aria nhận diện chuẩn chế độ ăn kiêng giảm cân, gợi ý các món bò, nấm, rau củ thanh đạm giàu protein. |
-| **TC-LV9-03** | Tra cứu món phục vụ nhanh khi khách vội (Dưới 15 phút) | **P2** | ✅ **PASSED** | [`TC-LV9-03_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-03_passed.png) | Aria phản hồi nhanh nhẹn tình huống khách đang vội và hướng dẫn chọn món chuẩn bị nhanh. |
-| **TC-LV9-04** | Yêu cầu chia thành 2 bàn cạnh nhau (8 người chia 2 bàn) | **P1** | ✅ **PASSED** | [`TC-LV9-04_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-04_passed.png) | Aria tiếp nhận và lưu ý chính xác yêu cầu tách 2 bàn 4 người cạnh nhau trong ghi chú đơn đặt. |
-| **TC-LV9-05** | Tra cứu tiện ích nhà hàng (Bãi đỗ xe ô tô / xe máy) | **P2** | ✅ **PASSED** | [`TC-LV9-05_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-05_passed.png) | Aria thông tin chu đáo về bãi đỗ xe ô tô/xe máy và hướng dẫn an ninh cho khách. |
+| **TC-LV9-03** | Tra cứu món phục vụ nhanh khi khách vội (Dưới 15 phút) | **P2** | ⚠️ **CẢNH BÁO** | [`TC-LV9-03_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-03_passed.png) | Khách hỏi món làm nhanh trong 15p, Aria gợi ý Bò sốt tiêu đen hầm mềm kèm bánh mì. |
+| **TC-LV9-04** | Yêu cầu chia thành 2 bàn cạnh nhau (8 người chia 2 bàn) | **P1** | ✅ **PASSED** | [`TC-LV9-04_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-04_passed.png) | Aria tiếp nhận yêu cầu đặt bàn 8 người và kích hoạt lưu ý chính sách đặt cọc 50k/người. |
+| **TC-LV9-05** | Tra cứu tiện ích nhà hàng (Bãi đỗ xe ô tô / xe máy) | **P2** | ❌ **FAILED** | [`TC-LV9-05_failed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-05_failed.png) | **Trả lời lạc đề (Bug P2)**: Khách hỏi *"Nhà hàng mình có bãi đậu xe ô tô không bạn?"*, Aria trả lời hoàn toàn lạc đề: *"Dạ, Aria xin gợi ý Bún Riêu Cua Đồng Ốc Lụa Giòn Sần Sật · 65.000đ rất phù hợp với yêu cầu của quý khách ạ..."*. |
 
 ---
 
 ### 🟪 CẤP ĐỘ 10: RƯỢU/BIA TỰ MANG, DỊCH VỤ SINH NHẬT, MANG VỀ & XUẤT HÓA ĐƠN VAT (MỚI)
 | Mã TC | Tên Test Case | Độ ưu tiên | Kết quả | Ảnh minh chứng | Đánh giá chi tiết |
 | :---: | :--- | :---: | :---: | :--- | :--- |
-| **TC-LV10-01** | Chính sách phụ thu mang đồ uống ngoài vào (Corkage fee) | **P2** | ✅ **PASSED** | [`TC-LV10-01_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-01_passed.png) | Aria giải đáp chu đáo chính sách phí mở rượu vang / mang đồ uống ngoài vào quán. |
-| **TC-LV10-02** | Dịch vụ tổ chức tiệc sinh nhật & mang bánh kem | **P1** | ❌ **FAILED** | [`TC-LV10-02_failed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-02_failed.png) | **Phát hiện lỗi nghiệp vụ (P1)**: Khách hỏi *"quán có hỗ trợ trang trí và giữ lạnh bánh kem không"*, Aria phớt lờ hoàn toàn câu hỏi và chỉ hỏi máy móc giờ đến/số người (*"Dạ, bạn muốn đến lúc mấy giờ và nhóm đi bao nhiêu người ạ?"*). |
-| **TC-LV10-03** | Hỏi dịch vụ đặt món mang về (Take-away) | **P2** | ✅ **PASSED** | [`TC-LV10-03_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-03_passed.png) | Aria xác nhận nhà hàng có phục vụ mua mang về (đóng gói hộp) và nhận order nhanh chóng. |
-| **TC-LV10-04** | Yêu cầu xuất hóa đơn tài chính (Hóa đơn VAT / MST) | **P1** | ✅ **PASSED** | [`TC-LV10-04_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-04_passed.png) | Aria hướng dẫn rõ ràng các trường thông tin cần thiết để xuất hóa đơn VAT công ty. |
-| **TC-LV10-05** | Yêu cầu phòng VIP riêng tư tiếp khách (Phòng kín) | **P1** | ✅ **PASSED** | [`TC-LV10-05_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-05_passed.png) | Aria tư vấn không gian phòng VIP riêng tư yên tĩnh, trang bị máy lạnh dành cho tiếp đối tác. |
+| **TC-LV10-01** | Chính sách phụ thu mang đồ uống ngoài vào (Corkage fee) | **P2** | ❌ **FAILED** | [`TC-LV10-01_failed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-01_failed.png) | **Trả lời lạc đề (Bug P2)**: Khách hỏi *"Bọn mình mang 1 chai rượu vang từ nhà đi thì nhà hàng có tính phí khui rượu không?"*, Aria trả lời lạc đề: *"Dạ, Aria xin gợi ý Phở Bò Tái Nạm Đặc Biệt Hà Nội · 79.000đ..."*. |
+| **TC-LV10-02** | Dịch vụ tổ chức tiệc sinh nhật & mang bánh kem | **P1** | ❌ **FAILED** | [`TC-LV10-02_failed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-02_failed.png) | **Phớt lờ câu hỏi nghiệp vụ (Bug P1)**: Khách hỏi *"quán có hỗ trợ trang trí và giữ lạnh bánh kem không"*, Aria phớt lờ hoàn toàn câu hỏi và chỉ hỏi máy móc giờ đến/số người (*"Dạ, bạn muốn đến lúc mấy giờ và nhóm đi bao nhiêu người ạ?"*). |
+| **TC-LV10-03** | Hỏi dịch vụ đặt món mang về (Take-away) | **P2** | ❌ **FAILED** | [`TC-LV10-03_failed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-03_failed.png) | **Bỏ qua câu hỏi chính sách (Bug P2)**: Khách hỏi *"Nhà hàng có bán mang về không? Mình muốn ghé lấy 2 phần Bún Bò Huế"*, Aria không hề xác nhận chính sách mang về mà chỉ tư vấn món như đang ăn tại chỗ. |
+| **TC-LV10-04** | Yêu cầu xuất hóa đơn tài chính (Hóa đơn VAT / MST) | **P1** | ❌ **FAILED** | [`TC-LV10-04_failed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-04_failed.png) | **Trả lời lạc đề (Bug P1)**: Khách hỏi *"Công ty mình đi ăn có xuất được hóa đơn đỏ VAT không, cần cung cấp thông tin gì?"*, Aria trả lời lạc đề: *"Dạ, Aria xin gợi ý Bún Bò Huế Cố Đô Cay Nồng · 75.000đ..."*. |
+| **TC-LV10-05** | Yêu cầu phòng VIP riêng tư tiếp khách (Phòng kín) | **P1** | ✅ **PASSED** | [`TC-LV10-05_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-05_passed.png) | Aria tư vấn chính xác nhà hàng có các phòng VIP riêng tư ấm cúng dành cho gia đình hoặc tiếp khách đối tác. |
 
 ---
 
-## 2. TOÀN BỘ 12 BUG ISSUES TRÊN GITHUB (ĐÃ CHUẨN HÓA TEMPLATE & TEST TRAIL)
+## 2. TOÀN BỘ CÁC BUG ISSUES PHÁT HIỆN TRÊN HỆ THỐNG
 
 1. **[Issue #1](https://github.com/LCHLong/SmartRestaurant/issues/1)**: `[BUG] Aria thông báo sẽ gọi lại cho khách đặt bàn đoàn đông nhưng chưa xin thông tin liên hệ` (`P1`)
 2. **[Issue #2](https://github.com/LCHLong/SmartRestaurant/issues/2)**: `[BUG] Aria cam kết chuyển yêu cầu đặt bàn đoàn nhưng chưa đồng bộ/hiển thị lên giao diện Admin và Waiter` (`P1`)
@@ -140,3 +141,8 @@
 10. **[Issue #10](https://github.com/LCHLong/SmartRestaurant/issues/10)**: `[BUG] Aria bị kẹt lặp lại câu hỏi số lượng khách khi khách nhập 0 người thay vì hướng dẫn nghiệp vụ` (`P1`)
 11. **[Issue #11](https://github.com/LCHLong/SmartRestaurant/issues/11)**: `[BUG] Aria không kiểm tra mốc giờ đã qua trong quá khứ khi khách đặt bàn cùng ngày hôm nay` (`P0`)
 12. **[Issue #12](https://github.com/LCHLong/SmartRestaurant/issues/12)**: `[BUG] Aria không kiểm tra định dạng email và chấp nhận email sai cú pháp khi đặt bàn` (`P2`)
+13. **[MỚI] BUG TC-LV9-05**: Aria trả lời lạc đề (gợi ý Bún riêu cua) khi khách hỏi bãi đỗ xe ô tô.
+14. **[MỚI] BUG TC-LV10-01**: Aria trả lời lạc đề (gợi ý Phở bò) khi khách hỏi phí khui rượu vang mang từ nhà.
+15. **[MỚI] BUG TC-LV10-02**: Aria phớt lờ câu hỏi hỗ trợ trang trí sinh nhật và giữ lạnh bánh kem, chỉ hỏi máy móc giờ và số khách.
+16. **[MỚI] BUG TC-LV10-03**: Aria không xác nhận dịch vụ mua mang về (Take-away) khi khách yêu cầu đóng gói đem về.
+17. **[MỚI] BUG TC-LV10-04**: Aria trả lời lạc đề (gợi ý Bún bò Huế) khi khách hỏi thủ tục xuất hóa đơn tài chính VAT.
