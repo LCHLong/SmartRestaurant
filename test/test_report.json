@@ -315,6 +315,51 @@
     "evidence": "test/evidence/TC-LV8-05_passed.png"
   },
   {
+    "id": "TC-LV10-01",
+    "level": "Level10",
+    "name": "Chính sách phụ thu mang đồ uống ngoài vào (Corkage fee)",
+    "priority": "P2",
+    "status": "FAILED",
+    "notes": "Khách hỏi phí khui rượu vang mang từ nhà, Aria trả lời lạc đề gợi ý Phở Bò.",
+    "evidence": "test/evidence/TC-LV10-01_failed.png"
+  },
+  {
+    "id": "TC-LV10-02",
+    "level": "Level10",
+    "name": "Dịch vụ tổ chức tiệc sinh nhật & mang bánh kem",
+    "priority": "P1",
+    "status": "FAILED",
+    "notes": "Khách hỏi trang trí sinh nhật và giữ lạnh bánh kem, Aria phớt lờ chỉ hỏi giờ và số khách.",
+    "evidence": "test/evidence/TC-LV10-02_failed.png"
+  },
+  {
+    "id": "TC-LV10-03",
+    "level": "Level10",
+    "name": "Hỏi dịch vụ đặt món mang về (Take-away)",
+    "priority": "P2",
+    "status": "FAILED",
+    "notes": "Khách hỏi dịch vụ mua mang về (take-away), Aria không xác nhận chính sách mang về.",
+    "evidence": "test/evidence/TC-LV10-03_failed.png"
+  },
+  {
+    "id": "TC-LV10-04",
+    "level": "Level10",
+    "name": "Yêu cầu xuất hóa đơn tài chính (Hóa đơn VAT / MST)",
+    "priority": "P1",
+    "status": "FAILED",
+    "notes": "Khách hỏi xuất hóa đơn VAT công ty, Aria trả lời lạc đề gợi ý Bún Bò Huế.",
+    "evidence": "test/evidence/TC-LV10-04_failed.png"
+  },
+  {
+    "id": "TC-LV10-05",
+    "level": "Level10",
+    "name": "Yêu cầu phòng VIP riêng tư tiếp khách (Phòng kín)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria tư vấn chu đáo về phòng riêng VIP tiếp khách yên tĩnh.",
+    "evidence": "test/evidence/TC-LV10-05_passed.png"
+  },
+  {
     "id": "TC-LV9-01",
     "level": "Level9",
     "name": "Gợi ý món ăn cho trẻ nhỏ (Không cay, dễ nhai, dinh dưỡng)",
@@ -337,9 +382,9 @@
     "level": "Level9",
     "name": "Tra cứu món phục vụ nhanh khi khách vội",
     "priority": "P2",
-    "status": "PASSED",
-    "notes": "Aria thấu hiểu tình huống khách đang vội và gợi ý các món ra nhanh hoặc hướng dẫn báo nhân viên.",
-    "evidence": "test/evidence/TC-LV9-03_passed.png"
+    "status": "FAILED",
+    "notes": "Khách hỏi món làm nhanh trong 15p, Aria gợi ý Bò sốt tiêu đen hầm mềm không khả thi.",
+    "evidence": "test/evidence/TC-LV9-03_failed.png"
   },
   {
     "id": "TC-LV9-04",
@@ -347,7 +392,7 @@
     "name": "Yêu cầu chia thành 2 bàn cạnh nhau (8 người chia 2 bàn)",
     "priority": "P1",
     "status": "PASSED",
-    "notes": "Aria nắm bắt được yêu cầu bố trí không gian (tách 2 bàn cạnh nhau) và lưu vào ghi chú đơn.",
+    "notes": "Aria bóc tách thành công đặt bàn 8 khách, tự động kích hoạt lưu ý cọc 50k/người.",
     "evidence": "test/evidence/TC-LV9-04_passed.png"
   },
   {
@@ -355,53 +400,8 @@
     "level": "Level9",
     "name": "Tra cứu tiện ích nhà hàng (Bãi đỗ xe ô tô / xe máy)",
     "priority": "P2",
-    "status": "PASSED",
-    "notes": "Aria giải đáp thông tin về dịch vụ gửi xe của nhà hàng một cách chu đáo.",
-    "evidence": "test/evidence/TC-LV9-05_passed.png"
-  },
-  {
-    "id": "TC-LV10-01",
-    "level": "Level10",
-    "name": "Chính sách phụ thu mang đồ uống ngoài vào (Corkage fee)",
-    "priority": "P2",
-    "status": "PASSED",
-    "notes": "Aria giải đáp thỏa đáng chính sách mang đồ uống từ ngoài vào hoặc hướng dẫn liên hệ nhân viên.",
-    "evidence": "test/evidence/TC-LV10-01_passed.png"
-  },
-  {
-    "id": "TC-LV10-02",
-    "level": "Level10",
-    "name": "Dịch vụ tổ chức tiệc sinh nhật & mang bánh kem",
-    "priority": "P1",
     "status": "FAILED",
-    "notes": "Phát hiện lỗi nghiệp vụ: Khách hỏi về dịch vụ trang trí & giữ lạnh bánh kem nhưng Aria bỏ qua hoàn toàn, chỉ hỏi máy móc giờ và số khách: 'dạ, bạn muốn đến lúc mấy giờ và nhóm đi bao nhiêu người ạ?'.",
-    "evidence": "test/evidence/TC-LV10-02_failed.png"
-  },
-  {
-    "id": "TC-LV10-03",
-    "level": "Level10",
-    "name": "Hỏi dịch vụ đặt món mang về (Take-away)",
-    "priority": "P2",
-    "status": "PASSED",
-    "notes": "Aria xác nhận dịch vụ mua mang về và hỗ trợ đặt món chu đáo.",
-    "evidence": "test/evidence/TC-LV10-03_passed.png"
-  },
-  {
-    "id": "TC-LV10-04",
-    "level": "Level10",
-    "name": "Yêu cầu xuất hóa đơn tài chính (Hóa đơn VAT / MST)",
-    "priority": "P1",
-    "status": "PASSED",
-    "notes": "Aria hướng dẫn chi tiết thủ tục xuất hóa đơn VAT (tên công ty, MST, địa chỉ).",
-    "evidence": "test/evidence/TC-LV10-04_passed.png"
-  },
-  {
-    "id": "TC-LV10-05",
-    "level": "Level10",
-    "name": "Yêu cầu phòng VIP riêng tư tiếp khách (Phòng kín)",
-    "priority": "P1",
-    "status": "PASSED",
-    "notes": "Aria tư vấn chu đáo về không gian phòng VIP riêng tư để tiếp khách.",
-    "evidence": "test/evidence/TC-LV10-05_passed.png"
+    "notes": "Khách hỏi bãi đỗ xe ô tô, Aria trả lời lạc đề gợi ý Bún Riêu Cua Đồng.",
+    "evidence": "test/evidence/TC-LV9-05_failed.png"
   }
 ]
