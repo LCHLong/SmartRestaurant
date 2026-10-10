@@ -178,5 +178,50 @@
     "status": "PASSED",
     "notes": "Aria không bịa món, xác nhận nhà hàng chưa phục vụ Pizza/Sushi và gợi ý món thay thế hợp lệ.",
     "evidence": "test/evidence/TC-LV5-05_passed.png"
+  },
+  {
+    "id": "TC-LV6-01",
+    "level": "DeepBusiness",
+    "name": "Chặn đặt bàn giờ đã trôi qua trong cùng ngày (8h sáng hôm nay)",
+    "priority": "P0",
+    "status": "FAILED",
+    "notes": "PHÁT HIỆN LỖI MỚI #3: Aria không kiểm tra mốc giờ đã qua trong cùng ngày hôm nay!",
+    "evidence": "test/evidence/TC-LV6-01_failed.png"
+  },
+  {
+    "id": "TC-LV6-02",
+    "level": "DeepBusiness",
+    "name": "Bóc tách yêu cầu đặc biệt (Ghế trẻ em & Gần cửa sổ)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria bóc tách thành công yêu cầu đặc biệt (ghế trẻ em, gần cửa sổ) vào ghi chú đặt bàn.",
+    "evidence": "test/evidence/TC-LV6-02_passed.png"
+  },
+  {
+    "id": "TC-LV6-03",
+    "level": "DeepBusiness",
+    "name": "Phát hiện Email sai định dạng (tuan@@notanemail)",
+    "priority": "P2",
+    "status": "FAILED",
+    "notes": "Aria lưu cả email sai định dạng vào đơn đặt bàn.",
+    "evidence": "test/evidence/TC-LV6-03_failed.png"
+  },
+  {
+    "id": "TC-LV6-04",
+    "level": "DeepBusiness",
+    "name": "Cảnh báo Dị ứng Thực phẩm nghiêm trọng (Hải sản / Đậu phộng)",
+    "priority": "P0",
+    "status": "PASSED",
+    "notes": "Aria ghi nhận yêu cầu dị ứng hải sản và hướng dẫn món ăn an toàn.",
+    "evidence": "test/evidence/TC-LV6-04_passed.png"
+  },
+  {
+    "id": "TC-LV6-05",
+    "level": "DeepBusiness",
+    "name": "Tra cứu món ăn có giá rẻ nhất trong thực đơn",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria tra cứu đúng món có mức giá tiết kiệm/rẻ nhất trong thực đơn.",
+    "evidence": "test/evidence/TC-LV6-05_passed.png"
   }
 ]

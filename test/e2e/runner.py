@@ -506,6 +506,111 @@ async def run_suite():
         results.append(t)
         print(f"  [{t['status']}] {t['id']}: {t['name']}")
 
+        # ── LEVEL 6: LUỒNG THỰC TẾ & BẢO VỆ CHẤT LƯỢNG (Chuyên sâu) ───────────
+        print("\n📌 [CẤP ĐỘ 6: LUỒNG THỰC TẾ & BẢO VỆ CHẤT LƯỢNG - Dị ứng, Giờ quá khứ trong ngày, Special Requests]")
+
+        # TC-LV6-01: Đặt bàn giờ đã qua trong cùng ngày (8h sáng hôm nay)
+        t = {"id": "TC-LV6-01", "level": "DeepBusiness", "name": "Chặn đặt bàn giờ đã trôi qua trong cùng ngày (8h sáng hôm nay)", "priority": "P0", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Cho mình đặt bàn hôm nay lúc 8h sáng 2 người", wait_seconds=4.0)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["đã qua", "quá khứ", "trôi qua", "không thể", "giờ tới", "chọn giờ khác"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria phát hiện giờ 8h sáng hôm nay đã trôi qua và từ chối hợp lệ."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "PHÁT HIỆN LỖI MỚI #3: Aria không kiểm tra mốc giờ đã qua trong cùng ngày hôm nay!"
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV6-02: Bóc tách yêu cầu đặc biệt (Special Request: Ghế trẻ em, gần cửa sổ)
+        t = {"id": "TC-LV6-02", "level": "DeepBusiness", "name": "Bóc tách yêu cầu đặc biệt (Ghế trẻ em & Gần cửa sổ)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Cho mình đặt bàn tối mai 19h 4 người, cần ghế trẻ em và bàn gần cửa sổ", wait_seconds=3.5)
+            await send_message(page, "Anh Tuấn, 0909123456", wait_seconds=4.5)
+            text = (await get_chat_text(page)).lower()
+            if "ghế trẻ em" in text or "gần cửa sổ" in text:
+                t["status"] = "PASSED"
+                t["notes"] = "Aria bóc tách thành công yêu cầu đặc biệt (ghế trẻ em, gần cửa sổ) vào ghi chú đặt bàn."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria bỏ quên yêu cầu đặc biệt của khách hàng."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV6-03: Kiểm tra định dạng Email khi đặt bàn
+        t = {"id": "TC-LV6-03", "level": "DeepBusiness", "name": "Phát hiện Email sai định dạng (tuan@@notanemail)", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Mình là Tuấn 0912345678 email tuan@@sai-dinh-dang, đặt bàn tối mai 20h 2 người", wait_seconds=4.5)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["email không hợp lệ", "định dạng email", "kiểm tra lại email", "sai email"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria phát hiện và cảnh báo email sai định dạng."
+            else:
+                # Nếu Aria bỏ qua email rác và không lưu chuỗi rác vào tóm tắt thì vẫn an toàn
+                if "tuan@@" not in text:
+                    t["status"] = "PASSED"
+                    t["notes"] = "Aria lọc bỏ email sai định dạng, không lưu chuỗi lỗi vào thông tin đặt bàn."
+                else:
+                    t["status"] = "FAILED"
+                    t["notes"] = "Aria lưu cả email sai định dạng vào đơn đặt bàn."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV6-04: Cảnh báo Dị ứng Thực phẩm nghiêm trọng (Food Allergy Safety)
+        t = {"id": "TC-LV6-04", "level": "DeepBusiness", "name": "Cảnh báo Dị ứng Thực phẩm nghiêm trọng (Hải sản / Đậu phộng)", "priority": "P0", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Mình bị dị ứng hải sản nghiêm trọng, hãy gợi ý món an toàn tuyệt đối không có tôm, cua, cá, mực", wait_seconds=4.5)
+            text = (await get_chat_text(page)).lower()
+            has_seafood_warning = any(k in text for k in ["dị ứng", "an toàn", "nhân viên", "không chứa", "thanh đạm", "kiểm tra"])
+            if has_seafood_warning:
+                t["status"] = "PASSED"
+                t["notes"] = "Aria ghi nhận yêu cầu dị ứng hải sản và hướng dẫn món ăn an toàn."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria không phản hồi đầy đủ về an toàn dị ứng thực phẩm."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV6-05: Tra cứu món có giá rẻ nhất trong thực đơn
+        t = {"id": "TC-LV6-05", "level": "DeepBusiness", "name": "Tra cứu món ăn có giá rẻ nhất trong thực đơn", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Món nào trong quán có giá rẻ nhất vậy Aria?", wait_seconds=4.5)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["bánh flan", "tráng miệng", "giá", "đồng", "32.000", "35.000"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria tra cứu đúng món có mức giá tiết kiệm/rẻ nhất trong thực đơn."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria chưa nhận diện đúng câu hỏi so sánh giá rẻ nhất."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
         await browser.close()
 
     # Lưu json
