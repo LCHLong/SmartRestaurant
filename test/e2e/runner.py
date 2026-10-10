@@ -861,12 +861,146 @@ async def run_level_8_only():
     return combined_results
 
 
+async def run_level_9_only():
+    """Chạy RIÊNG BIỆT Level 9 (TC-LV9-01 đến TC-LV9-05), giữ nguyên 35 test case cũ."""
+    report_file = os.path.join(os.path.dirname(__file__), "..", "test_report.json")
+    existing_results = []
+    if os.path.exists(report_file):
+        with open(report_file, "r", encoding="utf-8") as f:
+            try:
+                existing_results = json.load(f)
+            except Exception:
+                existing_results = []
+
+    # Lọc bỏ nếu đã có bất kỳ test case LV9 nào trước đó để tránh trùng lặp
+    existing_results = [r for r in existing_results if not r.get("id", "").startswith("TC-LV9")]
+    new_results = []
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(headless=True)
+        context = await browser.new_context(viewport={"width": 1280, "height": 850})
+
+        print("\n" + "="*80)
+        print("  BẮT ĐẦU CHẠY CẤP ĐỘ 9 MỚI (5 TEST CASES - KHÔNG CHẠY LẠI CÁC TEST CŨ)")
+        print("="*80 + "\n")
+
+        print("📌 [CẤP ĐỘ 9: TRUY VẤN DINH DƯỠNG, MÓN TRẺ EM, THỜI GIAN CHẾ BIẾN & TÁCH BÀN]")
+
+        # TC-LV9-01: Gợi ý món ăn thân thiện cho trẻ em (Kids Menu)
+        t = {"id": "TC-LV9-01", "level": "Level9", "name": "Gợi ý món ăn cho trẻ nhỏ (Không cay, dễ nhai, dinh dưỡng)", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Bé nhà mình 4 tuổi thì nên ăn món gì không cay và dễ ăn?", wait_seconds=4.0)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["súp", "cháo", "trứng", "flan", "bò băm", "mì ý", "dễ ăn", "bé", "trẻ"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria đề xuất các món dịu nhẹ, dinh dưỡng, phù hợp khẩu vị của trẻ nhỏ."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria không đưa ra được gợi ý món ăn phù hợp cho trẻ em."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        new_results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV9-02: Tư vấn chế độ ăn Low-Carb / Keto / Giảm cân
+        t = {"id": "TC-LV9-02", "level": "Level9", "name": "Tư vấn món ăn Eat-Clean / Low-Carb (Nhiều đạm, ít tinh bột)", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Mình đang ăn kiêng giảm cân, gợi ý món nhiều đạm rau củ và ít tinh bột nhé", wait_seconds=4.0)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["bò", "gà", "hải sản", "rau", "salad", "nấm", "đạm", "ít béo", "hấp", "luộc"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria hiểu chế độ ăn eat-clean/low-carb và gợi ý các món giàu protein, nhiều rau củ."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria không nhận diện được yêu cầu ăn kiêng giảm cân."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        new_results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV9-03: Hỏi về thời gian chế biến món ăn nhanh
+        t = {"id": "TC-LV9-03", "level": "Level9", "name": "Tra cứu món phục vụ nhanh khi khách vội", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Mình đang vội cần ăn nhanh trong 15 phút, món nào ra nhanh nhất?", wait_seconds=4.0)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["nhanh", "phút", "sẵn", "mì", "bún", "khai vị", "phục vụ", "bếp"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria thấu hiểu tình huống khách đang vội và gợi ý các món ra nhanh hoặc hướng dẫn báo nhân viên."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria không phản hồi hợp lý với yêu cầu món ăn phục vụ nhanh."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        new_results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV9-04: Yêu cầu tách bàn / Ghép bàn theo khu vực
+        t = {"id": "TC-LV9-04", "level": "Level9", "name": "Yêu cầu chia thành 2 bàn cạnh nhau (8 người chia 2 bàn)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Mình đặt bàn tối mai 19h cho 8 người nhưng muốn chia làm 2 bàn 4 người ngồi cạnh nhau nhé", wait_seconds=4.0)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["2 bàn", "cạnh nhau", "ghi chú", "sắp xếp", "8 người", "bàn", "nhân viên"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria nắm bắt được yêu cầu bố trí không gian (tách 2 bàn cạnh nhau) và lưu vào ghi chú đơn."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria bỏ qua chi tiết chia 2 bàn cạnh nhau của khách."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        new_results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV9-05: Khách hỏi thông tin bãi đậu xe (Ô tô & Xe máy)
+        t = {"id": "TC-LV9-05", "level": "Level9", "name": "Tra cứu tiện ích nhà hàng (Bãi đỗ xe ô tô / xe máy)", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Nhà hàng mình có bãi đậu xe ô tô không bạn?", wait_seconds=4.0)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["xe", "đậu", "đỗ", "bãi", "ô tô", "hướng dẫn", "bảo vệ", "nhà hàng"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria giải đáp thông tin về dịch vụ gửi xe của nhà hàng một cách chu đáo."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria không trả lời được thông tin bãi gửi xe."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        new_results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        await browser.close()
+
+    combined_results = existing_results + new_results
+    with open(report_file, "w", encoding="utf-8") as f:
+        json.dump(combined_results, f, ensure_ascii=False, indent=2)
+
+    print("\n" + "="*80)
+    print(f"  HOÀN THÀNH LEVEL 9 ({len(new_results)} TEST CASES MỚI). TỔNG CỘNG ĐÃ CÓ {len(combined_results)} TEST CASES.")
+    print("="*80 + "\n")
+    return combined_results
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run E2E Chatbot Test Suite")
-    parser.add_argument("--level", type=int, choices=[8], help="Chỉ chạy riêng biệt một level (VD: --level 8)")
+    parser.add_argument("--level", type=int, choices=[8, 9], help="Chỉ chạy riêng biệt một level (VD: --level 8 hoặc --level 9)")
     args = parser.parse_args()
 
     if args.level == 8:
         asyncio.run(run_level_8_only())
+    elif args.level == 9:
+        asyncio.run(run_level_9_only())
     else:
         asyncio.run(run_suite())

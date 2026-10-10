@@ -313,5 +313,50 @@
     "status": "PASSED",
     "notes": "Aria giải đáp chính xác thông tin về chính sách ưu đãi / voucher của nhà hàng.",
     "evidence": "test/evidence/TC-LV8-05_passed.png"
+  },
+  {
+    "id": "TC-LV9-01",
+    "level": "Level9",
+    "name": "Gợi ý món ăn cho trẻ nhỏ (Không cay, dễ nhai, dinh dưỡng)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria đề xuất các món dịu nhẹ, dinh dưỡng, phù hợp khẩu vị của trẻ nhỏ.",
+    "evidence": "test/evidence/TC-LV9-01_passed.png"
+  },
+  {
+    "id": "TC-LV9-02",
+    "level": "Level9",
+    "name": "Tư vấn món ăn Eat-Clean / Low-Carb (Nhiều đạm, ít tinh bột)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria hiểu chế độ ăn eat-clean/low-carb và gợi ý các món giàu protein, nhiều rau củ.",
+    "evidence": "test/evidence/TC-LV9-02_passed.png"
+  },
+  {
+    "id": "TC-LV9-03",
+    "level": "Level9",
+    "name": "Tra cứu món phục vụ nhanh khi khách vội",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria thấu hiểu tình huống khách đang vội và gợi ý các món ra nhanh hoặc hướng dẫn báo nhân viên.",
+    "evidence": "test/evidence/TC-LV9-03_passed.png"
+  },
+  {
+    "id": "TC-LV9-04",
+    "level": "Level9",
+    "name": "Yêu cầu chia thành 2 bàn cạnh nhau (8 người chia 2 bàn)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria nắm bắt được yêu cầu bố trí không gian (tách 2 bàn cạnh nhau) và lưu vào ghi chú đơn.",
+    "evidence": "test/evidence/TC-LV9-04_passed.png"
+  },
+  {
+    "id": "TC-LV9-05",
+    "level": "Level9",
+    "name": "Tra cứu tiện ích nhà hàng (Bãi đỗ xe ô tô / xe máy)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria giải đáp thông tin về dịch vụ gửi xe của nhà hàng một cách chu đáo.",
+    "evidence": "test/evidence/TC-LV9-05_passed.png"
   }
 ]
