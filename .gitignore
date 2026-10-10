@@ -1,0 +1,16 @@
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Sensitive / Credentials
+ACCOUNTS_NOTE.md
+.env
+*.pem
+*.key
+
+# Ignore everything except images directory and this .gitignore
+/*
+!/images/
+!/.gitignore
