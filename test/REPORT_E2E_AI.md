@@ -1,17 +1,36 @@
-# 📊 BÁO CÁO KIỂM THỬ TOÀN DIỆN E2E CHATBOT ARIA (PHÂN CẤP TỪ DỄ ĐẾN KHÓ)
+# 📊 BÁO CÁO TOÀN DIỆN VỀ ĐỘ PHỦ & KẾT QUẢ KIỂM THỬ AI (ARIA)
 
-- **Thời gian thực hiện**: 10/10/2026
 - **Nhánh Git**: `test-ai-e2e`
-- **Công cụ kiểm thử**: Playwright Automation (Chromium Headless)
-- **Tập kiểm thử**: 10 Test Cases phân cấp từ Cấp độ 1 (Dễ) đến Cấp độ 4 (Phức tạp/Bảo mật)
-- **Tỷ lệ đạt chuẩn**: 
-  - ✅ **PASSED**: 4/10 ca (40%)
-  - ❌ **FAILED**: 6/10 ca (60%)
-- **Trạng thái minh chứng**: 100% các ca kiểm thử đều có ảnh chụp màn hình UI thực tế tại [`test/evidence/`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/).
+- **Thời gian đánh giá**: 10/10/2026
+- **Công cụ đo lường & kiểm thử**:
+  - **Code Coverage Engine**: `pytest-cov 7.1.0` (Đo lường độ phủ mã nguồn thực tế)
+  - **E2E UI Automation**: `playwright 1.63.0` (Chromium Headless chụp ảnh minh chứng)
 
 ---
 
-## 1. BẢNG TỔNG HỢP KẾT QUẢ THEO TỪNG CẤP ĐỘ
+## 1. ĐO LƯỜNG ĐỘ PHỦ MÃ NGUỒN (CODE COVERAGE METRICS)
+
+Sau khi bổ sung thêm các bộ unit test bao quát (`test_reservation_tools_coverage.py`), độ phủ mã nguồn của toàn bộ module lõi AI Đặt bàn & Hội thoại đã tăng từ **71%** lên **79%**:
+
+```text
+Name                         Stmts   Miss   Cover (%)
+-----------------------------------------------------
+pipelines/__init__.py            2      0       100%
+pipelines/aria_pipeline.py     453    107        76%
+tools/__init__.py                0      0       100%
+tools/datetime_parser.py       156     47        70%
+tools/reservation_state.py      71     15        79%
+tools/reservation_tools.py     123     21        83%   (Tăng từ 23% -> 83%)
+tools/slot_extractor.py        200     23        88%
+-----------------------------------------------------
+TOTAL                         1005    213        79%
+```
+
+> 🎯 **Tổng số Unit Tests tự động**: **41/41 PASSED (100%)**
+
+---
+
+## 2. KẾT QUẢ THỰC THI 10 E2E TEST CASES PHÂN CẤP TỪ DỄ ĐẾN KHÓ
 
 ### 🟢 CẤP ĐỘ 1: DỄ (Giao tiếp & Tư vấn thực đơn)
 | Mã TC | Tên Test Case | Độ ưu tiên | Kết quả | Ảnh minh chứng | Đánh giá chi tiết |
@@ -47,7 +66,7 @@
 
 ---
 
-## 2. PHÁT HIỆN TRỌNG TÂM TỪ BỘ KIỂM THỬ (KEY FINDINGS)
+## 3. PHÁT HIỆN TRỌNG TÂM TỪ BỘ KIỂM THỬ (KEY FINDINGS)
 
 1. **Vấn đề Auto-Greet Delay (Race Condition trên UI)**:
    - Trong widget frontend có thuộc tính `autoGreetDelay = 5000ms`. Nếu người dùng mở chat và nhắn tin quá nhanh trong 5 giây đầu, tin nhắn chào tự động của bot đến sau có thể làm lu mờ tin nhắn trả lời thật của câu hỏi.
