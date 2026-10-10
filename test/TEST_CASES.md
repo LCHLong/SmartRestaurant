@@ -185,8 +185,10 @@
 | **BUG-10** | `TC-LV5-01` | Kẹt vòng lặp hỏi lại số khách khi nhập 0 người | [GitHub #10](https://github.com/LCHLong/SmartRestaurant/issues/10) |
 | **BUG-11** | `TC-LV6-01` | Chấp nhận mốc giờ đã qua trong quá khứ cùng ngày | [GitHub #11](https://github.com/LCHLong/SmartRestaurant/issues/11) |
 | **BUG-12** | `TC-LV6-03` | Không kiểm tra định dạng email và chấp nhận email sai cú pháp | [GitHub #12](https://github.com/LCHLong/SmartRestaurant/issues/12) |
-| **BUG-13** | `TC-LV9-05` | Khách hỏi bãi đỗ xe ô tô, Aria trả lời lạc đề gợi ý Bún Riêu Cua | Cần tạo Bug Issue mới |
-| **BUG-14** | `TC-LV10-01` | Khách hỏi phí khui rượu mang từ ngoài vào, Aria lạc đề gợi ý Phở Bò | Cần tạo Bug Issue mới |
-| **BUG-15** | `TC-LV10-02` | Khách hỏi trang trí sinh nhật & giữ lạnh bánh kem, Aria phớt lờ chỉ hỏi giờ/khách | Cần tạo Bug Issue mới |
-| **BUG-16** | `TC-LV10-03` | Khách hỏi mua mang về (Take-away), Aria chỉ gợi ý món ăn như tại chỗ | Cần tạo Bug Issue mới |
-| **BUG-17** | `TC-LV10-04` | Khách hỏi xuất hóa đơn VAT, Aria lạc đề gợi ý Bún Bò Huế | Cần tạo Bug Issue mới |
+| **BUG-13** | `TC-LV9-03` | Aria thiếu tính nhất quán và gợi ý món bò hầm khi khách cần ăn gấp 15p | [GitHub #13](https://github.com/LCHLong/SmartRestaurant/issues/13) |
+| **BUG-14** | `TC-LV9-04` | Aria bỏ quên yêu cầu chia làm 2 bàn cạnh nhau khi đặt bàn 8 người | [GitHub #14](https://github.com/LCHLong/SmartRestaurant/issues/14) |
+| **BUG-15** | `TC-LV9-05` | Khách hỏi bãi đỗ xe ô tô, Aria trả lời lạc đề gợi ý Bún Riêu Cua | [GitHub #15](https://github.com/LCHLong/SmartRestaurant/issues/15) |
+| **BUG-16** | `TC-LV10-01` | Khách hỏi phí khui rượu mang từ ngoài vào, Aria lạc đề gợi ý Phở Bò | [GitHub #16](https://github.com/LCHLong/SmartRestaurant/issues/16) |
+| **BUG-17** | `TC-LV10-02` | Khách hỏi trang trí sinh nhật & giữ lạnh bánh kem, Aria phớt lờ chỉ hỏi giờ/khách | [GitHub #17](https://github.com/LCHLong/SmartRestaurant/issues/17) |
+| **BUG-18** | `TC-LV10-03` | Khách hỏi mua mang về (Take-away), Aria chỉ gợi ý món ăn như tại chỗ | [GitHub #18](https://github.com/LCHLong/SmartRestaurant/issues/18) |
+| **BUG-19** | `TC-LV10-04` | Khách hỏi xuất hóa đơn VAT, Aria lạc đề gợi ý Bún Bò Huế | [GitHub #19](https://github.com/LCHLong/SmartRestaurant/issues/19) |

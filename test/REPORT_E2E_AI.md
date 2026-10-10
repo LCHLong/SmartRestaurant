@@ -143,8 +143,10 @@
 10. **[Issue #10](https://github.com/LCHLong/SmartRestaurant/issues/10)**: `[BUG] Aria bị kẹt lặp lại câu hỏi số lượng khách khi khách nhập 0 người thay vì hướng dẫn nghiệp vụ` (`P1`)
 11. **[Issue #11](https://github.com/LCHLong/SmartRestaurant/issues/11)**: `[BUG] Aria không kiểm tra mốc giờ đã qua trong quá khứ khi khách đặt bàn cùng ngày hôm nay` (`P0`)
 12. **[Issue #12](https://github.com/LCHLong/SmartRestaurant/issues/12)**: `[BUG] Aria không kiểm tra định dạng email và chấp nhận email sai cú pháp khi đặt bàn` (`P2`)
-13. **[MỚI] BUG TC-LV9-05**: Aria trả lời lạc đề (gợi ý Bún riêu cua) khi khách hỏi bãi đỗ xe ô tô.
-14. **[MỚI] BUG TC-LV10-01**: Aria trả lời lạc đề (gợi ý Phở bò) khi khách hỏi phí khui rượu vang mang từ nhà.
-15. **[MỚI] BUG TC-LV10-02**: Aria phớt lờ câu hỏi hỗ trợ trang trí sinh nhật và giữ lạnh bánh kem, chỉ hỏi máy móc giờ và số khách.
-16. **[MỚI] BUG TC-LV10-03**: Aria không xác nhận dịch vụ mua mang về (Take-away) khi khách yêu cầu đóng gói đem về.
-17. **[MỚI] BUG TC-LV10-04**: Aria trả lời lạc đề (gợi ý Bún bò Huế) khi khách hỏi thủ tục xuất hóa đơn tài chính VAT.
+13. **[Issue #13](https://github.com/LCHLong/SmartRestaurant/issues/13)**: `[BUG] Aria thiếu tính nhất quán và gợi ý món bò hầm khi khách cần ăn gấp trong 15 phút` (`P2`)
+14. **[Issue #14](https://github.com/LCHLong/SmartRestaurant/issues/14)**: `[BUG] Aria bỏ quên yêu cầu chia làm 2 bàn cạnh nhau khi khách đặt bàn cho 8 người` (`P1`)
+15. **[Issue #15](https://github.com/LCHLong/SmartRestaurant/issues/15)**: `[BUG] Aria trả lời hoàn toàn lạc đề (gợi ý Bún Riêu Cua) khi khách hỏi về bãi đỗ xe ô tô` (`P2`)
+16. **[Issue #16](https://github.com/LCHLong/SmartRestaurant/issues/16)**: `[BUG] Aria trả lời hoàn toàn lạc đề (gợi ý Phở Bò) khi khách hỏi về phí khui rượu vang mang từ nhà` (`P2`)
+17. **[Issue #17](https://github.com/LCHLong/SmartRestaurant/issues/17)**: `[BUG] Aria phớt lờ câu hỏi hỗ trợ trang trí tiệc sinh nhật và bảo quản bánh kem khi khách đặt bàn` (`P1`)
+18. **[Issue #18](https://github.com/LCHLong/SmartRestaurant/issues/18)**: `[BUG] Aria không xác nhận dịch vụ mua mang về (Take-away) khi khách yêu cầu đóng gói đem về` (`P2`)
+19. **[Issue #19](https://github.com/LCHLong/SmartRestaurant/issues/19)**: `[BUG] Aria trả lời hoàn toàn lạc đề (gợi ý Bún Bò Huế) khi khách hỏi thủ tục xuất hóa đơn tài chính VAT` (`P1`)
