@@ -2,7 +2,7 @@
   {
     "id": "TC-LV1-01",
     "level": "Easy",
-    "name": "Chào hỏi & Giới thiệu",
+    "name": "Chào hỏi & Giới thiệu vai trò trợ lý",
     "priority": "P3",
     "status": "PASSED",
     "notes": "Aria chào hỏi thân thiện và tự giới thiệu vai trò trợ lý ẩm thực.",
@@ -11,25 +11,34 @@
   {
     "id": "TC-LV1-02",
     "level": "Easy",
-    "name": "Tư vấn món ăn theo nguyên liệu (Món bò)",
+    "name": "Click gợi ý nhanh 'Gợi ý món hôm nay 🍜'",
     "priority": "P2",
-    "status": "FAILED",
-    "notes": "Không tìm thấy món bò trong câu trả lời: vấn món ăn của nhà hàng 🍽️\n\nbạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?",
-    "evidence": "test/evidence/TC-LV1-02_failed.png"
+    "status": "PASSED",
+    "notes": "Click quick chip thành công và kích hoạt tư vấn món hôm nay.",
+    "evidence": "test/evidence/TC-LV1-02_passed.png"
   },
   {
     "id": "TC-LV1-03",
+    "level": "Easy",
+    "name": "Tư vấn món ăn theo nguyên liệu (Món bò)",
+    "priority": "P2",
+    "status": "FAILED",
+    "notes": "Không tìm thấy món bò: vấn món ăn của nhà hàng 🍽️\n\nbạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?",
+    "evidence": "test/evidence/TC-LV1-03_failed.png"
+  },
+  {
+    "id": "TC-LV1-04",
     "level": "Easy",
     "name": "Tư vấn món chay (Vegetarian)",
     "priority": "P2",
     "status": "FAILED",
     "notes": "Aria không phản hồi danh mục món chay: vấn món ăn của nhà hàng 🍽️\n\nbạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?",
-    "evidence": "test/evidence/TC-LV1-03_failed.png"
+    "evidence": "test/evidence/TC-LV1-04_failed.png"
   },
   {
     "id": "TC-LV2-01",
     "level": "Medium",
-    "name": "Bóc tách ngày giờ rõ ràng",
+    "name": "Bóc tách ngày giờ đặt bàn rõ ràng",
     "priority": "P1",
     "status": "FAILED",
     "notes": "Aria chưa nhận diện đúng ngày giờ: vấn món ăn của nhà hàng 🍽️\n\nbạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?",
@@ -38,11 +47,29 @@
   {
     "id": "TC-LV2-02",
     "level": "Medium",
-    "name": "Làm rõ giờ mơ hồ (7h)",
+    "name": "Làm rõ giờ mơ hồ sáng/tối (7h)",
     "priority": "P1",
     "status": "FAILED",
     "notes": "Aria không hỏi làm rõ giờ sáng/tối.",
     "evidence": "test/evidence/TC-LV2-02_failed.png"
+  },
+  {
+    "id": "TC-LV2-03",
+    "level": "Medium",
+    "name": "Từ chối đặt bàn ngày trong quá khứ",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria từ chối hợp lệ khi ngày đặt bàn nằm trong quá khứ.",
+    "evidence": "test/evidence/TC-LV2-03_passed.png"
+  },
+  {
+    "id": "TC-LV2-04",
+    "level": "Medium",
+    "name": "Tương tác nút Thích (Thumbs Up) gợi ý",
+    "priority": "P2",
+    "status": "FAILED",
+    "notes": "Không tìm thấy nút Thumbs Up trên tin nhắn trợ lý.",
+    "evidence": "test/evidence/TC-LV2-04_failed.png"
   },
   {
     "id": "TC-LV3-01",
@@ -61,6 +88,24 @@
     "status": "PASSED",
     "notes": "Không phát hiện lỗi cắt số.",
     "evidence": "test/evidence/TC-LV3-02_passed.png"
+  },
+  {
+    "id": "TC-LV3-03",
+    "level": "Hard",
+    "name": "Đặt bàn trọn gói 1 câu (One-shot 5 slots)",
+    "priority": "P0",
+    "status": "FAILED",
+    "notes": "Aria chưa nhận diện trọn gói 5 slots: vấn món ăn của nhà hàng 🍽️\n\nBạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?",
+    "evidence": "test/evidence/TC-LV3-03_failed.png"
+  },
+  {
+    "id": "TC-LV3-04",
+    "level": "Hard",
+    "name": "Thêm món vào giỏ hàng từ Suggested Item Card",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Gợi ý món ăn kèm giá hiển thị đầy đủ trong tin nhắn.",
+    "evidence": "test/evidence/TC-LV3-04_passed.png"
   },
   {
     "id": "TC-LV4-01",

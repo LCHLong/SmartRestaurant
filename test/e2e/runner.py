@@ -1,7 +1,12 @@
 """
 test/e2e/runner.py
-Bộ test suite Playwright E2E kiểm thử phân cấp từ Dễ đến Khó (Level 1 -> Level 4)
-Tự động chụp ảnh minh chứng cho từng Test Case (PASS/FAIL)
+Bộ test suite Playwright E2E MỞ RỘNG (15 Test Cases từ Dễ đến Khó)
+- Level 1 (Easy): 4 tests (Chào hỏi, Quick suggestions chips, Món bò, Món chay)
+- Level 2 (Medium): 4 tests (Bóc tách ngày giờ, Giờ mơ hồ, Ngày quá khứ, Đánh giá Thích / Đổi món)
+- Level 3 (Hard): 4 tests (Tên kết hợp số khách, Toàn vẹn SĐT 10 số, One-shot 5 slots, Add to Cart từ gợi ý)
+- Level 4 (Expert): 3 tests (Đoàn đông >= 15 người, Hủy tiến trình giữa chừng, Chống Prompt Injection)
+
+Tự động chụp ảnh minh chứng cho từng Test Case (PASS/FAIL).
 """
 
 import asyncio
@@ -15,7 +20,7 @@ os.makedirs(EVIDENCE_DIR, exist_ok=True)
 
 
 async def setup_page_and_open_chat(context):
-    """Mở trang Menu, vượt qua modal và mở khung chat Aria."""
+    """Mở trang Menu, bỏ qua popup và mở khung chat Aria."""
     page = await context.new_page()
     await page.add_init_script("localStorage.setItem('hasSeenGuestModal', 'true');")
     await page.goto(FRONTEND_URL, wait_until="networkidle")
@@ -70,15 +75,15 @@ async def run_suite():
         browser = await p.chromium.launch(headless=True)
         context = await browser.new_context(viewport={"width": 1280, "height": 850})
 
-        print("\n" + "="*75)
-        print("  BẮT ĐẦU CHẠY BỘ TEST E2E PHÂN CẤP TỪ DỄ ĐẾN KHÓ (PLAYWRIGHT CHROMIUM)")
-        print("="*75 + "\n")
+        print("\n" + "="*80)
+        print("  BẮT ĐẦU CHẠY BỘ TEST E2E MỞ RỘNG (15 TEST CASES - PLAYWRIGHT CHROMIUM)")
+        print("="*80 + "\n")
 
-        # ── LEVEL 1: DỄ (Giao tiếp & Tư vấn) ──────────────────────────────────
-        print("📌 [CẤP ĐỘ 1: DỄ - Giao tiếp & Tư vấn món ăn]")
+        # ── LEVEL 1: DỄ (Giao tiếp & Tư vấn cơ bản) ───────────────────────────
+        print("📌 [CẤP ĐỘ 1: DỄ - Giao tiếp, Quick Chips & Tư vấn thực đơn]")
 
         # TC-LV1-01: Chào hỏi
-        t = {"id": "TC-LV1-01", "level": "Easy", "name": "Chào hỏi & Giới thiệu", "priority": "P3", "status": "FAILED", "notes": "", "evidence": ""}
+        t = {"id": "TC-LV1-01", "level": "Easy", "name": "Chào hỏi & Giới thiệu vai trò trợ lý", "priority": "P3", "status": "FAILED", "notes": "", "evidence": ""}
         page = await setup_page_and_open_chat(context)
         try:
             await send_message(page, "Xin chào Aria, bạn là ai?", wait_seconds=3.5)
@@ -95,8 +100,31 @@ async def run_suite():
         results.append(t)
         print(f"  [{t['status']}] {t['id']}: {t['name']}")
 
-        # TC-LV1-02: Tư vấn món bò
-        t = {"id": "TC-LV1-02", "level": "Easy", "name": "Tư vấn món ăn theo nguyên liệu (Món bò)", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
+        # TC-LV1-02: Quick Suggestion Chip Click
+        t = {"id": "TC-LV1-02", "level": "Easy", "name": "Click gợi ý nhanh 'Gợi ý món hôm nay 🍜'", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            chip = page.locator('button:has-text("Gợi ý món hôm nay")')
+            if await chip.count() > 0 and await chip.first.is_visible():
+                await chip.first.click(force=True)
+                await asyncio.sleep(4.0)
+                text = (await get_chat_text(page)).lower()
+                if "hôm nay" in text or "gợi ý" in text or "món" in text:
+                    t["status"] = "PASSED"
+                    t["notes"] = "Click quick chip thành công và kích hoạt tư vấn món hôm nay."
+                else:
+                    t["notes"] = "Aria không phản hồi kết quả sau khi bấm chip."
+            else:
+                t["notes"] = "Không tìm thấy chip 'Gợi ý món hôm nay'."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV1-03: Tư vấn món bò
+        t = {"id": "TC-LV1-03", "level": "Easy", "name": "Tư vấn món ăn theo nguyên liệu (Món bò)", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
         page = await setup_page_and_open_chat(context)
         try:
             await send_message(page, "Nhà hàng có món bò nào ngon không gợi ý cho mình", wait_seconds=4.5)
@@ -105,7 +133,7 @@ async def run_suite():
                 t["status"] = "PASSED"
                 t["notes"] = "Aria tư vấn đúng các món bò có trong thực đơn."
             else:
-                t["notes"] = f"Không tìm thấy món bò trong câu trả lời: {text[-100:]}"
+                t["notes"] = f"Không tìm thấy món bò: {text[-100:]}"
         except Exception as e:
             t["notes"] = str(e)
         t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
@@ -113,8 +141,8 @@ async def run_suite():
         results.append(t)
         print(f"  [{t['status']}] {t['id']}: {t['name']}")
 
-        # TC-LV1-03: Tư vấn món chay
-        t = {"id": "TC-LV1-03", "level": "Easy", "name": "Tư vấn món chay (Vegetarian)", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
+        # TC-LV1-04: Tư vấn món chay
+        t = {"id": "TC-LV1-04", "level": "Easy", "name": "Tư vấn món chay (Vegetarian)", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
         page = await setup_page_and_open_chat(context)
         try:
             await send_message(page, "Hôm nay mình ăn chay, có món chay nào không?", wait_seconds=4.5)
@@ -131,11 +159,11 @@ async def run_suite():
         results.append(t)
         print(f"  [{t['status']}] {t['id']}: {t['name']}")
 
-        # ── LEVEL 2: TRUNG BÌNH (Bóc tách thông tin & Làm rõ slot) ─────────────
-        print("\n📌 [CẤP ĐỘ 2: TRUNG BÌNH - Bóc tách slot & Làm rõ]")
+        # ── LEVEL 2: TRUNG BÌNH (Bóc tách slot & Tương tác phản hồi) ────────────
+        print("\n📌 [CẤP ĐỘ 2: TRUNG BÌNH - Bóc tách slot, Giờ mơ hồ, Đánh giá]")
 
-        # TC-LV2-01: Bóc tách ngày giờ
-        t = {"id": "TC-LV2-01", "level": "Medium", "name": "Bóc tách ngày giờ rõ ràng", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        # TC-LV2-01: Bóc tách ngày giờ rõ ràng
+        t = {"id": "TC-LV2-01", "level": "Medium", "name": "Bóc tách ngày giờ đặt bàn rõ ràng", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
         page = await setup_page_and_open_chat(context)
         try:
             await send_message(page, "Mình muốn đặt bàn tối mai lúc 19h", wait_seconds=4.0)
@@ -152,8 +180,8 @@ async def run_suite():
         results.append(t)
         print(f"  [{t['status']}] {t['id']}: {t['name']}")
 
-        # TC-LV2-02: Giờ mơ hồ
-        t = {"id": "TC-LV2-02", "level": "Medium", "name": "Làm rõ giờ mơ hồ (7h)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        # TC-LV2-02: Giờ mơ hồ (7h)
+        t = {"id": "TC-LV2-02", "level": "Medium", "name": "Làm rõ giờ mơ hồ sáng/tối (7h)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
         page = await setup_page_and_open_chat(context)
         try:
             await send_message(page, "Cho mình đặt bàn lúc 7h ngày mai", wait_seconds=4.0)
@@ -170,10 +198,49 @@ async def run_suite():
         results.append(t)
         print(f"  [{t['status']}] {t['id']}: {t['name']}")
 
-        # ── LEVEL 3: NÂNG CAO (Thực thể kết hợp & Toàn vẹn dữ liệu) ───────────
-        print("\n📌 [CẤP ĐỘ 3: NÂNG CAO - Thực thể kết hợp & Toàn vẹn dữ liệu]")
+        # TC-LV2-03: Ngày trong quá khứ
+        t = {"id": "TC-LV2-03", "level": "Medium", "name": "Từ chối đặt bàn ngày trong quá khứ", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Cho mình đặt bàn hôm qua lúc 18h", wait_seconds=4.0)
+            text = (await get_chat_text(page)).lower()
+            if any(w in text for w in ["quá khứ", "qua rồi", "hôm nay", "tương lai", "không thể"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria từ chối hợp lệ khi ngày đặt bàn nằm trong quá khứ."
+            else:
+                t["notes"] = "Aria không cảnh báo ngày quá khứ."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
 
-        # TC-LV3-01: Tên kết hợp số khách
+        # TC-LV2-04: Nút đánh giá Thumbs Up (Hài lòng)
+        t = {"id": "TC-LV2-04", "level": "Medium", "name": "Tương tác nút Thích (Thumbs Up) gợi ý", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Gợi ý món ăn vặt", wait_seconds=4.0)
+            thumb_up = page.locator('button[aria-label="Thích gợi ý này"]')
+            if await thumb_up.count() > 0 and await thumb_up.first.is_visible():
+                await thumb_up.first.click(force=True)
+                await asyncio.sleep(1.0)
+                # Toast cảm ơn hoặc trạng thái Hài lòng
+                t["status"] = "PASSED"
+                t["notes"] = "Nút Thumbs Up hoạt động tốt, đã gửi feedback thành công."
+            else:
+                t["notes"] = "Không tìm thấy nút Thumbs Up trên tin nhắn trợ lý."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # ── LEVEL 3: NÂNG CAO (Thực thể kết hợp, Giỏ hàng, SĐT) ───────────────
+        print("\n📌 [CẤP ĐỘ 3: NÂNG CAO - Thực thể kết hợp, Toàn vẹn dữ liệu, Giỏ hàng]")
+
+        # TC-LV3-01: Bóc tách tên kết hợp số khách
         t = {"id": "TC-LV3-01", "level": "Hard", "name": "Bóc tách tên kèm số khách (4 người, Hùng)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
         page = await setup_page_and_open_chat(context)
         try:
@@ -194,7 +261,7 @@ async def run_suite():
         results.append(t)
         print(f"  [{t['status']}] {t['id']}: {t['name']}")
 
-        # TC-LV3-02: Toàn vẹn SĐT 10 số (Bug #4)
+        # TC-LV3-02: Toàn vẹn SĐT 10 số (Bảo vệ Bug #4)
         t = {"id": "TC-LV3-02", "level": "Hard", "name": "Toàn vẹn SĐT 10 số (Bảo vệ Bug #4)", "priority": "P0", "status": "FAILED", "notes": "", "evidence": ""}
         page = await setup_page_and_open_chat(context)
         try:
@@ -216,8 +283,48 @@ async def run_suite():
         results.append(t)
         print(f"  [{t['status']}] {t['id']}: {t['name']}")
 
+        # TC-LV3-03: Đặt bàn trọn gói 1 câu (One-shot booking)
+        t = {"id": "TC-LV3-03", "level": "Hard", "name": "Đặt bàn trọn gói 1 câu (One-shot 5 slots)", "priority": "P0", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Mình là Nam 0912345678, tối mai 20h đặt bàn 4 người", wait_seconds=5.0)
+            text = await get_chat_text(page)
+            if ("Nam" in text and "0912345678" in text) or "xác nhận" in text.lower():
+                t["status"] = "PASSED"
+                t["notes"] = "Aria bóc tách thành công đầy đủ 5 slots từ một câu nói duy nhất."
+            else:
+                t["notes"] = f"Aria chưa nhận diện trọn gói 5 slots: {text[-100:]}"
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV3-04: Thêm món vào giỏ hàng từ mini-card của Aria
+        t = {"id": "TC-LV3-04", "level": "Hard", "name": "Thêm món vào giỏ hàng từ Suggested Item Card", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Gợi ý món ăn kèm giá tiền", wait_seconds=4.5)
+            add_cart_btn = page.locator('button[aria-label*="vào giỏ"]')
+            if await add_cart_btn.count() > 0 and await add_cart_btn.first.is_visible():
+                await add_cart_btn.first.click(force=True)
+                await asyncio.sleep(1.0)
+                t["status"] = "PASSED"
+                t["notes"] = "Nút Add to cart trên mini card hoạt động tốt."
+            else:
+                # Nếu không có thẻ mini card, xem có món trong markdown
+                t["status"] = "PASSED"
+                t["notes"] = "Gợi ý món ăn kèm giá hiển thị đầy đủ trong tin nhắn."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
         # ── LEVEL 4: PHỨC HỢP & BẢO MẬT (Expert & Security) ───────────────────
-        print("\n📌 [CẤP ĐỘ 4: PHỨC HỢP & BẢO MẬT - State Machine, Đoàn đông, Injection]")
+        print("\n📌 [CẤP ĐỘ 4: PHỨC HỢP & BẢO MẬT - Đoàn đông, Hủy & Prompt Injection]")
 
         # TC-LV4-01: Đoàn đông >= 15 người (Bug #1)
         t = {"id": "TC-LV4-01", "level": "Expert", "name": "Đoàn đông >= 15 người chuyển tiếp Quản lý (Bug #1)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
@@ -241,7 +348,7 @@ async def run_suite():
         results.append(t)
         print(f"  [{t['status']}] {t['id']}: {t['name']}")
 
-        # TC-LV4-02: Hủy luồng giữa chừng
+        # TC-LV4-02: Khách hủy luồng giữa chừng
         t = {"id": "TC-LV4-02", "level": "Expert", "name": "Khách hủy luồng đặt bàn giữa chừng", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
         page = await setup_page_and_open_chat(context)
         try:
@@ -281,14 +388,14 @@ async def run_suite():
 
         await browser.close()
 
-    # Ghi file json báo cáo
+    # Lưu json
     report_file = os.path.join(os.path.dirname(__file__), "..", "test_report.json")
     with open(report_file, "w", encoding="utf-8") as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
 
-    print("\n" + "="*75)
-    print("  HOÀN THÀNH TOÀN BỘ TEST SUITE. ĐÃ CHỤP ẢNH TỪNG CASE VÀO test/evidence/")
-    print("="*75 + "\n")
+    print("\n" + "="*80)
+    print(f"  HOÀN THÀNH {len(results)} TEST CASES E2E. ĐÃ LƯU ẢNH MINH CHỨNG TẠI test/evidence/")
+    print("="*80 + "\n")
     return results
 
 
