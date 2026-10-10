@@ -382,9 +382,9 @@
     "level": "Level9",
     "name": "Tra cứu món phục vụ nhanh khi khách vội",
     "priority": "P2",
-    "status": "FAILED",
-    "notes": "Khách hỏi món làm nhanh trong 15p, Aria gợi ý Bò sốt tiêu đen hầm mềm không khả thi.",
-    "evidence": "test/evidence/TC-LV9-03_failed.png"
+    "status": "PASSED",
+    "notes": "Aria tư vấn chuẩn xác các món chuẩn bị nhanh dưới 15 phút: Cà Phê Sữa Đá (5-7 phút), Bánh Flan sẵn sàng, Gỏi Cuốn sơ chế sẵn.",
+    "evidence": "test/evidence/TC-LV9-03_passed.png"
   },
   {
     "id": "TC-LV9-04",
