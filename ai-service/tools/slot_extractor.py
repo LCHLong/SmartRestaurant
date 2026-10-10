@@ -174,9 +174,10 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
             return formatted
         return None
 
-    # Pattern rõ ràng: "mình là...", "tên là...", "tên: ...", "tôi tên...", "đặt cho..."
+    # Pattern rõ ràng: "mình là...", "tên là...", "tên: ...", "tôi tên...", "đặt cho...", "anh/chị..."
     intro_patterns = [
-        r'(?:tên\s*(?:khách|người\s*đặt)?\s*(?:là|:|\s)\s*|tôi\s*tên\s*(?:là|:)?\s*|mình\s*tên\s*(?:là|:)?\s*|em\s*tên\s*(?:là|:)?\s*|tên\s*mình\s*là\s*|tên\s*tôi\s*là\s*|mình\s*là\s*|tôi\s*là\s*|em\s*là\s*|đặt\s*cho\s+)([A-ZÀ-Ỹa-zà-ỹ\s]{2,30})',
+        r'(?:tên\s*(?:khách|người\s*đặt)?\s*(?:là|:|\s)\s*|tôi\s*tên\s*(?:là|:)?\s*|mình\s*tên\s*(?:là|:)?\s*|em\s*tên\s*(?:là|:)?\s*|anh\s*tên\s*(?:là|:)?\s*|chị\s*tên\s*(?:là|:)?\s*|tên\s*mình\s*là\s*|tên\s*tôi\s*là\s*|mình\s*là\s*|tôi\s*là\s*|em\s*là\s*|anh\s*là\s*|chị\s*là\s*|đặt\s*cho\s+)([A-ZÀ-Ỹa-zà-ỹ\s]{2,30})',
+        r'(?:anh|chị)\s+([A-ZÀ-Ỹa-zà-ỹ]{2,20})',
     ]
     for pat in intro_patterns:
         m = re.search(pat, text_clean, re.IGNORECASE)
@@ -194,7 +195,11 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
         if "?" in text or "¿" in text:
             return None
 
-        clean_text = re.sub(r'[,.:;!?~_\-/\(\)\[\]"\'`]+', ' ', text_clean).strip()
+        # Loại bỏ cụm từ chỉ số lượng khách trước khi trích xuất tên ngắn (hỗ trợ "4 người, Hùng", "Hùng 4 người")
+        text_without_guests = re.sub(r'\b(?:khoảng|tầm|chừng|cỡ|đi|đặt|cho|bàn|nhóm)?\s*\d{1,2}\s*(?:người|khách|pax|chỗ|bạn|ng|lớn|trẻ\s*em|em\s*bé|bé)?\b', ' ', text_clean, flags=re.IGNORECASE)
+        text_without_guests = re.sub(r'\b(?:khoảng|tầm|chừng|cỡ|đi|đặt|cho|bàn)\s*\d{1,2}\b', ' ', text_without_guests, flags=re.IGNORECASE)
+
+        clean_text = re.sub(r'[,.:;!?~_\-/\(\)\[\]"\'`]+', ' ', text_without_guests).strip()
         # Cắt bỏ các từ nhãn sđt / email nếu còn sót sau khi đã tách phone/email
         clean_text = re.split(r'\b(?:sđt|sdt|số|điện\s*thoại|phone|email|mail|đt)\b', clean_text, flags=re.IGNORECASE)[0].strip()
         words = [w for w in clean_text.split() if w]
@@ -212,7 +217,7 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
                 "đặt", "bàn", "ok", "oke", "okay", "hủy", "thôi", "khoan", "dừng", "tạm", "chờ", "đợi",
                 "sau", "xem", "tư", "vấn", "gợi", "ý", "hỏi", "tìm", "chọn", "giúp", "alo", "chào", "hello",
                 "hi", "ơi", "nhé", "nha", "đây", "nè", "chỗ", "người", "khách", "giờ", "hôm", "tối",
-                "trưa", "sáng", "chiều", "ngày",
+                "trưa", "sáng", "chiều", "ngày", "khoảng", "tầm", "chừng", "cỡ",
                 # Tiện ích & dịch vụ
                 "xe", "đỗ", "gửi", "wifi", "pass", "mật", "khẩu", "cửa", "mở", "đóng", "phòng", "vip", "hút", "thuốc"
             }

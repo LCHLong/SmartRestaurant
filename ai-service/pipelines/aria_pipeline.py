@@ -921,35 +921,43 @@ class AriaConversationPipeline:
         return missing
 
     def _build_slot_question(self, missing: List[str], state: Dict[str, Any]) -> str:
-        """Tạo câu hỏi tự nhiên cho 1-2 slot thiếu đầu tiên."""
+        """Tạo câu hỏi tự nhiên cho các slot thiếu."""
         user_name = state.get("user_info", {}).get("name")
         greeting = f"Chào {user_name}! " if user_name and not state.get("slots", {}).get("date") else "Dạ, "
 
         questions = {
             "date": "bạn muốn đặt bàn vào ngày nào ạ?",
             "time": "bạn muốn đến lúc mấy giờ?",
-            "guests": "nhóm bạn dự kiến đi bao nhiêu người?",
+            "guests": "nhóm bạn dự kiến đi bao nhiêu người ạ?",
             "customer_name": "cho Aria xin họ tên của bạn để đặt bàn nhé?",
             "customer_phone": "cho Aria xin số điện thoại di động (và email nếu có) để gửi vé xác nhận nhé?",
         }
 
-        # Chỉ hỏi tối đa 2 câu một lúc để tránh hỏi dồn dập
         first = missing[0]
         if len(missing) == 1:
             return f"{greeting}{questions[first]}"
 
         second = missing[1]
-        # Kết hợp tự nhiên nếu thiếu date + time
+
+        # 1. Kết hợp ngày & giờ
         if first == "date" and second == "time":
             return f"{greeting}bạn muốn đặt bàn ngày nào và lúc mấy giờ ạ?"
-        # Nếu thiếu date + guests
+
+        # 2. Kết hợp ngày & số khách
         if first == "date" and second == "guests":
             return f"{greeting}bạn muốn đặt bàn ngày nào và bao nhiêu người ạ?"
-        # Nếu thiếu name + phone
+
+        # 3. Kết hợp giờ & số khách
+        if first == "time" and second == "guests":
+            return f"{greeting}bạn muốn đến lúc mấy giờ và nhóm đi bao nhiêu người ạ?"
+
+        # 4. Kết hợp họ tên & số điện thoại (chỉ hỏi cùng nhau khi thiếu cả 2)
         if first == "customer_name" and second == "customer_phone":
             return f"{greeting}cho Aria xin họ tên, số điện thoại (và email nếu bạn muốn nhận vé xác nhận kèm mã QR) nhé?"
 
-        return f"{greeting}{questions[first]} Và {questions[second]}"
+        # 5. Tuyệt đối không kết hợp thông tin bàn (date/time/guests) với thông tin liên hệ (name/phone)
+        # để tránh hỏi tên 2 lần hoặc hỏi quá dồn dập
+        return f"{greeting}{questions[first]}"
 
     @staticmethod
     def _answer_facility_question(message: str, settings: Dict[str, Any]) -> str:

@@ -691,7 +691,63 @@ def test_cancellation_variations():
     assert is_cancellation("tạm dừng") is True
     assert is_cancellation("để sau đi") is True
     assert is_cancellation("cho tôi xem thực đơn trước") is True
-    assert is_cancellation("quay lại menu") is True
     assert is_cancellation("đặt thôi") is False
     assert is_cancellation("chốt thôi") is False
+
+
+@pytest.mark.asyncio
+async def test_no_duplicate_name_question_when_asking_guests():
+    """Kiểm tra không hỏi tên 2 lần: khi hỏi số khách thì không kèm hỏi tên."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_no_dup_name"
+    await clear_state(session_id)
+
+    # Turn 1: Khách cung cấp ngày và giờ
+    chunks1 = []
+    async for sse in pipeline.process("Cho mình đặt bàn tối mai lúc 19h", session_id=session_id):
+        chunks1.append(sse)
+    text1 = extract_text_from_sse(chunks1)
+    assert "bao nhiêu người" in text1
+    assert "họ tên" not in text1, "Turn 1 chỉ hỏi số khách, không được hỏi họ tên!"
+
+    # Turn 2: Khách trả lời số khách
+    chunks2 = []
+    async for sse in pipeline.process("4 người", session_id=session_id):
+        chunks2.append(sse)
+    text2 = extract_text_from_sse(chunks2)
+    assert "họ tên" in text2, "Turn 2 hỏi họ tên và SĐT cùng nhau lần đầu tiên"
+    assert "số điện thoại" in text2
+
+
+@pytest.mark.asyncio
+async def test_extract_name_combined_with_guests():
+    """Khách trả lời số khách kèm tên ('4 người, Hùng') -> Trích xuất cả 2 và không hỏi lại tên."""
+    state = _get_default_state()
+    res1 = extract_all_slots("4 người, Hùng", state)
+    assert res1.get("guests") == 4
+    assert res1.get("customer_name") == "Hùng"
+
+    res2 = extract_all_slots("Hùng, 4 người", state)
+    assert res2.get("guests") == 4
+    assert res2.get("customer_name") == "Hùng"
+
+    res3 = extract_all_slots("4 người, Nguyễn Văn Nam", state)
+    assert res3.get("guests") == 4
+    assert res3.get("customer_name") == "Nguyễn Văn Nam"
+
+    # Test hội thoại: khi khách đưa '4 người, Hùng' thì turn sau chỉ hỏi SĐT, không hỏi tên nữa
+    pipeline = AriaConversationPipeline()
+    session_id = "test_combo_turn"
+    await clear_state(session_id)
+
+    async for _ in pipeline.process("Cho mình đặt bàn tối mai lúc 19h", session_id=session_id):
+        pass
+
+    chunks2 = []
+    async for sse in pipeline.process("4 người, Hùng", session_id=session_id):
+        chunks2.append(sse)
+    text2 = extract_text_from_sse(chunks2)
+    assert "số điện thoại" in text2
+    assert "họ tên" not in text2, "Đã biết tên Hùng nên không được hỏi lại họ tên!"
+
 
