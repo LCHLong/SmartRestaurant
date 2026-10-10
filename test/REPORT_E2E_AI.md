@@ -6,15 +6,16 @@
 - **Độ phủ mã nguồn (Unit/Backend Coverage)**: **79%** (Tăng từ 71% lên 79%)
 - **Tập kiểm thử E2E UI**: **45 Test Cases** phân cấp 10 Cấp độ (Dễ $\rightarrow$ Trung bình $\rightarrow$ Nâng cao $\rightarrow$ Chuyên sâu $\rightarrow$ Edge Cases Nghiệp vụ $\rightarrow$ Luồng Thực tế $\rightarrow$ Hội thoại Đa bước Phức hợp $\rightarrow$ Chính sách, Đồ uống kèm & Đặt cọc $\rightarrow$ Dinh dưỡng, Món trẻ em, Thời gian & Tiện ích $\rightarrow$ **Rượu bia tự mang, Tiệc sinh nhật, Mua mang về & Hóa đơn VAT**)
 - **Kết quả thực thi E2E**:
-  - ✅ **PASSED**: **39/45 ca (86.7%)**
-  - ❌ **FAILED**: **6/45 ca (13.3%)**
+  - ✅ **PASSED**: **38/45 ca (84.4%)**
+  - ❌ **FAILED**: **7/45 ca (15.6%)**
     - **2 ca tái hiện chính xác GitHub Bug Issues cũ**: [Issue #1](https://github.com/LCHLong/SmartRestaurant/issues/1) (Đoàn đông không xin SĐT) & [Issue #4](https://github.com/LCHLong/SmartRestaurant/issues/4) (Cắt xén SĐT 10 số).
-    - **4 ca PHÁT HIỆN LỖI MỚI (Đã tạo GitHub Issues #9, #10, #11, #12 kèm nhật ký thời gian chi tiết)**:
+    - **5 ca PHÁT HIỆN LỖI MỚI (Đã tạo GitHub Issues #9, #10, #11, #12 và ghi nhận Bug mới ở TC-LV10-02)**:
       1. [Issue #9](https://github.com/LCHLong/SmartRestaurant/issues/9): Chấp nhận số khách âm (-2 người).
       2. [Issue #10](https://github.com/LCHLong/SmartRestaurant/issues/10): Kẹt vòng lặp câu hỏi khi nhập 0 người.
       3. [Issue #11](https://github.com/LCHLong/SmartRestaurant/issues/11): Chấp nhận đặt bàn giờ đã qua trong cùng ngày hôm nay (8h sáng).
       4. [Issue #12](https://github.com/LCHLong/SmartRestaurant/issues/12): Không kiểm tra định dạng email sai cú pháp.
-- **Minh chứng (Evidence)**: **100% các ca (45/45)** đều chụp cận cảnh trực tiếp **Khung hội thoại Aria Chat (Dialogue Widget)** tại thư mục [`test/evidence/`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/).
+      5. **Bug mới tại TC-LV10-02**: Khách hỏi về dịch vụ trang trí tiệc sinh nhật & giữ lạnh bánh kem, nhưng Aria phớt lờ câu hỏi chính sách/dịch vụ, chỉ hỏi máy móc giờ đến và số khách.
+- **Minh chứng (Evidence)**: **100% các ca (45/45)** đều chụp cận cảnh trực tiếp **Khung hội thoại Aria Chat (Dialogue Widget)** với cơ chế cuộn thông minh hiển thị trọn vẹn câu hỏi và câu trả lời tại thư mục [`test/evidence/`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/).
 
 ---
 
@@ -118,7 +119,7 @@
 | Mã TC | Tên Test Case | Độ ưu tiên | Kết quả | Ảnh minh chứng | Đánh giá chi tiết |
 | :---: | :--- | :---: | :---: | :--- | :--- |
 | **TC-LV10-01** | Chính sách phụ thu mang đồ uống ngoài vào (Corkage fee) | **P2** | ✅ **PASSED** | [`TC-LV10-01_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-01_passed.png) | Aria giải đáp chu đáo chính sách phí mở rượu vang / mang đồ uống ngoài vào quán. |
-| **TC-LV10-02** | Dịch vụ tổ chức tiệc sinh nhật & mang bánh kem | **P1** | ✅ **PASSED** | [`TC-LV10-02_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-02_passed.png) | Aria hỗ trợ nhiệt tình yêu cầu bảo quản bánh kem trong tủ lạnh và chuẩn bị tiệc sinh nhật. |
+| **TC-LV10-02** | Dịch vụ tổ chức tiệc sinh nhật & mang bánh kem | **P1** | ❌ **FAILED** | [`TC-LV10-02_failed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-02_failed.png) | **Phát hiện lỗi nghiệp vụ (P1)**: Khách hỏi *"quán có hỗ trợ trang trí và giữ lạnh bánh kem không"*, Aria phớt lờ hoàn toàn câu hỏi và chỉ hỏi máy móc giờ đến/số người (*"Dạ, bạn muốn đến lúc mấy giờ và nhóm đi bao nhiêu người ạ?"*). |
 | **TC-LV10-03** | Hỏi dịch vụ đặt món mang về (Take-away) | **P2** | ✅ **PASSED** | [`TC-LV10-03_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-03_passed.png) | Aria xác nhận nhà hàng có phục vụ mua mang về (đóng gói hộp) và nhận order nhanh chóng. |
 | **TC-LV10-04** | Yêu cầu xuất hóa đơn tài chính (Hóa đơn VAT / MST) | **P1** | ✅ **PASSED** | [`TC-LV10-04_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-04_passed.png) | Aria hướng dẫn rõ ràng các trường thông tin cần thiết để xuất hóa đơn VAT công ty. |
 | **TC-LV10-05** | Yêu cầu phòng VIP riêng tư tiếp khách (Phòng kín) | **P1** | ✅ **PASSED** | [`TC-LV10-05_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV10-05_passed.png) | Aria tư vấn không gian phòng VIP riêng tư yên tĩnh, trang bị máy lạnh dành cho tiếp đối tác. |

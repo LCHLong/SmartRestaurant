@@ -373,9 +373,9 @@
     "level": "Level10",
     "name": "Dịch vụ tổ chức tiệc sinh nhật & mang bánh kem",
     "priority": "P1",
-    "status": "PASSED",
-    "notes": "Aria tiếp nhận yêu cầu tiệc sinh nhật và nhiệt tình hướng dẫn hỗ trợ bảo quản bánh kem.",
-    "evidence": "test/evidence/TC-LV10-02_passed.png"
+    "status": "FAILED",
+    "notes": "Phát hiện lỗi nghiệp vụ: Khách hỏi về dịch vụ trang trí & giữ lạnh bánh kem nhưng Aria bỏ qua hoàn toàn, chỉ hỏi máy móc giờ và số khách: 'dạ, bạn muốn đến lúc mấy giờ và nhóm đi bao nhiêu người ạ?'.",
+    "evidence": "test/evidence/TC-LV10-02_failed.png"
   },
   {
     "id": "TC-LV10-03",

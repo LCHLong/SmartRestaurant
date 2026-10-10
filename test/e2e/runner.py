@@ -25,7 +25,7 @@ async def setup_page_and_open_chat(context):
     """Mở trang Menu, thiết lập guest và mở khung chat Aria."""
     page = await context.new_page()
     await page.add_init_script("localStorage.setItem('hasSeenGuestModal', 'true');")
-    await page.goto(FRONTEND_URL, wait_until="networkidle")
+    await page.goto(FRONTEND_URL, wait_until="domcontentloaded", timeout=15000)
     await asyncio.sleep(0.5)
 
     bubble_btn = page.locator('button[aria-label*="Aria chat"]')
@@ -61,23 +61,46 @@ async def send_message(page, text: str, wait_seconds: float = 3.0):
 
 
 async def get_chat_text(page):
-    """Lấy nội dung chat."""
+    """Lấy nội dung toàn bộ khung chat."""
     container = page.locator('div.fixed.bottom-24.right-4 div.flex-1.overflow-y-auto')
     return await container.inner_text()
 
 
+async def get_last_bot_reply(page):
+    """Lấy nguyên văn câu trả lời gần nhất của trợ lý Aria (loại bỏ tin nhắn của người dùng)."""
+    return await page.evaluate("""() => {
+        const container = document.querySelector('div.fixed.bottom-24.right-4 div.flex-1.overflow-y-auto');
+        if (!container) return '';
+        // Aria messages do not have user gradient class
+        const ariaBubbles = container.querySelectorAll('.p-3.rounded-2xl.bg-white, .p-3.rounded-2xl.bg-neutral-50, div.rounded-2xl.bg-white, div.rounded-2xl.bg-neutral-50');
+        if (ariaBubbles.length > 0) {
+            return ariaBubbles[ariaBubbles.length - 1].innerText;
+        }
+        return '';
+    }""")
+
+
 async def capture(page, filename: str):
-    """Chụp ảnh minh chứng chính xác khung hội thoại Aria."""
+    """Chụp ảnh minh chứng chính xác khung hội thoại Aria, định vị đúng phần nội dung câu trả lời."""
     path = os.path.join(EVIDENCE_DIR, filename)
     chat_panel = page.locator('div.fixed.bottom-24.right-4')
     try:
         await chat_panel.wait_for(state="visible", timeout=3000)
-        # Cuộn tin nhắn xuống cuối cùng để thấy rõ câu trả lời mới nhất của Aria
+        # Cuộn thông minh: Định vị tin nhắn mới nhất của người dùng hoặc câu trả lời của bot lên đầu khung nhìn
         await page.evaluate("""() => {
             const container = document.querySelector('div.fixed.bottom-24.right-4 div.flex-1.overflow-y-auto');
-            if (container) container.scrollTop = container.scrollHeight;
+            if (container) {
+                // Lấy tất cả tin nhắn
+                const userMsgs = container.querySelectorAll('.bg-gradient-to-r, div.bg-gradient-to-br');
+                if (userMsgs.length > 0) {
+                    const lastUserMsg = userMsgs[userMsgs.length - 1];
+                    lastUserMsg.scrollIntoView({ behavior: 'instant', block: 'start' });
+                } else {
+                    container.scrollTop = container.scrollHeight;
+                }
+            }
         }""")
-        await asyncio.sleep(0.4)
+        await asyncio.sleep(0.5)
         await chat_panel.screenshot(path=path)
     except Exception:
         await page.screenshot(path=path)
@@ -1042,13 +1065,14 @@ async def run_level_10_only():
         page = await setup_page_and_open_chat(context)
         try:
             await send_message(page, "Tối mai mình đặt bàn tổ chức sinh nhật cho bạn gái, quán có hỗ trợ trang trí và giữ lạnh bánh kem không?", wait_seconds=4.0)
-            text = (await get_chat_text(page)).lower()
-            if any(k in text for k in ["sinh nhật", "bánh kem", "trang trí", "hỗ trợ", "tủ lạnh", "giữ", "ghi chú", "nhân viên"]):
+            bot_reply = (await get_last_bot_reply(page)).lower()
+            # Aria phải trả lời trực tiếp về chính sách sinh nhật / trang trí / bảo quản bánh kem thay vì chỉ hỏi giờ và số khách
+            if any(k in bot_reply for k in ["bánh kem", "trang trí", "giữ lạnh", "bảo quản", "tủ lạnh", "chúc mừng sinh nhật", "hỗ trợ sinh nhật"]):
                 t["status"] = "PASSED"
-                t["notes"] = "Aria tiếp nhận yêu cầu tiệc sinh nhật và nhiệt tình hướng dẫn hỗ trợ bảo quản bánh kem."
+                t["notes"] = "Aria trả lời chính xác câu hỏi dịch vụ hỗ trợ tiệc sinh nhật & giữ lạnh bánh kem."
             else:
                 t["status"] = "FAILED"
-                t["notes"] = "Aria không ghi nhận được yêu cầu sinh nhật và bánh kem."
+                t["notes"] = f"Phát hiện lỗi nghiệp vụ: Khách hỏi về dịch vụ trang trí & giữ lạnh bánh kem nhưng Aria bỏ qua hoàn toàn, chỉ hỏi máy móc giờ và số khách: '{bot_reply}'."
         except Exception as e:
             t["notes"] = str(e)
         t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
@@ -1125,12 +1149,26 @@ async def run_level_10_only():
     return combined_results
 
 
+async def run_all_45():
+    """Chạy toàn bộ 45 test case từ Level 1 đến Level 10 với bộ chụp minh chứng thông minh mới."""
+    # Lần lượt chạy run_suite (LV1-7), run_level_8_only, run_level_9_only, run_level_10_only
+    print("🚀 Bắt đầu chạy lại toàn bộ 45 Test Cases với bộ chụp minh chứng định vị đúng câu trả lời AI...")
+    await run_suite()
+    await run_level_8_only()
+    await run_level_9_only()
+    await run_level_10_only()
+    print("🎉 Hoàn tất chạy lại toàn bộ 45 Test Cases!")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run E2E Chatbot Test Suite")
     parser.add_argument("--level", type=int, choices=[8, 9, 10], help="Chỉ chạy riêng biệt một level (VD: --level 8, 9 hoặc 10)")
+    parser.add_argument("--all", action="store_true", help="Chạy lại toàn bộ 45 test cases")
     args = parser.parse_args()
 
-    if args.level == 8:
+    if args.all:
+        asyncio.run(run_all_45())
+    elif args.level == 8:
         asyncio.run(run_level_8_only())
     elif args.level == 9:
         asyncio.run(run_level_9_only())
