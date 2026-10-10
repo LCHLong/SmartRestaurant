@@ -391,9 +391,9 @@
     "level": "Level9",
     "name": "Yêu cầu chia thành 2 bàn cạnh nhau (8 người chia 2 bàn)",
     "priority": "P1",
-    "status": "PASSED",
-    "notes": "Aria bóc tách thành công đặt bàn 8 khách, tự động kích hoạt lưu ý cọc 50k/người.",
-    "evidence": "test/evidence/TC-LV9-04_passed.png"
+    "status": "FAILED",
+    "notes": "Khách yêu cầu chia 2 bàn 4 người ngồi cạnh nhau, Aria bỏ qua hoàn toàn không ghi chú trong đơn đặt.",
+    "evidence": "test/evidence/TC-LV9-04_failed.png"
   },
   {
     "id": "TC-LV9-05",
