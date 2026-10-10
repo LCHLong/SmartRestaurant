@@ -223,5 +223,50 @@
     "status": "PASSED",
     "notes": "Aria tra cứu đúng món có mức giá tiết kiệm/rẻ nhất trong thực đơn.",
     "evidence": "test/evidence/TC-LV6-05_passed.png"
+  },
+  {
+    "id": "TC-LV7-01",
+    "level": "MultiTurn",
+    "name": "Lọc thực đơn đa tiêu chí (Thanh đạm + Không cay + Dưới 80k)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria kết hợp chính xác cả 3 tiêu chí: thanh đạm, không cay và dưới 80.000đ.",
+    "evidence": "test/evidence/TC-LV7-01_passed.png"
+  },
+  {
+    "id": "TC-LV7-02",
+    "level": "MultiTurn",
+    "name": "Bóc tách tên khách hàng quốc tế (David Miller)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria bóc tách chính xác tên riêng quốc tế David Miller vào tóm tắt đặt bàn.",
+    "evidence": "test/evidence/TC-LV7-02_passed.png"
+  },
+  {
+    "id": "TC-LV7-03",
+    "level": "MultiTurn",
+    "name": "Tra cứu chính sách nhà hàng (Giờ mở cửa & Hoàn cọc)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria trích xuất chính xác chính sách giờ mở cửa và quy định hoàn cọc từ Policy RAG.",
+    "evidence": "test/evidence/TC-LV7-03_passed.png"
+  },
+  {
+    "id": "TC-LV7-04",
+    "level": "MultiTurn",
+    "name": "Xử lý tin nhắn rác / Chuỗi ký tự vô nghĩa (asdfghjkl ???)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria xử lý lỗi chuỗi vô nghĩa khéo léo, không bị hallucinate hay crash.",
+    "evidence": "test/evidence/TC-LV7-04_passed.png"
+  },
+  {
+    "id": "TC-LV7-05",
+    "level": "MultiTurn",
+    "name": "Đổi ý món ăn trong hội thoại (Bún bò -> Phở bò)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria tiếp nhận linh hoạt việc đổi ý và gợi ý đúng món phở bò.",
+    "evidence": "test/evidence/TC-LV7-05_passed.png"
   }
 ]

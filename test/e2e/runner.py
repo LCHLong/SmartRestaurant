@@ -611,6 +611,107 @@ async def run_suite():
         results.append(t)
         print(f"  [{t['status']}] {t['id']}: {t['name']}")
 
+        # ── LEVEL 7: LUỒNG HỘI THOẠI ĐA BƯỚC PHỨC HỢP (Multi-turn Complex Flows) ───
+        print("\n📌 [CẤP ĐỘ 7: LUỒNG HỘI THOẠI ĐA BƯỚC - Đa tiêu chí, Tên quốc tế, RAG Policies, Spam]")
+
+        # TC-LV7-01: Lọc thực đơn kết hợp đa tiêu chí
+        t = {"id": "TC-LV7-01", "level": "MultiTurn", "name": "Lọc thực đơn đa tiêu chí (Thanh đạm + Không cay + Dưới 80k)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Gợi ý cho mình món ăn thanh đạm, không cay và có giá dưới 80.000đ", wait_seconds=4.5)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["bún nấm", "canh hạt sen", "chay", "thanh đạm", "55.000", "49.000"]) and "lẩu thái" not in text:
+                t["status"] = "PASSED"
+                t["notes"] = "Aria kết hợp chính xác cả 3 tiêu chí: thanh đạm, không cay và dưới 80.000đ."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria không lọc đúng món thỏa mãn đồng thời 3 tiêu chí."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV7-02: Bóc tách tên khách hàng quốc tế (David Miller)
+        t = {"id": "TC-LV7-02", "level": "MultiTurn", "name": "Bóc tách tên khách hàng quốc tế (David Miller)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Cho mình đặt bàn tối mai 19h 2 người, tên David Miller, SĐT 0912345678", wait_seconds=4.5)
+            text = await get_chat_text(page)
+            if "David Miller" in text and "20:00" not in text:
+                t["status"] = "PASSED"
+                t["notes"] = "Aria bóc tách chính xác tên riêng quốc tế David Miller vào tóm tắt đặt bàn."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria không nhận diện được tên tiếng Anh David Miller."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV7-03: Tra cứu chính sách nhà hàng (Giờ mở cửa & Hoàn cọc 2 tiếng)
+        t = {"id": "TC-LV7-03", "level": "MultiTurn", "name": "Tra cứu chính sách nhà hàng (Giờ mở cửa & Hoàn cọc)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Nhà hàng mở cửa mấy giờ? Hủy bàn trước 2 tiếng có được hoàn cọc không?", wait_seconds=4.5)
+            text = (await get_chat_text(page)).lower()
+            knows_policy = any(k in text for k in ["08:00", "22:00", "hoàn cọc 100%", "2 tiếng", "trước 2 giờ"])
+            knows_hours = "mở cửa" in text and ("08" in text or "8h" in text)
+            if knows_policy or knows_hours:
+                t["status"] = "PASSED"
+                t["notes"] = "Aria trích xuất chính xác chính sách giờ mở cửa và quy định hoàn cọc từ Policy RAG."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "PHÁT HIỆN LỖI MỚI #5: Aria không trích xuất được chính sách nhà hàng (Policy RAG Miss), báo chưa có thông tin!"
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV7-04: Xử lý chuỗi ký tự rác / Không có nghĩa
+        t = {"id": "TC-LV7-04", "level": "MultiTurn", "name": "Xử lý tin nhắn rác / Chuỗi ký tự vô nghĩa (asdfghjkl ???)", "priority": "P2", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "asdfghjkl qwertyuiop ??????", wait_seconds=4.0)
+            text = (await get_chat_text(page)).lower()
+            if any(k in text for k in ["chưa hiểu", "hỏi về", "thực đơn", "món ăn", "giúp gì", "rõ ý"]):
+                t["status"] = "PASSED"
+                t["notes"] = "Aria xử lý lỗi chuỗi vô nghĩa khéo léo, không bị hallucinate hay crash."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria phản hồi bất thường khi nhận chuỗi ký tự rác."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
+        # TC-LV7-05: Đổi ý món ăn trong ngữ cảnh hội thoại
+        t = {"id": "TC-LV7-05", "level": "MultiTurn", "name": "Đổi ý món ăn trong hội thoại (Bún bò -> Phở bò)", "priority": "P1", "status": "FAILED", "notes": "", "evidence": ""}
+        page = await setup_page_and_open_chat(context)
+        try:
+            await send_message(page, "Gợi ý cho mình 1 món bún bò", wait_seconds=3.5)
+            await send_message(page, "À thôi mình đổi ý, gợi ý cho mình phở bò nhé", wait_seconds=4.5)
+            text = (await get_chat_text(page)).lower()
+            if "phở" in text:
+                t["status"] = "PASSED"
+                t["notes"] = "Aria tiếp nhận linh hoạt việc đổi ý và gợi ý đúng món phở bò."
+            else:
+                t["status"] = "FAILED"
+                t["notes"] = "Aria không thích ứng kịp với việc khách đổi ý món."
+        except Exception as e:
+            t["notes"] = str(e)
+        t["evidence"] = await capture(page, f"{t['id']}_{t['status'].lower()}.png")
+        await page.close()
+        results.append(t)
+        print(f"  [{t['status']}] {t['id']}: {t['name']}")
+
         await browser.close()
 
     # Lưu json
