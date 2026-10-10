@@ -6,17 +6,18 @@
 - **Độ phủ mã nguồn (Unit/Backend Coverage)**: **79%** (Tăng từ 71% lên 79%)
 - **Tập kiểm thử E2E UI**: **45 Test Cases** phân cấp 10 Cấp độ (Dễ $\rightarrow$ Trung bình $\rightarrow$ Nâng cao $\rightarrow$ Chuyên sâu $\rightarrow$ Edge Cases Nghiệp vụ $\rightarrow$ Luồng Thực tế $\rightarrow$ Hội thoại Đa bước Phức hợp $\rightarrow$ Chính sách, Đồ uống kèm & Đặt cọc $\rightarrow$ Dinh dưỡng, Món trẻ em, Thời gian & Tiện ích $\rightarrow$ **Rượu bia tự mang, Tiệc sinh nhật, Mua mang về & Hóa đơn VAT**)
 - **Kết quả thực thi E2E**:
-  - ✅ **PASSED**: **33/45 ca (73.3%)**
-  - ❌ **FAILED**: **12/45 ca (26.7%)**
+  - ✅ **PASSED**: **32/45 ca (71.1%)**
+  - ❌ **FAILED**: **13/45 ca (28.9%)**
     - **2 ca tái hiện chính xác GitHub Bug Issues cũ**: [Issue #1](https://github.com/LCHLong/SmartRestaurant/issues/1) (Đoàn đông không xin SĐT) & [Issue #4](https://github.com/LCHLong/SmartRestaurant/issues/4) (Cắt xén SĐT 10 số).
     - **4 ca PHÁT HIỆN LỖI ĐÃ TẠO ISSUE**: [Issue #9](https://github.com/LCHLong/SmartRestaurant/issues/9) (Số khách âm), [Issue #10](https://github.com/LCHLong/SmartRestaurant/issues/10) (Kẹt 0 người), [Issue #11](https://github.com/LCHLong/SmartRestaurant/issues/11) (Giờ quá khứ cùng ngày), [Issue #12](https://github.com/LCHLong/SmartRestaurant/issues/12) (Email sai cú pháp).
-    - **6 lỗi nghiệp vụ & trả lời lạc đề MỚI ĐƯỢC PHÁT HIỆN**:
-      1. **TC-LV9-04**: Khách yêu cầu chia 2 bàn 4 người ngồi cạnh nhau ➔ Aria bỏ qua hoàn toàn yêu cầu đặc biệt này, không ghi chú trong đơn đặt.
-      2. **TC-LV9-05**: Hỏi bãi đỗ xe ô tô ➔ Trả lời lạc đề gợi ý Bún Riêu Cua Đồng.
-      3. **TC-LV10-01**: Hỏi phí khui rượu vang mang từ nhà ➔ Trả lời lạc đề gợi ý Phở Bò Tái Nạm.
-      4. **TC-LV10-02**: Hỏi trang trí sinh nhật & giữ lạnh bánh kem ➔ Bỏ qua câu hỏi, chỉ hỏi máy móc giờ và số khách.
-      5. **TC-LV10-03**: Hỏi mua mang về (take-away) ➔ Bỏ qua chính sách mang về, chỉ gợi ý món như ăn tại chỗ.
-      6. **TC-LV10-04**: Hỏi hóa đơn tài chính VAT & MST ➔ Trả lời lạc đề gợi ý Bún Bò Huế.
+    - **7 lỗi nghiệp vụ & trả lời lạc đề MỚI ĐƯỢC PHÁT HIỆN**:
+      1. **TC-LV9-03**: Khách cần món ăn gấp trong 15 phút ➔ Gợi ý món bò hầm sốt tiêu đen không thể phục vụ tức thì.
+      2. **TC-LV9-04**: Khách yêu cầu chia 2 bàn 4 người ngồi cạnh nhau ➔ Aria bỏ qua hoàn toàn yêu cầu đặc biệt này, không ghi chú trong đơn đặt.
+      3. **TC-LV9-05**: Hỏi bãi đỗ xe ô tô ➔ Trả lời lạc đề gợi ý Bún Riêu Cua Đồng.
+      4. **TC-LV10-01**: Hỏi phí khui rượu vang mang từ nhà ➔ Trả lời lạc đề gợi ý Phở Bò Tái Nạm.
+      5. **TC-LV10-02**: Hỏi trang trí sinh nhật & giữ lạnh bánh kem ➔ Bỏ qua câu hỏi, chỉ hỏi máy móc giờ và số khách.
+      6. **TC-LV10-03**: Hỏi mua mang về (take-away) ➔ Bỏ qua chính sách mang về, chỉ gợi ý món như ăn tại chỗ.
+      7. **TC-LV10-04**: Hỏi hóa đơn tài chính VAT & MST ➔ Trả lời lạc đề gợi ý Bún Bò Huế.
 - **Minh chứng (Evidence)**: **Đúng chuẩn 45 bức ảnh duy nhất (45/45)** tương ứng 45 test case, đã dọn dẹp sạch sẽ toàn bộ ảnh rác/ảnh dư thừa. Khung chat được điều chỉnh kích thước chuẩn 720px hiển thị **trọn vẹn 100% cả câu hỏi của khách và câu trả lời hoàn chỉnh của Aria** tại thư mục [`test/evidence/`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/).
 
 ---
@@ -111,7 +112,7 @@
 | :---: | :--- | :---: | :---: | :--- | :--- |
 | **TC-LV9-01** | Gợi ý món ăn cho trẻ nhỏ (Không cay, dễ nhai, dinh dưỡng) | **P2** | ✅ **PASSED** | [`TC-LV9-01_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-01_passed.png) | Aria đề xuất các món dịu nhẹ, dinh dưỡng (súp, cháo, mì ý bò băm, bánh flan) phù hợp khẩu vị trẻ em. |
 | **TC-LV9-02** | Tư vấn món ăn Eat-Clean / Low-Carb (Nhiều đạm, ít tinh bột) | **P2** | ✅ **PASSED** | [`TC-LV9-02_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-02_passed.png) | Aria nhận diện chuẩn chế độ ăn kiêng giảm cân, gợi ý các món bò, nấm, rau củ thanh đạm giàu protein. |
-| **TC-LV9-03** | Tra cứu món phục vụ nhanh khi khách vội (Dưới 15 phút) | **P2** | ✅ **PASSED** | [`TC-LV9-03_passed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-03_passed.png) | Aria tư vấn cực kỳ chuẩn xác và thông minh: Đề xuất các món chuẩn bị nhanh gọn dưới 15 phút như Cà Phê Sữa Đá (5-7 phút), Bánh Flan Caramel sẵn sàng phục vụ ngay không cần nấu, và Gỏi Cuốn Tôm Thịt sơ chế sẵn. |
+| **TC-LV9-03** | Tra cứu món phục vụ nhanh khi khách vội (Dưới 15 phút) | **P2** | ❌ **FAILED** | [`TC-LV9-03_failed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-03_failed.png) | **Lỗi không ổn định & gợi ý không khả thi (P2)**: Hệ thống AI thiếu tính nhất quán; khi khách yêu cầu món làm gấp trong 15 phút, Aria lại đề xuất món *Bò Sốt Tiêu Đen hầm mềm mọng* - đây là món hầm không thể phục vụ tức thì. |
 | **TC-LV9-04** | Yêu cầu chia thành 2 bàn cạnh nhau (8 người chia 2 bàn) | **P1** | ❌ **FAILED** | [`TC-LV9-04_failed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-04_failed.png) | **Bỏ quên yêu cầu đặc biệt (P1)**: Khách yêu cầu rõ *"chia làm 2 bàn 4 người ngồi cạnh nhau"*, nhưng Aria bỏ qua hoàn toàn yêu cầu này, không hề ghi chú hay xác nhận trong tóm tắt đơn đặt bàn. |
 | **TC-LV9-05** | Tra cứu tiện ích nhà hàng (Bãi đỗ xe ô tô / xe máy) | **P2** | ❌ **FAILED** | [`TC-LV9-05_failed.png`](file:///Users/macbookpro/Documents/Nam_3/HK1/WEB/SmartRestaurant/test/evidence/TC-LV9-05_failed.png) | **Trả lời lạc đề hoàn toàn (P2)**: Khách hỏi *"Nhà hàng mình có bãi đậu xe ô tô không bạn?"*, Aria lại trả lời: *"Dạ, Aria xin gợi ý Bún Riêu Cua Đồng Ốc Lụa Giòn Sần Sật · 65.000đ rất phù hợp với yêu cầu của quý khách ạ..."*. |
 

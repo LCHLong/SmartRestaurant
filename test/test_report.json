@@ -382,9 +382,9 @@
     "level": "Level9",
     "name": "Tra cứu món phục vụ nhanh khi khách vội",
     "priority": "P2",
-    "status": "PASSED",
-    "notes": "Aria tư vấn chuẩn xác các món chuẩn bị nhanh dưới 15 phút: Cà Phê Sữa Đá (5-7 phút), Bánh Flan sẵn sàng, Gỏi Cuốn sơ chế sẵn.",
-    "evidence": "test/evidence/TC-LV9-03_passed.png"
+    "status": "FAILED",
+    "notes": "Hệ thống thiếu tính nhất quán; khách yêu cầu món làm gấp trong 15 phút nhưng Aria lại đề xuất món Bò Sốt Tiêu Đen hầm mềm không khả thi.",
+    "evidence": "test/evidence/TC-LV9-03_failed.png"
   },
   {
     "id": "TC-LV9-04",
