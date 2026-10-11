@@ -58,6 +58,7 @@ from tools.slot_extractor import (
     is_confirmation,
     is_cancellation,
     check_side_query_intent,
+    is_valid_vn_phone,
 )
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
@@ -77,9 +78,13 @@ def _get_client() -> Optional[AsyncGroq]:
 
 
 def _mask_phone(phone: Optional[str]) -> str:
-    if not phone or len(phone) < 6:
-        return phone or ""
-    return phone[:4] + "****" + phone[-3:]
+    """
+    Trả về số điện thoại hiển thị cho khách hàng trong phiên hội thoại.
+    Không mask che số để:
+    1. Khách hàng kiểm tra, đối chiếu chính xác số điện thoại liên hệ của mình.
+    2. Tránh xung đột cú pháp markdown (**0987****321**) làm nuốt dấu sao và hiển thị cụt số (0987321).
+    """
+    return phone or ""
 
 
 class AriaConversationPipeline:

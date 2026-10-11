@@ -13,8 +13,23 @@ import re
 from typing import Optional, Dict, Any, Tuple
 from tools.datetime_parser import parse_date, parse_time
 
+VN_MOBILE_PREFIXES = ('03', '05', '07', '08', '09')
 VN_PHONE_REGEX = re.compile(r'(?:\+84[\s.-]?|0)[35789](?:[\s.-]?\d){8}\b')
 LANDLINE_PHONE_REGEX = re.compile(r'(?:\+84[\s.-]?|0)2(?:[\s.-]?\d){9}\b')
+
+
+def is_valid_vn_phone(phone: Optional[str]) -> bool:
+    """
+    Kiểm tra số điện thoại di động Việt Nam hợp lệ:
+    - Đúng chuẩn 10 chữ số
+    - Bắt đầu bằng một trong các đầu số hợp lệ: 03, 05, 07, 08, 09
+    """
+    if not phone or not isinstance(phone, str):
+        return False
+    digits = re.sub(r'[\s.-]', '', phone.strip())
+    if digits.startswith("+84"):
+        digits = "0" + digits[3:]
+    return bool(re.match(r'^0[35789]\d{8}$', digits))
 
 
 def extract_phone(text: str) -> Tuple[Optional[str], Optional[str]]:
@@ -23,28 +38,37 @@ def extract_phone(text: str) -> Tuple[Optional[str], Optional[str]]:
     Returns:
         (phone_normalized, warning_message)
     """
-    # Kiểm tra số bàn cố định
+    # 1. Kiểm tra số máy bàn cố định
     if LANDLINE_PHONE_REGEX.search(text):
         return None, "Số bạn vừa nhập là số máy bàn cố định. Nhà hàng cần số điện thoại di động 10 số (bắt đầu bằng 03, 05, 07, 08, 09) để gửi tin nhắn xác nhận qua SMS/Zalo ạ."
 
+    # 2. Tìm số điện thoại di động 10 số hợp lệ
     m = VN_PHONE_REGEX.search(text)
     if m:
         phone_raw = m.group(0)
         digits = re.sub(r'[\s.-]', '', phone_raw)
         if digits.startswith("+84"):
             digits = "0" + digits[3:]
-        if len(digits) == 10:
+        if is_valid_vn_phone(digits):
             return digits, None
 
-    # Tìm chuỗi số bất thường nếu người dùng nhập số điện thoại sai định dạng (VD: 123456)
-    number_sequences = re.findall(r'\b\d{5,15}\b', text)
-    if number_sequences:
-        for candidate in number_sequences:
-            if candidate in ("2025", "2026", "2027", "2028"):
+    # 3. Tìm chuỗi số bất thường hoặc số điện thoại bị thiếu/thừa số (VD: 0987321, 123456)
+    potential_phone_patterns = [
+        r'\b(?:\+84|0)(?:[\s.-]?\d){4,13}\b',
+        r'\b\d{5,15}\b'
+    ]
+    for pat in potential_phone_patterns:
+        matches = re.findall(pat, text)
+        for candidate in matches:
+            cand_digits = re.sub(r'[\s.-]', '', candidate)
+            if cand_digits.startswith("+84"):
+                cand_digits = "0" + cand_digits[3:]
+            if cand_digits in ("2025", "2026", "2027", "2028"):
                 continue
-            if 1 <= int(candidate) <= 50:
+            if 1 <= len(cand_digits) <= 2 and 1 <= int(cand_digits) <= 50:
                 continue
-            return None, "Số điện thoại chưa đúng định dạng di động 10 số của Việt Nam (VD: 0912345678). Bạn nhập lại giúp Aria nhé!"
+            if not is_valid_vn_phone(cand_digits):
+                return None, "Số điện thoại chưa đúng định dạng di động 10 số của Việt Nam (VD: 0912345678). Bạn nhập lại giúp Aria nhé!"
 
     return None, None
 
@@ -188,6 +212,13 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
             name = _sanitize(parts[0])
             if name:
                 return name
+
+    # Mẫu họ tên đứng đầu câu trước dấu phẩy và SĐT/email (VD: "Lê Chí Hoàng Long, 0987654321...")
+    leading_match = re.match(r'^\s*([A-ZÀ-Ỹa-zà-ỹ\s]{2,30})\s*,\s*(?:\+84|0|\d)', text)
+    if leading_match:
+        leading_cand = _sanitize(leading_match.group(1))
+        if leading_cand and not any(w.lower() in ("đặt", "bàn", "cho", "mình", "tôi", "ngày", "lúc", "giờ", "quán") for w in leading_cand.split()):
+            return leading_cand
 
     # Nếu đang thiếu tên và câu thoại ngắn (1-4 từ), không chứa các từ khoá ngày/giờ/đặt bàn/món ăn
     slots = current_state.get("slots", {})

@@ -17,6 +17,7 @@ from tools.slot_extractor import (
     extract_special_requests,
     is_confirmation,
     is_cancellation,
+    is_valid_vn_phone,
 )
 from tools.reservation_state import (
     get_state,
@@ -117,10 +118,56 @@ def test_t07_large_group():
 
 
 def test_t12_invalid_phone():
-    """T12: SĐT sai định dạng."""
+    """T12: SĐT sai định dạng hoặc bị cụt số."""
     phone, warn = extract_phone("SĐT của mình là 123456")
     assert phone is None
     assert warn is not None
+
+    # Số cụt 7 chữ số (0987321)
+    phone_short, warn_short = extract_phone("Lê Chí Hoàng Long, 0987321, lechihoanglong7@gmail.com")
+    assert phone_short is None
+    assert warn_short is not None
+
+    # Số cụt có khoảng trắng (098 7321)
+    phone_spaced, warn_spaced = extract_phone("SĐT của mình là 098 7321")
+    assert phone_spaced is None
+    assert warn_spaced is not None
+
+
+def test_t12_valid_phone_exact_extraction():
+    """T12: Trích xuất chính xác 10 chữ số của SĐT chuẩn Việt Nam."""
+    phone, warn = extract_phone("Lê Chí Hoàng Long, 0987654321, lechihoanglong7@gmail.com")
+    assert phone == "0987654321"
+    assert len(phone) == 10
+    assert warn is None
+
+    # Hỗ trợ định dạng có chấm, gạch ngang, khoảng trắng, +84
+    p1, _ = extract_phone("0987.654.321")
+    assert p1 == "0987654321"
+
+    p2, _ = extract_phone("+84 987 654 321")
+    assert p2 == "0987654321"
+
+    p3, _ = extract_phone("038-123-4567")
+    assert p3 == "0381234567"
+
+
+def test_is_valid_vn_phone_validator():
+    """Kiểm tra validator số điện thoại Việt Nam."""
+    assert is_valid_vn_phone("0987654321") is True
+    assert is_valid_vn_phone("0381234567") is True
+    assert is_valid_vn_phone("0581234567") is True
+    assert is_valid_vn_phone("0781234567") is True
+    assert is_valid_vn_phone("0881234567") is True
+    assert is_valid_vn_phone("+84987654321") is True
+
+    # Sai độ dài hoặc đầu số không hợp lệ
+    assert is_valid_vn_phone("0987321") is False  # 7 số
+    assert is_valid_vn_phone("098765432") is False  # 9 số
+    assert is_valid_vn_phone("09876543210") is False  # 11 số
+    assert is_valid_vn_phone("0123456789") is False  # Đầu 01
+    assert is_valid_vn_phone("123456") is False
+    assert is_valid_vn_phone(None) is False
 
 
 def test_t16_slot_correction():
@@ -420,6 +467,52 @@ async def test_t01_happy_path_confirmation_to_done():
         assert state2["fsm_state"] == "DONE"
         assert state2["booking_code"] == "SR-ABCD1234"
         assert "SR-ABCD1234" in "".join(chunks_turn2)
+
+
+@pytest.mark.asyncio
+async def test_phone_not_truncated_in_summary_and_confirmation():
+    """Kiểm tra SĐT khách hàng (0987654321) không bị làm cụt thành 0987321 trong tin nhắn tóm tắt và xác nhận."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_phone_not_truncated"
+    future_date = (now_vn().date() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+    with patch("pipelines.aria_pipeline.check_availability", new_callable=AsyncMock) as mock_check, \
+         patch("pipelines.aria_pipeline.create_reservation", new_callable=AsyncMock) as mock_create:
+
+        mock_check.return_value = {"available": True, "available_tables": 3}
+        mock_create.return_value = {
+            "booking_code": "SR-PHONE0987",
+            "reservation_date": future_date,
+            "reservation_time": "21:00",
+            "guest_count": 5,
+            "requires_deposit": False
+        }
+
+        # Turn 1: Cung cấp đầy đủ thông tin: Lê Chí Hoàng Long, 0987654321, lechihoanglong7@gmail.com
+        chunks_turn1 = []
+        async for sse in pipeline.process(
+            message=f"Lê Chí Hoàng Long, 0987654321, lechihoanglong7@gmail.com, đặt bàn 5 người ngày {future_date} lúc 21:00",
+            session_id=session_id
+        ):
+            chunks_turn1.append(sse)
+
+        text_turn1 = extract_text_from_sse(chunks_turn1)
+        assert "0987654321" in text_turn1
+        assert "0987321" not in text_turn1
+        assert "****" not in text_turn1
+
+        # Turn 2: Xác nhận
+        chunks_turn2 = []
+        async for sse in pipeline.process(
+            message="xác nhận",
+            session_id=session_id
+        ):
+            chunks_turn2.append(sse)
+
+        text_turn2 = extract_text_from_sse(chunks_turn2)
+        assert "0987654321" in text_turn2
+        assert "0987321" not in text_turn2
+        assert "****" not in text_turn2
 
 
 @pytest.mark.asyncio
