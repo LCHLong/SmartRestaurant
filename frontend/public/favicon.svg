@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="emeraldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10B981"/>
+      <stop offset="100%" stop-color="#047857"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCD34D"/>
+      <stop offset="100%" stop-color="#F59E0B"/>
+    </linearGradient>
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Background squircle -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#emeraldGrad)"/>
+  <rect x="3" y="3" width="58" height="58" rx="13" fill="none" stroke="#34D399" stroke-width="0.8" stroke-opacity="0.4"/>
+
+  <!-- Gourmet Cloche & Plate Group -->
+  <g filter="url(#subtleShadow)">
+    <!-- Base Plate -->
+    <rect x="13" y="44" width="38" height="4" rx="2" fill="#FFFFFF"/>
+    <!-- Under-plate foot / accent -->
+    <rect x="20" y="48.5" width="24" height="2" rx="1" fill="url(#goldGrad)"/>
+
+    <!-- Cloche Dome -->
+    <path d="M16 43 C16 26, 48 26, 48 43 Z" fill="#FFFFFF"/>
+
+    <!-- Cloche Inner Highlight Arc -->
+    <path d="M18 42 C19 28, 45 28, 46 42" fill="none" stroke="#E5E7EB" stroke-width="1" stroke-linecap="round"/>
+
+    <!-- Cloche Top Handle Knob -->
+    <circle cx="32" cy="22" r="3.2" fill="url(#goldGrad)"/>
+    <circle cx="32" cy="22" r="1.4" fill="#FFFFFF" fill-opacity="0.8"/>
+
+    <!-- Smart AI Sparkles -->
+    <!-- Primary Top Sparkle -->
+    <path d="M32 7 C32.8 11.2, 33 11.4, 36.5 12.2 C33 13, 32.8 13.2, 32 17.5 C31.2 13.2, 31 13, 27.5 12.2 C31 11.4, 31.2 11.2, 32 7 Z" fill="url(#goldGrad)"/>
+    <!-- Small Secondary Sparkle -->
+    <path d="M45 13 C45.5 15.6, 45.7 15.8, 47.8 16.3 C45.7 16.8, 45.5 17, 45 19.6 C44.5 17, 44.3 16.8, 42.2 16.3 C44.3 15.8, 44.5 15.6, 45 13 Z" fill="#FDE68A"/>
+  </g>
+</svg>
