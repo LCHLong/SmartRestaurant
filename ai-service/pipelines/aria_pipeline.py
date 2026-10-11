@@ -62,6 +62,7 @@ from tools.slot_extractor import (
     is_additional_booking_intent,
     is_reschedule_intent,
     check_schedule_choice,
+    is_phone_inquiry,
 )
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
@@ -564,9 +565,12 @@ class AriaConversationPipeline:
                 if missing:
                     state["fsm_state"] = "COLLECTING_SLOTS"
                     await save_state(session_id, state)
-                    slot_q = self._build_slot_question(missing, state)
+                    slot_q = self._build_slot_question(missing, state, reask_count=1)
+                    if slot_q.startswith("Dạ, "):
+                        slot_q = slot_q[4:]
+                        slot_q = slot_q[0].upper() + slot_q[1:] if len(slot_q) > 0 else slot_q
                     resp = (
-                        f"Dạ Aria đã ghi nhận bạn muốn đặt thêm bàn vào ngày **{psc.get('date')}** lúc **{psc.get('time')}**.\n"
+                        f"Dạ, Aria đã ghi nhận bạn muốn đặt thêm bàn vào ngày **{psc.get('date')}** lúc **{psc.get('time')}**.\n"
                         f"Aria xin phép hoàn tất đơn đặt bàn cho ngày **{slots.get('date')}** lúc **{slots.get('time')}** trước nhé!\n\n"
                         f"{slot_q}"
                     )
@@ -1038,7 +1042,7 @@ class AriaConversationPipeline:
             if q_type == "FACILITY_INFO":
                 ans = self._answer_facility_question(message, settings)
                 missing = self._get_missing_slots(state)
-                reminder = self._build_slot_question(missing, state)
+                reminder = self._build_slot_question(missing, state, reask_count=1)
                 full_resp = f"{ans}\n\n*(Quay lại thông tin đặt bàn: {reminder})*"
                 for t in self._chunk_tokens(full_resp):
                     yield self._sse("token", {"content": t})
@@ -1046,7 +1050,7 @@ class AriaConversationPipeline:
                 return
             elif q_type == "MENU_CONSULTATION":
                 missing = self._get_missing_slots(state)
-                slot_q = self._build_slot_question(missing, state)
+                slot_q = self._build_slot_question(missing, state, reask_count=1)
                 postfix = f"\n\n*(Quay lại thông tin đặt bàn: {slot_q} Hoặc bạn có thể nói 'khoan đặt' nếu muốn tìm hiểu thực đơn trước nhé!)*"
                 async for item in self._handle_consultation_flow(
                     message=message,
@@ -1108,18 +1112,55 @@ class AriaConversationPipeline:
         # Nếu còn thiếu slot -> Hỏi tiếp (tối đa 1-2 slot mỗi lượt)
         if missing:
             state["fsm_state"] = "COLLECTING_SLOTS"
+
+            # Cập nhật số lần hỏi lại cùng nhóm slot
+            last_missing = state.get("last_asked_slots")
+            if last_missing == missing:
+                reask_count = state.get("slot_reask_count", 0) + 1
+            else:
+                reask_count = 0
+            state["last_asked_slots"] = missing
+            state["slot_reask_count"] = reask_count
             await save_state(session_id, state)
 
-            resp = self._build_slot_question(missing, state)
+            slot_q = self._build_slot_question(missing, state, reask_count=reask_count)
+            context_prefix = ""
+
+            # Ngữ cảnh 1: Khách vừa đặt thêm bàn (queued_booking)
             if is_add_booking and state.get("queued_booking"):
                 qb = state["queued_booking"]
-                ack = (
+                context_prefix = (
                     f"Dạ, Aria đã ghi nhận bạn muốn đặt thêm bàn vào ngày **{qb.get('date')}** lúc **{qb.get('time')}**.\n"
                     f"Aria xin phép hoàn tất đơn đặt bàn cho ngày **{slots.get('date')}** lúc **{slots.get('time')}** trước nhé!\n\n"
                 )
-                resp = ack + resp
+            # Ngữ cảnh 2: Khách vừa bổ sung yêu cầu đặc biệt (special_requests)
+            elif extracted.get("special_requests"):
+                spec = extracted["special_requests"]
+                context_prefix = f"Dạ, Aria đã ghi nhận yêu cầu '**{spec}**' của bạn rồi ạ!\n\n"
+            # Ngữ cảnh 3: Khách hỏi tại sao cần số điện thoại
+            elif is_phone_inquiry(message):
+                context_prefix = (
+                    "Dạ, số điện thoại cần thiết để nhà hàng gửi mã vé xác nhận đặt bàn (kèm mã QR) "
+                    "và để nhân viên liên hệ hỗ trợ bạn giữ bàn chu đáo khi tới quán ạ.\n\n"
+                )
+            # Ngữ cảnh 4: Khách phản hồi đồng ý / xác nhận / giục đơn trong khi chưa có thông tin liên hệ
+            elif is_confirmation(message) and ("customer_phone" in missing or "customer_name" in missing):
+                dt_str = f" lúc **{slots.get('time')}** ngày **{slots.get('date')}**" if slots.get('time') and slots.get('date') else ""
+                g_str = f" cho nhóm **{slots.get('guests')} người**" if slots.get('guests') else ""
+                context_prefix = (
+                    f"Dạ vâng, để hoàn tất giữ bàn{g_str}{dt_str}, "
+                    f"Aria chỉ cần thêm thông tin liên hệ để gửi vé xác nhận có mã QR nữa thôi ạ.\n\n"
+                )
+
+            if context_prefix:
+                if slot_q.startswith("Dạ, "):
+                    slot_q = slot_q[4:]
+                    slot_q = slot_q[0].upper() + slot_q[1:] if len(slot_q) > 0 else slot_q
+
+            resp = f"{context_prefix}{slot_q}".strip()
+
             # Nếu nhóm >= 6 người, kèm lời nhắc cọc (Proposal T06 & T25)
-            if slots.get("guests") and slots["guests"] >= 6:
+            if slots.get("guests") and slots["guests"] >= 6 and reask_count == 0:
                 resp += f"\n\n*(Lưu ý: Với nhóm {slots['guests']} người, theo chính sách nhà hàng cần đặt cọc 50.000đ/người để bảo đảm giữ bàn chu đáo ạ)*"
 
             for t in self._chunk_tokens(resp):
@@ -1129,6 +1170,8 @@ class AriaConversationPipeline:
 
         # 9. Khi đã đủ toàn bộ slot -> Gọi check_availability
         state["fsm_state"] = "CHECKING_AVAILABILITY"
+        state["last_asked_slots"] = None
+        state["slot_reask_count"] = 0
         await save_state(session_id, state)
 
         try:
@@ -1226,44 +1269,85 @@ class AriaConversationPipeline:
 
         return missing
 
-    def _build_slot_question(self, missing: List[str], state: Dict[str, Any]) -> str:
-        """Tạo câu hỏi tự nhiên cho các slot thiếu."""
-        user_name = state.get("user_info", {}).get("name")
-        greeting = f"Chào {user_name}! " if user_name and not state.get("slots", {}).get("date") else "Dạ, "
-
-        questions = {
-            "date": "bạn muốn đặt bàn vào ngày nào ạ?",
-            "time": "bạn muốn đến lúc mấy giờ?",
-            "guests": "nhóm bạn dự kiến đi bao nhiêu người ạ?",
-            "customer_name": "cho Aria xin họ tên của bạn để đặt bàn nhé?",
-            "customer_phone": "cho Aria xin số điện thoại di động (và email nếu có) để gửi vé xác nhận nhé?",
-        }
+    def _build_slot_question(self, missing: List[str], state: Dict[str, Any], reask_count: int = 0) -> str:
+        """Tạo câu hỏi tự nhiên cho các slot thiếu, linh hoạt biến đổi văn phong khi hỏi lại."""
+        slots = state.get("slots", {})
+        user_name = state.get("user_info", {}).get("name") or slots.get("customer_name")
+        greeting = f"Chào {user_name}! " if user_name and not slots.get("date") else "Dạ, "
 
         first = missing[0]
-        if len(missing) == 1:
-            return f"{greeting}{questions[first]}"
+        second = missing[1] if len(missing) > 1 else None
 
-        second = missing[1]
-
-        # 1. Kết hợp ngày & giờ
-        if first == "date" and second == "time":
-            return f"{greeting}bạn muốn đặt bàn ngày nào và lúc mấy giờ ạ?"
-
-        # 2. Kết hợp ngày & số khách
-        if first == "date" and second == "guests":
-            return f"{greeting}bạn muốn đặt bàn ngày nào và bao nhiêu người ạ?"
-
-        # 3. Kết hợp giờ & số khách
-        if first == "time" and second == "guests":
-            return f"{greeting}bạn muốn đến lúc mấy giờ và nhóm đi bao nhiêu người ạ?"
-
-        # 4. Kết hợp họ tên & số điện thoại (chỉ hỏi cùng nhau khi thiếu cả 2)
+        # 1. Kết hợp họ tên & số điện thoại (chỉ hỏi cùng nhau khi thiếu cả 2)
         if first == "customer_name" and second == "customer_phone":
-            return f"{greeting}cho Aria xin họ tên, số điện thoại (và email nếu bạn muốn nhận vé xác nhận kèm mã QR) nhé?"
+            if reask_count == 0:
+                return f"{greeting}cho Aria xin họ tên, số điện thoại (và email nếu bạn muốn nhận vé xác nhận kèm mã QR) nhé?"
+            elif reask_count == 1:
+                return "Để Aria tiến hành giữ bàn và gửi vé xác nhận (kèm mã QR) cho bạn chu đáo, bạn vui lòng cho Aria xin họ tên và số điện thoại liên hệ nhé!"
+            else:
+                return "Aria chỉ cần thêm họ tên và số điện thoại của bạn nữa là hoàn tất đặt bàn ngay rồi ạ. Bạn chia sẻ giúp Aria nhé!"
 
-        # 5. Tuyệt đối không kết hợp thông tin bàn (date/time/guests) với thông tin liên hệ (name/phone)
-        # để tránh hỏi tên 2 lần hoặc hỏi quá dồn dập
-        return f"{greeting}{questions[first]}"
+        # 2. Chỉ thiếu số điện thoại
+        if first == "customer_phone":
+            c_name = slots.get("customer_name")
+            name_suffix = f" của anh/chị **{c_name}**" if c_name else ""
+            if reask_count == 0:
+                return f"{greeting}cho Aria xin số điện thoại di động{name_suffix} (và email nếu có) để gửi vé xác nhận nhé?"
+            elif reask_count == 1:
+                return f"Để bảo đảm giữ chỗ chu đáo nhất, bạn vui lòng cho Aria xin số điện thoại liên hệ{name_suffix} với ạ!"
+            else:
+                return f"Aria chỉ cần số điện thoại liên hệ{name_suffix} nữa thôi là hoàn tất đơn và gửi vé QR ngay ạ!"
+
+        # 3. Chỉ thiếu họ tên
+        if first == "customer_name":
+            if reask_count == 0:
+                return f"{greeting}cho Aria xin họ tên của bạn để đặt bàn nhé?"
+            else:
+                return "Bạn vui lòng cho Aria biết tên để nhân viên nhà hàng tiện xưng hô và chuẩn bị đón tiếp chu đáo nhé!"
+
+        # 4. Kết hợp ngày & giờ
+        if first == "date" and second == "time":
+            if reask_count == 0:
+                return f"{greeting}bạn muốn đặt bàn ngày nào và lúc mấy giờ ạ?"
+            else:
+                return "Bạn dự kiến ghé nhà hàng vào ngày nào và khung giờ nào để Aria kiểm tra bàn trống giúp bạn nhé?"
+
+        # 5. Kết hợp ngày & số khách
+        if first == "date" and second == "guests":
+            if reask_count == 0:
+                return f"{greeting}bạn muốn đặt bàn ngày nào và bao nhiêu người ạ?"
+            else:
+                return "Bạn dự định đến vào ngày nào và nhóm đi khoảng bao nhiêu người ạ?"
+
+        # 6. Kết hợp giờ & số khách
+        if first == "time" and second == "guests":
+            if reask_count == 0:
+                return f"{greeting}bạn muốn đến lúc mấy giờ và nhóm đi bao nhiêu người ạ?"
+            else:
+                return "Bạn muốn ghé quán lúc mấy giờ và nhóm có bao nhiêu người để Aria kiểm tra bàn nhé?"
+
+        # 7. Thiếu ngày đơn lẻ
+        if first == "date":
+            if reask_count == 0:
+                return f"{greeting}bạn muốn đặt bàn vào ngày nào ạ?"
+            else:
+                return "Bạn dự định ghé quán vào ngày nào để Aria kiểm tra bàn trống nhé?"
+
+        # 8. Thiếu giờ đơn lẻ
+        if first == "time":
+            if reask_count == 0:
+                return f"{greeting}bạn muốn đến lúc mấy giờ?"
+            else:
+                return "Bạn muốn đặt bàn vào khung giờ nào để Aria sắp xếp chu đáo ạ?"
+
+        # 9. Thiếu số khách đơn lẻ
+        if first == "guests":
+            if reask_count == 0:
+                return f"{greeting}nhóm bạn dự kiến đi bao nhiêu người ạ?"
+            else:
+                return "Bạn dự định đi nhóm khoảng bao nhiêu người để quán chuẩn bị xếp bàn vừa vặn nhất ạ?"
+
+        return f"{greeting}cho Aria xin thông tin để tiếp tục đặt bàn nhé!"
 
     @staticmethod
     def _answer_facility_question(message: str, settings: Dict[str, Any]) -> str:

@@ -367,6 +367,21 @@ def check_schedule_choice(message: str) -> str:
     return "UNKNOWN"
 
 
+def is_phone_inquiry(message: str) -> bool:
+    """
+    Phát hiện câu hỏi của khách về việc tại sao cần số điện thoại / thông tin liên hệ:
+    VD: 'Tại sao cần số điện thoại?', 'Sao phải đưa sđt vậy bạn?', 'Cần số đt làm gì?'
+    """
+    msg = message.lower().strip()
+    keywords = [
+        "tại sao cần", "sao cần", "sao phải", "cần sđt làm gì", "cần số điện thoại làm gì",
+        "cần số đt làm gì", "không cho sđt", "không đưa sđt", "ko cho sđt", "bắt buộc phải có sđt",
+        "sao lại xin sđt", "sao xin số", "lấy số điện thoại làm gì", "lấy sđt làm gì",
+        "không có sđt", "ko có sđt", "không để sđt", "ko để sđt"
+    ]
+    return any(k in msg for k in keywords)
+
+
 def check_side_query_intent(message: str) -> Tuple[bool, str]:
     """
     Phân loại câu hỏi phụ / tư vấn trong khi đang trong flow đặt bàn:

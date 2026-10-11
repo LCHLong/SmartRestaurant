@@ -1128,4 +1128,113 @@ async def test_ambiguous_schedule_choice_flow():
     assert st2["slots"]["date"] == day_after_str
 
 
+@pytest.mark.asyncio
+async def test_no_verbatim_repetition_when_customer_gives_special_request():
+    """Khách đưa yêu cầu đặc biệt khi đang hỏi liên hệ -> Ghi nhận yêu cầu và không lặp lại nguyên văn câu hỏi cũ."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_no_repeat_special_req"
+    await clear_state(session_id)
+
+    async for _ in pipeline.process("Cho mình đặt bàn tối mai lúc 20h", session_id=session_id):
+        pass
+
+    chunks2 = []
+    async for sse in pipeline.process("5 người", session_id=session_id):
+        chunks2.append(sse)
+    text2 = extract_text_from_sse(chunks2)
+    assert "họ tên" in text2
+    assert "số điện thoại" in text2
+
+    # Khách đưa yêu cầu bàn gần cửa sổ
+    chunks3 = []
+    async for sse in pipeline.process("cho mình bàn gần cửa sổ nhé", session_id=session_id):
+        chunks3.append(sse)
+    text3 = extract_text_from_sse(chunks3)
+
+    # 1. Tuyệt đối không lặp lại nguyên văn 100% câu hỏi của lượt trước
+    assert text3 != text2, "Aria không được lặp lại nguyên văn câu hỏi trước!"
+    # 2. Phải ghi nhận yêu cầu gần cửa sổ
+    assert "gần cửa sổ" in text3
+    # 3. Vẫn lịch sự xin số điện thoại
+    assert "số điện thoại" in text3
+
+
+@pytest.mark.asyncio
+async def test_no_verbatim_repetition_when_customer_says_ok_without_phone():
+    """Khách nói 'ok bạn' khi đang chờ liên hệ -> Giải thích lý do và dẫn dắt thay vì lặp câu hỏi máy móc."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_no_repeat_ok"
+    await clear_state(session_id)
+
+    async for _ in pipeline.process("Cho mình đặt bàn tối mai lúc 20h", session_id=session_id):
+        pass
+
+    chunks2 = []
+    async for sse in pipeline.process("5 người", session_id=session_id):
+        chunks2.append(sse)
+    text2 = extract_text_from_sse(chunks2)
+
+    chunks3 = []
+    async for sse in pipeline.process("ok bạn", session_id=session_id):
+        chunks3.append(sse)
+    text3 = extract_text_from_sse(chunks3)
+
+    assert text3 != text2, "Aria không được lặp lại nguyên văn câu hỏi khi khách nói 'ok bạn'!"
+    assert "giữ bàn" in text3 or "vé xác nhận" in text3
+    assert "số điện thoại" in text3
+
+
+@pytest.mark.asyncio
+async def test_phone_inquiry_explains_and_reprompts():
+    """Khách hỏi 'tại sao cần số điện thoại' -> Aria giải thích rõ ràng và xin SĐT tự nhiên."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_phone_inquiry"
+    await clear_state(session_id)
+
+    async for _ in pipeline.process("Cho mình đặt bàn tối mai lúc 20h", session_id=session_id):
+        pass
+    async for _ in pipeline.process("5 người", session_id=session_id):
+        pass
+
+    chunks3 = []
+    async for sse in pipeline.process("Sao lại cần số điện thoại vậy bạn?", session_id=session_id):
+        chunks3.append(sse)
+    text3 = extract_text_from_sse(chunks3)
+
+    assert "vé xác nhận" in text3 or "mã qr" in text3.lower() or "giữ bàn" in text3
+    assert "số điện thoại" in text3
+
+
+@pytest.mark.asyncio
+async def test_sequential_reask_variation():
+    """Hỏi lại nhiều lần liên tiếp -> Biến đổi văn phong qua các lượt (reask variation)."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_reask_var"
+    await clear_state(session_id)
+
+    async for _ in pipeline.process("Cho mình đặt bàn tối mai lúc 20h", session_id=session_id):
+        pass
+
+    chunks2 = []
+    async for sse in pipeline.process("5 người", session_id=session_id):
+        chunks2.append(sse)
+    text2 = extract_text_from_sse(chunks2)
+
+    chunks3 = []
+    async for sse in pipeline.process("chờ tí nhé", session_id=session_id):
+        chunks3.append(sse)
+    text3 = extract_text_from_sse(chunks3)
+
+    chunks4 = []
+    async for sse in pipeline.process("đang bận xíu", session_id=session_id):
+        chunks4.append(sse)
+    text4 = extract_text_from_sse(chunks4)
+
+    assert text3 != text2, "Lần hỏi lại 1 phải biến đổi văn phong so với lần đầu!"
+    assert text4 != text3, "Lần hỏi lại 2 phải biến đổi văn phong so với lần hỏi lại 1!"
+    assert "số điện thoại" in text3
+    assert "số điện thoại" in text4
+
+
+
 
