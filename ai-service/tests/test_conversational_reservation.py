@@ -1236,5 +1236,116 @@ async def test_sequential_reask_variation():
     assert "số điện thoại" in text4
 
 
+@pytest.mark.asyncio
+async def test_extract_guests_negative_and_zero():
+    """Kiểm tra trích xuất số khách âm, 0 và khoảng số khách."""
+    g1, _ = extract_guests("Cho mình đặt bàn tối mai 19h cho -2 người")
+    assert g1 == -2
+
+    g2, _ = extract_guests("cho 0 người")
+    assert g2 == 0
+
+    g3, _ = extract_guests("-2")
+    assert g3 == -2
+
+    g4, _ = extract_guests("0")
+    assert g4 == 0
+
+    g5, _ = extract_guests("cho 4 người")
+    assert g5 == 4
+
+    g6, _ = extract_guests("nhóm 3-4 người")
+    assert g6 == 4
+
+
+@pytest.mark.asyncio
+async def test_extract_all_slots_negative_guests_warning():
+    """Kiểm tra extract_all_slots phát hiện số khách âm/0 và tạo guests_warning."""
+    slots_neg = extract_all_slots("Cho mình đặt bàn tối mai 19h cho -2 người", {})
+    assert slots_neg.get("guests") == -2
+    assert slots_neg.get("party_size") == -2
+    assert slots_neg.get("guests_warning") is not None
+    assert "từ 1 người trở lên" in slots_neg["guests_warning"]
+    assert slots_neg.get("is_valid_guests") is False
+
+    slots_zero = extract_all_slots("0 người", {})
+    assert slots_zero.get("guests") == 0
+    assert slots_zero.get("party_size") == 0
+    assert slots_zero.get("guests_warning") is not None
+    assert "từ 1 người trở lên" in slots_zero["guests_warning"]
+    assert slots_zero.get("is_valid_guests") is False
+
+
+@pytest.mark.asyncio
+async def test_aria_rejects_negative_party_size():
+    """TC-LV5-02: Khách đặt bàn cho -2 người -> Aria từ chối lịch sự, không lưu guests âm và hướng dẫn từ 1 người trở lên."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_neg_guests_session"
+    await clear_state(session_id)
+
+    chunks = []
+    async for sse in pipeline.process("Cho mình đặt bàn tối mai 19h cho -2 người", session_id=session_id):
+        chunks.append(sse)
+    resp = extract_text_from_sse(chunks)
+
+    # 1. Aria phải cảnh báo từ chối số khách âm
+    assert "từ 1 người trở lên" in resp
+    assert "chính xác số người" in resp
+
+    # 2. State không được lưu guests = -2
+    st = await get_state(session_id)
+    assert st["slots"]["guests"] is None
+    # Ngày và giờ hợp lệ vẫn được bảo toàn
+    assert st["slots"]["date"] is not None
+    assert st["slots"]["time"] == "19:00"
+
+    # 3. Khách sửa lại số khách hợp lệ ở lượt tiếp theo -> Tiếp tục quy trình bình thường
+    chunks2 = []
+    async for sse in pipeline.process("4 người", session_id=session_id):
+        chunks2.append(sse)
+    resp2 = extract_text_from_sse(chunks2)
+
+    st2 = await get_state(session_id)
+    assert st2["slots"]["guests"] == 4
+    # Chuyển tiếp hỏi tên hoặc SĐT
+    assert "họ tên" in resp2 or "số điện thoại" in resp2
+
+
+@pytest.mark.asyncio
+async def test_aria_rejects_zero_party_size():
+    """Khách đặt bàn cho 0 người -> Aria cảnh báo từ chối số khách = 0."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_zero_guests_session"
+    await clear_state(session_id)
+
+    chunks = []
+    async for sse in pipeline.process("Cho mình đặt bàn tối mai 19h cho 0 người", session_id=session_id):
+        chunks.append(sse)
+    resp = extract_text_from_sse(chunks)
+
+    assert "từ 1 người trở lên" in resp
+    st = await get_state(session_id)
+    assert st["slots"]["guests"] is None
+
+
+@pytest.mark.asyncio
+async def test_reservation_tools_rejects_non_positive_guest_count():
+    """Kiểm tra check_availability và create_reservation tung ValueError khi guest_count <= 0."""
+    from tools.reservation_tools import check_availability, create_reservation
+
+    with pytest.raises(ValueError, match="từ 1 trở lên"):
+        await check_availability("2026-10-12", "19:00", guest_count=-2)
+
+    with pytest.raises(ValueError, match="từ 1 trở lên"):
+        await check_availability("2026-10-12", "19:00", guest_count=0)
+
+    with pytest.raises(ValueError, match="từ 1 trở lên"):
+        await create_reservation("Nam", "0912345678", guest_count=-1, reservation_date="2026-10-12", reservation_time="19:00")
+
+    with pytest.raises(ValueError, match="từ 1 trở lên"):
+        await create_reservation("Nam", "0912345678", guest_count=0, reservation_date="2026-10-12", reservation_time="19:00")
+
+
+
 
 

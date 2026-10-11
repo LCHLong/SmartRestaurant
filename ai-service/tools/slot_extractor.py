@@ -77,31 +77,81 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
     """
     Trích xuất số lượng khách.
     Hỗ trợ trường hợp: "2 người lớn và 1 trẻ em" -> tổng 3 khách, ghi chú "1 trẻ em".
-    Hỗ trợ câu trả lời ngắn: "2", "4", "4 ng", "4 người", "đi 4"...
+    Hỗ trợ khoảng: "3-4 người", "4-6 khách" -> cận trên để đảm bảo xếp bàn vừa vặn.
+    Hỗ trợ câu trả lời ngắn: "2", "4", "4 ng", "4 người", "đi 4", "-2", "0"...
+    Hỗ trợ phát hiện số khách âm hoặc bằng 0 (<= 0) để hệ thống cảnh báo và từ chối.
     
     Returns:
         (total_guests: int or None, note: str or None)
     """
     text_lower = text.lower().strip()
 
-    # Trường hợp: X người lớn và Y trẻ em / em bé / bé / nhỏ
-    adult_child_pattern = r'(\d+)\s*(?:người\s*lớn|lớn).*?(?:và|\+|,)?\s*(\d+)\s*(?:trẻ\s*em|em\s*bé|bé|nhỏ)'
+    # 1. Trường hợp: X người lớn và Y trẻ em / em bé / bé / nhỏ
+    adult_child_pattern = r'([-–—]?\d+)\s*(?:người\s*lớn|lớn).*?(?:và|\+|,)?\s*([-–—]?\d+)\s*(?:trẻ\s*em|em\s*bé|bé|nhỏ)'
     m_combo = re.search(adult_child_pattern, text_lower)
     if m_combo:
-        adults = int(m_combo.group(1))
-        children = int(m_combo.group(2))
+        adults = int(m_combo.group(1).replace('–', '-').replace('—', '-'))
+        children = int(m_combo.group(2).replace('–', '-').replace('—', '-'))
         total = adults + children
         note = f"{children} trẻ em"
         return total, note
 
-    # Trường hợp câu trả lời chỉ có số (hoặc số kèm từ phụ nhẹ): "2", "4", "4 ng", "khoảng 4", "tầm 4"
+    # 2. Trường hợp khoảng số lượng khách: "3-4 người", "3 - 5 khách" -> lấy cận trên để xếp bàn đủ chỗ
+    range_pattern = r'(\d+)\s*[-–—]\s*(\d+)\s*(?:người|khách|pax|chỗ|suất|bạn|ng)'
+    m_range = re.search(range_pattern, text_lower)
+    if m_range:
+        low = int(m_range.group(1))
+        high = int(m_range.group(2))
+        val = max(low, high)
+        if 1 <= val <= 100:
+            return val, None
+
+    # 3. Trường hợp số âm độc lập: "-2", "-2 người", "-5 khách", "–3"
+    m_single_neg = re.search(r'^(?:dạ|khoảng|tầm|đi|đặt|cho)?\s*[-–—]\s*(\d{1,2})\s*(?:người|khách|pax|chỗ|bạn|ng|ạ|nhe|nhé|nha)?$', text_lower)
+    if m_single_neg:
+        return -int(m_single_neg.group(1)), None
+
+    # 4. Trường hợp số 0 độc lập: "0", "0 người", "0 khách"
+    m_single_zero = re.search(r'^(?:dạ|khoảng|tầm|đi|đặt|cho)?\s*0\s*(?:người|khách|pax|chỗ|bạn|ng|ạ|nhe|nhé|nha)?$', text_lower)
+    if m_single_zero:
+        return 0, None
+
+    # 5. Các mẫu số khách âm trong câu: "-2 người", "cho -2 khách", "bàn -3 chỗ"...
+    neg_patterns = [
+        r'(?:^|[^\d])[-–—]\s*(\d+)\s*(?:người|khách|pax|chỗ|suất|bạn|ng|thành\s*viên|đứa)',
+        r'bàn\s*[-–—]\s*(\d+)',
+        r'nhóm\s*(?:có\s*)?[-–—]\s*(\d+)',
+        r'đi\s*[-–—]\s*(\d+)',
+        r'([-–—]\s*\d+)\s*(?:người\s*lớn|lớn)',
+    ]
+    for pat in neg_patterns:
+        m = re.search(pat, text_lower)
+        if m:
+            raw_val = m.group(1).replace(' ', '').replace('–', '-').replace('—', '-')
+            if raw_val.startswith('-'):
+                return int(raw_val), None
+            return -int(raw_val), None
+
+    # 6. Các mẫu số khách bằng 0 trong câu: "0 người", "cho 0 khách", "bàn 0 người"...
+    zero_patterns = [
+        r'(?:^|[^\d])0\s*(?:người|khách|pax|chỗ|suất|bạn|ng|thành\s*viên|đứa)',
+        r'bàn\s*0\s*(?:người|khách|chỗ)?',
+        r'nhóm\s*(?:có\s*)?0',
+        r'đi\s*0\s*(?:người|khách)?',
+    ]
+    for pat in zero_patterns:
+        m = re.search(pat, text_lower)
+        if m:
+            return 0, None
+
+    # 7. Trường hợp câu trả lời chỉ có số dương: "2", "4", "4 ng", "khoảng 4", "tầm 4"
     single_num = re.search(r'^(?:dạ|khoảng|tầm|đi|đặt|cho)?\s*(\d{1,2})\s*(?:người|khách|pax|chỗ|bạn|ng|ạ|nhe|nhé|nha)?$', text_lower)
     if single_num:
         val = int(single_num.group(1))
         if 1 <= val <= 100:
             return val, None
 
-    # Các mẫu số lượng khách thông thường
+    # 8. Các mẫu số lượng khách thông thường
     patterns = [
         r'(\d+)\s*(?:người|khách|pax|chỗ|suất|bạn|ng|thành\s*viên|đứa)',
         r'bàn\s*(\d+)\s*(?:người|khách|chỗ)?',
@@ -117,7 +167,7 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
             if 1 <= val <= 100:
                 return val, None
 
-    # Mẫu đổi ý: "đi X người thôi", "đổi thành X người"
+    # 9. Mẫu đổi ý: "đi X người thôi", "đổi thành X người"
     correction_patterns = [
         r'(?:đi|thành|đổi\s*thành|thôi|chỉ)\s*(\d+)\s*(?:người|khách)?',
     ]
@@ -227,8 +277,8 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
             return None
 
         # Loại bỏ cụm từ chỉ số lượng khách trước khi trích xuất tên ngắn (hỗ trợ "4 người, Hùng", "Hùng 4 người")
-        text_without_guests = re.sub(r'\b(?:khoảng|tầm|chừng|cỡ|đi|đặt|cho|bàn|nhóm)?\s*\d{1,2}\s*(?:người|khách|pax|chỗ|bạn|ng|lớn|trẻ\s*em|em\s*bé|bé)?\b', ' ', text_clean, flags=re.IGNORECASE)
-        text_without_guests = re.sub(r'\b(?:khoảng|tầm|chừng|cỡ|đi|đặt|cho|bàn)\s*\d{1,2}\b', ' ', text_without_guests, flags=re.IGNORECASE)
+        text_without_guests = re.sub(r'\b(?:khoảng|tầm|chừng|cỡ|đi|đặt|cho|bàn|nhóm)?\s*[-–—]?\d{1,2}\s*(?:người|khách|pax|chỗ|bạn|ng|lớn|trẻ\s*em|em\s*bé|bé)?\b', ' ', text_clean, flags=re.IGNORECASE)
+        text_without_guests = re.sub(r'\b(?:khoảng|tầm|chừng|cỡ|đi|đặt|cho|bàn)\s*[-–—]?\d{1,2}\b', ' ', text_without_guests, flags=re.IGNORECASE)
 
         clean_text = re.sub(r'[,.:;!?~_\-/\(\)\[\]"\'`]+', ' ', text_without_guests).strip()
         # Cắt bỏ các từ nhãn sđt / email nếu còn sót sau khi đã tách phone/email
@@ -465,8 +515,14 @@ def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
 
     # 3. Số khách
     guests, child_note = extract_guests(message)
-    if guests:
+    if guests is not None:
         extracted["guests"] = guests
+        extracted["party_size"] = guests
+        if guests <= 0:
+            extracted["guests_warning"] = "Dạ, số lượng khách đặt bàn phải từ 1 người trở lên ạ. Quý khách vui lòng cho Aria biết chính xác số người trong nhóm nhé!"
+            extracted["is_valid_guests"] = False
+        else:
+            extracted["is_valid_guests"] = True
 
     # 4. Số điện thoại
     phone, phone_warning = extract_phone(message)

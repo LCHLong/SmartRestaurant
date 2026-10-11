@@ -891,6 +891,22 @@ class AriaConversationPipeline:
             yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
             return
 
+        # Cảnh báo số lượng khách không hợp lệ (<= 0) (P1 Validation Bug)
+        if extracted.get("guests_warning") or (slots.get("guests") is not None and (not isinstance(slots["guests"], int) or slots["guests"] <= 0)):
+            slots["guests"] = None
+            if state.get("queued_booking", {}).get("guests") and state["queued_booking"]["guests"] <= 0:
+                state["queued_booking"]["guests"] = None
+            await save_state(session_id, state)
+            warning_msg = extracted.get("guests_warning") or "Dạ, số lượng khách đặt bàn phải từ 1 người trở lên ạ. Quý khách vui lòng cho Aria biết chính xác số người trong nhóm nhé!"
+            for t in self._chunk_tokens(warning_msg):
+                yield self._sse("token", {"content": t})
+            yield self._sse("done", {
+                "suggestedItems": [],
+                "groundedItems": [],
+                "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+            })
+            return
+
         # 4. Lấy cấu hình hệ thống động (hotline, open_time, close_time...)
         settings = await get_restaurant_settings()
         hotline = settings.get("hotline", "0901.234.567")
@@ -1257,7 +1273,8 @@ class AriaConversationPipeline:
             missing.append("date")
         if not slots.get("time"):
             missing.append("time")
-        if not slots.get("guests"):
+        guests = slots.get("guests")
+        if not guests or not isinstance(guests, int) or guests <= 0:
             missing.append("guests")
 
         # Nếu chưa đăng nhập thì bắt buộc cần Tên và SĐT

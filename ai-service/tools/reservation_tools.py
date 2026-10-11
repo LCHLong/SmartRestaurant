@@ -76,6 +76,9 @@ async def check_availability(
             "suggested_times": List[str]
         }
     """
+    if not isinstance(guest_count, int) or guest_count <= 0:
+        raise ValueError("Số lượng khách (guest_count) phải là số nguyên dương từ 1 trở lên.")
+
     headers = {
         "X-Internal-Service": "aria-ai",
         "X-Internal-Secret": INTERNAL_SERVICE_SECRET,
@@ -185,6 +188,9 @@ async def create_reservation(
             "deposit_amount": int
         }
     """
+    if not isinstance(guest_count, int) or guest_count <= 0:
+        raise ValueError("Số lượng khách (guest_count) phải là số nguyên dương từ 1 trở lên.")
+
     body = {
         "customer_name": customer_name,
         "customer_phone": customer_phone,
