@@ -27,14 +27,40 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
   } = useAiChat();
 
   const [inputText, setInputText] = useState('');
+  const [isExpanded, setIsExpanded] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  // Auto-scroll khi có token mới (dùng auto để không bị giật lag khi stream nhanh)
+
+  const handleClose = useCallback(() => {
+    setIsExpanded(false);
+    closeChat();
+  }, [closeChat]);
+
+  // Auto-scroll khi có token mới hoặc đổi kích thước khung chat
   useEffect(() => {
     if (isOpen) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      const timer = setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'auto' });
+      }, 50);
+      return () => clearTimeout(timer);
     }
-  }, [messages, isOpen]);
+  }, [messages, isOpen, isExpanded]);
+
+  // Lắng nghe phím Escape để thu nhỏ hoặc đóng chat
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleGlobalKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        if (isExpanded) {
+          setIsExpanded(false);
+        } else {
+          handleClose();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [isOpen, isExpanded, handleClose]);
 
   // Focus input khi mở
   useEffect(() => {
@@ -73,7 +99,7 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
       <div
         className={`
           fixed bottom-24 right-4 z-50
-          w-[360px] max-w-[calc(100vw-2rem)]
+          max-w-[calc(100vw-2rem)]
           flex flex-col
           bg-white/95 backdrop-blur-md
           border border-white/40
@@ -83,30 +109,52 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
             ? 'opacity-100 translate-y-0 pointer-events-auto'
             : 'opacity-0 translate-y-6 pointer-events-none'
           }
+          ${isExpanded
+            ? 'w-[calc(100vw-2rem)] sm:w-[720px] md:w-[800px] lg:w-[860px] h-[calc(100vh-7rem)] sm:h-[min(820px,calc(100vh-7.5rem))]'
+            : 'w-[calc(100vw-2rem)] sm:w-[440px] md:w-[450px] h-[min(560px,calc(100vh-7.5rem))] sm:h-[660px] sm:max-h-[calc(100vh-7.5rem)]'
+          }
         `}
-        style={{ height: '480px' }}
         aria-hidden={!isOpen}
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-orange-500 to-pink-500 rounded-t-2xl">
-          <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-sm shadow">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 bg-gradient-to-r from-orange-500 to-pink-500 rounded-t-2xl shadow-sm">
+          <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white font-bold text-sm shadow flex-shrink-0">
             <span className="material-symbols-outlined text-xl">smart_toy</span>
           </div>
-          <div className="flex-1">
-            <p className="text-white font-semibold text-sm leading-none">Aria</p>
-            <p className="text-white/80 text-xs mt-0.5">Trợ lý tư vấn món ăn</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <p className="text-white font-semibold text-sm leading-none truncate">Aria</p>
+              {/* Dot online */}
+              <span className="w-2 h-2 rounded-full bg-green-300 shadow flex-shrink-0 animate-pulse" />
+            </div>
+            <p className="text-white/80 text-xs mt-0.5 truncate">Trợ lý tư vấn ẩm thực & đặt bàn</p>
           </div>
-          {/* Dot online */}
-          <span className="w-2 h-2 rounded-full bg-green-300 shadow" />
-          {/* Close button in header */}
-          <button
-            type="button"
-            onClick={closeChat}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-colors"
-            aria-label="Đóng chat"
-          >
-            <span className="material-symbols-outlined text-xl">close</span>
-          </button>
+
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {/* Expand / Minimize toggle button */}
+            <button
+              type="button"
+              onClick={() => setIsExpanded(prev => !prev)}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+              aria-label={isExpanded ? 'Thu nhỏ khung chat' : 'Phóng to khung chat'}
+              title={isExpanded ? 'Thu nhỏ khung chat' : 'Phóng to khung chat'}
+            >
+              <span className="material-symbols-outlined text-lg">
+                {isExpanded ? 'close_fullscreen' : 'open_in_full'}
+              </span>
+            </button>
+
+            {/* Close button in header */}
+            <button
+              type="button"
+              onClick={handleClose}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
+              aria-label="Đóng chat"
+              title="Đóng chat"
+            >
+              <span className="material-symbols-outlined text-xl">close</span>
+            </button>
+          </div>
         </div>
 
         {/* Messages */}
@@ -145,13 +193,13 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
         {/* Quick suggestions */}
         {messages.length <= 1 && (
           <div className="px-3 py-1 flex gap-2 overflow-x-auto scrollbar-hide">
-            {['Gợi ý món hôm nay 🍜', 'Món không cay 🥗', 'Đồ uống ngon 🥤'].map(q => (
+            {['Gợi ý món hôm nay 🍜', 'Món không cay 🥗', 'Đồ uống ngon 🥤', 'Đặt bàn trước 📅'].map(q => (
               <button
                 key={q}
                 type="button"
                 onClick={() => sendMessage(q)}
                 disabled={isLoading}
-                className="flex-shrink-0 text-xs bg-orange-50 border border-orange-200 text-orange-600 rounded-full px-3 py-1 hover:bg-orange-100 transition-colors disabled:opacity-50"
+                className="flex-shrink-0 text-xs bg-orange-50 border border-orange-200 text-orange-600 rounded-full px-3 py-1 hover:bg-orange-100 transition-colors disabled:opacity-50 cursor-pointer"
               >
                 {q}
               </button>
@@ -176,7 +224,7 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
               type="button"
               onClick={handleSend}
               disabled={!inputText.trim() || isLoading}
-              className="flex-shrink-0 w-7 h-7 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white flex items-center justify-center transition-all active:scale-95"
+              className="flex-shrink-0 w-7 h-7 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white flex items-center justify-center transition-all active:scale-95 cursor-pointer"
               aria-label="Gửi tin nhắn"
             >
               {isLoading ? (
@@ -193,7 +241,12 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
       {/* ======= FLOATING BUBBLE ======= */}
       <button
         type="button"
-        onClick={toggleChat}
+        onClick={() => {
+          if (isOpen) {
+            setIsExpanded(false);
+          }
+          toggleChat();
+        }}
         className={`
           fixed bottom-5 right-4 z-50
           w-14 h-14 rounded-full
@@ -201,7 +254,7 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
           text-white shadow-lg
           flex items-center justify-center
           transition-transform duration-300 ease-out
-          hover:scale-110 active:scale-95
+          hover:scale-110 active:scale-95 cursor-pointer
           ${isOpen ? 'rotate-90' : 'rotate-0'}
         `}
         aria-label={isOpen ? 'Đóng Aria chat' : 'Mở Aria chat'}
