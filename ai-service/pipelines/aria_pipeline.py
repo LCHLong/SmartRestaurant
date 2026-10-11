@@ -59,6 +59,9 @@ from tools.slot_extractor import (
     is_cancellation,
     check_side_query_intent,
     is_valid_vn_phone,
+    is_additional_booking_intent,
+    is_reschedule_intent,
+    check_schedule_choice,
 )
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
@@ -542,6 +545,52 @@ class AriaConversationPipeline:
             })
             return
 
+        # 1.1 Khách đang có lựa chọn giữa đổi lịch hay đặt thêm bàn (pending_schedule_choice)
+        if state.get("pending_schedule_choice"):
+            choice = check_schedule_choice(message)
+            psc = state.pop("pending_schedule_choice")
+            slots = state["slots"]
+            if choice == "RESCHEDULE":
+                if psc.get("date"):
+                    slots["date"] = psc["date"]
+                if psc.get("time"):
+                    slots["time"] = psc["time"]
+                if psc.get("guests"):
+                    slots["guests"] = psc["guests"]
+                await save_state(session_id, state)
+            elif choice == "ADD_NEW":
+                state["queued_booking"] = psc
+                missing = self._get_missing_slots(state)
+                if missing:
+                    state["fsm_state"] = "COLLECTING_SLOTS"
+                    await save_state(session_id, state)
+                    slot_q = self._build_slot_question(missing, state)
+                    resp = (
+                        f"Dạ Aria đã ghi nhận bạn muốn đặt thêm bàn vào ngày **{psc.get('date')}** lúc **{psc.get('time')}**.\n"
+                        f"Aria xin phép hoàn tất đơn đặt bàn cho ngày **{slots.get('date')}** lúc **{slots.get('time')}** trước nhé!\n\n"
+                        f"{slot_q}"
+                    )
+                    for t in self._chunk_tokens(resp):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
+                    return
+                else:
+                    await save_state(session_id, state)
+            elif choice == "KEEP_CURRENT":
+                await save_state(session_id, state)
+            else:
+                state["pending_schedule_choice"] = psc
+                await save_state(session_id, state)
+                resp = (
+                    f"Dạ, để Aria hỗ trợ tốt nhất, bạn muốn **đổi lịch** đơn hiện tại "
+                    f"sang **{psc.get('time')} ngày {psc.get('date')}** hay muốn **đặt thêm bàn mới** ạ? "
+                    f"(Bạn có thể trả lời 'đổi lịch' hoặc 'đặt thêm')"
+                )
+                for t in self._chunk_tokens(resp):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
+                return
+
         # 2. Đang ở trạng thái chờ xác nhận (AWAITING_CONFIRMATION)
         if state.get("fsm_state") == "AWAITING_CONFIRMATION":
             if is_confirmation(message):
@@ -555,6 +604,7 @@ class AriaConversationPipeline:
                 email = slots.get("customer_email") or user_info.get("email")
 
                 try:
+                    res_count = state.get("completed_bookings_count", 0) + 1
                     res_data = await create_reservation(
                         customer_name=name,
                         customer_phone=phone,
@@ -563,13 +613,12 @@ class AriaConversationPipeline:
                         reservation_time=slots["time"],
                         customer_email=email,
                         special_requests=slots.get("special_requests"),
-                        idempotency_key=session_id,
+                        idempotency_key=f"{session_id}_{res_count}",
                         user_id=user_id or user_info.get("user_id"),
                     )
 
-                    state["fsm_state"] = "DONE"
                     state["booking_code"] = res_data.get("booking_code")
-                    await save_state(session_id, state)
+                    state["completed_bookings_count"] = res_count
 
                     dep_note = ""
                     if res_data.get("requires_deposit"):
@@ -577,15 +626,87 @@ class AriaConversationPipeline:
                         dep_note = f"\n⚠️ **Lưu ý:** Nhóm ≥ 6 người cần đặt cọc **{amt:,.0f} VNĐ** (50k/người). Nhân viên sẽ liên hệ hướng dẫn thanh toán cọc nhé."
 
                     email_note = f" và email **{email}**" if email else ""
-                    resp = (
-                        f"🎉 **Đặt bàn thành công!**\n\n"
-                        f"• Mã đặt bàn: **{res_data.get('booking_code')}**\n"
-                        f"• Ngày giờ: **{slots['time']}** · **{slots['date']}**\n"
-                        f"• Số lượng: **{slots['guests']} người**\n"
-                        f"• Tên: **{name}** · SĐT: **{_mask_phone(phone)}**\n"
-                        f"{dep_note}\n\n"
-                        f"Nhà hàng đã gửi vé xác nhận có mã QR qua SĐT{email_note} và chuẩn bị bàn đón bạn thật chu đáo. Bạn có cần xem thêm món ngon trước không ạ?"
-                    )
+
+                    queued = state.pop("queued_booking", None)
+                    if queued:
+                        new_slots = {
+                            "date": queued.get("date"),
+                            "time": queued.get("time"),
+                            "guests": queued.get("guests") or slots.get("guests") or 2,
+                            "customer_name": name,
+                            "customer_phone": phone,
+                            "customer_email": email,
+                            "special_requests": queued.get("special_requests"),
+                        }
+                        state["slots"] = new_slots
+
+                        settings = await get_restaurant_settings()
+                        open_time = settings.get("open_time", "08:00")
+                        close_time = settings.get("close_time", "22:00")
+
+                        avail2 = await check_availability(
+                            date=new_slots["date"],
+                            time=new_slots["time"],
+                            guest_count=new_slots["guests"],
+                            open_time=open_time,
+                            close_time=close_time,
+                        )
+                        state["last_availability"] = avail2
+                        if avail2.get("available"):
+                            state["fsm_state"] = "AWAITING_CONFIRMATION"
+                            await save_state(session_id, state)
+
+                            dep_note2 = ""
+                            if new_slots["guests"] >= 6:
+                                amt2 = new_slots["guests"] * 50000
+                                dep_note2 = f"\n• Cọc bàn: **{amt2:,.0f} VNĐ** (50.000đ/người)"
+
+                            resp = (
+                                f"🎉 **Đặt bàn 1 thành công!**\n\n"
+                                f"• Mã đặt bàn: **{res_data.get('booking_code')}**\n"
+                                f"• Ngày giờ: **{slots['time']}** · **{slots['date']}**\n"
+                                f"• Số lượng: **{slots['guests']} người**\n"
+                                f"• Tên: **{name}** · SĐT: **{_mask_phone(phone)}**\n"
+                                f"{dep_note}\n\n"
+                                f"Nhà hàng đã gửi vé xác nhận có mã QR qua SĐT{email_note}.\n\n"
+                                f"---\n\n"
+                                f"📋 **Tiếp tục với đơn đặt thêm thứ 2:**\n"
+                                f"Dạ bàn vào **{new_slots['date']}** lúc **{new_slots['time']}** cho **{new_slots['guests']} người** vẫn còn trống ạ!\n"
+                                f"Thông tin liên hệ được giữ nguyên: **{name}** · SĐT: **{_mask_phone(phone)}**{email_note}{dep_note2}\n\n"
+                                f"Bạn có muốn xác nhận đặt luôn bàn thứ 2 này không ạ? (Trả lời **'ok'** hoặc **'xác nhận'**)"
+                            )
+                        else:
+                            state["fsm_state"] = "COLLECTING_SLOTS"
+                            state["slots"]["time"] = None
+                            await save_state(session_id, state)
+
+                            sug = avail2.get("suggested_times", [])
+                            sug_str = f" như **{sug[0]}** hoặc **{sug[1]}**" if len(sug) >= 2 else " khác"
+                            resp = (
+                                f"🎉 **Đặt bàn 1 thành công!**\n\n"
+                                f"• Mã đặt bàn: **{res_data.get('booking_code')}**\n"
+                                f"• Ngày giờ: **{slots['time']}** · **{slots['date']}**\n"
+                                f"• Số lượng: **{slots['guests']} người**\n"
+                                f"• Tên: **{name}** · SĐT: **{_mask_phone(phone)}**\n"
+                                f"{dep_note}\n\n"
+                                f"Nhà hàng đã gửi vé xác nhận có mã QR qua SĐT{email_note}.\n\n"
+                                f"---\n\n"
+                                f"📋 **Về đơn đặt thêm thứ 2:**\n"
+                                f"Rất tiếc! Ngày **{new_slots['date']}** lúc **{avail2.get('time')}** đã hết bàn cho nhóm {new_slots['guests']} người. "
+                                f"Aria có thể gợi ý bạn chọn khung giờ{sug_str} được không ạ?"
+                            )
+                    else:
+                        state["fsm_state"] = "DONE"
+                        await save_state(session_id, state)
+                        resp = (
+                            f"🎉 **Đặt bàn thành công!**\n\n"
+                            f"• Mã đặt bàn: **{res_data.get('booking_code')}**\n"
+                            f"• Ngày giờ: **{slots['time']}** · **{slots['date']}**\n"
+                            f"• Số lượng: **{slots['guests']} người**\n"
+                            f"• Tên: **{name}** · SĐT: **{_mask_phone(phone)}**\n"
+                            f"{dep_note}\n\n"
+                            f"Nhà hàng đã gửi vé xác nhận có mã QR qua SĐT{email_note} và chuẩn bị bàn đón bạn thật chu đáo. Bạn có cần xem thêm món ngon trước không ạ?"
+                        )
 
                     for t in self._chunk_tokens(resp):
                         yield self._sse("token", {"content": t})
@@ -598,7 +719,7 @@ class AriaConversationPipeline:
                         "metrics": {
                             "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
                             "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
-                            "reservation_state": "DONE"
+                            "reservation_state": state["fsm_state"]
                         }
                     })
                     return
@@ -700,6 +821,57 @@ class AriaConversationPipeline:
 
         # Cập nhật slot mới
         slots = state["slots"]
+        is_add_booking = is_additional_booking_intent(message)
+        is_resched = is_reschedule_intent(message)
+
+        if is_add_booking and (slots.get("date") or slots.get("time")):
+            # Tách riêng slot của bàn đặt thêm vào queued_booking
+            extra_slots = extract_all_slots(message, {})
+            queued = state.get("queued_booking") or {}
+            if extra_slots.get("date"):
+                queued["date"] = extra_slots["date"]
+            if extra_slots.get("time"):
+                queued["time"] = extra_slots["time"]
+            if extra_slots.get("guests"):
+                queued["guests"] = extra_slots["guests"]
+            elif not queued.get("guests") and slots.get("guests"):
+                queued["guests"] = slots["guests"]
+            state["queued_booking"] = queued
+
+            # Bảo vệ đơn hiện tại: không ghi đè ngày giờ đơn 1
+            extracted.pop("date", None)
+            extracted.pop("time", None)
+            extracted.pop("time_ambiguous", None)
+            extracted.pop("pending_ambiguous_hour", None)
+            if slots.get("guests") and extra_slots.get("guests"):
+                extracted.pop("guests", None)
+
+        elif not is_add_booking and not is_resched and slots.get("date") and slots.get("time"):
+            new_date = extracted.get("date")
+            new_time = extracted.get("time")
+            has_new_date = new_date and new_date != slots["date"]
+            has_new_time = new_time and new_time != slots["time"]
+
+            # Chỉ hỏi khi thực sự có ngày hoặc giờ khác và không phải đang xử lý giờ mơ hồ
+            if (has_new_date or has_new_time) and not slots.get("pending_ambiguous_hour"):
+                state["pending_schedule_choice"] = {
+                    "date": new_date or slots["date"],
+                    "time": new_time or slots["time"],
+                    "guests": extracted.get("guests") or slots.get("guests"),
+                }
+                await save_state(session_id, state)
+                psc = state["pending_schedule_choice"]
+                resp = (
+                    f"Aria thấy bạn vừa nhắc tới mốc thời gian **{psc['time']}** ngày **{psc['date']}** "
+                    f"(trong khi đơn hiện tại đang chọn là **{slots['time']}** ngày **{slots['date']}**).\n\n"
+                    f"Bạn muốn **đổi lịch** đơn hiện tại sang thời gian mới hay muốn **đặt thêm bàn mới** ạ? "
+                    f"(Bạn có thể trả lời 'đổi lịch' hoặc 'đặt thêm')"
+                )
+                for t in self._chunk_tokens(resp):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
+                return
+
         for key in ["date", "time", "guests", "customer_name", "customer_phone", "customer_email", "special_requests"]:
             if extracted.get(key) is not None:
                 slots[key] = extracted[key]
@@ -939,6 +1111,13 @@ class AriaConversationPipeline:
             await save_state(session_id, state)
 
             resp = self._build_slot_question(missing, state)
+            if is_add_booking and state.get("queued_booking"):
+                qb = state["queued_booking"]
+                ack = (
+                    f"Dạ, Aria đã ghi nhận bạn muốn đặt thêm bàn vào ngày **{qb.get('date')}** lúc **{qb.get('time')}**.\n"
+                    f"Aria xin phép hoàn tất đơn đặt bàn cho ngày **{slots.get('date')}** lúc **{slots.get('time')}** trước nhé!\n\n"
+                )
+                resp = ack + resp
             # Nếu nhóm >= 6 người, kèm lời nhắc cọc (Proposal T06 & T25)
             if slots.get("guests") and slots["guests"] >= 6:
                 resp += f"\n\n*(Lưu ý: Với nhóm {slots['guests']} người, theo chính sách nhà hàng cần đặt cọc 50.000đ/người để bảo đảm giữ bàn chu đáo ạ)*"
@@ -979,6 +1158,14 @@ class AriaConversationPipeline:
                 special_text = f"\n• Ghi chú: **{slots['special_requests']}**" if slots.get("special_requests") else ""
                 email_text = f" · Email: **{email}**" if email else ""
 
+                queued_note = ""
+                if state.get("queued_booking"):
+                    qb = state["queued_booking"]
+                    queued_note = (
+                        f"\n\n*(📌 Aria đã ghi nhận yêu cầu đặt thêm bàn vào ngày **{qb.get('date')}** lúc **{qb.get('time')}**. "
+                        f"Ngay sau khi bạn xác nhận đơn này, Aria sẽ tiến hành tạo tiếp đơn thứ 2 nhé!)*"
+                    )
+
                 resp = (
                     f"Dạ còn bàn trống ạ! Aria tóm tắt lại thông tin đặt bàn:\n\n"
                     f"📅 Ngày: **{slots['date']}** lúc **{slots['time']}**\n"
@@ -987,6 +1174,7 @@ class AriaConversationPipeline:
                     f"{special_text}"
                     f"{dep_text}\n\n"
                     f"Bạn xác nhận đặt bàn không ạ? (Trả lời **'ok'** hoặc **'xác nhận'**)"
+                    f"{queued_note}"
                 )
             else:
                 # Hết bàn trong khung giờ này (Proposal T05)

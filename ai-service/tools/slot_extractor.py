@@ -316,6 +316,57 @@ def is_cancellation(message: str) -> bool:
     return False
 
 
+def is_additional_booking_intent(message: str) -> bool:
+    """
+    Phát hiện ý định đặt thêm bàn / đặt thêm một đơn khác khi đang có bàn:
+    VD:
+    - 'Ngoài ra tôi còn muốn đặt thêm bàn vào ngày mốt lúc 21 giờ'
+    - 'Tôi muốn đặt thêm 1 bàn nữa vào thứ 7'
+    - 'Đặt thêm một bàn vào ngày mốt'
+    - 'Thêm một bàn nữa lúc 19h'
+    - 'Đặt thêm bàn nữa'
+    - 'Còn muốn đặt thêm'
+    """
+    msg = message.lower().strip()
+    patterns = [
+        r'(?:ngoài\s*ra|tiện\s*thể|với\s*lại).*?(?:đặt|thêm|bàn)',
+        r'(?:muốn\s*)?đặt\s*thêm\s*(?:một\s*|1\s*)?(?:bàn|chỗ|suất)?',
+        r'thêm\s*(?:một\s*|1\s*)?bàn\s*(?:nữa)?',
+        r'đặt\s*(?:một\s*|1\s*)?bàn\s*(?:nữa|khác)',
+        r'(?:còn|muốn)\s*đặt\s*thêm',
+    ]
+    return any(re.search(pat, msg) for pat in patterns)
+
+
+def is_reschedule_intent(message: str) -> bool:
+    """
+    Phát hiện ý định đổi lịch / dời giờ của đơn hiện tại:
+    VD: 'Đổi sang ngày mai 19h', 'Dời lịch sang thứ 7', 'Chuyển sang 20h', 'Đổi giờ thành 21h'
+    """
+    msg = message.lower().strip()
+    keywords = [
+        "đổi sang", "đổi lịch", "đổi giờ", "dời sang", "dời lịch",
+        "chuyển sang", "chuyển lịch", "sửa lại", "thay vì", "đổi thành",
+        "chuyển thành", "sửa thành", "đổi ngày", "đổi thời gian"
+    ]
+    return any(k in msg for k in keywords)
+
+
+def check_schedule_choice(message: str) -> str:
+    """
+    Phân loại phản hồi của khách khi đang có pending_schedule_choice:
+    Returns: 'RESCHEDULE' | 'ADD_NEW' | 'KEEP_CURRENT' | 'UNKNOWN'
+    """
+    msg = message.lower().strip()
+    if any(k in msg for k in ["đổi", "dời", "chuyển", "thay", "lịch mới", "giờ mới", "ngày mới"]):
+        return "RESCHEDULE"
+    if any(k in msg for k in ["thêm", "đặt thêm", "thêm bàn", "bàn nữa", "mới", "tạo mới", "cả hai", "hai bàn", "thêm đơn"]):
+        return "ADD_NEW"
+    if any(k in msg for k in ["giữ", "cũ", "không đổi", "ko đổi", "như cũ", "đơn cũ", "giữ nguyên"]):
+        return "KEEP_CURRENT"
+    return "UNKNOWN"
+
+
 def check_side_query_intent(message: str) -> Tuple[bool, str]:
     """
     Phân loại câu hỏi phụ / tư vấn trong khi đang trong flow đặt bàn:

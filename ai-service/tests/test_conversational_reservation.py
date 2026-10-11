@@ -942,3 +942,190 @@ async def test_extract_name_combined_with_guests():
     assert "họ tên" not in text2, "Đã biết tên Hùng nên không được hỏi lại họ tên!"
 
 
+@pytest.mark.asyncio
+async def test_additional_booking_queue_and_sequential_creation():
+    """
+    Tái hiện chính xác bug report:
+    1. Đặt bàn: 'Ngày mai lúc 20 giờ', '5 người'
+    2. Khách bổ sung: 'Ngoài ra tôi còn muốn đặt thêm bàn vào ngày mốt lúc 21 giờ'
+       -> Đơn 1 không bị ghi đè, đơn 2 được lưu vào queued_booking
+    3. Cung cấp liên hệ: 'Lê Chí Hoàng Long, 0987654321, lechihoanglong7@gmail.com'
+    4. Xác nhận đơn 1 -> Tạo đơn 1 thành công và tự động chuyển sang xác nhận đơn 2
+    5. Xác nhận đơn 2 -> Tạo đơn 2 thành công với đúng ngày giờ và thông tin liên hệ kế thừa
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_additional_queue_seq"
+    await clear_state(session_id)
+
+    tomorrow_str = (now_vn().date() + timedelta(days=1)).strftime("%Y-%m-%d")
+    day_after_str = (now_vn().date() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+    call_records = []
+
+    async def mock_create_res(**kwargs):
+        code = f"SR-B{len(call_records) + 1}"
+        call_records.append(kwargs)
+        return {
+            "booking_code": code,
+            "reservation_date": kwargs.get("reservation_date"),
+            "reservation_time": kwargs.get("reservation_time"),
+            "guest_count": kwargs.get("guest_count"),
+            "requires_deposit": False,
+        }
+
+    with patch("pipelines.aria_pipeline.check_availability", new_callable=AsyncMock) as mock_check, \
+         patch("pipelines.aria_pipeline.create_reservation", side_effect=mock_create_res):
+
+        mock_check.return_value = {"available": True, "available_tables": 3}
+
+        # Turn 1: Khách yêu cầu ngày mai 20:00
+        async for _ in pipeline.process("Cho mình đặt bàn ngày mai lúc 20 giờ", session_id=session_id):
+            pass
+
+        # Turn 2: Khách trả lời 5 người
+        async for _ in pipeline.process("5 người", session_id=session_id):
+            pass
+
+        st1 = await get_state(session_id)
+        assert st1["slots"]["date"] == tomorrow_str
+        assert st1["slots"]["time"] == "20:00"
+        assert st1["slots"]["guests"] == 5
+
+        # Turn 3: Khách nói thêm bàn ngày mốt 21:00
+        chunks3 = []
+        async for sse in pipeline.process("Ngoài ra tôi còn muốn đặt thêm bàn vào ngày mốt lúc 21 giờ", session_id=session_id):
+            chunks3.append(sse)
+        text3 = extract_text_from_sse(chunks3)
+
+        st2 = await get_state(session_id)
+        # Đơn 1 phải được bảo vệ nguyên vẹn!
+        assert st2["slots"]["date"] == tomorrow_str, "Đơn 1 không được bị ghi đè ngày!"
+        assert st2["slots"]["time"] == "20:00", "Đơn 1 không được bị ghi đè giờ!"
+        assert st2["slots"]["guests"] == 5
+
+        # Đơn 2 phải được xếp vào queued_booking
+        assert st2.get("queued_booking") is not None, "Phải lưu đơn 2 vào queued_booking!"
+        assert st2["queued_booking"]["date"] == day_after_str
+        assert st2["queued_booking"]["time"] == "21:00"
+
+        # Aria phải thông báo ghi nhận đơn thêm và hỏi tiếp thông tin cho đơn 1
+        assert "đặt thêm bàn" in text3 or "ghi nhận" in text3
+        assert "số điện thoại" in text3
+
+        # Turn 4: Khách cung cấp thông tin liên hệ
+        chunks4 = []
+        async for sse in pipeline.process("Lê Chí Hoàng Long, 0987654321, lechihoanglong7@gmail.com", session_id=session_id):
+            chunks4.append(sse)
+        text4 = extract_text_from_sse(chunks4)
+
+        st3 = await get_state(session_id)
+        assert st3["fsm_state"] == "AWAITING_CONFIRMATION"
+        assert st3["slots"]["customer_name"] == "Lê Chí Hoàng Long"
+        assert st3["slots"]["customer_phone"] == "0987654321"
+        assert "20:00" in text4
+        assert "0987654321" in text4
+        # Thông báo tóm tắt đơn 1 có đính kèm ghi chú đơn 2
+        assert "đơn thứ 2" in text4 or "21:00" in text4
+
+        # Turn 5: Khách xác nhận đơn 1
+        chunks5 = []
+        async for sse in pipeline.process("ok", session_id=session_id):
+            chunks5.append(sse)
+        text5 = extract_text_from_sse(chunks5)
+
+        assert len(call_records) == 1
+        assert call_records[0]["reservation_time"] == "20:00"
+        assert call_records[0]["reservation_date"] == tomorrow_str
+        assert call_records[0]["customer_name"] == "Lê Chí Hoàng Long"
+        assert call_records[0]["customer_phone"] == "0987654321"
+
+        # Sau khi đơn 1 thành công, bot tự động hiển thị vé đơn 1 và prompt xác nhận đơn 2
+        assert "SR-B1" in text5
+        assert "21:00" in text5
+        assert "bàn thứ 2" in text5 or "đơn đặt thêm" in text5
+
+        st4 = await get_state(session_id)
+        assert st4["fsm_state"] == "AWAITING_CONFIRMATION"
+        assert st4["slots"]["time"] == "21:00"
+        assert st4["slots"]["date"] == day_after_str
+        assert st4["slots"]["customer_name"] == "Lê Chí Hoàng Long"
+        assert st4["slots"]["customer_phone"] == "0987654321"
+
+        # Turn 6: Khách xác nhận đơn 2
+        chunks6 = []
+        async for sse in pipeline.process("xác nhận", session_id=session_id):
+            chunks6.append(sse)
+        text6 = extract_text_from_sse(chunks6)
+
+        assert len(call_records) == 2
+        assert call_records[1]["reservation_time"] == "21:00"
+        assert call_records[1]["reservation_date"] == day_after_str
+        assert call_records[1]["customer_name"] == "Lê Chí Hoàng Long"
+        assert call_records[1]["customer_phone"] == "0987654321"
+
+        assert "SR-B2" in text6
+        st5 = await get_state(session_id)
+        assert st5["fsm_state"] == "DONE"
+
+
+@pytest.mark.asyncio
+async def test_reschedule_intent_updates_slot():
+    """Khách dùng từ khóa đổi lịch ('Đổi sang ngày mốt lúc 21h') -> Cập nhật trực tiếp ngày giờ."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_resched_intent"
+    await clear_state(session_id)
+
+    day_after_str = (now_vn().date() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+    async for _ in pipeline.process("Cho mình đặt bàn ngày mai lúc 20 giờ", session_id=session_id):
+        pass
+    async for _ in pipeline.process("5 người", session_id=session_id):
+        pass
+
+    async for _ in pipeline.process("Đổi sang ngày mốt lúc 21h", session_id=session_id):
+        pass
+
+    st = await get_state(session_id)
+    assert st["slots"]["time"] == "21:00"
+    assert st["slots"]["date"] == day_after_str
+    assert st.get("queued_booking") is None
+
+
+@pytest.mark.asyncio
+async def test_ambiguous_schedule_choice_flow():
+    """Khách nhập ngày giờ mới không rõ đổi hay thêm -> Bot hỏi lựa chọn pending_schedule_choice."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_ambig_sched_choice"
+    await clear_state(session_id)
+
+    tomorrow_str = (now_vn().date() + timedelta(days=1)).strftime("%Y-%m-%d")
+    day_after_str = (now_vn().date() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+    async for _ in pipeline.process("Cho mình đặt bàn ngày mai lúc 20 giờ", session_id=session_id):
+        pass
+    async for _ in pipeline.process("5 người", session_id=session_id):
+        pass
+
+    # Nhập ngày mốt lúc 21 giờ mà không có 'ngoài ra/đặt thêm' hay 'đổi sang'
+    chunks = []
+    async for sse in pipeline.process("ngày mốt lúc 21 giờ", session_id=session_id):
+        chunks.append(sse)
+    text = extract_text_from_sse(chunks)
+
+    st1 = await get_state(session_id)
+    assert st1.get("pending_schedule_choice") is not None
+    assert st1["pending_schedule_choice"]["time"] == "21:00"
+    assert "đổi lịch" in text
+    assert "đặt thêm bàn mới" in text
+
+    # Khách chọn 'đổi lịch'
+    async for _ in pipeline.process("mình muốn đổi lịch", session_id=session_id):
+        pass
+
+    st2 = await get_state(session_id)
+    assert st2.get("pending_schedule_choice") is None
+    assert st2["slots"]["time"] == "21:00"
+    assert st2["slots"]["date"] == day_after_str
+
+
+
