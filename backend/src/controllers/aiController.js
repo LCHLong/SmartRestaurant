@@ -227,6 +227,10 @@ exports.consult = async (req, res) => {
           try {
             io.to('waiter').emit('ai_handoff_alert', handoffPayload);
             io.to('admin').emit('ai_handoff_alert', handoffPayload);
+            if (handoffPayload.reason === 'GROUP_SIZE_EXCEEDED') {
+              io.to('waiter').emit('large_group_escalation', handoffPayload);
+              io.to('admin').emit('large_group_escalation', handoffPayload);
+            }
           } catch (e) {
             console.error('[aiController] Socket emit handoff error:', e.message);
           }

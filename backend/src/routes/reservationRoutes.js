@@ -76,6 +76,14 @@ router.post(
   reservationController.createReservation
 );
 
+/** Tiếp nhận sự kiện Escalation đặt bàn đoàn / phòng riêng từ Aria AI */
+router.post(
+  '/escalate',
+  bookingRateLimiter,
+  authMiddleware.optionalAuth,
+  reservationController.escalateReservation
+);
+
 /** Tạo phiên thanh toán cọc Stripe (cho nhóm >= 6 người) */
 router.post('/:id/deposit-intent', reservationController.createDepositPaymentIntent);
 
@@ -85,6 +93,13 @@ router.post('/:id/mock-deposit', reservationController.confirmMockDeposit);
 // ─── Staff Routes (Waiter + Admin) ─────────────────────────────────────────
 
 router.use(authMiddleware.verifyToken);
+
+/** Lấy danh sách các yêu cầu đặt bàn đoàn chờ tư vấn (Lead Cards cho Staff) */
+router.get(
+  '/escalations',
+  roleMiddleware.authorizeRoles('waiter', 'admin', 'super_admin'),
+  reservationController.getPendingEscalations
+);
 
 /** Lấy danh sách bàn bị buffer cờ sắp có reservation (cho TableMapPage) */
 router.get('/buffer-flags', reservationController.getBufferFlags);

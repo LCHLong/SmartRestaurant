@@ -319,6 +319,37 @@ async def test_t07_pipeline_handoff_logged_in_user():
 
 
 @pytest.mark.asyncio
+async def test_t07_escalate_reservation_sync_to_backend():
+    """T07: Handoff nhóm đoàn lớn gọi escalate_reservation đồng bộ sang Backend."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_escalate_sync_1"
+
+    with patch("pipelines.aria_pipeline.escalate_reservation", new_callable=AsyncMock) as mock_escalate:
+        mock_escalate.return_value = {
+            "booking_code": "SR-ESCALATE99",
+            "reservation_id": "resv_escalated_1",
+            "status": "pending"
+        }
+
+        chunks = []
+        async for sse in pipeline.process(
+            message="Mình là Minh Trang 0909123456, đặt bàn 18 người tối mai",
+            session_id=session_id,
+        ):
+            chunks.append(sse)
+
+        full_output = "".join(chunks)
+        assert "isHandoff" in full_output
+        assert "SR-ESCALATE99" in full_output
+
+        mock_escalate.assert_called_once()
+        call_kwargs = mock_escalate.call_args.kwargs
+        assert call_kwargs["customer_name"] == "Minh Trang"
+        assert call_kwargs["customer_phone"] == "0909123456"
+        assert call_kwargs["guest_count"] == 18
+
+
+@pytest.mark.asyncio
 async def test_t14_autofill_logged_in_user():
     """T14: Khách đã đăng nhập -> auto-fill tên và SĐT."""
     pipeline = AriaConversationPipeline()

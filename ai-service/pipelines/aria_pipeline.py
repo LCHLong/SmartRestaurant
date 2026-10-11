@@ -46,6 +46,7 @@ from tools.reservation_tools import (
     create_reservation,
     get_user_info,
     get_restaurant_settings,
+    escalate_reservation,
 )
 from tools.datetime_parser import (
     parse_date,
@@ -799,12 +800,37 @@ class AriaConversationPipeline:
 
             summary_text = " | ".join(summary_parts)
 
+            # Đồng bộ sự kiện Escalation về backend để lưu DB và phát realtime alert tới Admin/Waiter
+            escalate_res = {}
+            try:
+                escalate_res = await escalate_reservation(
+                    customer_name=customer_name or "Khách đặt đoàn",
+                    customer_phone=customer_phone,
+                    guest_count=slots["guests"],
+                    reservation_date=slots.get("date"),
+                    reservation_time=slots.get("time"),
+                    customer_email=customer_email,
+                    special_requests=slots.get("special_requests"),
+                    summary=summary_text,
+                    session_id=session_id,
+                    user_id=user_id or user_info.get("user_id"),
+                )
+            except Exception as e:
+                print(f"[aria_pipeline] Không thể gọi escalate_reservation: {e}")
+
+            booking_code = escalate_res.get("booking_code")
+            if booking_code:
+                state["booking_code"] = booking_code
+                await save_state(session_id, state)
+
             yield self._sse("done", {
                 "suggestedItems": [],
                 "groundedItems": [],
                 "isHandoff": True,
                 "handoffPayload": {
                     "sessionId": session_id,
+                    "booking_code": booking_code,
+                    "reservation_id": escalate_res.get("id"),
                     "customer": {
                         "name": customer_name,
                         "phone": customer_phone,

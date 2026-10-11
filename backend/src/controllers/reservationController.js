@@ -1084,3 +1084,217 @@ exports.confirmMockDeposit = async (req, res) => {
     return res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: err.message } });
   }
 };
+
+/**
+ * POST /api/reservations/escalate
+ * Tiếp nhận sự kiện Escalation đặt bàn đoàn (>= 10-15 người) từ chatbot Aria
+ * Lưu trữ bản ghi trong bảng reservations và phát thông báo real-time tới Admin/Waiter.
+ */
+exports.escalateReservation = async (req, res) => {
+  try {
+    const {
+      customer_name,
+      customer_phone,
+      customer_email,
+      guest_count,
+      reservation_date,
+      reservation_time,
+      special_requests,
+      summary,
+      sessionId,
+    } = req.body;
+
+    if (!customer_phone) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'MISSING_PHONE', message: 'Cần có số điện thoại của khách hàng để nhân viên liên hệ lại' },
+      });
+    }
+
+    const guestNum = parseInt(guest_count) || 15;
+    const nameClean = (customer_name && customer_name.trim()) || 'Khách đặt bàn đoàn';
+    const phoneClean = customer_phone.trim();
+
+    // Idempotency: tránh tạo lặp nếu cùng sessionId
+    const idempotencyKey = sessionId ? `escalate_${sessionId}` : req.headers['idempotency-key'];
+    if (idempotencyKey) {
+      const { data: existing } = await supabase
+        .from('reservations')
+        .select('*')
+        .eq('idempotency_key', idempotencyKey)
+        .maybeSingle();
+      if (existing) {
+        return res.status(200).json({
+          success: true,
+          data: existing,
+          message: 'Yêu cầu đặt bàn đoàn đã được ghi nhận trước đó (Idempotent response)',
+        });
+      }
+    }
+
+    // Xác định ngày và giờ đặt
+    let resDate = reservation_date;
+    if (!resDate || !/^\d{4}-\d{2}-\d{2}$/.test(resDate)) {
+      const d = new Date();
+      d.setDate(d.getDate() + 1);
+      resDate = d.toISOString().split('T')[0];
+    }
+
+    let resTime = reservation_time;
+    if (!resTime || !/^([01]\d|2[0-3]):[0-5]\d$/.test(resTime)) {
+      resTime = '19:00';
+    }
+
+    const [h, m] = resTime.split(':').map(Number);
+    const endMinutes = h * 60 + m + 90;
+    const end_time = `${String(Math.floor(endMinutes / 60) % 24).padStart(2, '0')}:${String(endMinutes % 60).padStart(2, '0')}`;
+
+    // Sinh booking_code duy nhất
+    let booking_code;
+    let isUnique = false;
+    let attempts = 0;
+    while (!isUnique && attempts < 10) {
+      booking_code = generateBookingCode();
+      const { data: codeCheck } = await supabase
+        .from('reservations')
+        .select('id')
+        .eq('booking_code', booking_code)
+        .maybeSingle();
+      if (!codeCheck) isUnique = true;
+      attempts++;
+    }
+
+    const deposit_amount = guestNum * 50000;
+    const notes = [summary, special_requests].filter(Boolean).join(' | ');
+    const formattedSpecialRequests = `[ĐOÀN ĐÔNG ${guestNum} NGƯỜI - CẦN TƯ VẤN] ${notes}`.trim();
+
+    const insertData = {
+      booking_code,
+      customer_name: nameClean,
+      customer_phone: phoneClean,
+      customer_email: customer_email || null,
+      guest_count: guestNum,
+      reservation_date: resDate,
+      reservation_time: resTime,
+      end_time,
+      table_id: null, // Chưa gán bàn cụ thể (nhóm lớn cần bố trí bàn ghép / phòng riêng)
+      status: 'pending',
+      deposit_amount,
+      deposit_status: 'pending',
+      special_requests: formattedSpecialRequests,
+      buffer_minutes: 90,
+    };
+
+    if (idempotencyKey) {
+      insertData.idempotency_key = idempotencyKey;
+    }
+
+    const internalSecret = process.env.INTERNAL_SERVICE_SECRET || 'aria-ai-internal-service-secret';
+    const isInternal = req.headers['x-internal-service'] === 'aria-ai' || req.headers['x-internal-secret'] === internalSecret;
+    const effectiveUserId = (req.user && req.user.id) || (isInternal ? req.headers['x-internal-user-id'] : null);
+    if (effectiveUserId) {
+      insertData.user_id = effectiveUserId;
+    }
+
+    const { data: reservation, error: insertError } = await supabase
+      .from('reservations')
+      .insert([insertData])
+      .select()
+      .single();
+
+    if (insertError) throw insertError;
+
+    // Phát real-time alerts cho Waiter và Admin
+    try {
+      const io = getIO();
+      const leadPayload = {
+        id: reservation.id,
+        booking_code: reservation.booking_code,
+        customer_name: nameClean,
+        customer_phone: phoneClean,
+        customer_phone_masked: maskPhone(phoneClean),
+        customer_email: customer_email || null,
+        guest_count: guestNum,
+        reservation_date: resDate,
+        reservation_time: resTime,
+        end_time,
+        special_requests: formattedSpecialRequests,
+        summary: summary || `Khách ${nameClean} (${phoneClean}) cần tư vấn đặt đoàn đông ${guestNum} người`,
+        status: 'pending',
+        table_id: null,
+        created_at: reservation.created_at,
+        sessionId,
+        reason: 'GROUP_SIZE_EXCEEDED',
+        is_escalation: true,
+      };
+
+      io.to('waiter').emit('large_group_escalation', leadPayload);
+      io.to('admin').emit('large_group_escalation', leadPayload);
+      io.to('waiter').emit('new_reservation', leadPayload);
+      io.to('admin').emit('new_reservation', leadPayload);
+      io.to('waiter').emit('ai_handoff_alert', leadPayload);
+      io.to('admin').emit('ai_handoff_alert', leadPayload);
+    } catch (socketErr) {
+      console.error('[Socket Error - Escalation]', socketErr.message);
+    }
+
+    return res.status(201).json({
+      success: true,
+      data: {
+        id: reservation.id,
+        booking_code: reservation.booking_code,
+        customer_name: nameClean,
+        customer_phone: phoneClean,
+        guest_count: guestNum,
+        reservation_date: resDate,
+        reservation_time: resTime,
+        status: 'pending',
+        is_escalation: true,
+      },
+      message: 'Đã tiếp nhận yêu cầu đặt bàn đoàn và thông báo tới Quản lý & Nhân viên phục vụ',
+    });
+  } catch (err) {
+    console.error('[reservationController.escalateReservation]', err);
+    return res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: err.message } });
+  }
+};
+
+/**
+ * GET /api/reservations/escalations
+ * Lấy danh sách các yêu cầu đặt bàn đoàn chờ xử lý (status='pending' và guest_count >= 10 hoặc có tag [ĐOÀN ĐÔNG)
+ */
+exports.getPendingEscalations = async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('reservations')
+      .select(
+        `id, booking_code, customer_name, customer_phone, customer_email,
+         guest_count, reservation_date, reservation_time, end_time, status,
+         deposit_amount, deposit_status, special_requests, buffer_minutes,
+         created_at, updated_at,
+         tables(id, table_number, capacity, location)`
+      )
+      .eq('status', 'pending')
+      .or('guest_count.gte.10,special_requests.ilike.%ĐOÀN ĐÔNG%')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    const isAdmin = req.user && (req.user.role === 'admin' || req.user.role === 'super_admin');
+    const maskedData = (data || []).map((r) => ({
+      ...r,
+      customer_phone: isAdmin ? r.customer_phone : maskPhone(r.customer_phone),
+      customer_email: isAdmin ? r.customer_email : (r.customer_email ? maskEmail(r.customer_email) : null),
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data: maskedData,
+      count: maskedData.length,
+    });
+  } catch (err) {
+    console.error('[reservationController.getPendingEscalations]', err);
+    return res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: err.message } });
+  }
+};
+

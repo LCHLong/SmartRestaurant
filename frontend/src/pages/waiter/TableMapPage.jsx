@@ -27,6 +27,8 @@ const TableMapPage = () => {
     const [resvDate, setResvDate] = useState(new Date().toISOString().split('T')[0]);
     const [reallocatingId, setReallocatingId] = useState(null);
     const [assignPopup, setAssignPopup] = useState(null); // { tableId, reservationInfo }
+    const [escalations, setEscalations] = useState([]);
+    const [escalationsLoading, setEscalationsLoading] = useState(false);
     const itemsPerPage = 20;
 
     const API_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://localhost:5001');
@@ -72,12 +74,24 @@ const TableMapPage = () => {
         finally { setResvLoading(false); }
     }, [resvDate]);
 
+    const fetchEscalations = useCallback(async () => {
+        try {
+            setEscalationsLoading(true);
+            const res = await api.get('/api/reservations/escalations');
+            setEscalations(res.data.data || []);
+        } catch (_) {}
+        finally {
+            setEscalationsLoading(false);
+        }
+    }, []);
+
     // ─── Socket & Polling ───────────────────────────────────────────────────
 
     useEffect(() => {
         fetchTables(currentPage);
         fetchBufferFlags();
         fetchOverstayAlerts();
+        fetchEscalations();
 
         const socket = io(API_URL, { auth: { token: localStorage.getItem('token') } });
         socket.on('connect', () => socket.emit('join_room', 'waiter'));
@@ -90,11 +104,20 @@ const TableMapPage = () => {
         socket.on('new_reservation', () => {
             fetchBufferFlags();
             fetchOverstayAlerts();
+            fetchEscalations();
             toast('📋 Có lượt đặt bàn mới!', { icon: '🔔' });
+        });
+        socket.on('large_group_escalation', (payload) => {
+            toast.success(`🛎️ [Đặt bàn đoàn] ${payload?.customer_name || 'Khách'} (${payload?.customer_phone || ''}) - ${payload?.guest_count || 15} người`, { duration: 8000 });
+            fetchEscalations();
+            fetchTables(currentPage);
+            fetchBufferFlags();
+            fetchOverstayAlerts();
         });
         socket.on('ai_handoff_alert', (payload) => {
             const reasonText = payload?.summary || (payload?.reason === 'GROUP_SIZE_EXCEEDED' ? 'Nhóm đoàn lớn cần hỗ trợ' : 'Khách cần nhân viên hỗ trợ đặt chỗ');
             toast(`🛎️ [Aria Handoff] ${reasonText}`, { duration: 6000 });
+            fetchEscalations();
         });
         socket.on('reservation_reallocated', (data) => {
             toast.success(`✅ Đã đổi bàn cho ${data.customer_name} sang bàn ${data.new_table_number}`);
@@ -102,15 +125,16 @@ const TableMapPage = () => {
             fetchBufferFlags();
         });
 
-        // Poll buffer flags & overstay alerts mỗi 60s
+        // Poll buffer flags, overstay alerts & escalations mỗi 60s
         const interval = setInterval(() => {
             fetchTables(currentPage);
             fetchBufferFlags();
             fetchOverstayAlerts();
+            fetchEscalations();
         }, 60000);
 
         return () => { socket.close(); clearInterval(interval); };
-    }, [currentPage]);
+    }, [currentPage, fetchEscalations]);
 
     useEffect(() => {
         if (activeTab === 'reservations') fetchReservations();
@@ -140,6 +164,7 @@ const TableMapPage = () => {
             await api.patch(`/api/reservations/${reservationId}/status`, { status });
             toast.success('Đã cập nhật trạng thái');
             fetchReservations();
+            fetchEscalations();
         } catch (_) {
             toast.error('Cập nhật thất bại');
         }
@@ -262,6 +287,106 @@ const TableMapPage = () => {
                     </div>
                 </div>
             </div>
+
+            {/* ─── LEAD CARDS: YÊU CẦU ĐẶT BÀN ĐOÀN (ARIA ESCALATIONS) ─── */}
+            {escalations.length > 0 && (
+                <div className="mb-6 bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-4 shadow-sm">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2.5">
+                            <span className="flex h-3 w-3 relative">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                            </span>
+                            <h3 className="font-bold text-amber-900 flex items-center gap-2 text-base">
+                                <span className="material-symbols-outlined text-amber-600">groups</span>
+                                Yêu cầu đặt bàn đoàn chờ tư vấn (Aria Escalations)
+                            </h3>
+                            <span className="bg-amber-200 text-amber-900 text-xs font-extrabold px-2.5 py-0.5 rounded-full">
+                                {escalations.length} yêu cầu
+                            </span>
+                        </div>
+                        <button
+                            onClick={fetchEscalations}
+                            disabled={escalationsLoading}
+                            className="text-xs font-semibold text-amber-800 hover:text-amber-950 flex items-center gap-1 bg-amber-100 hover:bg-amber-200 px-3 py-1.5 rounded-xl transition-colors"
+                        >
+                            <span className={`material-symbols-outlined text-sm ${escalationsLoading ? 'animate-spin' : ''}`}>refresh</span>
+                            Làm mới
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {escalations.map((lead) => (
+                            <div key={lead.id} className="bg-white rounded-xl border border-amber-200 p-3.5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between">
+                                <div>
+                                    <div className="flex items-center justify-between gap-2 mb-2">
+                                        <span className="bg-red-50 text-red-700 border border-red-200 text-xs font-bold px-2 py-0.5 rounded-md flex items-center gap-1">
+                                            <span className="material-symbols-outlined text-xs">group</span>
+                                            {lead.guest_count} khách
+                                        </span>
+                                        <span className="font-mono text-xs text-gray-400 font-semibold">{lead.booking_code}</span>
+                                    </div>
+
+                                    <div className="font-bold text-gray-800 text-base">{lead.customer_name}</div>
+                                    
+                                    <div className="mt-2 space-y-1 text-xs text-gray-600">
+                                        <div className="flex items-center gap-1.5 font-medium text-emerald-700">
+                                            <span className="material-symbols-outlined text-sm text-emerald-600">call</span>
+                                            <a href={`tel:${lead.customer_phone}`} className="hover:underline font-bold">
+                                                {lead.customer_phone}
+                                            </a>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-gray-600">
+                                            <span className="material-symbols-outlined text-sm text-gray-400">schedule</span>
+                                            <span>{lead.reservation_time} ngày {lead.reservation_date}</span>
+                                        </div>
+                                    </div>
+
+                                    {lead.special_requests && (
+                                        <div className="mt-2.5 bg-amber-50/70 border border-amber-100 rounded-lg p-2 text-xs text-amber-900">
+                                            <div className="font-semibold text-amber-800 flex items-center gap-1 mb-0.5">
+                                                <span className="material-symbols-outlined text-xs">chat</span>
+                                                Ghi chú từ Aria:
+                                            </div>
+                                            <p className="italic line-clamp-2">{lead.special_requests}</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center gap-2">
+                                    <a
+                                        href={`tel:${lead.customer_phone}`}
+                                        className="flex-1 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold inline-flex items-center justify-center gap-1 transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-xs">call</span>
+                                        Gọi ngay
+                                    </a>
+                                    <button
+                                        onClick={async () => {
+                                            await handleUpdateStatus(lead.id, 'confirmed');
+                                        }}
+                                        className="flex-1 px-2.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold inline-flex items-center justify-center gap-1 transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-xs">check</span>
+                                        Đã chốt bàn
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            if (window.confirm(`Hủy yêu cầu đặt bàn của ${lead.customer_name}?`)) {
+                                                await handleUpdateStatus(lead.id, 'cancelled');
+                                            }
+                                        }}
+                                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                        title="Hủy yêu cầu"
+                                    >
+                                        <span className="material-symbols-outlined text-base">close</span>
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Overstay Alert Banner */}
             {overstayAlerts.length > 0 && (
