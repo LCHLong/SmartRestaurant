@@ -111,9 +111,11 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
     if m_single_neg:
         return -int(m_single_neg.group(1)), None
 
-    # 4. Trường hợp số 0 độc lập: "0", "0 người", "0 khách"
+    # 4. Trường hợp số 0 độc lập: "0", "0 người", "0 khách", "không ai"
     m_single_zero = re.search(r'^(?:dạ|khoảng|tầm|đi|đặt|cho)?\s*0\s*(?:người|khách|pax|chỗ|bạn|ng|ạ|nhe|nhé|nha)?$', text_lower)
     if m_single_zero:
+        return 0, None
+    if re.search(r'^(?:dạ\s*)?không\s*(?:có\s*)?(?:ai|người\s*nào)$', text_lower):
         return 0, None
 
     # 5. Các mẫu số khách âm trong câu: "-2 người", "cho -2 khách", "bàn -3 chỗ"...
@@ -132,12 +134,13 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
                 return int(raw_val), None
             return -int(raw_val), None
 
-    # 6. Các mẫu số khách bằng 0 trong câu: "0 người", "cho 0 khách", "bàn 0 người"...
+    # 6. Các mẫu số khách bằng 0 trong câu: "0 người", "cho 0 khách", "không người", "bàn 0 người"...
     zero_patterns = [
         r'(?:^|[^\d])0\s*(?:người|khách|pax|chỗ|suất|bạn|ng|thành\s*viên|đứa)',
         r'bàn\s*0\s*(?:người|khách|chỗ)?',
         r'nhóm\s*(?:có\s*)?0',
         r'đi\s*0\s*(?:người|khách)?',
+        r'(?:^|[^\d])không\s+(?:người|khách)',
     ]
     for pat in zero_patterns:
         m = re.search(pat, text_lower)
@@ -518,7 +521,10 @@ def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
     if guests is not None:
         extracted["guests"] = guests
         extracted["party_size"] = guests
-        if guests <= 0:
+        if guests == 0:
+            extracted["guests_warning"] = "Dạ, nhà hàng nhận đặt bàn tối thiểu từ 1 người trở lên ạ. Quý khách vui lòng cung cấp số lượng người đi cùng nhé!"
+            extracted["is_valid_guests"] = False
+        elif guests < 0:
             extracted["guests_warning"] = "Dạ, số lượng khách đặt bàn phải từ 1 người trở lên ạ. Quý khách vui lòng cho Aria biết chính xác số người trong nhóm nhé!"
             extracted["is_valid_guests"] = False
         else:

@@ -1313,19 +1313,50 @@ async def test_aria_rejects_negative_party_size():
 
 @pytest.mark.asyncio
 async def test_aria_rejects_zero_party_size():
-    """Khách đặt bàn cho 0 người -> Aria cảnh báo từ chối số khách = 0."""
+    """TC-LV5-01: Khách đặt bàn cho 0 người -> Aria hướng dẫn nghiệp vụ tối thiểu từ 1 người, không bị kẹt lặp lại câu hỏi."""
     pipeline = AriaConversationPipeline()
     session_id = "test_zero_guests_session"
     await clear_state(session_id)
 
+    # Lượt 1: Khách đặt bàn cho 0 người
     chunks = []
     async for sse in pipeline.process("Cho mình đặt bàn tối mai 19h cho 0 người", session_id=session_id):
         chunks.append(sse)
     resp = extract_text_from_sse(chunks)
 
-    assert "từ 1 người trở lên" in resp
+    assert "nhận đặt bàn tối thiểu từ 1 người trở lên" in resp
+    assert "số lượng người đi cùng" in resp
     st = await get_state(session_id)
     assert st["slots"]["guests"] is None
+    assert st["slots"]["date"] is not None
+    assert st["slots"]["time"] == "19:00"
+
+    # Lượt 2: Khách tiếp tục trả lời "0 người" -> Aria phải tiếp tục hướng dẫn nghiệp vụ, KHÔNG bị lặp câu hỏi máy móc
+    chunks2 = []
+    async for sse in pipeline.process("0 người", session_id=session_id):
+        chunks2.append(sse)
+    resp2 = extract_text_from_sse(chunks2)
+
+    assert "nhận đặt bàn tối thiểu từ 1 người trở lên" in resp2
+    assert "nhóm bạn dự kiến đi bao nhiêu người" not in resp2.lower()
+
+    # Lượt 3: Khách tiếp tục nhập "0" -> Vẫn bắt đúng và phản hồi hướng dẫn
+    chunks3 = []
+    async for sse in pipeline.process("0", session_id=session_id):
+        chunks3.append(sse)
+    resp3 = extract_text_from_sse(chunks3)
+
+    assert "nhận đặt bàn tối thiểu từ 1 người trở lên" in resp3
+
+    # Lượt 4: Khách nhập số lượng người hợp lệ -> Chuyển tiếp quy trình suôn sẻ
+    chunks4 = []
+    async for sse in pipeline.process("3 người", session_id=session_id):
+        chunks4.append(sse)
+    resp4 = extract_text_from_sse(chunks4)
+
+    st4 = await get_state(session_id)
+    assert st4["slots"]["guests"] == 3
+    assert "họ tên" in resp4 or "số điện thoại" in resp4
 
 
 @pytest.mark.asyncio

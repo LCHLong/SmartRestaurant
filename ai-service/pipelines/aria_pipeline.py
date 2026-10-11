@@ -897,7 +897,12 @@ class AriaConversationPipeline:
             if state.get("queued_booking", {}).get("guests") and state["queued_booking"]["guests"] <= 0:
                 state["queued_booking"]["guests"] = None
             await save_state(session_id, state)
-            warning_msg = extracted.get("guests_warning") or "Dạ, số lượng khách đặt bàn phải từ 1 người trở lên ạ. Quý khách vui lòng cho Aria biết chính xác số người trong nhóm nhé!"
+            is_zero = (extracted.get("guests") == 0) or (slots.get("guests") == 0)
+            warning_msg = extracted.get("guests_warning") or (
+                "Dạ, nhà hàng nhận đặt bàn tối thiểu từ 1 người trở lên ạ. Quý khách vui lòng cung cấp số lượng người đi cùng nhé!"
+                if is_zero
+                else "Dạ, số lượng khách đặt bàn phải từ 1 người trở lên ạ. Quý khách vui lòng cho Aria biết chính xác số người trong nhóm nhé!"
+            )
             for t in self._chunk_tokens(warning_msg):
                 yield self._sse("token", {"content": t})
             yield self._sse("done", {
