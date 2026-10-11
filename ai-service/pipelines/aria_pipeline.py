@@ -692,13 +692,6 @@ class AriaConversationPipeline:
         # 3. Trích xuất slots từ tin nhắn hiện tại
         extracted = extract_all_slots(message, state)
 
-        # Cảnh báo số điện thoại sai định dạng nếu có (Proposal T24)
-        if extracted.get("phone_warning"):
-            for t in self._chunk_tokens(extracted["phone_warning"]):
-                yield self._sse("token", {"content": t})
-            yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
-            return
-
         # Cập nhật slot mới
         slots = state["slots"]
         for key in ["date", "time", "guests", "customer_name", "customer_phone", "customer_email", "special_requests"]:
@@ -708,39 +701,133 @@ class AriaConversationPipeline:
         if "pending_ambiguous_hour" in extracted:
             slots["pending_ambiguous_hour"] = extracted["pending_ambiguous_hour"]
 
-        # 4. Kiểm tra nhóm quá đông (> 10 người) -> Handoff ngay (Proposal T07)
+        # Cảnh báo số điện thoại sai định dạng nếu có (Proposal T24)
+        if extracted.get("phone_warning"):
+            await save_state(session_id, state)
+            for t in self._chunk_tokens(extracted["phone_warning"]):
+                yield self._sse("token", {"content": t})
+            yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
+            return
+
+        # 4. Lấy cấu hình hệ thống động (hotline, open_time, close_time...)
+        settings = await get_restaurant_settings()
+        hotline = settings.get("hotline", "0901.234.567")
+        open_time = settings.get("open_time", "08:00")
+        close_time = settings.get("close_time", "22:00")
+        restaurant_name = settings.get("restaurant_name", "SmartRestaurant")
+        wifi_password = settings.get("wifi_password", "12345678")
+
+        # 4.1 Kiểm tra nhóm quá đông (> 10 người) -> Bắt buộc có thông tin liên hệ trước khi Handoff (Proposal T07)
         if slots.get("guests") and slots["guests"] > 10:
+            user_info = state.get("user_info", {})
+            is_logged_in = user_info.get("is_logged_in", False)
+            customer_phone = slots.get("customer_phone") or user_info.get("phone")
+            customer_name = slots.get("customer_name") or user_info.get("name")
+            customer_email = slots.get("customer_email") or user_info.get("email")
+
+            # Nếu chưa có số điện thoại liên hệ:
+            if not customer_phone:
+                has_new_slot = any(extracted.get(k) is not None for k in ["date", "time", "guests", "customer_name", "customer_phone", "customer_email"])
+                is_side_query, q_type = check_side_query_intent(message)
+
+                if not has_new_slot and is_side_query:
+                    if q_type == "FACILITY_INFO":
+                        ans = self._answer_facility_question(message, settings)
+                        reminder = (
+                            f"Với nhóm từ {slots['guests']} người, Aria cần chuyển thông tin tới Quản lý sắp xếp bàn lớn. "
+                            f"Cho Aria xin họ tên và số điện thoại để nhân viên liên hệ tư vấn nhé!"
+                        )
+                        full_resp = f"{ans}\n\n*({reminder})*"
+                        for t in self._chunk_tokens(full_resp):
+                            yield self._sse("token", {"content": t})
+                        yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
+                        return
+
+                state["fsm_state"] = "COLLECTING_SLOTS"
+                await save_state(session_id, state)
+
+                if customer_name:
+                    resp = (
+                        f"Dạ, với nhóm từ **{slots['guests']} người**, Aria xin phép chuyển yêu cầu tới Quản lý (Admin) "
+                        f"và Nhân viên phục vụ (Waiter) để tư vấn sắp xếp bàn lớn / phòng riêng chu đáo nhất. "
+                        f"Cho Aria xin số điện thoại của anh/chị **{customer_name}** để nhân viên liên hệ lại tư vấn ngay nhé!"
+                    )
+                else:
+                    resp = (
+                        f"Dạ, với nhóm từ **{slots['guests']} người**, Aria xin phép chuyển yêu cầu tới Quản lý (Admin) "
+                        f"và Nhân viên phục vụ (Waiter) để tư vấn sắp xếp bàn lớn / phòng riêng chu đáo nhất. "
+                        f"Cho Aria xin họ tên và số điện thoại để nhân viên liên hệ lại tư vấn ngay nhé!"
+                    )
+
+                for t in self._chunk_tokens(resp):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+                })
+                return
+
+            # Đã có số điện thoại -> Chốt Handoff tới Admin & Waiter
             state["fsm_state"] = "HANDOFF"
             await save_state(session_id, state)
+
+            name_phrase = f" của anh/chị **{customer_name}**" if customer_name else ""
+            phone_phrase = f" qua số điện thoại **{customer_phone}**"
+
             resp = (
-                f"Dạ, với nhóm từ **{slots['guests']} người**, Aria xin phép chuyển ngay yêu cầu "
-                f"tới Quản lý (Admin) và Nhân viên phục vụ (Waiter) để tư vấn sắp xếp bàn lớn / phòng riêng "
-                f"và chuẩn bị chu đáo nhất. Nhân viên sẽ liên hệ với bạn trong ít phút qua số điện thoại hoặc "
-                f"bạn có thể gọi hotline **0901.234.567** nhé!"
+                f"Dạ, với nhóm từ **{slots['guests']} người**, Aria đã ghi nhận thông tin{name_phrase} "
+                f"và xin phép chuyển ngay yêu cầu tới Quản lý (Admin) và Nhân viên phục vụ (Waiter) "
+                f"để tư vấn sắp xếp bàn lớn / phòng riêng và chuẩn bị chu đáo nhất. "
+                f"Nhân viên sẽ liên hệ với bạn trong ít phút{phone_phrase} hoặc "
+                f"bạn có thể gọi hotline **{hotline}** nhé!"
             )
             for t in self._chunk_tokens(resp):
                 yield self._sse("token", {"content": t})
+
+            summary_parts = []
+            if customer_name:
+                summary_parts.append(f"Khách: {customer_name}")
+            if customer_phone:
+                summary_parts.append(f"SĐT: {customer_phone}")
+            summary_parts.append(f"Đoàn: {slots['guests']} người")
+            if slots.get("date") or slots.get("time"):
+                dt_str = f"{slots.get('time') or ''} {slots.get('date') or ''}".strip()
+                summary_parts.append(f"Thời gian: {dt_str}")
+            if slots.get("special_requests"):
+                summary_parts.append(f"Yêu cầu: {slots['special_requests']}")
+
+            summary_text = " | ".join(summary_parts)
+
             yield self._sse("done", {
                 "suggestedItems": [],
                 "groundedItems": [],
                 "isHandoff": True,
                 "handoffPayload": {
                     "sessionId": session_id,
+                    "customer": {
+                        "name": customer_name,
+                        "phone": customer_phone,
+                        "email": customer_email,
+                        "isLoggedIn": is_logged_in,
+                    },
                     "reason": "GROUP_SIZE_EXCEEDED",
-                    "summary": f"Khách muốn đặt bàn cho {slots['guests']} người",
+                    "summary": summary_text,
+                    "details": {
+                        "guests": slots["guests"],
+                        "date": slots.get("date"),
+                        "time": slots.get("time"),
+                        "customer_name": customer_name,
+                        "customer_phone": customer_phone,
+                        "customer_email": customer_email,
+                        "special_requests": slots.get("special_requests"),
+                    },
                     "timestamp": datetime.now().isoformat()
                 }
             })
             return
 
-        # 5. Lấy cấu hình hệ thống động (open_time, close_time, wifi, restaurant_name...)
-        settings = await get_restaurant_settings()
-        open_time = settings.get("open_time", "08:00")
-        close_time = settings.get("close_time", "22:00")
-        restaurant_name = settings.get("restaurant_name", "SmartRestaurant")
-        wifi_password = settings.get("wifi_password", "12345678")
-
-        # 5.1 Kiểm tra câu hỏi chen ngang (Context Distraction - Proposal T20)
+        # 5. Kiểm tra câu hỏi chen ngang (Context Distraction - Proposal T20)
         has_new_slot = any(extracted.get(k) is not None for k in ["date", "time", "guests", "customer_name", "customer_phone", "customer_email"])
         is_side_query, q_type = check_side_query_intent(message)
 

@@ -237,18 +237,85 @@ async def test_t08_context_switch_and_t15_menu_regression():
 
 @pytest.mark.asyncio
 async def test_t07_pipeline_handoff():
-    """T07: Pipeline chuyển handoff khi nhóm > 10 khách."""
+    """T07: Nhóm > 10 khách: hỏi họ tên & SĐT trước khi handoff."""
     pipeline = AriaConversationPipeline()
-    chunks = []
+    session_id = "test_sess_handoff_1"
+
+    # Turn 1: Khách yêu cầu đặt bàn 15 người nhưng chưa có SĐT
+    chunks_turn1 = []
     async for sse in pipeline.process(
         message="Cho mình đặt bàn 15 người phòng riêng tối mai",
-        session_id="test_sess_handoff_1",
+        session_id=session_id,
+    ):
+        chunks_turn1.append(sse)
+
+    turn1_raw = "".join(chunks_turn1)
+    turn1_text = extract_text_from_sse(chunks_turn1)
+    # Chưa handoff vì chưa có SĐT liên hệ
+    assert "isHandoff" not in turn1_raw
+    assert "15" in turn1_text
+    assert "số điện thoại" in turn1_text.lower()
+
+    # Turn 2: Khách cung cấp họ tên và số điện thoại
+    chunks_turn2 = []
+    async for sse in pipeline.process(
+        message="Mình là Nam, sđt 0912345678",
+        session_id=session_id,
+    ):
+        chunks_turn2.append(sse)
+
+    turn2_raw = "".join(chunks_turn2)
+    turn2_text = extract_text_from_sse(chunks_turn2)
+    # Lúc này đã có SĐT -> Kích hoạt handoff tới Admin & Waiter
+    assert "isHandoff" in turn2_raw
+    assert "Nam" in turn2_text
+    assert "0912345678" in turn2_text
+
+
+@pytest.mark.asyncio
+async def test_t07_pipeline_handoff_with_contact_in_first_message():
+    """T07: Khách cung cấp sẵn SĐT ngay tin nhắn đầu -> Handoff ngay."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_handoff_contact_1"
+
+    chunks = []
+    async for sse in pipeline.process(
+        message="Mình là Nam 0912345678, đặt bàn 15 người phòng riêng tối mai",
+        session_id=session_id,
     ):
         chunks.append(sse)
 
     full_output = "".join(chunks)
     assert "isHandoff" in full_output
     assert "15" in full_output
+    assert "0912345678" in full_output
+
+
+@pytest.mark.asyncio
+async def test_t07_pipeline_handoff_logged_in_user():
+    """T07: Khách đã đăng nhập (có SĐT) -> Handoff ngay không cần hỏi lại."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_handoff_loggedin_1"
+
+    with patch("pipelines.aria_pipeline.get_user_info", new_callable=AsyncMock) as mock_user_info:
+        mock_user_info.return_value = {
+            "name": "Lê Hoàng",
+            "phone": "0988776655",
+            "email": "lehoang@gmail.com"
+        }
+
+        chunks = []
+        async for sse in pipeline.process(
+            message="Cho mình đặt bàn 15 người",
+            session_id=session_id,
+            user_id="user_logged_in_123"
+        ):
+            chunks.append(sse)
+
+        full_output = "".join(chunks)
+        assert "isHandoff" in full_output
+        assert "15" in full_output
+        assert "0988776655" in full_output
 
 
 @pytest.mark.asyncio

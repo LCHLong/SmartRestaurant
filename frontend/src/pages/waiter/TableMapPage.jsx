@@ -93,7 +93,7 @@ const TableMapPage = () => {
             toast('📋 Có lượt đặt bàn mới!', { icon: '🔔' });
         });
         socket.on('ai_handoff_alert', (payload) => {
-            const reasonText = payload?.reason === 'GROUP_SIZE_EXCEEDED' ? 'Nhóm đoàn lớn cần hỗ trợ' : (payload?.summary || 'Khách cần nhân viên hỗ trợ đặt chỗ');
+            const reasonText = payload?.summary || (payload?.reason === 'GROUP_SIZE_EXCEEDED' ? 'Nhóm đoàn lớn cần hỗ trợ' : 'Khách cần nhân viên hỗ trợ đặt chỗ');
             toast(`🛎️ [Aria Handoff] ${reasonText}`, { duration: 6000 });
         });
         socket.on('reservation_reallocated', (data) => {
