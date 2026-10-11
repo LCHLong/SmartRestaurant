@@ -47,8 +47,18 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
     const text = inputText.trim();
     if (!text || isLoading) return;
     setInputText('');
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
     sendMessage(text);
   }, [inputText, isLoading, sendMessage]);
+
+  const handleInputChange = (e) => {
+    setInputText(e.target.value);
+    const target = e.target;
+    target.style.height = 'auto';
+    target.style.height = `${Math.min(target.scrollHeight, 96)}px`;
+  };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -151,29 +161,28 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
 
         {/* Input bar */}
         <div className="px-3 pb-2.5 pt-1.5 border-t border-gray-100 bg-white/70">
-          <div className="flex items-end gap-2 bg-gray-50 rounded-xl border border-gray-200 px-3 py-2 focus-within:border-orange-400 focus-within:ring-1 focus-within:ring-orange-200 transition-all">
+          <div className="flex items-center gap-2 bg-gray-50 rounded-xl border border-gray-200 px-3 py-1.5 focus-within:border-orange-400 focus-within:ring-1 focus-within:ring-orange-200 transition-all">
             <textarea
               ref={inputRef}
               value={inputText}
-              onChange={e => setInputText(e.target.value)}
+              onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               placeholder="Nhập câu hỏi cho Aria..."
               rows={1}
               disabled={isLoading}
-              className="flex-1 text-sm bg-transparent resize-none outline-none text-gray-800 placeholder-gray-400 max-h-24 disabled:opacity-60"
-              style={{ lineHeight: '1.4' }}
+              className="flex-1 text-sm bg-transparent resize-none outline-none text-gray-800 placeholder-gray-400 max-h-24 disabled:opacity-60 leading-5 py-0.5"
             />
             <button
               type="button"
               onClick={handleSend}
               disabled={!inputText.trim() || isLoading}
-              className="flex-shrink-0 w-8 h-8 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white flex items-center justify-center transition-all active:scale-95"
+              className="flex-shrink-0 w-7 h-7 rounded-lg bg-orange-500 hover:bg-orange-600 disabled:bg-gray-300 text-white flex items-center justify-center transition-all active:scale-95"
               aria-label="Gửi tin nhắn"
             >
               {isLoading ? (
-                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
               ) : (
-                <span className="material-symbols-outlined text-sm">send</span>
+                <span className="material-symbols-outlined text-[16px]">send</span>
               )}
             </button>
           </div>
