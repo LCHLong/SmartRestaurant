@@ -52,6 +52,7 @@ from tools.datetime_parser import (
     parse_date,
     parse_time,
     validate_reservation_time,
+    now_vn,
 )
 from tools.slot_extractor import (
     extract_all_slots,
@@ -920,6 +921,38 @@ class AriaConversationPipeline:
         restaurant_name = settings.get("restaurant_name", "SmartRestaurant")
         wifi_password = settings.get("wifi_password", "12345678")
 
+        # 4.0 Kiểm tra tính hợp lệ của ngày giờ ngay khi có đủ date và time (TC-LV6-01)
+        if slots.get("date") and slots.get("time"):
+            is_valid, err_code, err_msg = validate_reservation_time(
+                slots["date"],
+                slots["time"],
+                open_time=open_time,
+                close_time=close_time,
+            )
+            if not is_valid:
+                if err_code == "PAST_TIME":
+                    try:
+                        req_d = datetime.strptime(slots["date"], "%Y-%m-%d").date()
+                        if req_d < now_vn().date():
+                            slots["date"] = None
+                    except Exception:
+                        slots["date"] = None
+                    slots["time"] = None
+                elif err_code == "OUTSIDE_OPERATING_HOURS":
+                    slots["time"] = None
+                elif err_code == "POLICY_MAX_DAYS":
+                    slots["date"] = None
+
+                await save_state(session_id, state)
+                for t in self._chunk_tokens(err_msg):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+                })
+                return
+
         # 4.1 Kiểm tra nhóm quá đông (> 10 người) -> Bắt buộc có thông tin liên hệ trước khi Handoff (Proposal T07)
         if slots.get("guests") and slots["guests"] > 10:
             user_info = state.get("user_info", {})
@@ -1103,7 +1136,12 @@ class AriaConversationPipeline:
             )
             if not is_valid:
                 if err_code == "PAST_TIME":
-                    slots["date"] = None
+                    try:
+                        req_d = datetime.strptime(slots["date"], "%Y-%m-%d").date()
+                        if req_d < now_vn().date():
+                            slots["date"] = None
+                    except Exception:
+                        slots["date"] = None
                     slots["time"] = None
                 elif err_code == "OUTSIDE_OPERATING_HOURS":
                     slots["time"] = None
@@ -1113,7 +1151,11 @@ class AriaConversationPipeline:
                 await save_state(session_id, state)
                 for t in self._chunk_tokens(err_msg):
                     yield self._sse("token", {"content": t})
-                yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+                })
                 return
 
         # 7. Nếu người dùng nhập giờ mơ hồ (VD: "7h" không rõ sáng/tối - Proposal T02)

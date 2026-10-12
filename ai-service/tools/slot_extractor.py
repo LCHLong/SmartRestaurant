@@ -11,7 +11,7 @@ Trích xuất thực thể (slots) đặt bàn từ câu thoại của người 
 
 import re
 from typing import Optional, Dict, Any, Tuple
-from tools.datetime_parser import parse_date, parse_time
+from tools.datetime_parser import parse_date, parse_time, validate_reservation_time
 
 VN_MOBILE_PREFIXES = ('03', '05', '07', '08', '09')
 VN_PHONE_REGEX = re.compile(r'(?:\+84[\s.-]?|0)[35789](?:[\s.-]?\d){8}\b')
@@ -505,16 +505,28 @@ def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
     date_str, date_ambiguous = parse_date(message)
     if date_str:
         extracted["date"] = date_str
+        extracted["reservation_date"] = date_str
 
     # 2. Giờ
     time_str, time_ambiguous, amb_hour = parse_time(message, pending_ambiguous_hour=pending_hour)
     if time_str:
         extracted["time"] = time_str
+        extracted["reservation_time"] = time_str
         extracted["time_ambiguous"] = False
         extracted["pending_ambiguous_hour"] = None
     elif time_ambiguous:
         extracted["time_ambiguous"] = True
         extracted["pending_ambiguous_hour"] = amb_hour or 7
+
+    # 2.1 Kiểm tra tính hợp lệ ngày giờ (nếu có đủ date và time)
+    if extracted.get("date") and extracted.get("time"):
+        extracted["target_iso"] = f"{extracted['date']}T{extracted['time']}:00+07:00"
+        is_val, err_code, err_msg = validate_reservation_time(extracted["date"], extracted["time"])
+        if not is_val and err_code == "PAST_TIME":
+            extracted["past_time_warning"] = err_msg
+            extracted["time_in_past"] = True
+        else:
+            extracted["time_in_past"] = False
 
     # 3. Số khách
     guests, child_note = extract_guests(message)

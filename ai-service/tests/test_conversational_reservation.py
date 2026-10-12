@@ -6,6 +6,7 @@ Bộ kiểm thử tự động 25 ca (T01 - T25) cho tính năng AI Đặt bàn 
 
 import pytest
 import asyncio
+import uuid
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
@@ -1375,6 +1376,94 @@ async def test_reservation_tools_rejects_non_positive_guest_count():
 
     with pytest.raises(ValueError, match="từ 1 trở lên"):
         await create_reservation("Nam", "0912345678", guest_count=0, reservation_date="2026-10-12", reservation_time="19:00")
+
+
+def test_validate_reservation_time_same_day_past():
+    """Kiểm tra validate_reservation_time với mốc giờ đã qua trong cùng ngày (TC-LV6-01)."""
+    today_str = now_vn().strftime("%Y-%m-%d")
+    valid, code, msg = validate_reservation_time(today_str, "08:00")
+    # Nếu hiện tại đã qua 08:00 sáng hoặc trong khung nửa đêm (< 6h)
+    assert valid is False
+    assert code == "PAST_TIME"
+    assert "Dạ, mốc thời gian 08:00 sáng hôm nay đã trôi qua rồi ạ." in msg
+    assert "Quý khách vui lòng chọn một khung giờ sắp tới trong ngày (từ 08:00 đến 21:30) hoặc đặt cho ngày mai giúp Aria nhé!" in msg
+
+
+def test_slot_extractor_target_iso_and_past_check():
+    """Kiểm tra slot_extractor bổ sung reservation_date, reservation_time, target_iso và time_in_past."""
+    from tools.slot_extractor import extract_all_slots
+    state = {"slots": {}}
+    extracted = extract_all_slots("Cho mình đặt bàn hôm nay lúc 8h sáng 2 người", state)
+    today_str = now_vn().strftime("%Y-%m-%d")
+
+    assert extracted["reservation_date"] == today_str
+    assert extracted["reservation_time"] == "08:00"
+    assert extracted["party_size"] == 2
+    assert extracted["target_iso"] == f"{today_str}T08:00:00+07:00"
+    assert extracted["time_in_past"] is True
+    assert "past_time_warning" in extracted
+
+
+@pytest.mark.asyncio
+async def test_tc_lv6_01_aria_rejects_past_time_same_day_conversational():
+    """
+    TC-LV6-01: Aria kiểm tra và từ chối mốc giờ đã qua trong quá khứ khi khách đặt bàn cùng ngày hôm nay.
+    - Lượt 1: 'Cho mình đặt bàn hôm nay lúc 8h sáng 2 người'
+      Aria phải từ chối ngay với câu chuẩn, không được xin thông tin liên hệ để tạo đơn.
+    - Lượt 2: Khách chọn lại giờ hợp lệ trong ngày '19:00'
+      Aria chấp nhận và tiếp tục hỏi thông tin liên hệ.
+    """
+    session_id = f"test-tc-lv6-01-{uuid.uuid4().hex[:8]}"
+    pipeline = AriaConversationPipeline()
+
+    # Lượt 1: Khách đặt hôm nay lúc 8h sáng 2 người
+    chunks1 = []
+    async for sse in pipeline.process("Cho mình đặt bàn hôm nay lúc 8h sáng 2 người", session_id=session_id):
+        chunks1.append(sse)
+    resp1 = extract_text_from_sse(chunks1)
+
+    expected_exact = (
+        "Dạ, mốc thời gian 08:00 sáng hôm nay đã trôi qua rồi ạ. "
+        "Quý khách vui lòng chọn một khung giờ sắp tới trong ngày (từ 08:00 đến 21:30) "
+        "hoặc đặt cho ngày mai giúp Aria nhé!"
+    )
+    assert expected_exact in resp1
+    assert "họ tên" not in resp1
+    assert "số điện thoại" not in resp1
+
+    st1 = await get_state(session_id)
+    assert st1["slots"]["time"] is None
+    assert st1["slots"]["guests"] == 2
+    today_str = now_vn().strftime("%Y-%m-%d")
+    assert st1["slots"]["date"] == today_str
+
+    # Lượt 2: Khách chọn lại giờ hợp lệ trong ngày (19:00)
+    chunks2 = []
+    async for sse in pipeline.process("vậy 19h tối nay nhé", session_id=session_id):
+        chunks2.append(sse)
+    resp2 = extract_text_from_sse(chunks2)
+
+    st2 = await get_state(session_id)
+    assert st2["slots"]["time"] == "19:00"
+    assert "họ tên" in resp2 or "số điện thoại" in resp2
+
+
+@pytest.mark.asyncio
+async def test_create_reservation_rejects_past_time():
+    """Kiểm tra create_reservation từ chối tạo đơn nếu thời gian đặt trong quá khứ."""
+    from tools.reservation_tools import create_reservation
+    today_str = now_vn().strftime("%Y-%m-%d")
+
+    with pytest.raises(ValueError, match="Không thể tạo đơn đặt bàn ở thời điểm đã qua"):
+        await create_reservation(
+            customer_name="Hoàng Long",
+            customer_phone="0987654321",
+            guest_count=2,
+            reservation_date=today_str,
+            reservation_time="08:00",
+        )
+
+
 
 
 

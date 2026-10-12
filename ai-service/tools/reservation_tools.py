@@ -7,6 +7,7 @@ Tất cả hàm đều là async, xử lý timeout, status code, và internal he
 import os
 import httpx
 from typing import Optional, Dict, Any, List
+from tools.datetime_parser import validate_reservation_time
 
 BACKEND_URL = os.getenv("BACKEND_INTERNAL_URL", "http://localhost:5001")
 INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "aria-ai-internal-service-secret")
@@ -190,6 +191,11 @@ async def create_reservation(
     """
     if not isinstance(guest_count, int) or guest_count <= 0:
         raise ValueError("Số lượng khách (guest_count) phải là số nguyên dương từ 1 trở lên.")
+
+    if reservation_date and reservation_time:
+        is_val, err_c, err_m = validate_reservation_time(reservation_date, reservation_time)
+        if not is_val and err_c == "PAST_TIME":
+            raise ValueError(f"Không thể tạo đơn đặt bàn ở thời điểm đã qua: {err_m}")
 
     body = {
         "customer_name": customer_name,
