@@ -483,15 +483,67 @@ def check_side_query_intent(message: str) -> Tuple[bool, str]:
     return False, "NONE"
 
 
-EMAIL_REGEX = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
+RFC5322_EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
 
 
-def extract_email(text: str) -> Optional[str]:
-    """Trích xuất địa chỉ email từ tin nhắn."""
-    m = EMAIL_REGEX.search(text)
-    if m:
-        return m.group(0).lower().strip()
-    return None
+def is_valid_email(email: Optional[str]) -> bool:
+    r"""
+    Kiểm tra email hợp lệ theo chuẩn RFC 5322 regex:
+    ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$
+    """
+    if not email or not isinstance(email, str):
+        return False
+    return bool(RFC5322_EMAIL_REGEX.match(email.strip()))
+
+
+def extract_email(text: str) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Trích xuất và kiểm tra định dạng email từ tin nhắn.
+    Returns:
+        (email_str, email_warning)
+    """
+    text_lower = text.lower().strip()
+
+    # 0. Bỏ qua nếu là câu từ chối cung cấp email
+    opt_out_keywords = [
+        'không có email', 'ko có email', 'không dùng email', 'ko dùng email',
+        'không cần email', 'ko cần email', 'chưa có email', 'bỏ qua email',
+        'không có mail', 'ko có mail', 'không cần mail', 'ko cần mail',
+        'không email', 'ko email'
+    ]
+    if any(k in text_lower for k in opt_out_keywords):
+        return None, None
+
+    # 1. Tìm token chứa '@'
+    at_tokens = re.findall(r'[^\s,;:!?\'"()<>{}\[\]]*@[^\s,;:!?\'"()<>{}\[\]]*', text)
+    candidates = []
+    for tok in at_tokens:
+        clean_tok = tok.strip('.,;:!?\'"`')
+        if clean_tok and clean_tok != '@':
+            candidates.append(clean_tok)
+
+    # 2. Tìm theo từ khoá email / mail nếu chưa có candidate có @
+    if not candidates:
+        kw_match = re.search(r'\b(?:email|mail|e-mail)\s*(?:là|:|\s)\s*([^\s,;:!?\'"()<>{}\[\]]+)', text, re.IGNORECASE)
+        if kw_match:
+            cand = kw_match.group(1).strip('.,;:!?\'"`')
+            ignore_words = {
+                'không', 'ko', 'k', 'hông', 'chưa', 'để', 'nếu', 'nhận', 'có',
+                'cần', 'gì', 'ạ', 'nhé', 'nha', 'nào', 'của', 'tôi', 'mình',
+                'cho', 'gửi', 'qua'
+            }
+            if cand.lower() not in ignore_words and len(cand) >= 3:
+                candidates.append(cand)
+
+    if not candidates:
+        return None, None
+
+    cand = candidates[0]
+    if is_valid_email(cand):
+        return cand.lower(), None
+    else:
+        warning = f"Dạ email `{cand}` hình như chưa đúng định dạng chuẩn. Bạn vui lòng kiểm tra lại email để nhận vé QR chính xác nhé!"
+        return cand, warning
 
 
 def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
@@ -549,10 +601,17 @@ def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
     if phone_warning:
         extracted["phone_warning"] = phone_warning
 
-    # 5. Email
-    email = extract_email(message)
+    # 5. Email (TC-LV6-03: Kiểm tra định dạng RFC 5322)
+    email, email_warning = extract_email(message)
     if email:
         extracted["customer_email"] = email
+        if email_warning:
+            extracted["email_warning"] = email_warning
+            extracted["email_rfc5322_valid"] = False
+            extracted["validation_check"] = {"email_rfc5322_valid": False}
+        else:
+            extracted["email_rfc5322_valid"] = True
+            extracted["validation_check"] = {"email_rfc5322_valid": True}
 
     # 6. Tên
     name = extract_name(message, current_state, phone, email)

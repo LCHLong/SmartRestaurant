@@ -892,6 +892,19 @@ class AriaConversationPipeline:
             yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
             return
 
+        # Cảnh báo email sai định dạng nếu có (TC-LV6-03)
+        if extracted.get("email_warning"):
+            slots["customer_email"] = None
+            await save_state(session_id, state)
+            for t in self._chunk_tokens(extracted["email_warning"]):
+                yield self._sse("token", {"content": t})
+            yield self._sse("done", {
+                "suggestedItems": [],
+                "groundedItems": [],
+                "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+            })
+            return
+
         # Cảnh báo số lượng khách không hợp lệ (<= 0) (P1 Validation Bug)
         if extracted.get("guests_warning") or (slots.get("guests") is not None and (not isinstance(slots["guests"], int) or slots["guests"] <= 0)):
             slots["guests"] = None

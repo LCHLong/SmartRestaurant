@@ -1464,6 +1464,122 @@ async def test_create_reservation_rejects_past_time():
         )
 
 
+def test_rfc5322_email_validation():
+    """Kiểm tra validator email RFC 5322."""
+    from tools.slot_extractor import is_valid_email, extract_email
+
+    assert is_valid_email("tuan@gmail.com") is True
+    assert is_valid_email("lechihoanglong7@gmail.com") is True
+    assert is_valid_email("user.name+tag@sub.domain.co") is True
+
+    assert is_valid_email("tuan@@sai-dinh-dang") is False
+    assert is_valid_email("tuan@com") is False
+    assert is_valid_email("tuan@domain") is False
+    assert is_valid_email("@domain.com") is False
+    assert is_valid_email("") is False
+    assert is_valid_email(None) is False
+
+    # Kiểm tra extract_email
+    em_valid, w_valid = extract_email("email là tuan@gmail.com")
+    assert em_valid == "tuan@gmail.com"
+    assert w_valid is None
+
+    em_invalid, w_invalid = extract_email("email tuan@@sai-dinh-dang")
+    assert em_invalid == "tuan@@sai-dinh-dang"
+    assert "Dạ email `tuan@@sai-dinh-dang` hình như chưa đúng định dạng chuẩn." in w_invalid
+
+    # Trường hợp từ chối email
+    em_none, w_none = extract_email("mình không có email nha")
+    assert em_none is None
+    assert w_none is None
+
+
+def test_slot_extractor_email_warning():
+    """Kiểm tra slot_extractor phát hiện email sai cú pháp và trả về validation_check."""
+    from tools.slot_extractor import extract_all_slots
+
+    state = {"slots": {}}
+    extracted = extract_all_slots(
+        "Mình là Tuấn 0912345678 email tuan@@sai-dinh-dang, đặt bàn tối mai 20h 2 người",
+        state
+    )
+
+    assert extracted["customer_name"] == "Tuấn"
+    assert extracted["customer_phone"] == "0912345678"
+    assert extracted["customer_email"] == "tuan@@sai-dinh-dang"
+    assert extracted["email_rfc5322_valid"] is False
+    assert extracted["validation_check"]["email_rfc5322_valid"] is False
+    assert "Dạ email `tuan@@sai-dinh-dang` hình như chưa đúng định dạng chuẩn." in extracted["email_warning"]
+
+
+@pytest.mark.asyncio
+async def test_tc_lv6_03_aria_rejects_invalid_email_format():
+    """
+    TC-LV6-03: Aria kiểm tra định dạng email và cảnh báo khi email sai cú pháp.
+    - Lượt 1: 'Mình là Tuấn 0912345678 email tuan@@sai-dinh-dang, đặt bàn tối mai 20h 2 người'
+      Aria phải cảnh báo email sai định dạng, không được tạo đơn hay xin xác nhận ngay.
+    - Lượt 2: Khách cung cấp lại email chuẩn 'tuan@gmail.com'
+      Aria nhận email hợp lệ và tiếp tục tóm tắt xác nhận.
+    """
+    session_id = f"test-tc-lv6-03-{uuid.uuid4().hex[:8]}"
+    pipeline = AriaConversationPipeline()
+
+    # Lượt 1: Khách gửi thông tin kèm email sai định dạng tuan@@sai-dinh-dang
+    chunks1 = []
+    async for sse in pipeline.process(
+        "Mình là Tuấn 0912345678 email tuan@@sai-dinh-dang, đặt bàn tối mai 20h 2 người",
+        session_id=session_id
+    ):
+        chunks1.append(sse)
+    resp1 = extract_text_from_sse(chunks1)
+
+    expected_warning = "Dạ email `tuan@@sai-dinh-dang` hình như chưa đúng định dạng chuẩn. Bạn vui lòng kiểm tra lại email để nhận vé QR chính xác nhé!"
+    assert expected_warning in resp1
+    assert "Bạn xác nhận đặt bàn không ạ" not in resp1
+
+    st1 = await get_state(session_id)
+    # Email sai không được lưu vào slots
+    assert st1["slots"]["customer_email"] is None
+    # Các thông tin khác đã được trích xuất chính xác
+    assert st1["slots"]["customer_name"] == "Tuấn"
+    assert st1["slots"]["customer_phone"] == "0912345678"
+    assert st1["slots"]["guests"] == 2
+    assert st1["slots"]["time"] == "20:00"
+
+    # Lượt 2: Khách cập nhật lại email hợp lệ
+    with patch("pipelines.aria_pipeline.check_availability", new_callable=AsyncMock) as mock_check:
+        mock_check.return_value = {"available": True, "available_tables": 2}
+        chunks2 = []
+        async for sse in pipeline.process(
+            "email của mình là tuan@gmail.com nhé",
+            session_id=session_id
+        ):
+            chunks2.append(sse)
+        resp2 = extract_text_from_sse(chunks2)
+
+    st2 = await get_state(session_id)
+    assert st2["slots"]["customer_email"] == "tuan@gmail.com"
+    assert "Bạn xác nhận đặt bàn không ạ" in resp2 or "xác nhận" in resp2.lower()
+
+
+@pytest.mark.asyncio
+async def test_create_reservation_rejects_invalid_email():
+    """Kiểm tra create_reservation từ chối tạo đơn nếu email sai định dạng RFC 5322."""
+    from tools.reservation_tools import create_reservation
+    future_date = (now_vn().date() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+    with pytest.raises(ValueError, match="Email không đúng định dạng RFC 5322"):
+        await create_reservation(
+            customer_name="Tuấn",
+            customer_phone="0912345678",
+            guest_count=2,
+            reservation_date=future_date,
+            reservation_time="20:00",
+            customer_email="tuan@@sai-dinh-dang",
+        )
+
+
+
 
 
 

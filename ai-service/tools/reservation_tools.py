@@ -205,6 +205,9 @@ async def create_reservation(
         "reservation_time": reservation_time,
     }
     if customer_email:
+        from tools.slot_extractor import is_valid_email
+        if not is_valid_email(customer_email):
+            raise ValueError(f"Email không đúng định dạng RFC 5322: {customer_email}")
         body["customer_email"] = customer_email
     if special_requests:
         body["special_requests"] = special_requests
