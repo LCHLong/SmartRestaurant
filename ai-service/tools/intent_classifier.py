@@ -18,6 +18,8 @@ class IntentType(str, Enum):
     FACILITY_INQUIRY = "facility_inquiry"
     POLICY_INQUIRY = "policy_inquiry"
     CORKAGE_POLICY = "corkage_policy"
+    TAKEAWAY_ORDER = "takeaway_order"
+    TAKEAWAY_INQUIRY = "takeaway_inquiry"
     RESERVATION = "reservation"
     MENU_CONSULTATION = "menu_consultation"
     HUMAN_HANDOFF = "human_handoff"
@@ -63,7 +65,9 @@ BIRTHDAY_KEYWORDS = [
 ]
 
 TAKEAWAY_KEYWORDS = [
-    "mua mang về", "mang về", "take away", "takeaway", "đóng gói mang về", "gói mang về", "đem về"
+    "bán mang về", "mua mang về", "mang về", "take away", "takeaway",
+    "đóng gói mang về", "gói mang về", "đem về", "ghé lấy", "đến lấy", "tới lấy",
+    "mua về", "đóng hộp mang về", "đóng hộp", "mang đi", "hộp mang về"
 ]
 
 POLICY_SUB_INTENTS = {
@@ -293,6 +297,26 @@ class IntentClassifier:
         res = cls.classify(message)
         return res.get("sub_intent") == "corkage_policy" or res.get("intent") in ("corkage_policy", "policy_inquiry")
 
+    @classmethod
+    def is_takeaway_inquiry(cls, message: str) -> bool:
+        """Kiểm tra câu hỏi hoặc yêu cầu dịch vụ mua mang về (takeaway)."""
+        inq = cls.detect_inquiry(message)
+        if inq and inq["sub_intent"] == "takeaway_policy":
+            return True
+        res = cls.classify(message)
+        return res.get("sub_intent") == "takeaway_policy" or res.get("intent") in (
+            IntentType.TAKEAWAY_ORDER.value, IntentType.TAKEAWAY_INQUIRY.value, IntentType.POLICY_INQUIRY.value
+        ) and any(k in message.lower() for k in TAKEAWAY_KEYWORDS)
+
+    @classmethod
+    def is_takeaway_order(cls, message: str) -> bool:
+        """Kiểm tra xem câu thoại có kèm món để đặt mang về hay không."""
+        if not cls.is_takeaway_inquiry(message):
+            return False
+        from tools.takeaway_tools import extract_takeaway_items
+        items = extract_takeaway_items(message)
+        return len(items) > 0
+
 
 def classify_intent(message: str) -> Dict[str, Any]:
     """Hàm wrapper tiện ích phân loại ý định."""
@@ -302,6 +326,11 @@ def classify_intent(message: str) -> Dict[str, Any]:
 def is_corkage_inquiry(message: str) -> bool:
     """Wrapper kiểm tra nhanh câu hỏi phí khui rượu."""
     return IntentClassifier.is_corkage_inquiry(message)
+
+
+def is_takeaway_inquiry(message: str) -> bool:
+    """Wrapper kiểm tra nhanh câu hỏi hoặc đơn hàng mua mang về."""
+    return IntentClassifier.is_takeaway_inquiry(message)
 
 
 def is_policy_inquiry(message: str) -> Tuple[bool, Optional[str]]:

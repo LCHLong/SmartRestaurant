@@ -68,6 +68,7 @@ from tools.slot_extractor import (
 from tools.intent_classifier import IntentClassifier, classify_intent
 from tools.faq_engine import FAQEngine, get_faq_answer
 from tools.policy_engine import PolicyEngine, get_policy_answer
+from tools.takeaway_tools import extract_takeaway_items, format_takeaway_response, is_takeaway_message
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -283,9 +284,37 @@ class AriaConversationPipeline:
             # ── 3. Luồng tra cứu tiện ích, FAQ & chính sách nhà hàng (Facility & Policy) ──
             is_fac_inquiry, sub_fac_intent = IntentClassifier.is_facility_inquiry(message)
             is_pol_inquiry, sub_pol_intent = IntentClassifier.is_policy_inquiry(message)
-            if is_fac_inquiry or is_pol_inquiry:
+            if is_fac_inquiry or is_pol_inquiry or is_takeaway_message(message):
                 settings = await get_restaurant_settings(restaurant_id)
-                if is_pol_inquiry:
+                # Kiểm tra chuyên biệt đơn mua mang về / ghé lấy (TC-LV10-03)
+                if sub_pol_intent == "takeaway_policy" or IntentClassifier.is_takeaway_inquiry(message) or is_takeaway_message(message):
+                    corpus = getattr(getattr(self.retriever, "index_manager", None), "corpus_items", None) or menu_context or []
+                    ordered_items = extract_takeaway_items(message, corpus)
+                    ans = format_takeaway_response(ordered_items, settings=settings)
+                    suggested_items = []
+                    for it in ordered_items:
+                        raw = it.get("item", {})
+                        suggested_items.append({
+                            "id": raw.get("id"),
+                            "name": raw.get("name"),
+                            "price": raw.get("price"),
+                            "image_url": raw.get("image_url"),
+                            "description": raw.get("description", ""),
+                            "quantity": it.get("quantity", 1),
+                        })
+                    for t in self._chunk_tokens(ans):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {
+                        "suggestedItems": suggested_items,
+                        "groundedItems": [],
+                        "metrics": {
+                            "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "rag_count": len(ordered_items),
+                        }
+                    })
+                    return
+                elif is_pol_inquiry:
                     ans = PolicyEngine.get_policy_answer(message, settings=settings, sub_intent=sub_pol_intent)
                 else:
                     ans = FAQEngine.get_faq_answer(message, settings=settings, sub_intent=sub_fac_intent)

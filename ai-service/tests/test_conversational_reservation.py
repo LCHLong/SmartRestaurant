@@ -1934,3 +1934,92 @@ async def test_tc_lv10_02_birthday_inquiry_detection():
     assert inq3["sub_intent"] == "birthday_policy"
 
 
+@pytest.mark.asyncio
+async def test_tc_lv10_03_takeaway_order_pipeline():
+    """
+    Test Case TC-LV10-03: Khách hỏi dịch vụ mua mang về và đặt mang về (Takeaway Order).
+    Câu thoại: 'Nhà hàng có bán mang về không? Mình muốn ghé lấy 2 phần Bún Bò Huế'
+    Kỳ vọng:
+    1. Xác nhận rõ ràng chính sách đóng gói mang về của nhà hàng:
+       'Dạ nhà hàng có phục vụ mua mang về (đóng hộp giữ nhiệt cẩn thận) ạ!'
+    2. Tiếp nhận đơn hàng 2 phần Bún Bò Huế (tổng 140.000đ) và hỏi giờ ghé lấy:
+       'Aria xin ghi nhận 2 phần Bún Bò Huế (tổng 140.000đ). Bạn dự kiến khoảng mấy giờ ghé lấy để bếp chuẩn bị nóng hổi sẵn sàng ạ?'
+    3. Trả về món Bún Bò Huế (quantity: 2) trong suggestedItems của event done.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-takeaway-{uuid.uuid4().hex[:8]}"
+
+    msg = "Nhà hàng có bán mang về không? Mình muốn ghé lấy 2 phần Bún Bò Huế"
+    chunks = []
+    async for sse in pipeline.process(msg, session_id=session_id):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # 1. Xác nhận chính sách mang về
+    assert "Dạ nhà hàng có phục vụ mua mang về (đóng hộp giữ nhiệt cẩn thận) ạ!" in full_text
+
+    # 2. Bóc tách đúng 2 phần Bún Bò Huế và tính tổng tiền
+    assert "2 phần Bún Bò Huế" in full_text
+    assert "140.000đ" in full_text
+    assert "Bạn dự kiến khoảng mấy giờ ghé lấy" in full_text
+
+    # 3. Kiểm tra event done có suggestedItems
+    done_payload = None
+    for c in chunks:
+        for line in c.split("\n"):
+            if line.startswith("data: "):
+                try:
+                    payload = json.loads(line[6:])
+                    if payload.get("type") == "done":
+                        done_payload = payload
+                        break
+                except Exception:
+                    pass
+
+    assert done_payload is not None
+    suggested = done_payload.get("suggestedItems", [])
+    assert len(suggested) >= 1
+    assert any(it.get("name") == "Bún Bò Huế" and it.get("quantity") == 2 for it in suggested)
+
+
+def test_tc_lv10_03_takeaway_tools_unit():
+    """Kiểm tra các hàm tiện ích bóc tách đơn mang về trong takeaway_tools.py."""
+    from tools.takeaway_tools import (
+        is_takeaway_message,
+        extract_takeaway_items,
+        format_takeaway_response,
+    )
+
+    # 1. Nhận diện từ khóa mang về
+    assert is_takeaway_message("Nhà hàng có bán mang về không?") is True
+    assert is_takeaway_message("Mình muốn ghé lấy 2 phần Bún Bò Huế") is True
+    assert is_takeaway_message("Cho em đóng gói đem về 1 tô phở") is True
+    assert is_takeaway_message("Đặt bàn 4 người tối nay lúc 19h") is False
+
+    # 2. Bóc tách món và số lượng
+    mock_menu = [
+        {"id": "bun-bo-1", "name": "Bún Bò Huế", "price": 70000},
+        {"id": "pho-bo-1", "name": "Phở Bò Tái", "price": 65000},
+    ]
+
+    items = extract_takeaway_items("Mình muốn ghé lấy 2 phần Bún Bò Huế", mock_menu)
+    assert len(items) == 1
+    assert items[0]["name"] == "Bún Bò Huế"
+    assert items[0]["quantity"] == 2
+    assert items[0]["total_price"] == 140000.0
+
+    items_text_num = extract_takeaway_items("Cho mình mang về ba phần Phở Bò Tái nhé", mock_menu)
+    assert len(items_text_num) == 1
+    assert items_text_num[0]["name"] == "Phở Bò Tái"
+    assert items_text_num[0]["quantity"] == 3
+    assert items_text_num[0]["total_price"] == 195000.0
+
+    # 3. Format phản hồi
+    resp = format_takeaway_response(items)
+    assert "Dạ nhà hàng có phục vụ mua mang về (đóng hộp giữ nhiệt cẩn thận) ạ!" in resp
+    assert "2 phần Bún Bò Huế (tổng 140.000đ)" in resp
+    assert "Bạn dự kiến khoảng mấy giờ ghé lấy" in resp
+
+
+

@@ -29,8 +29,7 @@ class PolicyEngine:
     )
 
     DEFAULT_TAKEAWAY_ANSWER = (
-        "Dạ, nhà hàng có phục vụ mua mang về (takeaway) đầy đủ các món ăn trong thực đơn, "
-        "được đóng gói cẩn thận bằng hộp giữ nhiệt an toàn vệ sinh thực phẩm ạ."
+        "Dạ nhà hàng có phục vụ mua mang về (đóng hộp giữ nhiệt cẩn thận) ạ!"
     )
 
     DEFAULT_VAT_ANSWER = (
