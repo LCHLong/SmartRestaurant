@@ -228,11 +228,26 @@ def test_t19_policy_max_days():
 
 
 def test_t21_special_requests():
-    """T21: Yêu cầu đặc biệt (ghế trẻ em, gần cửa sổ)."""
+    """T21: Yêu cầu đặc biệt (ghế trẻ em, gần cửa sổ, chia bàn, ghép bàn, ngồi cạnh nhau)."""
     msg = "Cho mình bàn có ghế ăn dặm cho em bé và gần cửa sổ"
     specials = extract_special_requests(msg)
     assert "ghế trẻ em" in specials
     assert "gần cửa sổ" in specials
+
+    # Bố trí chia bàn & ngồi cạnh nhau (TC-LV9-04)
+    msg_split = "Mình đặt bàn tối mai 19h cho 8 người nhưng muốn chia làm 2 bàn 4 người ngồi cạnh nhau nhé"
+    specials_split = extract_special_requests(msg_split)
+    assert "chia 2 bàn 4 người ngồi cạnh nhau" in specials_split
+
+    # Ghép bàn cạnh nhau
+    msg_join = "cho mình ghép 2 bàn cạnh nhau nhé"
+    specials_join = extract_special_requests(msg_join)
+    assert "ghép 2 bàn ngồi cạnh nhau" in specials_join
+
+    # Ngồi cạnh nhau đơn lẻ
+    msg_near = "cho nhóm ngồi cạnh nhau"
+    specials_near = extract_special_requests(msg_near)
+    assert "ngồi cạnh nhau" in specials_near
 
 
 def test_t22_adult_child_combo():
@@ -1605,6 +1620,59 @@ async def test_tc_lv9_03_urgent_fast_dining_recommendation():
 
     # 3. Phải có cam kết ghi chú báo bếp ưu tiên làm gấp
     assert "ghi chú báo bếp ưu tiên làm gấp ngay" in resp or "báo bếp ưu tiên" in resp.lower()
+
+
+@pytest.mark.asyncio
+async def test_tc_lv9_04_split_tables_adjacent_special_requests():
+    """
+    TC-LV9-04: Aria trích xuất và hiển thị ghi chú chia 2 bàn 4 người ngồi cạnh nhau khi khách đặt bàn cho 8 người.
+    - Lượt 1: 'Mình đặt bàn tối mai 19h cho 8 người nhưng muốn chia làm 2 bàn 4 người ngồi cạnh nhau nhé'
+      Aria phải ghi nhận số khách = 8 và special_requests = 'chia 2 bàn 4 người ngồi cạnh nhau'.
+    - Lượt 2: 'Mình tên Nam 0912345678'
+      Aria tóm tắt đơn đặt bàn với trường '• Ghi chú: **chia 2 bàn 4 người ngồi cạnh nhau**'.
+    """
+    session_id = f"test-tc-lv9-04-{uuid.uuid4().hex[:8]}"
+    pipeline = AriaConversationPipeline()
+    await clear_state(session_id)
+
+    # Lượt 1: Yêu cầu đặt bàn 8 người và chia 2 bàn cạnh nhau
+    chunks1 = []
+    async for sse in pipeline.process(
+        "Mình đặt bàn tối mai 19h cho 8 người nhưng muốn chia làm 2 bàn 4 người ngồi cạnh nhau nhé",
+        session_id=session_id
+    ):
+        chunks1.append(sse)
+    resp1 = extract_text_from_sse(chunks1)
+
+    st1 = await get_state(session_id)
+    assert st1["slots"]["guests"] == 8
+    assert st1["slots"]["special_requests"] == "chia 2 bàn 4 người ngồi cạnh nhau"
+    assert "chia 2 bàn 4 người ngồi cạnh nhau" in resp1
+
+    # Lượt 2: Cung cấp tên và số điện thoại
+    with patch("pipelines.aria_pipeline.check_availability", new_callable=AsyncMock) as mock_avail:
+        mock_avail.return_value = {"available": True, "available_tables": 2}
+        chunks2 = []
+        async for sse in pipeline.process(
+            "Mình tên Nam 0912345678",
+            session_id=session_id
+        ):
+            chunks2.append(sse)
+        resp2 = extract_text_from_sse(chunks2)
+
+    st2 = await get_state(session_id)
+    assert st2["slots"]["customer_name"] == "Nam"
+    assert st2["slots"]["customer_phone"] == "0912345678"
+    assert st2["slots"]["special_requests"] == "chia 2 bàn 4 người ngồi cạnh nhau"
+
+    # Kiểm tra bảng tóm tắt có đầy đủ thông tin:
+    assert "8 người" in resp2
+    assert "Nam" in resp2
+    assert "0912345678" in resp2
+    assert "Ghi chú" in resp2
+    assert "chia 2 bàn 4 người ngồi cạnh nhau" in resp2
+    assert "400,000 VNĐ" in resp2  # Cọc 50k/người cho nhóm 8 người
+
 
 
 

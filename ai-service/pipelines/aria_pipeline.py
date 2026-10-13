@@ -883,9 +883,17 @@ class AriaConversationPipeline:
                 yield self._sse("done", {"suggestedItems": [], "groundedItems": []})
                 return
 
-        for key in ["date", "time", "guests", "customer_name", "customer_phone", "customer_email", "special_requests"]:
+        for key in ["date", "time", "guests", "customer_name", "customer_phone", "customer_email"]:
             if extracted.get(key) is not None:
                 slots[key] = extracted[key]
+
+        if extracted.get("special_requests") is not None:
+            new_spec = extracted["special_requests"]
+            existing_spec = slots.get("special_requests")
+            if existing_spec and new_spec not in existing_spec:
+                slots["special_requests"] = f"{existing_spec}, {new_spec}"
+            else:
+                slots["special_requests"] = new_spec
 
         if "pending_ambiguous_hour" in extracted:
             slots["pending_ambiguous_hour"] = extracted["pending_ambiguous_hour"]

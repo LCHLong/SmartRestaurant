@@ -155,6 +155,19 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
         if 1 <= val <= 100:
             return val, None
 
+    # 7.1 Trường hợp chia bàn: "cho 8 người chia làm 2 bàn 4 người" hoặc "chia làm 2 bàn 4 người"
+    total_split_m = re.search(r'(\d+)\s*(?:người|khách|pax)\s*.*?(?:chia|tách)\s*(?:làm|thành)?\s*(\d+)\s*bàn', text_lower)
+    if total_split_m:
+        val = int(total_split_m.group(1))
+        if 1 <= val <= 100:
+            return val, None
+
+    split_table_m = re.search(r'(?:chia|tách)\s*(?:làm|thành)?\s*(\d+)\s*bàn(?:\s*(?:mỗi\s*bàn\s*)?(\d+)\s*(?:người|khách))', text_lower)
+    if split_table_m:
+        val = int(split_table_m.group(1)) * int(split_table_m.group(2))
+        if 1 <= val <= 100:
+            return val, None
+
     # 8. Các mẫu số lượng khách thông thường
     patterns = [
         r'(\d+)\s*(?:người|khách|pax|chỗ|suất|bạn|ng|thành\s*viên|đứa)',
@@ -186,33 +199,79 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
 
 
 def extract_special_requests(text: str) -> list[str]:
-    """Trích xuất yêu cầu đặc biệt về chỗ ngồi, tiện ích."""
+    """Trích xuất yêu cầu đặc biệt về chỗ ngồi, tiện ích, sắp xếp bàn."""
     text_lower = text.lower()
     requests = []
 
+    # 1. Bố trí & sắp xếp bàn (chia bàn, tách bàn, số lượng bàn, ngồi cạnh nhau)
+    split_pattern = r'(?:muốn|cần|xin|hãy)?\s*(chia|tách)\s*(?:làm|thành)?\s*(\d+)\s*bàn(?:\s*(?:mỗi\s*bàn\s*)?(\d+)\s*(?:người|khách|chỗ))?(?:\s*(?:ngồi\s*)?(cạnh|gần|sát)\s*nhau)?'
+    m_split = re.search(split_pattern, text_lower)
+    if m_split:
+        action = m_split.group(1)
+        tables = m_split.group(2)
+        people = m_split.group(3)
+        near = m_split.group(4)
+        parts = [f"{action} {tables} bàn"]
+        if people:
+            parts.append(f"{people} người")
+        if near:
+            parts.append(f"ngồi {near} nhau")
+        requests.append(" ".join(parts))
+
+    # 2. Mẫu ghép bàn / kê bàn / xếp bàn (VD: ghép 2 bàn cạnh nhau, ghép bàn...)
+    join_pattern = r'(?:muốn|cần|xin|hãy)?\s*(ghép|kê|xếp)\s*(?:lại)?\s*(\d+)?\s*bàn(?:\s*(?:ngồi\s*)?(cạnh|gần|sát)\s*nhau)?'
+    m_join = re.search(join_pattern, text_lower)
+    if m_join and not m_split:
+        action = m_join.group(1)
+        tables = m_join.group(2)
+        near = m_join.group(3)
+        table_str = f"{tables} bàn" if tables else "bàn"
+        near_str = f"ngồi {near} nhau" if near else ""
+        requests.append(f"{action} {table_str} {near_str}".strip())
+
+    # 3. Yêu cầu ngồi cạnh nhau / gần nhau / bàn cạnh nhau đơn lẻ
+    if not any("cạnh nhau" in r or "gần nhau" in r or "sát nhau" in r for r in requests):
+        if "2 bàn cạnh nhau" in text_lower or "hai bàn cạnh nhau" in text_lower:
+            requests.append("2 bàn cạnh nhau")
+        elif "ngồi cạnh nhau" in text_lower or "bàn cạnh nhau" in text_lower:
+            requests.append("ngồi cạnh nhau")
+        elif "ngồi gần nhau" in text_lower or "bàn gần nhau" in text_lower:
+            requests.append("ngồi gần nhau")
+        elif "kê sát nhau" in text_lower or "sát nhau" in text_lower:
+            requests.append("kê sát nhau")
+
+    # 4. Khu vực trong nhà / ngoài trời / ban công
     if "ngoài trời" in text_lower or "outdoor" in text_lower or "thoáng" in text_lower:
         requests.append("khu vực ngoài trời")
+    elif "ban công" in text_lower or "rooftop" in text_lower or "sân thượng" in text_lower:
+        requests.append("khu vực ban công / sân thượng")
     elif "trong nhà" in text_lower or "phòng lạnh" in text_lower or "máy lạnh" in text_lower:
         requests.append("khu vực trong nhà")
 
+    # 5. Ghế trẻ em
     if "ghế trẻ em" in text_lower or "ghế ăn dặm" in text_lower or "ghế cho bé" in text_lower:
         requests.append("ghế trẻ em")
 
+    # 6. Cửa sổ / view
     if "cửa sổ" in text_lower or "view đẹp" in text_lower or "gần cửa sổ" in text_lower:
         requests.append("gần cửa sổ")
 
+    # 7. Yên tĩnh / riêng tư
     if "yên tĩnh" in text_lower or "riêng tư" in text_lower:
         requests.append("chỗ yên tĩnh")
 
+    # 8. Sinh nhật / kỷ niệm
     if "sinh nhật" in text_lower or "birthday" in text_lower:
         requests.append("tiệc sinh nhật")
 
     if "kỷ niệm" in text_lower or "anniversary" in text_lower:
         requests.append("kỷ niệm")
 
+    # 9. Phòng riêng / VIP
     if "phòng riêng" in text_lower or "phòng vip" in text_lower:
         requests.append("phòng riêng")
 
+    # 10. Cảnh báo dị ứng
     if "dị ứng" in text_lower:
         m = re.search(r'dị ứng\s*([^,\.\n]+)', text_lower)
         if m:
