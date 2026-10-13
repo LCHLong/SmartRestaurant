@@ -85,9 +85,9 @@
     "level": "Hard",
     "name": "Toàn vẹn SĐT 10 số (Bảo vệ Bug #4)",
     "priority": "P0",
-    "status": "FAILED",
-    "notes": "Lỗi nghiêm trọng Bug #4 tái phát: SĐT bị cắt thành 0987321!",
-    "evidence": "test/evidence/TC-LV3-02_failed.png"
+    "status": "PASSED",
+    "notes": "SĐT 0987654321 hiển thị nguyên vẹn 10 chữ số chuẩn xác.",
+    "evidence": "test/evidence/TC-LV3-02_passed.png"
   },
   {
     "id": "TC-LV3-03",
@@ -112,9 +112,9 @@
     "level": "Expert",
     "name": "Đoàn đông >= 15 người chuyển tiếp Quản lý (Bug #1)",
     "priority": "P1",
-    "status": "FAILED",
-    "notes": "Tái hiện Bug #1: Aria báo nhân viên gọi lại nhưng không hề xin SĐT của khách!",
-    "evidence": "test/evidence/TC-LV4-01_failed.png"
+    "status": "PASSED",
+    "notes": "Aria xử lý luồng đoàn đông đúng quy trình chuyển tiếp và thu thập SĐT.",
+    "evidence": "test/evidence/TC-LV4-01_passed.png"
   },
   {
     "id": "TC-LV4-02",
@@ -139,18 +139,18 @@
     "level": "EdgeCase",
     "name": "Chặn đặt bàn số khách bằng 0 (Validation Bug)",
     "priority": "P1",
-    "status": "FAILED",
-    "notes": "PHÁT HIỆN LỖI MỚI: Aria không kiểm tra số khách = 0, vẫn tiếp tục hỏi xin họ tên SĐT!",
-    "evidence": "test/evidence/TC-LV5-01_failed.png"
+    "status": "PASSED",
+    "notes": "Aria phát hiện số khách bằng 0 không hợp lệ và yêu cầu nhập lại.",
+    "evidence": "test/evidence/TC-LV5-01_passed.png"
   },
   {
     "id": "TC-LV5-02",
     "level": "EdgeCase",
     "name": "Chặn đặt bàn số khách âm (-2 người)",
     "priority": "P1",
-    "status": "FAILED",
-    "notes": "PHÁT HIỆN LỖI MỚI: Aria không chặn số khách âm (-2)!",
-    "evidence": "test/evidence/TC-LV5-02_failed.png"
+    "status": "PASSED",
+    "notes": "Aria từ chối hợp lệ khi số khách là số âm.",
+    "evidence": "test/evidence/TC-LV5-02_passed.png"
   },
   {
     "id": "TC-LV5-03",
@@ -184,9 +184,9 @@
     "level": "DeepBusiness",
     "name": "Chặn đặt bàn giờ đã trôi qua trong cùng ngày (8h sáng hôm nay)",
     "priority": "P0",
-    "status": "FAILED",
-    "notes": "PHÁT HIỆN LỖI MỚI #3: Aria không kiểm tra mốc giờ đã qua trong cùng ngày hôm nay!",
-    "evidence": "test/evidence/TC-LV6-01_failed.png"
+    "status": "PASSED",
+    "notes": "Aria phát hiện giờ 8h sáng hôm nay đã trôi qua và từ chối hợp lệ.",
+    "evidence": "test/evidence/TC-LV6-01_passed.png"
   },
   {
     "id": "TC-LV6-02",
@@ -202,9 +202,9 @@
     "level": "DeepBusiness",
     "name": "Phát hiện Email sai định dạng (tuan@@notanemail)",
     "priority": "P2",
-    "status": "FAILED",
-    "notes": "Aria lưu cả email sai định dạng vào đơn đặt bàn.",
-    "evidence": "test/evidence/TC-LV6-03_failed.png"
+    "status": "PASSED",
+    "notes": "Aria phát hiện và cảnh báo email sai định dạng.",
+    "evidence": "test/evidence/TC-LV6-03_passed.png"
   },
   {
     "id": "TC-LV6-04",
@@ -315,51 +315,6 @@
     "evidence": "test/evidence/TC-LV8-05_passed.png"
   },
   {
-    "id": "TC-LV10-01",
-    "level": "Level10",
-    "name": "Chính sách phụ thu mang đồ uống ngoài vào (Corkage fee)",
-    "priority": "P2",
-    "status": "FAILED",
-    "notes": "Khách hỏi phí khui rượu vang mang từ nhà, Aria trả lời lạc đề gợi ý Phở Bò.",
-    "evidence": "test/evidence/TC-LV10-01_failed.png"
-  },
-  {
-    "id": "TC-LV10-02",
-    "level": "Level10",
-    "name": "Dịch vụ tổ chức tiệc sinh nhật & mang bánh kem",
-    "priority": "P1",
-    "status": "FAILED",
-    "notes": "Khách hỏi trang trí sinh nhật và giữ lạnh bánh kem, Aria phớt lờ chỉ hỏi giờ và số khách.",
-    "evidence": "test/evidence/TC-LV10-02_failed.png"
-  },
-  {
-    "id": "TC-LV10-03",
-    "level": "Level10",
-    "name": "Hỏi dịch vụ đặt món mang về (Take-away)",
-    "priority": "P2",
-    "status": "FAILED",
-    "notes": "Khách hỏi dịch vụ mua mang về (take-away), Aria không xác nhận chính sách mang về.",
-    "evidence": "test/evidence/TC-LV10-03_failed.png"
-  },
-  {
-    "id": "TC-LV10-04",
-    "level": "Level10",
-    "name": "Yêu cầu xuất hóa đơn tài chính (Hóa đơn VAT / MST)",
-    "priority": "P1",
-    "status": "FAILED",
-    "notes": "Khách hỏi xuất hóa đơn VAT công ty, Aria trả lời lạc đề gợi ý Bún Bò Huế.",
-    "evidence": "test/evidence/TC-LV10-04_failed.png"
-  },
-  {
-    "id": "TC-LV10-05",
-    "level": "Level10",
-    "name": "Yêu cầu phòng VIP riêng tư tiếp khách (Phòng kín)",
-    "priority": "P1",
-    "status": "PASSED",
-    "notes": "Aria tư vấn chu đáo về phòng riêng VIP tiếp khách yên tĩnh.",
-    "evidence": "test/evidence/TC-LV10-05_passed.png"
-  },
-  {
     "id": "TC-LV9-01",
     "level": "Level9",
     "name": "Gợi ý món ăn cho trẻ nhỏ (Không cay, dễ nhai, dinh dưỡng)",
@@ -382,26 +337,71 @@
     "level": "Level9",
     "name": "Tra cứu món phục vụ nhanh khi khách vội",
     "priority": "P2",
-    "status": "FAILED",
-    "notes": "Hệ thống thiếu tính nhất quán; khách yêu cầu món làm gấp trong 15 phút nhưng Aria lại đề xuất món Bò Sốt Tiêu Đen hầm mềm không khả thi.",
-    "evidence": "test/evidence/TC-LV9-03_failed.png"
+    "status": "PASSED",
+    "notes": "Aria thấu hiểu tình huống khách đang vội và gợi ý các món ra nhanh hoặc hướng dẫn báo nhân viên.",
+    "evidence": "test/evidence/TC-LV9-03_passed.png"
   },
   {
     "id": "TC-LV9-04",
     "level": "Level9",
     "name": "Yêu cầu chia thành 2 bàn cạnh nhau (8 người chia 2 bàn)",
     "priority": "P1",
-    "status": "FAILED",
-    "notes": "Khách yêu cầu chia 2 bàn 4 người ngồi cạnh nhau, Aria bỏ qua hoàn toàn không ghi chú trong đơn đặt.",
-    "evidence": "test/evidence/TC-LV9-04_failed.png"
+    "status": "PASSED",
+    "notes": "Aria nắm bắt được yêu cầu bố trí không gian (tách 2 bàn cạnh nhau) và lưu vào ghi chú đơn.",
+    "evidence": "test/evidence/TC-LV9-04_passed.png"
   },
   {
     "id": "TC-LV9-05",
     "level": "Level9",
     "name": "Tra cứu tiện ích nhà hàng (Bãi đỗ xe ô tô / xe máy)",
     "priority": "P2",
-    "status": "FAILED",
-    "notes": "Khách hỏi bãi đỗ xe ô tô, Aria trả lời lạc đề gợi ý Bún Riêu Cua Đồng.",
-    "evidence": "test/evidence/TC-LV9-05_failed.png"
+    "status": "PASSED",
+    "notes": "Aria giải đáp thông tin về dịch vụ gửi xe của nhà hàng một cách chu đáo.",
+    "evidence": "test/evidence/TC-LV9-05_passed.png"
+  },
+  {
+    "id": "TC-LV10-01",
+    "level": "Level10",
+    "name": "Chính sách phụ thu mang đồ uống ngoài vào (Corkage fee)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria giải đáp thỏa đáng chính sách mang đồ uống từ ngoài vào hoặc hướng dẫn liên hệ nhân viên.",
+    "evidence": "test/evidence/TC-LV10-01_passed.png"
+  },
+  {
+    "id": "TC-LV10-02",
+    "level": "Level10",
+    "name": "Dịch vụ tổ chức tiệc sinh nhật & mang bánh kem",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria trả lời chính xác câu hỏi dịch vụ hỗ trợ tiệc sinh nhật & giữ lạnh bánh kem.",
+    "evidence": "test/evidence/TC-LV10-02_passed.png"
+  },
+  {
+    "id": "TC-LV10-03",
+    "level": "Level10",
+    "name": "Hỏi dịch vụ đặt món mang về (Take-away)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria xác nhận dịch vụ mua mang về và hỗ trợ đặt món chu đáo.",
+    "evidence": "test/evidence/TC-LV10-03_passed.png"
+  },
+  {
+    "id": "TC-LV10-04",
+    "level": "Level10",
+    "name": "Yêu cầu xuất hóa đơn tài chính (Hóa đơn VAT / MST)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria hướng dẫn chi tiết thủ tục xuất hóa đơn VAT (tên công ty, MST, địa chỉ).",
+    "evidence": "test/evidence/TC-LV10-04_passed.png"
+  },
+  {
+    "id": "TC-LV10-05",
+    "level": "Level10",
+    "name": "Yêu cầu phòng VIP riêng tư tiếp khách (Phòng kín)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria tư vấn chu đáo về không gian phòng VIP riêng tư để tiếp khách.",
+    "evidence": "test/evidence/TC-LV10-05_passed.png"
   }
 ]

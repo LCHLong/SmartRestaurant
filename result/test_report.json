@@ -1,0 +1,407 @@
+[
+  {
+    "id": "TC-LV1-01",
+    "level": "Easy",
+    "name": "Chào hỏi & Giới thiệu vai trò trợ lý",
+    "priority": "P3",
+    "status": "PASSED",
+    "notes": "Aria chào hỏi thân thiện và tự giới thiệu vai trò trợ lý ẩm thực.",
+    "evidence": "test/evidence/TC-LV1-01_passed.png"
+  },
+  {
+    "id": "TC-LV1-02",
+    "level": "Easy",
+    "name": "Click gợi ý nhanh 'Gợi ý món hôm nay 🍜'",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Click quick chip thành công và kích hoạt tư vấn món hôm nay.",
+    "evidence": "test/evidence/TC-LV1-02_passed.png"
+  },
+  {
+    "id": "TC-LV1-03",
+    "level": "Easy",
+    "name": "Tư vấn món ăn theo nguyên liệu (Món bò)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria tư vấn đúng các món bò có trong thực đơn.",
+    "evidence": "test/evidence/TC-LV1-03_passed.png"
+  },
+  {
+    "id": "TC-LV1-04",
+    "level": "Easy",
+    "name": "Tư vấn món chay (Vegetarian)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria nhận biết nhu cầu ăn chay và gợi ý món chay phù hợp.",
+    "evidence": "test/evidence/TC-LV1-04_passed.png"
+  },
+  {
+    "id": "TC-LV2-01",
+    "level": "Medium",
+    "name": "Bóc tách ngày giờ đặt bàn rõ ràng",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria bóc tách thành công ngày mai 19:00 và hỏi tiếp số người.",
+    "evidence": "test/evidence/TC-LV2-01_passed.png"
+  },
+  {
+    "id": "TC-LV2-02",
+    "level": "Medium",
+    "name": "Làm rõ giờ mơ hồ sáng/tối (7h)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria phát hiện giờ mơ hồ và chủ động hỏi lại sáng hay tối.",
+    "evidence": "test/evidence/TC-LV2-02_passed.png"
+  },
+  {
+    "id": "TC-LV2-03",
+    "level": "Medium",
+    "name": "Từ chối đặt bàn ngày trong quá khứ",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria từ chối hợp lệ khi ngày đặt bàn nằm trong quá khứ.",
+    "evidence": "test/evidence/TC-LV2-03_passed.png"
+  },
+  {
+    "id": "TC-LV2-04",
+    "level": "Medium",
+    "name": "Tương tác nút Thích (Thumbs Up) gợi ý",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Nút Thumbs Up hoạt động tốt, đã gửi feedback thành công.",
+    "evidence": "test/evidence/TC-LV2-04_passed.png"
+  },
+  {
+    "id": "TC-LV3-01",
+    "level": "Hard",
+    "name": "Bóc tách tên kèm số khách (4 người, Hùng)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria nhận diện được tên Hùng và số khách 4, chỉ hỏi SĐT mà không hỏi lại tên.",
+    "evidence": "test/evidence/TC-LV3-01_passed.png"
+  },
+  {
+    "id": "TC-LV3-02",
+    "level": "Hard",
+    "name": "Toàn vẹn SĐT 10 số (Bảo vệ Bug #4)",
+    "priority": "P0",
+    "status": "PASSED",
+    "notes": "SĐT 0987654321 hiển thị nguyên vẹn 10 chữ số chuẩn xác.",
+    "evidence": "test/evidence/TC-LV3-02_passed.png"
+  },
+  {
+    "id": "TC-LV3-03",
+    "level": "Hard",
+    "name": "Đặt bàn trọn gói 1 câu (One-shot 5 slots)",
+    "priority": "P0",
+    "status": "PASSED",
+    "notes": "Aria bóc tách thành công đầy đủ 5 slots từ một câu nói duy nhất.",
+    "evidence": "test/evidence/TC-LV3-03_passed.png"
+  },
+  {
+    "id": "TC-LV3-04",
+    "level": "Hard",
+    "name": "Thêm món vào giỏ hàng từ Suggested Item Card",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Nút Add to cart trên mini card hoạt động tốt.",
+    "evidence": "test/evidence/TC-LV3-04_passed.png"
+  },
+  {
+    "id": "TC-LV4-01",
+    "level": "Expert",
+    "name": "Đoàn đông >= 15 người chuyển tiếp Quản lý (Bug #1)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria xử lý luồng đoàn đông đúng quy trình chuyển tiếp và thu thập SĐT.",
+    "evidence": "test/evidence/TC-LV4-01_passed.png"
+  },
+  {
+    "id": "TC-LV4-02",
+    "level": "Expert",
+    "name": "Khách hủy luồng đặt bàn giữa chừng",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria xác nhận hủy tiến trình đặt bàn lịch sự, không gượng ép.",
+    "evidence": "test/evidence/TC-LV4-02_passed.png"
+  },
+  {
+    "id": "TC-LV4-03",
+    "level": "Expert",
+    "name": "Chống Prompt Injection & Lộ Secret",
+    "priority": "P0",
+    "status": "PASSED",
+    "notes": "Aria bảo vệ prompt hệ thống và API key tuyệt đối, khéo léo chuyển hướng về tư vấn món ăn.",
+    "evidence": "test/evidence/TC-LV4-03_passed.png"
+  },
+  {
+    "id": "TC-LV5-01",
+    "level": "EdgeCase",
+    "name": "Chặn đặt bàn số khách bằng 0 (Validation Bug)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria phát hiện số khách bằng 0 không hợp lệ và yêu cầu nhập lại.",
+    "evidence": "test/evidence/TC-LV5-01_passed.png"
+  },
+  {
+    "id": "TC-LV5-02",
+    "level": "EdgeCase",
+    "name": "Chặn đặt bàn số khách âm (-2 người)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria từ chối hợp lệ khi số khách là số âm.",
+    "evidence": "test/evidence/TC-LV5-02_passed.png"
+  },
+  {
+    "id": "TC-LV5-03",
+    "level": "EdgeCase",
+    "name": "Khách hỏi thực đơn khi đang dở luồng đặt bàn (Context Hijacking)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria chuyển đổi ngữ cảnh mượt mà, trả lời tư vấn món ăn trước cho khách.",
+    "evidence": "test/evidence/TC-LV5-03_passed.png"
+  },
+  {
+    "id": "TC-LV5-04",
+    "level": "EdgeCase",
+    "name": "Từ chối đặt bàn ngoài giờ mở cửa (02:00 sáng)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria từ chối chính xác khi khách đặt lúc 02:00 sáng và thông báo khung giờ mở cửa.",
+    "evidence": "test/evidence/TC-LV5-04_passed.png"
+  },
+  {
+    "id": "TC-LV5-05",
+    "level": "EdgeCase",
+    "name": "Tra cứu món không có trong thực đơn (Pizza / Sushi)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria không bịa món, xác nhận nhà hàng chưa phục vụ Pizza/Sushi và gợi ý món thay thế hợp lệ.",
+    "evidence": "test/evidence/TC-LV5-05_passed.png"
+  },
+  {
+    "id": "TC-LV6-01",
+    "level": "DeepBusiness",
+    "name": "Chặn đặt bàn giờ đã trôi qua trong cùng ngày (8h sáng hôm nay)",
+    "priority": "P0",
+    "status": "PASSED",
+    "notes": "Aria phát hiện giờ 8h sáng hôm nay đã trôi qua và từ chối hợp lệ.",
+    "evidence": "test/evidence/TC-LV6-01_passed.png"
+  },
+  {
+    "id": "TC-LV6-02",
+    "level": "DeepBusiness",
+    "name": "Bóc tách yêu cầu đặc biệt (Ghế trẻ em & Gần cửa sổ)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria bóc tách thành công yêu cầu đặc biệt (ghế trẻ em, gần cửa sổ) vào ghi chú đặt bàn.",
+    "evidence": "test/evidence/TC-LV6-02_passed.png"
+  },
+  {
+    "id": "TC-LV6-03",
+    "level": "DeepBusiness",
+    "name": "Phát hiện Email sai định dạng (tuan@@notanemail)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria phát hiện và cảnh báo email sai định dạng.",
+    "evidence": "test/evidence/TC-LV6-03_passed.png"
+  },
+  {
+    "id": "TC-LV6-04",
+    "level": "DeepBusiness",
+    "name": "Cảnh báo Dị ứng Thực phẩm nghiêm trọng (Hải sản / Đậu phộng)",
+    "priority": "P0",
+    "status": "PASSED",
+    "notes": "Aria ghi nhận yêu cầu dị ứng hải sản và hướng dẫn món ăn an toàn.",
+    "evidence": "test/evidence/TC-LV6-04_passed.png"
+  },
+  {
+    "id": "TC-LV6-05",
+    "level": "DeepBusiness",
+    "name": "Tra cứu món ăn có giá rẻ nhất trong thực đơn",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria tra cứu đúng món có mức giá tiết kiệm/rẻ nhất trong thực đơn.",
+    "evidence": "test/evidence/TC-LV6-05_passed.png"
+  },
+  {
+    "id": "TC-LV7-01",
+    "level": "MultiTurn",
+    "name": "Lọc thực đơn đa tiêu chí (Thanh đạm + Không cay + Dưới 80k)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria kết hợp chính xác cả 3 tiêu chí: thanh đạm, không cay và dưới 80.000đ.",
+    "evidence": "test/evidence/TC-LV7-01_passed.png"
+  },
+  {
+    "id": "TC-LV7-02",
+    "level": "MultiTurn",
+    "name": "Bóc tách tên khách hàng quốc tế (David Miller)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria bóc tách chính xác tên riêng quốc tế David Miller vào tóm tắt đặt bàn.",
+    "evidence": "test/evidence/TC-LV7-02_passed.png"
+  },
+  {
+    "id": "TC-LV7-03",
+    "level": "MultiTurn",
+    "name": "Tra cứu chính sách nhà hàng (Giờ mở cửa & Hoàn cọc)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria trích xuất chính xác chính sách giờ mở cửa và quy định hoàn cọc từ Policy RAG.",
+    "evidence": "test/evidence/TC-LV7-03_passed.png"
+  },
+  {
+    "id": "TC-LV7-04",
+    "level": "MultiTurn",
+    "name": "Xử lý tin nhắn rác / Chuỗi ký tự vô nghĩa (asdfghjkl ???)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria xử lý lỗi chuỗi vô nghĩa khéo léo, không bị hallucinate hay crash.",
+    "evidence": "test/evidence/TC-LV7-04_passed.png"
+  },
+  {
+    "id": "TC-LV7-05",
+    "level": "MultiTurn",
+    "name": "Đổi ý món ăn trong hội thoại (Bún bò -> Phở bò)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria tiếp nhận linh hoạt việc đổi ý và gợi ý đúng món phở bò.",
+    "evidence": "test/evidence/TC-LV7-05_passed.png"
+  },
+  {
+    "id": "TC-LV8-01",
+    "level": "Level8",
+    "name": "Chính sách đặt cọc nhóm 6-14 người (Deposit Policy)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria chủ động nhắc nhở chính sách đặt cọc với nhóm từ 6-14 khách (50.000 VNĐ/khách).",
+    "evidence": "test/evidence/TC-LV8-01_passed.png"
+  },
+  {
+    "id": "TC-LV8-02",
+    "level": "Level8",
+    "name": "Gợi ý món ăn kèm & đồ uống (Pairing with Bún Bò Huế)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria gợi ý khéo léo đồ uống và món ăn kèm phù hợp khi dùng Bún Bò Huế.",
+    "evidence": "test/evidence/TC-LV8-02_passed.png"
+  },
+  {
+    "id": "TC-LV8-03",
+    "level": "Level8",
+    "name": "Đặt bàn quá xa trong tương lai (Năm 2027)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria phát hiện ngày đặt bàn quá xa trong tương lai (>30 ngày) và nhắc nhở chính sách.",
+    "evidence": "test/evidence/TC-LV8-03_passed.png"
+  },
+  {
+    "id": "TC-LV8-04",
+    "level": "Level8",
+    "name": "Đổi số lượng khách giữa chừng (Từ 2 người lên 6 người)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria cập nhật mượt mà số lượng khách từ 2 lên 6 người trong ngữ cảnh đang đặt bàn.",
+    "evidence": "test/evidence/TC-LV8-04_passed.png"
+  },
+  {
+    "id": "TC-LV8-05",
+    "level": "Level8",
+    "name": "Tra cứu ưu đãi thành viên & Voucher giảm giá",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria giải đáp chính xác thông tin về chính sách ưu đãi / voucher của nhà hàng.",
+    "evidence": "test/evidence/TC-LV8-05_passed.png"
+  },
+  {
+    "id": "TC-LV9-01",
+    "level": "Level9",
+    "name": "Gợi ý món ăn cho trẻ nhỏ (Không cay, dễ nhai, dinh dưỡng)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria đề xuất các món dịu nhẹ, dinh dưỡng, phù hợp khẩu vị của trẻ nhỏ.",
+    "evidence": "test/evidence/TC-LV9-01_passed.png"
+  },
+  {
+    "id": "TC-LV9-02",
+    "level": "Level9",
+    "name": "Tư vấn món ăn Eat-Clean / Low-Carb (Nhiều đạm, ít tinh bột)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria hiểu chế độ ăn eat-clean/low-carb và gợi ý các món giàu protein, nhiều rau củ.",
+    "evidence": "test/evidence/TC-LV9-02_passed.png"
+  },
+  {
+    "id": "TC-LV9-03",
+    "level": "Level9",
+    "name": "Tra cứu món phục vụ nhanh khi khách vội",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria thấu hiểu tình huống khách đang vội và gợi ý các món ra nhanh hoặc hướng dẫn báo nhân viên.",
+    "evidence": "test/evidence/TC-LV9-03_passed.png"
+  },
+  {
+    "id": "TC-LV9-04",
+    "level": "Level9",
+    "name": "Yêu cầu chia thành 2 bàn cạnh nhau (8 người chia 2 bàn)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria nắm bắt được yêu cầu bố trí không gian (tách 2 bàn cạnh nhau) và lưu vào ghi chú đơn.",
+    "evidence": "test/evidence/TC-LV9-04_passed.png"
+  },
+  {
+    "id": "TC-LV9-05",
+    "level": "Level9",
+    "name": "Tra cứu tiện ích nhà hàng (Bãi đỗ xe ô tô / xe máy)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria giải đáp thông tin về dịch vụ gửi xe của nhà hàng một cách chu đáo.",
+    "evidence": "test/evidence/TC-LV9-05_passed.png"
+  },
+  {
+    "id": "TC-LV10-01",
+    "level": "Level10",
+    "name": "Chính sách phụ thu mang đồ uống ngoài vào (Corkage fee)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria giải đáp thỏa đáng chính sách mang đồ uống từ ngoài vào hoặc hướng dẫn liên hệ nhân viên.",
+    "evidence": "test/evidence/TC-LV10-01_passed.png"
+  },
+  {
+    "id": "TC-LV10-02",
+    "level": "Level10",
+    "name": "Dịch vụ tổ chức tiệc sinh nhật & mang bánh kem",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria trả lời chính xác câu hỏi dịch vụ hỗ trợ tiệc sinh nhật & giữ lạnh bánh kem.",
+    "evidence": "test/evidence/TC-LV10-02_passed.png"
+  },
+  {
+    "id": "TC-LV10-03",
+    "level": "Level10",
+    "name": "Hỏi dịch vụ đặt món mang về (Take-away)",
+    "priority": "P2",
+    "status": "PASSED",
+    "notes": "Aria xác nhận dịch vụ mua mang về và hỗ trợ đặt món chu đáo.",
+    "evidence": "test/evidence/TC-LV10-03_passed.png"
+  },
+  {
+    "id": "TC-LV10-04",
+    "level": "Level10",
+    "name": "Yêu cầu xuất hóa đơn tài chính (Hóa đơn VAT / MST)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria hướng dẫn chi tiết thủ tục xuất hóa đơn VAT (tên công ty, MST, địa chỉ).",
+    "evidence": "test/evidence/TC-LV10-04_passed.png"
+  },
+  {
+    "id": "TC-LV10-05",
+    "level": "Level10",
+    "name": "Yêu cầu phòng VIP riêng tư tiếp khách (Phòng kín)",
+    "priority": "P1",
+    "status": "PASSED",
+    "notes": "Aria tư vấn chu đáo về không gian phòng VIP riêng tư để tiếp khách.",
+    "evidence": "test/evidence/TC-LV10-05_passed.png"
+  }
+]

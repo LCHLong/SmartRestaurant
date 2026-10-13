@@ -1,0 +1,211 @@
+[
+  {
+    "issue_number": 1,
+    "priority": "P1",
+    "title": "Aria thông báo sẽ gọi lại cho khách đặt bàn đoàn đông nhưng chưa xin thông tin liên hệ",
+    "fix_commit": "baa2e2d",
+    "test_case": "TC-LV4-01",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Aria chủ động yêu cầu khách cung cấp họ tên và số điện thoại trước khi thực hiện chuyển tiếp Quản lý (Admin) & Phục vụ (Waiter)."
+  },
+  {
+    "issue_number": 2,
+    "priority": "P1",
+    "title": "Aria cam kết chuyển yêu cầu đặt bàn đoàn nhưng chưa đồng bộ/hiển thị lên giao diện Admin và Waiter",
+    "fix_commit": "efb5dd6",
+    "test_case": "TC-LV4-01",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Pipeline phát sự kiện SSE handoffPayload kèm theo thông tin chi tiết của khách hàng để đồng bộ trực tiếp lên hệ thống quản lý."
+  },
+  {
+    "issue_number": 3,
+    "priority": "P3",
+    "title": "Ô nhập tin nhắn Aria bị lệch dòng và thừa khoảng trắng phía trên do kích thước nút gửi",
+    "fix_commit": "7363d26",
+    "test_case": "E2E Layout / AriaChatWidget",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Chuyển sang textarea tự co giãn kích thước, căn chỉnh nút gửi và khoảng trắng hoàn hảo trên mọi kích cỡ màn hình."
+  },
+  {
+    "issue_number": 4,
+    "priority": "P0",
+    "title": "Aria trích xuất sai và làm cụt số điện thoại khách hàng (0987654321 thành 0987321)",
+    "fix_commit": "c9e4ccc",
+    "test_case": "TC-LV3-02",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Loại bỏ logic che/cắt số điện thoại bị lỗi, đảm bảo hiển thị và lưu trữ toàn vẹn đủ 10 chữ số 0987654321."
+  },
+  {
+    "issue_number": 5,
+    "priority": "P1",
+    "title": "Aria ghi đè ngày giờ đặt bàn của khách khi có câu nói bổ sung thay vì phân tách đơn hoặc xác nhận lại",
+    "fix_commit": "e52fe5f",
+    "test_case": "TC-LV5-03",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Hỗ trợ xử lý xung đột lịch đặt bàn liên tiếp, hỏi người dùng đổi lịch hay tạo đơn mới thay vì tự ý ghi đè state."
+  },
+  {
+    "issue_number": 6,
+    "priority": "P2",
+    "title": "Aria bị kẹt vòng lặp hỏi thông tin liên hệ khi khách phản hồi câu nói phức hợp",
+    "fix_commit": "35d5ea2",
+    "test_case": "TC-LV6-05",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Thêm đa dạng câu hỏi nhắc slot và bóc tách song song multi-intent giúp luồng hội thoại không bị kẹt lặp lại một câu."
+  },
+  {
+    "issue_number": 7,
+    "priority": "P3",
+    "title": "Icon trên tiêu đề tab trình duyệt không đồng nhất giữa các đường dẫn (/ và /menu)",
+    "fix_commit": "f87c074",
+    "test_case": "Branding / Favicon",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Đồng bộ bộ nhận diện thương hiệu nhà hàng (favicon) trên toàn bộ các route frontend."
+  },
+  {
+    "issue_number": 8,
+    "priority": "P2",
+    "title": "Cải thiện kích thước khung chat Aria trên Desktop để tăng không gian đọc và trải nghiệm người dùng",
+    "fix_commit": "8b40977",
+    "test_case": "AriaChatWidget Toggle",
+    "before_status": "OPEN",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Đã thêm nút toggle mở rộng khung chat tối đa trên Desktop cùng phím tắt tiện lợi."
+  },
+  {
+    "issue_number": 9,
+    "priority": "P1",
+    "title": "Aria chấp nhận số lượng khách âm khi đặt bàn thay vì từ chối hoặc cảnh báo",
+    "fix_commit": "499119c",
+    "test_case": "TC-LV5-02",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Validation từ chối số khách âm (-2 người) và yêu cầu cung cấp số lượng khách từ 1 người trở lên."
+  },
+  {
+    "issue_number": 10,
+    "priority": "P1",
+    "title": "Aria bị kẹt lặp lại câu hỏi số lượng khách khi khách nhập 0 người thay vì hướng dẫn nghiệp vụ",
+    "fix_commit": "d0beaa3",
+    "test_case": "TC-LV5-01",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Nhận diện số khách bằng 0 người và hướng dẫn rõ nhà hàng nhận đặt bàn tối thiểu từ 1 người trở lên."
+  },
+  {
+    "issue_number": 11,
+    "priority": "P0",
+    "title": "Aria không kiểm tra mốc giờ đã qua trong quá khứ khi khách đặt bàn cùng ngày hôm nay",
+    "fix_commit": "47920fc",
+    "test_case": "TC-LV6-01",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Tích hợp so sánh giờ hiện tại với mốc giờ yêu cầu; 8h sáng hôm nay bị từ chối hợp lệ vì mốc giờ đã trôi qua."
+  },
+  {
+    "issue_number": 12,
+    "priority": "P2",
+    "title": "Aria không kiểm tra định dạng email và chấp nhận email sai cú pháp khi đặt bàn",
+    "fix_commit": "46de6c3",
+    "test_case": "TC-LV6-03",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Áp dụng RFC 5322 regex validation, loại bỏ email rác tuan@@sai-dinh-dang khỏi thông tin tóm tắt đặt bàn."
+  },
+  {
+    "issue_number": 13,
+    "priority": "P2",
+    "title": "Aria thiếu tính nhất quán và gợi ý món bò hầm khi khách cần ăn gấp trong 15 phút",
+    "fix_commit": "adaf5b9",
+    "test_case": "TC-LV9-03",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Bổ sung trường prep_time và metadata phục vụ nhanh; ưu tiên các món làm nhanh hoặc hướng dẫn báo nhân viên ưu tiên làm gấp."
+  },
+  {
+    "issue_number": 14,
+    "priority": "P1",
+    "title": "Aria bỏ quên yêu cầu chia làm 2 bàn cạnh nhau khi khách đặt bàn cho 8 người",
+    "fix_commit": "d96cd36",
+    "test_case": "TC-LV9-04",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Bóc tách thành công yêu cầu chia 2 bàn 4 người ngồi cạnh nhau và ghi nhận trọn vẹn vào special_requests."
+  },
+  {
+    "issue_number": 15,
+    "priority": "P2",
+    "title": "Aria trả lời hoàn toàn lạc đề (gợi ý Bún Riêu Cua) khi khách hỏi về bãi đỗ xe ô tô",
+    "fix_commit": "9ac2e6f",
+    "test_case": "TC-LV9-05",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Intent Classifier nhận diện chính xác câu hỏi tiện ích bãi đỗ xe và phản hồi hướng dẫn gửi xe chu đáo."
+  },
+  {
+    "issue_number": 16,
+    "priority": "P2",
+    "title": "Aria trả lời hoàn toàn lạc đề (gợi ý Phở Bò) khi khách hỏi về phí khui rượu vang mang từ nhà",
+    "fix_commit": "52e5577",
+    "test_case": "TC-LV10-01",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Policy Engine nhận diện và giải đáp chính sách phụ thu khui rượu (corkage fee) thay vì fallback sang tư vấn món ăn."
+  },
+  {
+    "issue_number": 17,
+    "priority": "P1",
+    "title": "Aria phớt lờ câu hỏi hỗ trợ trang trí tiệc sinh nhật và bảo quản bánh kem khi khách đặt bàn",
+    "fix_commit": "014993a",
+    "test_case": "TC-LV10-02",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Xử lý trọn vẹn câu hỏi kép: giải đáp chính sách giữ lạnh bánh kem và trang trí sinh nhật đồng thời tiếp tục luồng đặt bàn."
+  },
+  {
+    "issue_number": 18,
+    "priority": "P2",
+    "title": "Aria không xác nhận dịch vụ mua mang về (Take-away) khi khách yêu cầu đóng gói đem về",
+    "fix_commit": "08b176d",
+    "test_case": "TC-LV10-03",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Kích hoạt pipeline takeaway xử lý yêu cầu đặt món đóng gói mang về chu đáo."
+  },
+  {
+    "issue_number": 19,
+    "priority": "P1",
+    "title": "Aria trả lời hoàn toàn lạc đề (gợi ý Bún Bò Huế) khi khách hỏi thủ tục xuất hóa đơn tài chính VAT",
+    "fix_commit": "85d014c",
+    "test_case": "TC-LV10-04",
+    "before_status": "FAILED",
+    "after_status": "PASSED",
+    "is_actually_fixed": true,
+    "verification_detail": "Nhận diện câu hỏi chính sách tài chính, hướng dẫn chi tiết các thông tin cần thiết để xuất hóa đơn GTGT (VAT)."
+  }
+]
