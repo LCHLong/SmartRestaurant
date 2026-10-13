@@ -13,6 +13,11 @@ import re
 from typing import Optional, Dict, Any, Tuple
 from tools.datetime_parser import parse_date, parse_time, validate_reservation_time
 from tools.recommendation_engine import detect_urgency
+try:
+    from tools.intent_classifier import IntentClassifier
+except ImportError:
+    from .intent_classifier import IntentClassifier
+
 
 VN_MOBILE_PREFIXES = ('03', '05', '07', '08', '09')
 VN_PHONE_REGEX = re.compile(r'(?:\+84[\s.-]?|0)[35789](?:[\s.-]?\d){8}\b')
@@ -504,8 +509,16 @@ def check_side_query_intent(message: str) -> Tuple[bool, str]:
     msg = message.lower().strip()
 
     # 1. Câu hỏi về thông tin / tiện ích / dịch vụ nhà hàng (Facility & Restaurant Info)
+    try:
+        is_fac, _ = IntentClassifier.is_facility_inquiry(message)
+        if is_fac:
+            return True, "FACILITY_INFO"
+    except Exception:
+        pass
+
     facility_keywords = [
-        "đỗ xe", "gửi xe", "bãi xe", "bãi đỗ", "bãi giữ", "chỗ để xe", "ô tô", "xe máy",
+        "đỗ xe", "đậu xe", "gửi xe", "bãi xe", "bãi đỗ", "bãi đậu", "bãi giữ", "chỗ để xe",
+        "chỗ đỗ xe", "chỗ đậu xe", "chỗ gửi xe", "ô tô", "xe hơi", "xe máy", "xe ô tô",
         "wifi", "wi-fi", "mật khẩu wifi", "pass wifi",
         "mở cửa", "đóng cửa", "mấy giờ mở", "mấy giờ đóng", "giờ hoạt động", "giờ mở",
         "địa chỉ", "ở đâu", "vị trí", "đường nào", "quán ở", "chỗ nào", "tìm đường",

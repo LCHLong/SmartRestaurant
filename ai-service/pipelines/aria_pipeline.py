@@ -65,6 +65,8 @@ from tools.slot_extractor import (
     check_schedule_choice,
     is_phone_inquiry,
 )
+from tools.intent_classifier import IntentClassifier, classify_intent
+from tools.faq_engine import FAQEngine, get_faq_answer
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -277,7 +279,25 @@ class AriaConversationPipeline:
                     yield sse_item
                 return  # Kết thúc lượt thoại đặt bàn
 
-            # ── 3. Luồng tư vấn thực đơn RAG chuẩn (Consultation Flow) ───────────
+            # ── 3. Luồng tra cứu tiện ích & FAQ nhà hàng (Facility / Parking / Wifi...) ──
+            is_fac_inquiry, sub_fac_intent = IntentClassifier.is_facility_inquiry(message)
+            if is_fac_inquiry:
+                settings = await get_restaurant_settings(restaurant_id)
+                ans = FAQEngine.get_faq_answer(message, settings=settings, sub_intent=sub_fac_intent)
+                for t in self._chunk_tokens(ans):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": 0,
+                    }
+                })
+                return
+
+            # ── 4. Luồng tư vấn thực đơn RAG chuẩn (Consultation Flow) ───────────
             async for sse_item in self._handle_consultation_flow(
                 message=message,
                 menu_context=menu_context,
@@ -1443,34 +1463,7 @@ class AriaConversationPipeline:
     @staticmethod
     def _answer_facility_question(message: str, settings: Dict[str, Any]) -> str:
         """Trả lời các câu hỏi tiện ích, dịch vụ, địa chỉ, giờ mở cửa của nhà hàng."""
-        msg = message.lower()
-        restaurant_name = settings.get("restaurant_name", "Nhà hàng")
-        open_time = settings.get("open_time", "08:00")
-        close_time = settings.get("close_time", "22:00")
-        wifi_password = settings.get("wifi_password", "12345678")
-        address = settings.get("address", "123 Đường Ẩm Thực, Quận 1, TP.HCM")
-        hotline = settings.get("hotline", "0901.234.567")
-
-        if any(k in msg for k in ["đỗ xe", "gửi xe", "bãi xe", "bãi đỗ", "bãi giữ", "chỗ để xe", "ô tô", "xe máy"]):
-            return f"Dạ, {restaurant_name} có bãi đỗ xe ô tô và xe máy rộng rãi, an toàn, có bảo vệ trông giữ miễn phí ạ."
-        if any(k in msg for k in ["wifi", "wi-fi", "mật khẩu", "pass"]):
-            return f"Dạ, quán có wifi tốc độ cao miễn phí (Tên wifi: {restaurant_name}, Mật khẩu: {wifi_password}) ạ."
-        if any(k in msg for k in ["mở cửa", "đóng cửa", "mấy giờ", "giờ hoạt động", "giờ mở"]):
-            return f"Dạ, {restaurant_name} mở cửa đón khách từ {open_time} đến {close_time} hàng ngày với nhiều món ăn đặc sắc ạ."
-        if any(k in msg for k in ["địa chỉ", "ở đâu", "vị trí", "đường nào", "chỗ nào", "tìm đường", "quán ở"]):
-            return f"Dạ, {restaurant_name} tọa lạc tại {address} ạ."
-        if any(k in msg for k in ["ghế trẻ em", "ghế em bé", "ghế ăn dặm"]):
-            return f"Dạ, nhà hàng có trang bị sẵn ghế ăn dặm cho trẻ em, sạch sẽ và an toàn chu đáo ạ."
-        if any(k in msg for k in ["phòng riêng", "phòng vip"]):
-            return f"Dạ, quán có các phòng VIP riêng tư ấm cúng dành cho gia đình hoặc tiếp khách đối tác ạ."
-        if any(k in msg for k in ["hút thuốc"]):
-            return f"Dạ, để bảo đảm không gian dùng bữa trong lành, khu vực phòng lạnh không hút thuốc; quán có bố trí khu vực ngoài trời thoáng mát cho quý khách có nhu cầu ạ."
-        if any(k in msg for k in ["hotline", "số điện thoại", "sđt", "liên hệ"]):
-            return f"Dạ, số hotline hỗ trợ khách hàng của nhà hàng là {hotline} ạ."
-        if any(k in msg for k in ["vat", "hóa đơn"]):
-            return f"Dạ, nhà hàng có xuất hóa đơn đỏ (VAT) điện tử đầy đủ theo yêu cầu của quý khách ạ."
-
-        return f"Dạ, {restaurant_name} mở cửa từ {open_time} đến {close_time} hàng ngày tại {address} ạ."
+        return FAQEngine.get_faq_answer(message, settings=settings)
 
     async def _stream_offline_grounded(
         self,

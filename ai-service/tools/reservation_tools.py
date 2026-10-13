@@ -19,7 +19,7 @@ _SETTINGS_CACHE_TIME: float = 0.0
 SETTINGS_CACHE_TTL = 300.0  # 5 minutes
 
 
-async def get_restaurant_settings() -> Dict[str, Any]:
+async def get_restaurant_settings(restaurant_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Lấy thông tin cấu hình hệ thống nhà hàng (open_time, close_time, restaurant_name, wifi_password...)
     từ GET /api/system/settings. Có cache 5 phút để tối ưu hiệu năng.

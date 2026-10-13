@@ -1674,11 +1674,102 @@ async def test_tc_lv9_04_split_tables_adjacent_special_requests():
     assert "400,000 VNĐ" in resp2  # Cọc 50k/người cho nhóm 8 người
 
 
+@pytest.mark.asyncio
+async def test_intent_classifier_and_faq_engine_parking():
+    """Kiểm tra IntentClassifier và FAQEngine nhận diện và phản hồi câu hỏi về bãi đỗ/đậu xe (TC-LV9-05)."""
+    from tools.intent_classifier import IntentClassifier, classify_intent
+    from tools.faq_engine import FAQEngine
+
+    test_queries = [
+        "Nhà hàng mình có bãi đậu xe ô tô không bạn?",
+        "Quán có chỗ đỗ xe ô tô không?",
+        "Đi xe hơi đậu ở đâu vậy quán?",
+        "Có chỗ gửi xe máy không em?",
+        "Bãi giữ xe ở đâu ạ?"
+    ]
+
+    for q in test_queries:
+        res = classify_intent(q)
+        assert res["intent"] == "facility_inquiry", f"Query '{q}' should be facility_inquiry"
+        assert res["sub_intent"] == "faq_parking", f"Query '{q}' should be faq_parking"
+
+    answer = FAQEngine.get_faq_answer("Nhà hàng mình có bãi đậu xe ô tô không bạn?")
+    assert "bãi đỗ xe ô tô và xe máy rộng rãi" in answer
+    assert "nhân viên bảo vệ" in answer
+    assert "miễn phí" in answer
 
 
+@pytest.mark.asyncio
+async def test_tc_lv9_05_parking_facility_inquiry_pipeline():
+    """
+    Test Case TC-LV9-05: Khách hỏi về bãi đậu xe ô tô.
+    Aria phải phản hồi thông tin bãi đỗ xe và bảo vệ, tuyệt đối không gợi ý món ăn (Bún Riêu Cua...).
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-parking-{uuid.uuid4().hex[:8]}"
+
+    chunks = []
+    async for sse in pipeline.process(
+        "Nhà hàng mình có bãi đậu xe ô tô không bạn?",
+        session_id=session_id
+    ):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # 1. Kiểm tra có đúng thông tin tiện ích bãi đỗ xe
+    assert "bãi đỗ xe ô tô và xe máy" in full_text
+    assert "nhân viên bảo vệ" in full_text
+    assert "miễn phí" in full_text
+
+    # 2. Tuyệt đối không có gợi ý món ăn lạc đề
+    assert "Bún Riêu Cua" not in full_text
+    assert "Đậu Hũ Chiên" not in full_text
+    assert "Gợi ý" not in full_text
+
+    # 3. Kiểm tra payload done không chứa món gợi ý
+    done_payloads = [
+        json.loads(c.replace("data: ", "")) for c in chunks
+        if c.startswith("data: ") and '"type": "done"' in c
+    ]
+    assert len(done_payloads) == 1
+    assert done_payloads[0].get("suggestedItems") == []
 
 
+@pytest.mark.asyncio
+async def test_tc_lv9_05_parking_side_query_during_reservation():
+    """
+    Kiểm tra khi khách đang trong luồng đặt bàn mà hỏi chen ngang về bãi đậu xe.
+    Aria phải giải đáp thông tin bãi đỗ xe kèm nhắc quay lại thông tin đặt bàn.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-parking-side-{uuid.uuid4().hex[:8]}"
 
+    # Thiết lập trạng thái đang chờ giờ
+    await save_state(session_id, {
+        "fsm_state": "COLLECTING_SLOTS",
+        "slots": {
+            "date": "2026-10-15",
+            "time": None,
+            "guests": 4,
+            "customer_name": None,
+            "customer_phone": None,
+            "customer_email": None,
+            "special_requests": None
+        }
+    })
 
+    chunks = []
+    async for sse in pipeline.process(
+        "Nhà hàng có bãi đậu xe ô tô không bạn?",
+        session_id=session_id
+    ):
+        chunks.append(sse)
 
+    full_text = extract_text_from_sse(chunks)
 
+    # Phải có thông tin bãi đỗ xe
+    assert "bãi đỗ xe ô tô và xe máy" in full_text
+    assert "nhân viên bảo vệ" in full_text
+    # Và phải có nhắc quay lại đặt bàn
+    assert "Quay lại thông tin đặt bàn" in full_text
