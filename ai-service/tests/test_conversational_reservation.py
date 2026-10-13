@@ -2022,4 +2022,123 @@ def test_tc_lv10_03_takeaway_tools_unit():
     assert "Bạn dự kiến khoảng mấy giờ ghé lấy" in resp
 
 
+@pytest.mark.asyncio
+async def test_tc_lv10_04_vat_invoice_pipeline():
+    """
+    Test Case TC-LV10-04: Khách doanh nghiệp hỏi thủ tục xuất hóa đơn tài chính VAT (đỏ).
+    Câu thoại: 'Công ty mình đi ăn có xuất được hóa đơn đỏ VAT không, cần cung cấp thông tin gì?'
+    Kỳ vọng:
+    1. Nhận diện đúng intent vat_invoice_inquiry / chính sách hóa đơn VAT.
+    2. Phản hồi hướng dẫn chi tiết theo quy định:
+       - 'Dạ nhà hàng có xuất hóa đơn GTGT (VAT) điện tử đầy đủ theo quy định ạ!'
+       - 'Tên công ty, Mã số thuế (MST), Địa chỉ công ty và Email nhận hóa đơn điện tử cho thu ngân/Aria nhé!'
+    3. Không bị nhầm lẫn sang gợi ý món ăn (Bún Bò Huế) hay fallback ẩm thực.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-vat-{uuid.uuid4().hex[:8]}"
+
+    msg = "Công ty mình đi ăn có xuất được hóa đơn đỏ VAT không, cần cung cấp thông tin gì?"
+    chunks = []
+    async for sse in pipeline.process(msg, session_id=session_id):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # 1. Phản hồi hướng dẫn xuất hóa đơn VAT đầy đủ
+    assert "xuất hóa đơn GTGT (VAT) điện tử" in full_text
+    assert "Mã số thuế (MST)" in full_text
+    assert "Email nhận hóa đơn điện tử" in full_text
+
+    # 2. Tuyệt đối không trả lời gợi ý món ăn (Bún Bò Huế)
+    assert "Bún Bò Huế" not in full_text
+    assert "gợi ý" not in full_text
+
+    # 3. Không có suggestedItems trong done event
+    done_payload = None
+    for c in chunks:
+        for line in c.split("\n"):
+            if line.startswith("data: "):
+                try:
+                    payload = json.loads(line[6:])
+                    if payload.get("type") == "done":
+                        done_payload = payload
+                        break
+                except Exception:
+                    pass
+
+    assert done_payload is not None
+    assert len(done_payload.get("suggestedItems", [])) == 0
+
+
+@pytest.mark.asyncio
+async def test_tc_lv10_04_vat_invoice_compound_pipeline():
+    """
+    Test Case TC-LV10-04 (Mở rộng): Khách vừa đặt bàn 10 người cho công ty vừa hỏi hóa đơn VAT.
+    Aria phải trả lời chính sách VAT trước, tiếp tục luồng đặt bàn và lưu special_requests.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-vat-compound-{uuid.uuid4().hex[:8]}"
+
+    msg = "Tối mai mình đặt bàn cho 10 người công ty, quán có xuất hóa đơn đỏ VAT không, cần thông tin gì?"
+    chunks = []
+    async for sse in pipeline.process(msg, session_id=session_id):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # 1. Giải đáp hóa đơn VAT
+    assert "xuất hóa đơn GTGT (VAT) điện tử" in full_text
+    assert "Mã số thuế (MST)" in full_text
+
+    # 2. Tiếp tục hỏi giờ đặt bàn và lưu ý cọc 10 người
+    assert "mấy giờ" in full_text
+    assert "đặt cọc 50.000đ/người" in full_text
+
+    # 3. State đã lưu đúng slots và special_requests
+    st = await get_state(session_id)
+    assert st["slots"]["date"] is not None
+    assert st["slots"]["guests"] == 10
+    assert "xuất hóa đơn đỏ VAT" in (st["slots"]["special_requests"] or "")
+
+
+def test_tc_lv10_04_vat_invoice_intent_classification():
+    """Kiểm tra IntentClassifier nhận diện chính xác intent xuất hóa đơn tài chính VAT."""
+    from tools.intent_classifier import (
+        IntentClassifier,
+        IntentType,
+        is_vat_inquiry,
+        is_policy_inquiry,
+    )
+
+    queries = [
+        "Công ty mình đi ăn có xuất được hóa đơn đỏ VAT không, cần cung cấp thông tin gì?",
+        "Bên mình muốn xuất hóa đơn công ty cần mã số thuế không?",
+        "Cho mình hỏi xuất hóa đơn tài chính cần thông tin gì?",
+        "Quán có xuất hóa đơn đỏ không?",
+        "Nhà hàng có hỗ trợ xuất hóa đơn GTGT điện tử không?",
+        "Xuất hóa đơn đỏ thì cần MST và địa chỉ công ty gửi cho ai?",
+    ]
+
+    for q in queries:
+        cls_res = IntentClassifier.classify(q)
+        assert cls_res["intent"] == IntentType.VAT_INVOICE_INQUIRY.value, f"Failed for {q}"
+        assert cls_res["sub_intent"] == "vat_invoice_policy", f"Failed sub_intent for {q}"
+
+        inq = IntentClassifier.detect_inquiry(q)
+        assert inq is not None, f"Failed detect_inquiry for {q}"
+        assert inq["type"] == "policy"
+        assert inq["sub_intent"] == "vat_invoice_policy"
+
+        assert is_vat_inquiry(q) is True
+
+        is_pol, sub_pol = is_policy_inquiry(q)
+        assert is_pol is True
+        assert sub_pol == "vat_invoice_policy"
+
+    # Không bị nhầm câu đặt bàn thông thường
+    assert is_vat_inquiry("Đặt bàn 4 người tối nay lúc 19h") is False
+    assert is_vat_inquiry("Quán có món gì ngon?") is False
+
+
+
 

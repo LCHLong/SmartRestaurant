@@ -33,7 +33,9 @@ class PolicyEngine:
     )
 
     DEFAULT_VAT_ANSWER = (
-        "Dạ, nhà hàng có xuất hóa đơn đỏ (VAT) điện tử đầy đủ theo yêu cầu của quý khách ạ."
+        "Dạ nhà hàng có xuất hóa đơn GTGT (VAT) điện tử đầy đủ theo quy định ạ! "
+        "Khi thanh toán hoặc đặt bàn trước, quý khách chỉ cần cung cấp: "
+        "Tên công ty, Mã số thuế (MST), Địa chỉ công ty và Email nhận hóa đơn điện tử cho thu ngân/Aria nhé!"
     )
 
     @classmethod
@@ -106,9 +108,11 @@ class PolicyEngine:
         ]):
             return cls.get_takeaway_policy(settings)
 
-        # 4. Hóa đơn VAT
-        if sub_intent == "vat_policy" or any(k in msg for k in [
-            "vat", "hóa đơn", "hóa đơn đỏ", "xuất vat"
+        # 4. Hóa đơn VAT / Hóa đơn đỏ / Mã số thuế
+        if sub_intent in ("vat_invoice_policy", "vat_policy", "faq_vat") or any(k in msg for k in [
+            "vat", "hóa đơn", "hoá đơn", "hóa đơn đỏ", "hoá đơn đỏ", "xuất vat", "xuất hóa đơn", "xuất hoá đơn",
+            "mã số thuế", "mst", "hóa đơn gtgt", "hoá đơn gtgt", "hóa đơn tài chính", "hoá đơn tài chính",
+            "hóa đơn điện tử", "hoá đơn điện tử"
         ]):
             return cls.get_vat_policy(settings)
 

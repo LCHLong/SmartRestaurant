@@ -282,6 +282,13 @@ def extract_special_requests(text: str) -> list[str]:
         if m:
             requests.append(f"dị ứng: {m.group(1).strip()}")
 
+    # 11. Yêu cầu xuất hóa đơn VAT / công ty
+    if any(k in text_lower for k in [
+        "hóa đơn đỏ", "hoá đơn đỏ", "hóa đơn vat", "hoá đơn vat", "xuất vat", "xuất hóa đơn", "xuất hoá đơn",
+        "hóa đơn gtgt", "hoá đơn gtgt", "mã số thuế", "mst", "hóa đơn công ty", "hoá đơn công ty"
+    ]):
+        requests.append("xuất hóa đơn đỏ VAT")
+
     return requests
 
 

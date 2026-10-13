@@ -94,8 +94,14 @@ class FAQEngine:
             return f"Dạ, số hotline hỗ trợ khách hàng của nhà hàng là {hotline} ạ."
 
         # 9. VAT / Hóa đơn
-        if sub_intent == "faq_vat" or any(k in msg for k in ["vat", "hóa đơn", "hóa đơn đỏ", "xuất vat"]):
-            return "Dạ, nhà hàng có xuất hóa đơn đỏ (VAT) điện tử đầy đủ theo yêu cầu của quý khách ạ."
+        if sub_intent in ("faq_vat", "vat_invoice_policy", "vat_policy") or any(k in msg for k in [
+            "vat", "hóa đơn", "hoá đơn", "hóa đơn đỏ", "hoá đơn đỏ", "xuất vat", "xuất hóa đơn", "xuất hoá đơn",
+            "mã số thuế", "mst", "hóa đơn gtgt", "hoá đơn gtgt", "hóa đơn tài chính", "hoá đơn tài chính"
+        ]):
+            if settings and settings.get("vat_policy"):
+                return settings["vat_policy"]
+            from tools.policy_engine import PolicyEngine
+            return PolicyEngine.DEFAULT_VAT_ANSWER
 
         return f"Dạ, {restaurant_name} mở cửa từ {open_time} đến {close_time} hàng ngày tại {address} ạ."
 

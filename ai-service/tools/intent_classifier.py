@@ -20,6 +20,7 @@ class IntentType(str, Enum):
     CORKAGE_POLICY = "corkage_policy"
     TAKEAWAY_ORDER = "takeaway_order"
     TAKEAWAY_INQUIRY = "takeaway_inquiry"
+    VAT_INVOICE_INQUIRY = "vat_invoice_inquiry"
     RESERVATION = "reservation"
     MENU_CONSULTATION = "menu_consultation"
     HUMAN_HANDOFF = "human_handoff"
@@ -70,10 +71,21 @@ TAKEAWAY_KEYWORDS = [
     "mua về", "đóng hộp mang về", "đóng hộp", "mang đi", "hộp mang về"
 ]
 
+VAT_KEYWORDS = [
+    "hóa đơn đỏ", "hoá đơn đỏ", "hóa đơn vat", "hoá đơn vat",
+    "xuất hóa đơn", "xuất hoá đơn", "mã số thuế", "mst",
+    "hóa đơn gtgt", "hoá đơn gtgt", "hóa đơn tài chính", "hoá đơn tài chính",
+    "hóa đơn điện tử", "hoá đơn điện tử", "xuất vat", "xuất hoá đơn vat",
+    "xuất hóa đơn vat", "lấy hóa đơn", "lấy hoá đơn", "thuế gtgt",
+    "hóa đơn cty", "hóa đơn công ty", "hoá đơn công ty",
+    "hóa đơn", "hoá đơn"
+]
+
 POLICY_SUB_INTENTS = {
     "corkage_policy": CORKAGE_KEYWORDS,
     "birthday_policy": BIRTHDAY_KEYWORDS,
     "takeaway_policy": TAKEAWAY_KEYWORDS,
+    "vat_invoice_policy": VAT_KEYWORDS,
 }
 
 FACILITY_SUB_INTENTS = {
@@ -85,7 +97,7 @@ FACILITY_SUB_INTENTS = {
     "faq_vip_room": ["phòng riêng", "phòng vip", "phòng gia đình"],
     "faq_smoking": ["hút thuốc", "khu vực hút thuốc", "phòng hút thuốc"],
     "faq_contact": ["hotline", "số điện thoại nhà hàng", "sđt nhà hàng", "liên hệ", "số quán"],
-    "faq_vat": ["vat", "hóa đơn", "hóa đơn đỏ", "xuất vat", "xuất hóa đơn"],
+    "faq_vat": VAT_KEYWORDS,
 }
 
 RESERVATION_KEYWORDS = [
@@ -158,8 +170,24 @@ class IntentClassifier:
                 "matched_keywords": corkage_matched
             }
 
+        # Kiểm tra VAT / Hóa đơn đỏ / Mã số thuế
+        vat_matched = [k for k in VAT_KEYWORDS if k in msg]
+        if not vat_matched:
+            has_company = any(w in msg for w in ["công ty", "doanh nghiệp", "cty"])
+            has_invoice = any(w in msg for w in ["hóa đơn", "hoá đơn", "vat", "gtgt", "thuế", "mst"])
+            if has_company and has_invoice:
+                vat_matched = ["company_vat_inquiry"]
+
+        if vat_matched:
+            return {
+                "intent": IntentType.VAT_INVOICE_INQUIRY.value,
+                "sub_intent": "vat_invoice_policy",
+                "confidence": 0.95,
+                "matched_keywords": vat_matched
+            }
+
         for sub_intent, kw_list in POLICY_SUB_INTENTS.items():
-            if sub_intent == "corkage_policy":
+            if sub_intent in ("corkage_policy", "vat_invoice_policy"):
                 continue
             matched = [k for k in kw_list if k in msg]
             if matched:
@@ -231,9 +259,24 @@ class IntentClassifier:
                 "matched_keywords": corkage_matched
             }
 
-        # 3. Kiểm tra các chính sách khác
+        # 3. Kiểm tra câu hỏi hóa đơn đỏ / VAT / mã số thuế
+        vat_matched = [k for k in VAT_KEYWORDS if k in msg]
+        if not vat_matched:
+            has_company = any(w in msg for w in ["công ty", "doanh nghiệp", "cty"])
+            has_invoice = any(w in msg for w in ["hóa đơn", "hoá đơn", "vat", "gtgt", "thuế", "mst"])
+            if has_company and has_invoice:
+                vat_matched = ["company_vat_inquiry"]
+        if vat_matched:
+            return {
+                "type": "policy",
+                "sub_intent": "vat_invoice_policy",
+                "confidence": 0.95,
+                "matched_keywords": vat_matched
+            }
+
+        # 4. Kiểm tra các chính sách khác
         for sub_intent, kw_list in POLICY_SUB_INTENTS.items():
-            if sub_intent in ("corkage_policy", "birthday_policy"):
+            if sub_intent in ("corkage_policy", "birthday_policy", "vat_invoice_policy"):
                 continue
             matched = [k for k in kw_list if k in msg]
             if matched:
@@ -244,7 +287,7 @@ class IntentClassifier:
                     "matched_keywords": matched
                 }
 
-        # 4. Kiểm tra tiện ích / FAQ
+        # 5. Kiểm tra tiện ích / FAQ
         for sub_intent, kw_list in FACILITY_SUB_INTENTS.items():
             matched = [k for k in kw_list if k in msg]
             if matched:
@@ -284,7 +327,13 @@ class IntentClassifier:
         if inq and inq["type"] == "policy":
             return True, inq["sub_intent"]
         res = cls.classify(message)
-        if res["intent"] in (IntentType.POLICY_INQUIRY.value, "corkage_policy", "restaurant_policy"):
+        if res["intent"] in (
+            IntentType.POLICY_INQUIRY.value,
+            IntentType.VAT_INVOICE_INQUIRY.value,
+            "corkage_policy",
+            "restaurant_policy",
+            "vat_invoice_inquiry"
+        ):
             return True, res["sub_intent"]
         return False, None
 
@@ -296,6 +345,17 @@ class IntentClassifier:
             return True
         res = cls.classify(message)
         return res.get("sub_intent") == "corkage_policy" or res.get("intent") in ("corkage_policy", "policy_inquiry")
+
+    @classmethod
+    def is_vat_inquiry(cls, message: str) -> bool:
+        """Kiểm tra cụ thể câu hỏi hoặc yêu cầu xuất hóa đơn đỏ VAT."""
+        inq = cls.detect_inquiry(message)
+        if inq and inq["sub_intent"] in ("vat_invoice_policy", "vat_policy", "faq_vat"):
+            return True
+        res = cls.classify(message)
+        return res.get("sub_intent") in ("vat_invoice_policy", "vat_policy", "faq_vat") or res.get("intent") in (
+            IntentType.VAT_INVOICE_INQUIRY.value, "vat_invoice_inquiry"
+        )
 
     @classmethod
     def is_takeaway_inquiry(cls, message: str) -> bool:
@@ -333,7 +393,13 @@ def is_takeaway_inquiry(message: str) -> bool:
     return IntentClassifier.is_takeaway_inquiry(message)
 
 
+def is_vat_inquiry(message: str) -> bool:
+    """Wrapper kiểm tra nhanh câu hỏi xuất hóa đơn VAT."""
+    return IntentClassifier.is_vat_inquiry(message)
+
+
 def is_policy_inquiry(message: str) -> Tuple[bool, Optional[str]]:
     """Wrapper kiểm tra nhanh câu hỏi chính sách."""
     return IntentClassifier.is_policy_inquiry(message)
+
 
