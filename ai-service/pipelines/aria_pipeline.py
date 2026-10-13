@@ -1240,9 +1240,31 @@ class AriaConversationPipeline:
 
             slot_q = self._build_slot_question(missing, state, reask_count=reask_count)
             context_prefix = ""
+            first = missing[0] if missing else None
+            second = missing[1] if len(missing) > 1 else None
 
+            # Ngữ cảnh 0: Khách hỏi tiện ích / chính sách kèm theo (Compound intent: booking + inquiry)
+            inq = IntentClassifier.detect_inquiry(message)
+            if inq:
+                if inq["type"] == "policy":
+                    inq_ans = PolicyEngine.get_policy_answer(message, settings=settings, sub_intent=inq["sub_intent"])
+                else:
+                    inq_ans = FAQEngine.get_faq_answer(message, settings=settings, sub_intent=inq["sub_intent"])
+                context_prefix = f"{inq_ans}\n\n"
+                if first == "time" and second == "guests":
+                    slot_q = "Để Aria giữ chỗ tốt nhất, bạn dự định đến lúc mấy giờ và nhóm mình đi bao nhiêu người ạ?"
+                elif first == "customer_name" and second == "customer_phone":
+                    slot_q = "Để Aria giữ chỗ tốt nhất, bạn cho Aria xin họ tên và số điện thoại liên hệ nhé!"
+                elif first == "time" and not second:
+                    slot_q = "Để Aria giữ chỗ tốt nhất, bạn muốn đến lúc mấy giờ ạ?"
+                elif first == "guests" and not second:
+                    slot_q = "Để Aria giữ chỗ tốt nhất, nhóm mình dự kiến đi bao nhiêu người ạ?"
+                elif slot_q.startswith("Dạ, "):
+                    slot_q = f"Để Aria giữ chỗ tốt nhất, {slot_q[4:]}"
+                else:
+                    slot_q = f"Để Aria giữ chỗ tốt nhất, {slot_q}"
             # Ngữ cảnh 1: Khách vừa đặt thêm bàn (queued_booking)
-            if is_add_booking and state.get("queued_booking"):
+            elif is_add_booking and state.get("queued_booking"):
                 qb = state["queued_booking"]
                 context_prefix = (
                     f"Dạ, Aria đã ghi nhận bạn muốn đặt thêm bàn vào ngày **{qb.get('date')}** lúc **{qb.get('time')}**.\n"

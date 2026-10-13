@@ -523,6 +523,7 @@ def check_side_query_intent(message: str) -> Tuple[bool, str]:
         "đỗ xe", "đậu xe", "gửi xe", "bãi xe", "bãi đỗ", "bãi đậu", "bãi giữ", "chỗ để xe",
         "chỗ đỗ xe", "chỗ đậu xe", "chỗ gửi xe", "ô tô", "xe hơi", "xe máy", "xe ô tô",
         "khui rượu", "phí khui", "phụ thu rượu", "corkage", "mở rượu", "rượu mang vào", "rượu từ nhà",
+        "bánh kem", "bánh sinh nhật", "trang trí", "giữ lạnh", "tủ lạnh", "bảo quản bánh", "giữ mát bánh",
         "wifi", "wi-fi", "mật khẩu wifi", "pass wifi",
         "mở cửa", "đóng cửa", "mấy giờ mở", "mấy giờ đóng", "giờ hoạt động", "giờ mở",
         "địa chỉ", "ở đâu", "vị trí", "đường nào", "quán ở", "chỗ nào", "tìm đường",

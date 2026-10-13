@@ -45,11 +45,14 @@ class PolicyEngine:
         return cls.DEFAULT_CORKAGE_ANSWER
 
     @classmethod
-    def get_birthday_policy(cls, settings: Optional[Dict[str, Any]] = None) -> str:
-        """Trả lời chính sách tổ chức sinh nhật & bánh kem."""
+    def get_birthday_policy(cls, message: Optional[str] = None, settings: Optional[Dict[str, Any]] = None) -> str:
+        """Trả lời chính sách tổ chức sinh nhật & bánh kem & trang trí."""
         if settings and settings.get("birthday_policy"):
             return settings["birthday_policy"]
-        return cls.DEFAULT_BIRTHDAY_ANSWER
+        msg = (message or "").lower()
+        if "bạn gái" in msg or "người yêu" in msg:
+            return "Dạ nhà hàng có hỗ trợ tủ lạnh bảo quản bánh kem miễn phí và có gói trang trí bong bóng/nến sinh nhật lãng mạn cho bạn gái ạ!"
+        return "Dạ nhà hàng có hỗ trợ tủ lạnh bảo quản bánh kem miễn phí và có gói trang trí bong bóng/nến sinh nhật lãng mạn cho quý khách ạ!"
 
     @classmethod
     def get_takeaway_policy(cls, settings: Optional[Dict[str, Any]] = None) -> str:
@@ -93,9 +96,10 @@ class PolicyEngine:
 
         # 2. Sinh nhật / Bánh kem
         if sub_intent == "birthday_policy" or any(k in msg for k in [
-            "sinh nhật", "bánh kem", "bánh sinh nhật", "tiệc sinh nhật"
+            "sinh nhật", "bánh kem", "bánh sinh nhật", "tiệc sinh nhật",
+            "trang trí", "giữ lạnh", "tủ lạnh", "bảo quản bánh"
         ]):
-            return cls.get_birthday_policy(settings)
+            return cls.get_birthday_policy(message, settings)
 
         # 3. Mua mang về
         if sub_intent == "takeaway_policy" or any(k in msg for k in [

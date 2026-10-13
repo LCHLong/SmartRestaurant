@@ -56,7 +56,10 @@ CORKAGE_KEYWORDS = [
 
 BIRTHDAY_KEYWORDS = [
     "bánh kem", "mang bánh kem", "bánh sinh nhật", "tổ chức sinh nhật",
-    "tiệc sinh nhật", "trang trí sinh nhật", "hỗ trợ sinh nhật"
+    "tiệc sinh nhật", "trang trí sinh nhật", "hỗ trợ sinh nhật", "hỗ trợ trang trí",
+    "trang trí", "giữ lạnh bánh kem", "giữ lạnh bánh", "giữ lạnh", "bảo quản bánh kem",
+    "bảo quản bánh", "tủ lạnh", "giữ mát bánh kem", "giữ mát bánh", "bảo quản",
+    "gói trang trí", "nến sinh nhật", "bong bóng sinh nhật", "đặt bàn sinh nhật"
 ]
 
 TAKEAWAY_KEYWORDS = [
@@ -183,8 +186,79 @@ class IntentClassifier:
         }
 
     @classmethod
+    def detect_inquiry(cls, message: str) -> Optional[Dict[str, Any]]:
+        """
+        Phát hiện câu hỏi / thắc mắc tiện ích hoặc chính sách có trong câu thoại
+        (áp dụng cho cả câu đơn và câu ghép chứa intent đặt bàn).
+        Returns:
+            Dict chứa {"type": "policy"|"facility", "sub_intent": str, "matched_keywords": list} hoặc None
+        """
+        if not message or not message.strip():
+            return None
+        msg = message.lower().strip()
+
+        # 1. Kiểm tra chính sách sinh nhật / bánh kem / trang trí
+        has_bday_svc = any(w in msg for w in ["trang trí", "giữ lạnh", "bảo quản", "tủ lạnh", "giữ mát", "bánh kem", "nến", "bong bóng"])
+        has_bday_ctx = any(w in msg for w in ["sinh nhật", "bánh kem", "bạn gái", "người yêu", "tiệc"])
+        if (has_bday_svc and has_bday_ctx) or any(k in msg for k in [
+            "trang trí sinh nhật", "hỗ trợ trang trí", "giữ lạnh bánh kem",
+            "bảo quản bánh kem", "giữ mát bánh kem", "mang bánh kem", "bánh sinh nhật"
+        ]):
+            return {
+                "type": "policy",
+                "sub_intent": "birthday_policy",
+                "confidence": 0.95,
+                "matched_keywords": ["birthday_service_inquiry"]
+            }
+
+        # 2. Kiểm tra phụ thu khui rượu (Corkage)
+        corkage_matched = [k for k in CORKAGE_KEYWORDS if k in msg]
+        if not corkage_matched:
+            has_drink = any(w in msg for w in ["rượu", "vang", "bia", "đồ uống", "thức uống"])
+            has_fee = any(w in msg for w in ["khui", "mở", "phụ thu", "tính phí", "corkage", "phí"])
+            has_bring = any(w in msg for w in ["mang", "đem", "từ nhà", "ngoài vào", "vào"])
+            if (has_drink and has_fee) or (has_drink and has_bring and any(w in msg for w in ["phí", "tính", "được không", "được ko", "không", "ko"])):
+                corkage_matched = ["corkage_inquiry"]
+        if corkage_matched:
+            return {
+                "type": "policy",
+                "sub_intent": "corkage_policy",
+                "confidence": 0.95,
+                "matched_keywords": corkage_matched
+            }
+
+        # 3. Kiểm tra các chính sách khác
+        for sub_intent, kw_list in POLICY_SUB_INTENTS.items():
+            if sub_intent in ("corkage_policy", "birthday_policy"):
+                continue
+            matched = [k for k in kw_list if k in msg]
+            if matched:
+                return {
+                    "type": "policy",
+                    "sub_intent": sub_intent,
+                    "confidence": 0.93,
+                    "matched_keywords": matched
+                }
+
+        # 4. Kiểm tra tiện ích / FAQ
+        for sub_intent, kw_list in FACILITY_SUB_INTENTS.items():
+            matched = [k for k in kw_list if k in msg]
+            if matched:
+                return {
+                    "type": "facility",
+                    "sub_intent": sub_intent,
+                    "confidence": 0.92,
+                    "matched_keywords": matched
+                }
+
+        return None
+
+    @classmethod
     def is_facility_inquiry(cls, message: str) -> Tuple[bool, Optional[str]]:
         """Kiểm tra nhanh xem câu hỏi có thuộc nhóm tiện ích / FAQ hay không."""
+        inq = cls.detect_inquiry(message)
+        if inq and inq["type"] == "facility":
+            return True, inq["sub_intent"]
         res = cls.classify(message)
         if res["intent"] == IntentType.FACILITY_INQUIRY.value:
             return True, res["sub_intent"]
@@ -193,12 +267,18 @@ class IntentClassifier:
     @classmethod
     def is_parking_inquiry(cls, message: str) -> bool:
         """Kiểm tra cụ thể câu hỏi về bãi đỗ/đậu xe."""
+        inq = cls.detect_inquiry(message)
+        if inq and inq["type"] == "facility" and inq["sub_intent"] == "faq_parking":
+            return True
         res = cls.classify(message)
         return res["intent"] == IntentType.FACILITY_INQUIRY.value and res["sub_intent"] == "faq_parking"
 
     @classmethod
     def is_policy_inquiry(cls, message: str) -> Tuple[bool, Optional[str]]:
         """Kiểm tra nhanh xem câu hỏi có thuộc nhóm chính sách (Policy) hay không."""
+        inq = cls.detect_inquiry(message)
+        if inq and inq["type"] == "policy":
+            return True, inq["sub_intent"]
         res = cls.classify(message)
         if res["intent"] in (IntentType.POLICY_INQUIRY.value, "corkage_policy", "restaurant_policy"):
             return True, res["sub_intent"]
@@ -207,6 +287,9 @@ class IntentClassifier:
     @classmethod
     def is_corkage_inquiry(cls, message: str) -> bool:
         """Kiểm tra cụ thể câu hỏi về phụ thu khui rượu (corkage fee)."""
+        inq = cls.detect_inquiry(message)
+        if inq and inq["sub_intent"] == "corkage_policy":
+            return True
         res = cls.classify(message)
         return res.get("sub_intent") == "corkage_policy" or res.get("intent") in ("corkage_policy", "policy_inquiry")
 

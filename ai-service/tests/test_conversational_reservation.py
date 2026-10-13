@@ -1879,3 +1879,58 @@ async def test_tc_lv10_01_corkage_side_query_during_reservation():
     # Và phải có nhắc quay lại đặt bàn
     assert "Quay lại thông tin đặt bàn" in full_text
 
+
+@pytest.mark.asyncio
+async def test_tc_lv10_02_birthday_compound_query_pipeline():
+    """
+    Test Case TC-LV10-02: Khách vừa muốn đặt bàn vừa hỏi hỗ trợ trang trí tiệc sinh nhật & giữ lạnh bánh kem.
+    Aria phải giải đáp chính sách sinh nhật/bánh kem trước, sau đó mới hỏi giờ và số lượng khách.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-bday-{uuid.uuid4().hex[:8]}"
+
+    msg = "Tối mai mình đặt bàn tổ chức sinh nhật cho bạn gái, quán có hỗ trợ trang trí và giữ lạnh bánh kem không?"
+    chunks = []
+    async for sse in pipeline.process(msg, session_id=session_id):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # 1. Phải giải đáp chính sách hỗ trợ tủ lạnh bảo quản bánh kem và gói trang trí sinh nhật
+    assert "bảo quản bánh kem miễn phí" in full_text
+    assert "trang trí" in full_text
+    assert "bạn gái" in full_text
+
+    # 2. Dẫn dắt tiếp luồng đặt bàn một cách lịch sự, tự nhiên
+    assert "mấy giờ" in full_text
+    assert "bao nhiêu người" in full_text
+    assert "Để Aria giữ chỗ tốt nhất" in full_text
+
+    # 3. State phải lưu lại ngày mai và yêu cầu đặc biệt tiệc sinh nhật
+    st = await get_state(session_id)
+    assert st["slots"]["date"] is not None
+    assert st["slots"]["special_requests"] is not None
+
+
+@pytest.mark.asyncio
+async def test_tc_lv10_02_birthday_inquiry_detection():
+    """Kiểm tra IntentClassifier.detect_inquiry nhận diện đúng câu hỏi sinh nhật/bánh kem trong cả câu đơn và câu ghép."""
+    from tools.intent_classifier import IntentClassifier
+
+    q1 = "Tối mai mình đặt bàn tổ chức sinh nhật cho bạn gái, quán có hỗ trợ trang trí và giữ lạnh bánh kem không?"
+    inq1 = IntentClassifier.detect_inquiry(q1)
+    assert inq1 is not None
+    assert inq1["type"] == "policy"
+    assert inq1["sub_intent"] == "birthday_policy"
+
+    q2 = "Quán có tủ lạnh bảo quản bánh kem không bạn?"
+    inq2 = IntentClassifier.detect_inquiry(q2)
+    assert inq2 is not None
+    assert inq2["sub_intent"] == "birthday_policy"
+
+    q3 = "Nhà hàng có nhận trang trí tiệc sinh nhật không?"
+    inq3 = IntentClassifier.detect_inquiry(q3)
+    assert inq3 is not None
+    assert inq3["sub_intent"] == "birthday_policy"
+
+
