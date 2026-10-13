@@ -271,7 +271,9 @@
       "https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80"
     ],
     "status": "available",
-    "prep_time": 12,
+    "prep_time": 30,
+    "preparation_time_minutes": 30,
+    "serving_speed": "slow",
     "embedding": null,
     "row_serialized": "[MÓN ĂN: Bò Sốt Tiêu Đen Bánh Mì Nóng Giòn]\n• Phân loại: Món chính (Main Dish)\n• Giá bán: 89.000 VND\n• Độ cay: 2/5\n• Lượng Calo: 590 kcal\n• Thành phần nguyên liệu: Bắp bò hoa, Tiêu đen xay, Hành tây, Bánh mì nóng giòn, Bơ lạt\n• Cảnh báo dị ứng: Gluten, Sữa\n• Nhãn chế độ ăn: Ấm bụng, Đậm đà, High-Protein\n• Mô tả hương vị: Bắp bò hầm mềm mọng trong nước sốt tiêu đen sánh đậm, thơm bơ tỏi, dùng kèm bánh mì đặc ruột nướng nóng giòn. Nước sốt tiêu đen đặc sánh cay the ấm nồng xé bánh mì chấm ngập sốt, cực kỳ thích hợp cho những buổi tối mưa se lạnh.",
     "dietary_tags": [

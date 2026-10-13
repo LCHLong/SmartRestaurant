@@ -266,6 +266,89 @@ class TestMetadataFilter(unittest.TestCase):
             self.assertIn("item-5", accepted_ids)
             self.assertIn("item-6", accepted_ids)
 
+    def test_13_urgent_and_prep_time_extraction(self):
+        """TC-LV9-03: Kiểm tra trích xuất nhu cầu ăn nhanh và giới hạn thời gian."""
+        q1 = "Mình đang vội cần ăn nhanh trong 15 phút, món nào ra nhanh nhất?"
+        res1 = self.extractor.extract(q1)
+        self.assertTrue(res1.is_urgent)
+        self.assertEqual(res1.max_prep_time_minutes, 15)
+        self.assertEqual(res1.serving_speed, "fast")
+        self.assertTrue(res1.to_dict()["has_filters"])
+
+        q2 = "cần món làm sẵn ra ngay dưới 5 phút"
+        res2 = self.extractor.extract(q2)
+        self.assertTrue(res2.is_urgent)
+        self.assertEqual(res2.max_prep_time_minutes, 5)
+        self.assertEqual(res2.serving_speed, "instant")
+
+        q3 = "quán có món nào ăn gấp được không"
+        res3 = self.extractor.extract(q3)
+        self.assertTrue(res3.is_urgent)
+        self.assertEqual(res3.max_prep_time_minutes, 15)
+
+    def test_14_urgent_dining_filters_slow_stew_dishes(self):
+        """TC-LV9-03: Kiểm tra loại bỏ món hầm/chế biến lâu (>15p) khi khách đang vội."""
+        test_items = [
+            {
+                "id": "stew-beef",
+                "name": "Bò Sốt Tiêu Đen Bánh Mì Nóng Giòn",
+                "description": "Bắp bò hầm mềm mọng trong nước sốt tiêu đen sánh đậm.",
+                "price": 89000.0,
+                "prep_time": 30,
+                "preparation_time_minutes": 30,
+                "serving_speed": "slow",
+            },
+            {
+                "id": "hotpot",
+                "name": "Lẩu Thái Hải Sản",
+                "description": "Nồi lẩu chua cay nóng hổi ninh từ hải sản tươi sống.",
+                "price": 250000.0,
+                "prep_time": 25,
+                "preparation_time_minutes": 25,
+                "serving_speed": "slow",
+            },
+            {
+                "id": "instant-flan",
+                "name": "Bánh Flan Caramel Hạt Cafe",
+                "description": "Bánh flan mềm mịn làm sẵn trong tủ mát.",
+                "price": 35000.0,
+                "prep_time": 4,
+                "preparation_time_minutes": 4,
+                "serving_speed": "instant",
+            },
+            {
+                "id": "fast-pho",
+                "name": "Phở Bò Tái Nạm Đặc Biệt Hà Nội",
+                "description": "Bánh phở tươi trụng nhanh chan nước dùng sôi sùng sục.",
+                "price": 79000.0,
+                "prep_time": 8,
+                "preparation_time_minutes": 8,
+                "serving_speed": "fast",
+            },
+        ]
+
+        query = "Mình đang vội cần ăn nhanh trong 15 phút, món nào ra nhanh nhất?"
+        entities = self.extractor.extract(query)
+        accepted, rejected = self.filter.filter_items(test_items, entities, self.extractor)
+
+        accepted_ids = [it["id"] for it in accepted]
+        rejected_ids = [it["id"] for it in rejected]
+
+        # Bò sốt tiêu đen (món hầm) và Lẩu Thái PHẢI bị loại
+        self.assertNotIn("stew-beef", accepted_ids)
+        self.assertNotIn("hotpot", accepted_ids)
+        self.assertIn("stew-beef", rejected_ids)
+        self.assertIn("hotpot", rejected_ids)
+
+        # Bánh flan và Phở bò được giữ lại
+        self.assertIn("instant-flan", accepted_ids)
+        self.assertIn("fast-pho", accepted_ids)
+
+        # Ưu tiên món ra nhanh nhất lên trước: Bánh flan (4 phút) trước Phở bò (8 phút)
+        self.assertEqual(accepted[0]["id"], "instant-flan")
+        self.assertEqual(accepted[1]["id"], "fast-pho")
+
 
 if __name__ == "__main__":
     unittest.main()
+

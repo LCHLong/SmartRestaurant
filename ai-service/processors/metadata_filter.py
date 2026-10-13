@@ -14,6 +14,13 @@ import unicodedata
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional, Tuple, Set
 
+from tools.menu_catalog import (
+    classify_serving_speed,
+    get_preparation_time_minutes,
+    SLOW_PREP_KEYWORDS,
+    ServingSpeed,
+)
+
 
 @dataclass
 class ExtractedEntities:
@@ -28,6 +35,10 @@ class ExtractedEntities:
     min_price: Optional[float] = None                           # Ngân sách tối thiểu (VND)
     categories: List[str] = field(default_factory=list)         # Danh mục món (vd: ['món nước', 'cơm'])
     excluded_ingredients: List[str] = field(default_factory=list)# Thành phần khách yêu cầu không ăn
+    max_prep_time_minutes: Optional[int] = None                 # Thời gian chuẩn bị tối đa (phút)
+    min_prep_time_minutes: Optional[int] = None                 # Thời gian chuẩn bị tối thiểu (phút)
+    is_urgent: bool = False                                     # Cần ăn nhanh / gấp
+    serving_speed: Optional[str] = None                         # 'instant', 'fast', 'standard', 'slow'
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -41,11 +52,18 @@ class ExtractedEntities:
             "min_price": self.min_price,
             "categories": self.categories,
             "excluded_ingredients": self.excluded_ingredients,
+            "max_prep_time_minutes": self.max_prep_time_minutes,
+            "min_prep_time_minutes": self.min_prep_time_minutes,
+            "is_urgent": self.is_urgent,
+            "serving_speed": self.serving_speed,
             "has_filters": bool(
                 self.allergens or self.dietary_tags or
                 self.max_spice_level is not None or
                 self.max_price is not None or
-                self.excluded_ingredients
+                self.excluded_ingredients or
+                self.is_urgent or
+                self.max_prep_time_minutes is not None or
+                self.serving_speed is not None
             )
         }
 
@@ -131,6 +149,31 @@ class CulinaryEntityExtractor:
         "tráng miệng": ["tráng miệng", "trang mieng", "chè", "che", "bánh", "banh", "kem"]
     }
 
+    # 6. Mẫu nhận diện ăn nhanh / vội / giới hạn thời gian (Urgent & Fast Dining)
+    URGENT_PATTERNS = [
+        r"\bvội\b",
+        r"\bđang vội\b",
+        r"\bgấp\b",
+        r"\bcần gấp\b",
+        r"\băn gấp\b",
+        r"\băn nhanh\b",
+        r"\blàm gấp\b",
+        r"\bra nhanh\b",
+        r"\bra nhanh nhất\b",
+        r"\bnhanh nhất\b",
+        r"\bmón nào nhanh\b",
+        r"\băn liền\b",
+        r"\bcó sẵn\b",
+        r"\blấy ngay\b",
+        r"\bkịp giờ\b",
+        r"\bgấp gáp\b",
+    ]
+
+    PREP_TIME_PATTERN = re.compile(
+        r"(?:trong|dưới|duoi|tối đa|toi da|khoảng|khoang|trong vòng|trong vong|tầm|tam)?\s*(\d+)\s*(?:phút|phut|p)\b",
+        re.IGNORECASE,
+    )
+
     def __init__(self):
         # Biên dịch sẵn các biểu thức regex để đạt tốc độ tối đa
         self._compiled_exclusions = [re.compile(p, re.IGNORECASE) for p in self.EXCLUSION_PATTERNS]
@@ -171,7 +214,43 @@ class CulinaryEntityExtractor:
         # --- E. Bóc tách Danh mục (Category) ---
         self._extract_category(clean, extracted)
 
+        # --- F. Bóc tách Nhu cầu ăn gấp / Thời gian chế biến (Urgent & Fast Dining) ---
+        self._extract_urgency_and_prep_time(clean, extracted)
+
         return extracted
+
+    def _extract_urgency_and_prep_time(self, text: str, entities: ExtractedEntities) -> None:
+        """Nhận diện nhu cầu ăn gấp, giới hạn thời gian chế biến."""
+        is_urgent = False
+        for pat in self.URGENT_PATTERNS:
+            if re.search(pat, text, re.IGNORECASE):
+                is_urgent = True
+                break
+
+        minute_match = self.PREP_TIME_PATTERN.search(text)
+        minute_val: Optional[int] = None
+        if minute_match:
+            try:
+                val = int(minute_match.group(1))
+                if 1 <= val <= 120:
+                    minute_val = val
+            except (ValueError, TypeError):
+                pass
+
+        if minute_val is not None:
+            entities.max_prep_time_minutes = minute_val
+            if minute_val <= 20 or is_urgent:
+                entities.is_urgent = True
+                if minute_val <= 5:
+                    entities.serving_speed = ServingSpeed.INSTANT.value
+                elif minute_val <= 15:
+                    entities.serving_speed = ServingSpeed.FAST.value
+                elif minute_val <= 20:
+                    entities.serving_speed = ServingSpeed.STANDARD.value
+        elif is_urgent:
+            entities.is_urgent = True
+            entities.max_prep_time_minutes = 15
+            entities.serving_speed = ServingSpeed.FAST.value
 
     def _extract_allergens_and_exclusions(self, text: str, entities: ExtractedEntities) -> None:
         """Nhận diện các thành phần dị ứng thông qua các cụm từ phủ định hoặc từ khóa trực tiếp."""
@@ -440,6 +519,21 @@ class MetadataFilter:
                     except (ValueError, TypeError):
                         pass
 
+            # 7. Lọc Thời Gian Chế Biến & Món Hầm Lâu khi khách cần ăn gấp (Fast/Urgent Dining)
+            if not rejection_reasons and (entities.is_urgent or entities.max_prep_time_minutes is not None):
+                item_name = str(raw_data.get("name", "")).lower()
+                item_desc = str(raw_data.get("description", "")).lower()
+                full_text = f"{item_name} {item_desc}"
+                prep_time = get_preparation_time_minutes(raw_data)
+                speed = classify_serving_speed(raw_data)
+
+                if entities.is_urgent and (speed == ServingSpeed.SLOW.value or any(k in full_text for k in SLOW_PREP_KEYWORDS)):
+                    rejection_reasons.append("Món hầm mềm / nấu chậm cần thời gian ninh nhừ")
+                elif entities.max_prep_time_minutes is not None and prep_time > entities.max_prep_time_minutes:
+                    rejection_reasons.append(
+                        f"Thời gian chế biến ({prep_time} phút) vượt mức yêu cầu (tối đa {entities.max_prep_time_minutes} phút)"
+                    )
+
             # Kết luận phân loại món
             if rejection_reasons:
                 rejected_item = dict(item)
@@ -447,5 +541,9 @@ class MetadataFilter:
                 rejected.append(rejected_item)
             else:
                 accepted.append(item)
+
+        # Nếu khách đang vội / cần ăn nhanh, ưu tiên xếp các món có thời gian ra nhanh nhất lên đầu
+        if entities.is_urgent:
+            accepted.sort(key=lambda x: get_preparation_time_minutes(x.get("item", x) if isinstance(x, dict) else x))
 
         return accepted, rejected

@@ -1579,6 +1579,35 @@ async def test_create_reservation_rejects_invalid_email():
         )
 
 
+@pytest.mark.asyncio
+async def test_tc_lv9_03_urgent_fast_dining_recommendation():
+    """
+    TC-LV9-03: Khách cần ăn gấp trong 15 phút, Aria từ chối gợi ý món bò hầm
+    và ưu tiên các món làm sẵn / sơ chế nhanh, kèm cam kết báo bếp ưu tiên.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-tc-lv9-03-{uuid.uuid4().hex[:8]}"
+    query = "Mình đang vội cần ăn nhanh trong 15 phút, món nào ra nhanh nhất?"
+
+    chunks = []
+    async for sse in pipeline.process(query, session_id=session_id):
+        chunks.append(sse)
+    resp = extract_text_from_sse(chunks)
+
+    # 1. TUYỆT ĐỐI KHÔNG gợi ý món Bò Sốt Tiêu Đen (món hầm mềm chậm)
+    assert "Bò Sốt Tiêu Đen" not in resp, "Aria không được gợi ý món bò sốt tiêu đen hầm lâu khi khách cần ăn gấp trong 15 phút"
+    assert "bò hầm" not in resp.lower()
+
+    # 2. Phải gợi ý món ra nhanh / có sẵn
+    assert any(dish in resp for dish in [
+        "Bánh Flan", "Phở Bò Tái Nạm", "Gỏi cuốn", "Bánh Mì Thập Cẩm", "Súp Bắp Cua"
+    ]), f"Aria phải gợi ý món làm sẵn hoặc trụng nhanh. Response nhận được: {resp}"
+
+    # 3. Phải có cam kết ghi chú báo bếp ưu tiên làm gấp
+    assert "ghi chú báo bếp ưu tiên làm gấp ngay" in resp or "báo bếp ưu tiên" in resp.lower()
+
+
+
 
 
 

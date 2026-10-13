@@ -367,12 +367,18 @@ class AriaConversationPipeline:
                     top_k=top_k,
                     rerank_weight=rerank_weight,
                 )
+                if entities.is_urgent:
+                    from tools.menu_catalog import get_preparation_time_minutes
+                    grounded_candidates.sort(key=lambda x: get_preparation_time_minutes(x.get("item", x)))
                 rerank_stats = {
                     "engine": self.retriever.reranker.engine_type,
                     "candidate_count": len(grounded_candidates),
                 }
             else:
                 grounded_candidates = clean_menu_context[:top_k]
+                if entities.is_urgent:
+                    from tools.menu_catalog import get_preparation_time_minutes
+                    grounded_candidates.sort(key=lambda x: get_preparation_time_minutes(x.get("item", x)))
 
         if reformulation_res.excluded_items:
             grounded_candidates = [
@@ -1464,6 +1470,11 @@ class AriaConversationPipeline:
         candidates: List[Dict[str, Any]]
     ) -> AsyncGenerator[str, None]:
         """Sinh phản hồi Grounded token-by-token ngoại tuyến."""
+        from tools.recommendation_engine import detect_urgency, KITCHEN_PRIORITY_NOTE
+        from tools.menu_catalog import get_preparation_time_minutes
+
+        is_urgent, minute_limit = detect_urgency(query)
+
         if not candidates:
             tokens = [
                 "Dạ ", "Aria ", "chào ", "quý khách! ",
@@ -1471,6 +1482,36 @@ class AriaConversationPipeline:
                 "phù hợp ", "với ", f"yêu cầu '{query}'. ",
                 "Quý khách ", "có muốn ", "xem ", "các ", "món ", "đặc sản ", "khác ", "không ạ?"
             ]
+        elif is_urgent:
+            urgent_candidates = sorted(
+                candidates,
+                key=lambda c: get_preparation_time_minutes(c.get("item", c))
+            )
+            top_dish = urgent_candidates[0]
+            name = top_dish.get("name", "Món ngon")
+            raw = top_dish.get("item", top_dish)
+            price = _format_price(raw.get("price", top_dish.get("price", 0)))
+            prep_time = get_preparation_time_minutes(raw)
+
+            time_desc = f"trong {minute_limit} phút" if minute_limit else "nhanh"
+            tokens = [
+                "Dạ, ", "để ", "quý khách ", "dùng bữa ", f"{time_desc}, ",
+                "Aria ", "xin ", "gợi ý ", "các ", "món ", "chế biến ", "nhanh ", "nhất ", "của ", "quán:\n\n",
+                f"1. **{name}** ", f"· {price} ", f"(thời gian chế biến chỉ khoảng {prep_time} phút)\n",
+            ]
+            if len(urgent_candidates) > 1:
+                second_dish = urgent_candidates[1]
+                s_name = second_dish.get("name")
+                s_raw = second_dish.get("item", second_dish)
+                s_price = _format_price(s_raw.get("price", second_dish.get("price", 0)))
+                s_prep_time = get_preparation_time_minutes(s_raw)
+                tokens.extend([
+                    f"2. **{s_name}** ", f"· {s_price} ", f"(thời gian chế biến chỉ khoảng {s_prep_time} phút)\n",
+                ])
+
+            tokens.extend([
+                f"\n{KITCHEN_PRIORITY_NOTE}"
+            ])
         else:
             top_dish = candidates[0]
             name = top_dish.get("name", "Món ngon")

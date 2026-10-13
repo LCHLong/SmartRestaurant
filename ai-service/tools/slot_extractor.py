@@ -12,6 +12,7 @@ Trích xuất thực thể (slots) đặt bàn từ câu thoại của người 
 import re
 from typing import Optional, Dict, Any, Tuple
 from tools.datetime_parser import parse_date, parse_time, validate_reservation_time
+from tools.recommendation_engine import detect_urgency
 
 VN_MOBILE_PREFIXES = ('03', '05', '07', '08', '09')
 VN_PHONE_REGEX = re.compile(r'(?:\+84[\s.-]?|0)[35789](?:[\s.-]?\d){8}\b')
@@ -624,5 +625,11 @@ def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
         specials.append(child_note)
     if specials:
         extracted["special_requests"] = ", ".join(specials)
+
+    # 8. Yêu cầu ăn nhanh / thời gian gấp (TC-LV9-03)
+    is_urgent, prep_limit = detect_urgency(message)
+    if is_urgent:
+        extracted["is_urgent"] = True
+        extracted["max_prep_time_minutes"] = prep_limit
 
     return extracted
