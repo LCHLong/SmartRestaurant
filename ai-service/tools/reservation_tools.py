@@ -7,6 +7,7 @@ Tất cả hàm đều là async, xử lý timeout, status code, và internal he
 import os
 import httpx
 from typing import Optional, Dict, Any, List
+from tools.datetime_parser import validate_reservation_time
 
 BACKEND_URL = os.getenv("BACKEND_INTERNAL_URL", "http://localhost:5001")
 INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "aria-ai-internal-service-secret")
@@ -18,7 +19,7 @@ _SETTINGS_CACHE_TIME: float = 0.0
 SETTINGS_CACHE_TTL = 300.0  # 5 minutes
 
 
-async def get_restaurant_settings() -> Dict[str, Any]:
+async def get_restaurant_settings(restaurant_id: Optional[str] = None) -> Dict[str, Any]:
     """
     Lấy thông tin cấu hình hệ thống nhà hàng (open_time, close_time, restaurant_name, wifi_password...)
     từ GET /api/system/settings. Có cache 5 phút để tối ưu hiệu năng.
@@ -76,6 +77,9 @@ async def check_availability(
             "suggested_times": List[str]
         }
     """
+    if not isinstance(guest_count, int) or guest_count <= 0:
+        raise ValueError("Số lượng khách (guest_count) phải là số nguyên dương từ 1 trở lên.")
+
     headers = {
         "X-Internal-Service": "aria-ai",
         "X-Internal-Secret": INTERNAL_SERVICE_SECRET,
@@ -185,6 +189,14 @@ async def create_reservation(
             "deposit_amount": int
         }
     """
+    if not isinstance(guest_count, int) or guest_count <= 0:
+        raise ValueError("Số lượng khách (guest_count) phải là số nguyên dương từ 1 trở lên.")
+
+    if reservation_date and reservation_time:
+        is_val, err_c, err_m = validate_reservation_time(reservation_date, reservation_time)
+        if not is_val and err_c == "PAST_TIME":
+            raise ValueError(f"Không thể tạo đơn đặt bàn ở thời điểm đã qua: {err_m}")
+
     body = {
         "customer_name": customer_name,
         "customer_phone": customer_phone,
@@ -193,6 +205,9 @@ async def create_reservation(
         "reservation_time": reservation_time,
     }
     if customer_email:
+        from tools.slot_extractor import is_valid_email
+        if not is_valid_email(customer_email):
+            raise ValueError(f"Email không đúng định dạng RFC 5322: {customer_email}")
         body["customer_email"] = customer_email
     if special_requests:
         body["special_requests"] = special_requests
@@ -265,3 +280,60 @@ async def get_user_info(user_id: str) -> Optional[Dict[str, Any]]:
         return None
 
     return None
+
+
+async def escalate_reservation(
+    customer_name: str,
+    customer_phone: str,
+    guest_count: int,
+    reservation_date: Optional[str] = None,
+    reservation_time: Optional[str] = None,
+    customer_email: Optional[str] = None,
+    special_requests: Optional[str] = None,
+    summary: Optional[str] = None,
+    session_id: Optional[str] = None,
+    user_id: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Gọi POST /api/reservations/escalate để lưu trữ bản ghi đặt bàn đoàn
+    và kích hoạt notification real-time tới Quản lý và Phục vụ.
+    """
+    body = {
+        "customer_name": customer_name,
+        "customer_phone": customer_phone,
+        "guest_count": guest_count,
+        "reservation_date": reservation_date,
+        "reservation_time": reservation_time,
+        "customer_email": customer_email,
+        "special_requests": special_requests,
+        "summary": summary,
+        "sessionId": session_id,
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "X-Internal-Service": "aria-ai",
+        "X-Internal-Secret": INTERNAL_SERVICE_SECRET,
+    }
+    if session_id:
+        headers["Idempotency-Key"] = f"escalate_{session_id}"
+    if user_id:
+        headers["X-Internal-User-Id"] = user_id
+
+    try:
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            resp = await client.post(
+                f"{BACKEND_URL}/api/reservations/escalate",
+                json=body,
+                headers=headers
+            )
+            if resp.status_code in (200, 201):
+                data = resp.json()
+                return data.get("data", {})
+            else:
+                print(f"[escalate_reservation] Backend error {resp.status_code}: {resp.text}")
+    except Exception as e:
+        print(f"[escalate_reservation] Lỗi khi gọi backend escalate: {e}")
+
+    return {}
+

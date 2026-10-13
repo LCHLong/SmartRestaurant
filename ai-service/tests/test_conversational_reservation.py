@@ -6,6 +6,7 @@ Bộ kiểm thử tự động 25 ca (T01 - T25) cho tính năng AI Đặt bàn 
 
 import pytest
 import asyncio
+import uuid
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, patch
 
@@ -17,6 +18,7 @@ from tools.slot_extractor import (
     extract_special_requests,
     is_confirmation,
     is_cancellation,
+    is_valid_vn_phone,
 )
 from tools.reservation_state import (
     get_state,
@@ -117,10 +119,56 @@ def test_t07_large_group():
 
 
 def test_t12_invalid_phone():
-    """T12: SĐT sai định dạng."""
+    """T12: SĐT sai định dạng hoặc bị cụt số."""
     phone, warn = extract_phone("SĐT của mình là 123456")
     assert phone is None
     assert warn is not None
+
+    # Số cụt 7 chữ số (0987321)
+    phone_short, warn_short = extract_phone("Lê Chí Hoàng Long, 0987321, lechihoanglong7@gmail.com")
+    assert phone_short is None
+    assert warn_short is not None
+
+    # Số cụt có khoảng trắng (098 7321)
+    phone_spaced, warn_spaced = extract_phone("SĐT của mình là 098 7321")
+    assert phone_spaced is None
+    assert warn_spaced is not None
+
+
+def test_t12_valid_phone_exact_extraction():
+    """T12: Trích xuất chính xác 10 chữ số của SĐT chuẩn Việt Nam."""
+    phone, warn = extract_phone("Lê Chí Hoàng Long, 0987654321, lechihoanglong7@gmail.com")
+    assert phone == "0987654321"
+    assert len(phone) == 10
+    assert warn is None
+
+    # Hỗ trợ định dạng có chấm, gạch ngang, khoảng trắng, +84
+    p1, _ = extract_phone("0987.654.321")
+    assert p1 == "0987654321"
+
+    p2, _ = extract_phone("+84 987 654 321")
+    assert p2 == "0987654321"
+
+    p3, _ = extract_phone("038-123-4567")
+    assert p3 == "0381234567"
+
+
+def test_is_valid_vn_phone_validator():
+    """Kiểm tra validator số điện thoại Việt Nam."""
+    assert is_valid_vn_phone("0987654321") is True
+    assert is_valid_vn_phone("0381234567") is True
+    assert is_valid_vn_phone("0581234567") is True
+    assert is_valid_vn_phone("0781234567") is True
+    assert is_valid_vn_phone("0881234567") is True
+    assert is_valid_vn_phone("+84987654321") is True
+
+    # Sai độ dài hoặc đầu số không hợp lệ
+    assert is_valid_vn_phone("0987321") is False  # 7 số
+    assert is_valid_vn_phone("098765432") is False  # 9 số
+    assert is_valid_vn_phone("09876543210") is False  # 11 số
+    assert is_valid_vn_phone("0123456789") is False  # Đầu 01
+    assert is_valid_vn_phone("123456") is False
+    assert is_valid_vn_phone(None) is False
 
 
 def test_t16_slot_correction():
@@ -180,11 +228,26 @@ def test_t19_policy_max_days():
 
 
 def test_t21_special_requests():
-    """T21: Yêu cầu đặc biệt (ghế trẻ em, gần cửa sổ)."""
+    """T21: Yêu cầu đặc biệt (ghế trẻ em, gần cửa sổ, chia bàn, ghép bàn, ngồi cạnh nhau)."""
     msg = "Cho mình bàn có ghế ăn dặm cho em bé và gần cửa sổ"
     specials = extract_special_requests(msg)
     assert "ghế trẻ em" in specials
     assert "gần cửa sổ" in specials
+
+    # Bố trí chia bàn & ngồi cạnh nhau (TC-LV9-04)
+    msg_split = "Mình đặt bàn tối mai 19h cho 8 người nhưng muốn chia làm 2 bàn 4 người ngồi cạnh nhau nhé"
+    specials_split = extract_special_requests(msg_split)
+    assert "chia 2 bàn 4 người ngồi cạnh nhau" in specials_split
+
+    # Ghép bàn cạnh nhau
+    msg_join = "cho mình ghép 2 bàn cạnh nhau nhé"
+    specials_join = extract_special_requests(msg_join)
+    assert "ghép 2 bàn ngồi cạnh nhau" in specials_join
+
+    # Ngồi cạnh nhau đơn lẻ
+    msg_near = "cho nhóm ngồi cạnh nhau"
+    specials_near = extract_special_requests(msg_near)
+    assert "ngồi cạnh nhau" in specials_near
 
 
 def test_t22_adult_child_combo():
@@ -237,18 +300,116 @@ async def test_t08_context_switch_and_t15_menu_regression():
 
 @pytest.mark.asyncio
 async def test_t07_pipeline_handoff():
-    """T07: Pipeline chuyển handoff khi nhóm > 10 khách."""
+    """T07: Nhóm > 10 khách: hỏi họ tên & SĐT trước khi handoff."""
     pipeline = AriaConversationPipeline()
-    chunks = []
+    session_id = "test_sess_handoff_1"
+
+    # Turn 1: Khách yêu cầu đặt bàn 15 người nhưng chưa có SĐT
+    chunks_turn1 = []
     async for sse in pipeline.process(
         message="Cho mình đặt bàn 15 người phòng riêng tối mai",
-        session_id="test_sess_handoff_1",
+        session_id=session_id,
+    ):
+        chunks_turn1.append(sse)
+
+    turn1_raw = "".join(chunks_turn1)
+    turn1_text = extract_text_from_sse(chunks_turn1)
+    # Chưa handoff vì chưa có SĐT liên hệ
+    assert "isHandoff" not in turn1_raw
+    assert "15" in turn1_text
+    assert "số điện thoại" in turn1_text.lower()
+
+    # Turn 2: Khách cung cấp họ tên và số điện thoại
+    chunks_turn2 = []
+    async for sse in pipeline.process(
+        message="Mình là Nam, sđt 0912345678",
+        session_id=session_id,
+    ):
+        chunks_turn2.append(sse)
+
+    turn2_raw = "".join(chunks_turn2)
+    turn2_text = extract_text_from_sse(chunks_turn2)
+    # Lúc này đã có SĐT -> Kích hoạt handoff tới Admin & Waiter
+    assert "isHandoff" in turn2_raw
+    assert "Nam" in turn2_text
+    assert "0912345678" in turn2_text
+
+
+@pytest.mark.asyncio
+async def test_t07_pipeline_handoff_with_contact_in_first_message():
+    """T07: Khách cung cấp sẵn SĐT ngay tin nhắn đầu -> Handoff ngay."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_handoff_contact_1"
+
+    chunks = []
+    async for sse in pipeline.process(
+        message="Mình là Nam 0912345678, đặt bàn 15 người phòng riêng tối mai",
+        session_id=session_id,
     ):
         chunks.append(sse)
 
     full_output = "".join(chunks)
     assert "isHandoff" in full_output
     assert "15" in full_output
+    assert "0912345678" in full_output
+
+
+@pytest.mark.asyncio
+async def test_t07_pipeline_handoff_logged_in_user():
+    """T07: Khách đã đăng nhập (có SĐT) -> Handoff ngay không cần hỏi lại."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_handoff_loggedin_1"
+
+    with patch("pipelines.aria_pipeline.get_user_info", new_callable=AsyncMock) as mock_user_info:
+        mock_user_info.return_value = {
+            "name": "Lê Hoàng",
+            "phone": "0988776655",
+            "email": "lehoang@gmail.com"
+        }
+
+        chunks = []
+        async for sse in pipeline.process(
+            message="Cho mình đặt bàn 15 người",
+            session_id=session_id,
+            user_id="user_logged_in_123"
+        ):
+            chunks.append(sse)
+
+        full_output = "".join(chunks)
+        assert "isHandoff" in full_output
+        assert "15" in full_output
+        assert "0988776655" in full_output
+
+
+@pytest.mark.asyncio
+async def test_t07_escalate_reservation_sync_to_backend():
+    """T07: Handoff nhóm đoàn lớn gọi escalate_reservation đồng bộ sang Backend."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_escalate_sync_1"
+
+    with patch("pipelines.aria_pipeline.escalate_reservation", new_callable=AsyncMock) as mock_escalate:
+        mock_escalate.return_value = {
+            "booking_code": "SR-ESCALATE99",
+            "reservation_id": "resv_escalated_1",
+            "status": "pending"
+        }
+
+        chunks = []
+        async for sse in pipeline.process(
+            message="Mình là Minh Trang 0909123456, đặt bàn 18 người tối mai",
+            session_id=session_id,
+        ):
+            chunks.append(sse)
+
+        full_output = "".join(chunks)
+        assert "isHandoff" in full_output
+        assert "SR-ESCALATE99" in full_output
+
+        mock_escalate.assert_called_once()
+        call_kwargs = mock_escalate.call_args.kwargs
+        assert call_kwargs["customer_name"] == "Minh Trang"
+        assert call_kwargs["customer_phone"] == "0909123456"
+        assert call_kwargs["guest_count"] == 18
 
 
 @pytest.mark.asyncio
@@ -322,6 +483,52 @@ async def test_t01_happy_path_confirmation_to_done():
         assert state2["fsm_state"] == "DONE"
         assert state2["booking_code"] == "SR-ABCD1234"
         assert "SR-ABCD1234" in "".join(chunks_turn2)
+
+
+@pytest.mark.asyncio
+async def test_phone_not_truncated_in_summary_and_confirmation():
+    """Kiểm tra SĐT khách hàng (0987654321) không bị làm cụt thành 0987321 trong tin nhắn tóm tắt và xác nhận."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_phone_not_truncated"
+    future_date = (now_vn().date() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+    with patch("pipelines.aria_pipeline.check_availability", new_callable=AsyncMock) as mock_check, \
+         patch("pipelines.aria_pipeline.create_reservation", new_callable=AsyncMock) as mock_create:
+
+        mock_check.return_value = {"available": True, "available_tables": 3}
+        mock_create.return_value = {
+            "booking_code": "SR-PHONE0987",
+            "reservation_date": future_date,
+            "reservation_time": "21:00",
+            "guest_count": 5,
+            "requires_deposit": False
+        }
+
+        # Turn 1: Cung cấp đầy đủ thông tin: Lê Chí Hoàng Long, 0987654321, lechihoanglong7@gmail.com
+        chunks_turn1 = []
+        async for sse in pipeline.process(
+            message=f"Lê Chí Hoàng Long, 0987654321, lechihoanglong7@gmail.com, đặt bàn 5 người ngày {future_date} lúc 21:00",
+            session_id=session_id
+        ):
+            chunks_turn1.append(sse)
+
+        text_turn1 = extract_text_from_sse(chunks_turn1)
+        assert "0987654321" in text_turn1
+        assert "0987321" not in text_turn1
+        assert "****" not in text_turn1
+
+        # Turn 2: Xác nhận
+        chunks_turn2 = []
+        async for sse in pipeline.process(
+            message="xác nhận",
+            session_id=session_id
+        ):
+            chunks_turn2.append(sse)
+
+        text_turn2 = extract_text_from_sse(chunks_turn2)
+        assert "0987654321" in text_turn2
+        assert "0987321" not in text_turn2
+        assert "****" not in text_turn2
 
 
 @pytest.mark.asyncio
@@ -749,5 +956,1189 @@ async def test_extract_name_combined_with_guests():
     text2 = extract_text_from_sse(chunks2)
     assert "số điện thoại" in text2
     assert "họ tên" not in text2, "Đã biết tên Hùng nên không được hỏi lại họ tên!"
+
+
+@pytest.mark.asyncio
+async def test_additional_booking_queue_and_sequential_creation():
+    """
+    Tái hiện chính xác bug report:
+    1. Đặt bàn: 'Ngày mai lúc 20 giờ', '5 người'
+    2. Khách bổ sung: 'Ngoài ra tôi còn muốn đặt thêm bàn vào ngày mốt lúc 21 giờ'
+       -> Đơn 1 không bị ghi đè, đơn 2 được lưu vào queued_booking
+    3. Cung cấp liên hệ: 'Lê Chí Hoàng Long, 0987654321, lechihoanglong7@gmail.com'
+    4. Xác nhận đơn 1 -> Tạo đơn 1 thành công và tự động chuyển sang xác nhận đơn 2
+    5. Xác nhận đơn 2 -> Tạo đơn 2 thành công với đúng ngày giờ và thông tin liên hệ kế thừa
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_additional_queue_seq"
+    await clear_state(session_id)
+
+    tomorrow_str = (now_vn().date() + timedelta(days=1)).strftime("%Y-%m-%d")
+    day_after_str = (now_vn().date() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+    call_records = []
+
+    async def mock_create_res(**kwargs):
+        code = f"SR-B{len(call_records) + 1}"
+        call_records.append(kwargs)
+        return {
+            "booking_code": code,
+            "reservation_date": kwargs.get("reservation_date"),
+            "reservation_time": kwargs.get("reservation_time"),
+            "guest_count": kwargs.get("guest_count"),
+            "requires_deposit": False,
+        }
+
+    with patch("pipelines.aria_pipeline.check_availability", new_callable=AsyncMock) as mock_check, \
+         patch("pipelines.aria_pipeline.create_reservation", side_effect=mock_create_res):
+
+        mock_check.return_value = {"available": True, "available_tables": 3}
+
+        # Turn 1: Khách yêu cầu ngày mai 20:00
+        async for _ in pipeline.process("Cho mình đặt bàn ngày mai lúc 20 giờ", session_id=session_id):
+            pass
+
+        # Turn 2: Khách trả lời 5 người
+        async for _ in pipeline.process("5 người", session_id=session_id):
+            pass
+
+        st1 = await get_state(session_id)
+        assert st1["slots"]["date"] == tomorrow_str
+        assert st1["slots"]["time"] == "20:00"
+        assert st1["slots"]["guests"] == 5
+
+        # Turn 3: Khách nói thêm bàn ngày mốt 21:00
+        chunks3 = []
+        async for sse in pipeline.process("Ngoài ra tôi còn muốn đặt thêm bàn vào ngày mốt lúc 21 giờ", session_id=session_id):
+            chunks3.append(sse)
+        text3 = extract_text_from_sse(chunks3)
+
+        st2 = await get_state(session_id)
+        # Đơn 1 phải được bảo vệ nguyên vẹn!
+        assert st2["slots"]["date"] == tomorrow_str, "Đơn 1 không được bị ghi đè ngày!"
+        assert st2["slots"]["time"] == "20:00", "Đơn 1 không được bị ghi đè giờ!"
+        assert st2["slots"]["guests"] == 5
+
+        # Đơn 2 phải được xếp vào queued_booking
+        assert st2.get("queued_booking") is not None, "Phải lưu đơn 2 vào queued_booking!"
+        assert st2["queued_booking"]["date"] == day_after_str
+        assert st2["queued_booking"]["time"] == "21:00"
+
+        # Aria phải thông báo ghi nhận đơn thêm và hỏi tiếp thông tin cho đơn 1
+        assert "đặt thêm bàn" in text3 or "ghi nhận" in text3
+        assert "số điện thoại" in text3
+
+        # Turn 4: Khách cung cấp thông tin liên hệ
+        chunks4 = []
+        async for sse in pipeline.process("Lê Chí Hoàng Long, 0987654321, lechihoanglong7@gmail.com", session_id=session_id):
+            chunks4.append(sse)
+        text4 = extract_text_from_sse(chunks4)
+
+        st3 = await get_state(session_id)
+        assert st3["fsm_state"] == "AWAITING_CONFIRMATION"
+        assert st3["slots"]["customer_name"] == "Lê Chí Hoàng Long"
+        assert st3["slots"]["customer_phone"] == "0987654321"
+        assert "20:00" in text4
+        assert "0987654321" in text4
+        # Thông báo tóm tắt đơn 1 có đính kèm ghi chú đơn 2
+        assert "đơn thứ 2" in text4 or "21:00" in text4
+
+        # Turn 5: Khách xác nhận đơn 1
+        chunks5 = []
+        async for sse in pipeline.process("ok", session_id=session_id):
+            chunks5.append(sse)
+        text5 = extract_text_from_sse(chunks5)
+
+        assert len(call_records) == 1
+        assert call_records[0]["reservation_time"] == "20:00"
+        assert call_records[0]["reservation_date"] == tomorrow_str
+        assert call_records[0]["customer_name"] == "Lê Chí Hoàng Long"
+        assert call_records[0]["customer_phone"] == "0987654321"
+
+        # Sau khi đơn 1 thành công, bot tự động hiển thị vé đơn 1 và prompt xác nhận đơn 2
+        assert "SR-B1" in text5
+        assert "21:00" in text5
+        assert "bàn thứ 2" in text5 or "đơn đặt thêm" in text5
+
+        st4 = await get_state(session_id)
+        assert st4["fsm_state"] == "AWAITING_CONFIRMATION"
+        assert st4["slots"]["time"] == "21:00"
+        assert st4["slots"]["date"] == day_after_str
+        assert st4["slots"]["customer_name"] == "Lê Chí Hoàng Long"
+        assert st4["slots"]["customer_phone"] == "0987654321"
+
+        # Turn 6: Khách xác nhận đơn 2
+        chunks6 = []
+        async for sse in pipeline.process("xác nhận", session_id=session_id):
+            chunks6.append(sse)
+        text6 = extract_text_from_sse(chunks6)
+
+        assert len(call_records) == 2
+        assert call_records[1]["reservation_time"] == "21:00"
+        assert call_records[1]["reservation_date"] == day_after_str
+        assert call_records[1]["customer_name"] == "Lê Chí Hoàng Long"
+        assert call_records[1]["customer_phone"] == "0987654321"
+
+        assert "SR-B2" in text6
+        st5 = await get_state(session_id)
+        assert st5["fsm_state"] == "DONE"
+
+
+@pytest.mark.asyncio
+async def test_reschedule_intent_updates_slot():
+    """Khách dùng từ khóa đổi lịch ('Đổi sang ngày mốt lúc 21h') -> Cập nhật trực tiếp ngày giờ."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_resched_intent"
+    await clear_state(session_id)
+
+    day_after_str = (now_vn().date() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+    async for _ in pipeline.process("Cho mình đặt bàn ngày mai lúc 20 giờ", session_id=session_id):
+        pass
+    async for _ in pipeline.process("5 người", session_id=session_id):
+        pass
+
+    async for _ in pipeline.process("Đổi sang ngày mốt lúc 21h", session_id=session_id):
+        pass
+
+    st = await get_state(session_id)
+    assert st["slots"]["time"] == "21:00"
+    assert st["slots"]["date"] == day_after_str
+    assert st.get("queued_booking") is None
+
+
+@pytest.mark.asyncio
+async def test_ambiguous_schedule_choice_flow():
+    """Khách nhập ngày giờ mới không rõ đổi hay thêm -> Bot hỏi lựa chọn pending_schedule_choice."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_ambig_sched_choice"
+    await clear_state(session_id)
+
+    tomorrow_str = (now_vn().date() + timedelta(days=1)).strftime("%Y-%m-%d")
+    day_after_str = (now_vn().date() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+    async for _ in pipeline.process("Cho mình đặt bàn ngày mai lúc 20 giờ", session_id=session_id):
+        pass
+    async for _ in pipeline.process("5 người", session_id=session_id):
+        pass
+
+    # Nhập ngày mốt lúc 21 giờ mà không có 'ngoài ra/đặt thêm' hay 'đổi sang'
+    chunks = []
+    async for sse in pipeline.process("ngày mốt lúc 21 giờ", session_id=session_id):
+        chunks.append(sse)
+    text = extract_text_from_sse(chunks)
+
+    st1 = await get_state(session_id)
+    assert st1.get("pending_schedule_choice") is not None
+    assert st1["pending_schedule_choice"]["time"] == "21:00"
+    assert "đổi lịch" in text
+    assert "đặt thêm bàn mới" in text
+
+    # Khách chọn 'đổi lịch'
+    async for _ in pipeline.process("mình muốn đổi lịch", session_id=session_id):
+        pass
+
+    st2 = await get_state(session_id)
+    assert st2.get("pending_schedule_choice") is None
+    assert st2["slots"]["time"] == "21:00"
+    assert st2["slots"]["date"] == day_after_str
+
+
+@pytest.mark.asyncio
+async def test_no_verbatim_repetition_when_customer_gives_special_request():
+    """Khách đưa yêu cầu đặc biệt khi đang hỏi liên hệ -> Ghi nhận yêu cầu và không lặp lại nguyên văn câu hỏi cũ."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_no_repeat_special_req"
+    await clear_state(session_id)
+
+    async for _ in pipeline.process("Cho mình đặt bàn tối mai lúc 20h", session_id=session_id):
+        pass
+
+    chunks2 = []
+    async for sse in pipeline.process("5 người", session_id=session_id):
+        chunks2.append(sse)
+    text2 = extract_text_from_sse(chunks2)
+    assert "họ tên" in text2
+    assert "số điện thoại" in text2
+
+    # Khách đưa yêu cầu bàn gần cửa sổ
+    chunks3 = []
+    async for sse in pipeline.process("cho mình bàn gần cửa sổ nhé", session_id=session_id):
+        chunks3.append(sse)
+    text3 = extract_text_from_sse(chunks3)
+
+    # 1. Tuyệt đối không lặp lại nguyên văn 100% câu hỏi của lượt trước
+    assert text3 != text2, "Aria không được lặp lại nguyên văn câu hỏi trước!"
+    # 2. Phải ghi nhận yêu cầu gần cửa sổ
+    assert "gần cửa sổ" in text3
+    # 3. Vẫn lịch sự xin số điện thoại
+    assert "số điện thoại" in text3
+
+
+@pytest.mark.asyncio
+async def test_no_verbatim_repetition_when_customer_says_ok_without_phone():
+    """Khách nói 'ok bạn' khi đang chờ liên hệ -> Giải thích lý do và dẫn dắt thay vì lặp câu hỏi máy móc."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_no_repeat_ok"
+    await clear_state(session_id)
+
+    async for _ in pipeline.process("Cho mình đặt bàn tối mai lúc 20h", session_id=session_id):
+        pass
+
+    chunks2 = []
+    async for sse in pipeline.process("5 người", session_id=session_id):
+        chunks2.append(sse)
+    text2 = extract_text_from_sse(chunks2)
+
+    chunks3 = []
+    async for sse in pipeline.process("ok bạn", session_id=session_id):
+        chunks3.append(sse)
+    text3 = extract_text_from_sse(chunks3)
+
+    assert text3 != text2, "Aria không được lặp lại nguyên văn câu hỏi khi khách nói 'ok bạn'!"
+    assert "giữ bàn" in text3 or "vé xác nhận" in text3
+    assert "số điện thoại" in text3
+
+
+@pytest.mark.asyncio
+async def test_phone_inquiry_explains_and_reprompts():
+    """Khách hỏi 'tại sao cần số điện thoại' -> Aria giải thích rõ ràng và xin SĐT tự nhiên."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_phone_inquiry"
+    await clear_state(session_id)
+
+    async for _ in pipeline.process("Cho mình đặt bàn tối mai lúc 20h", session_id=session_id):
+        pass
+    async for _ in pipeline.process("5 người", session_id=session_id):
+        pass
+
+    chunks3 = []
+    async for sse in pipeline.process("Sao lại cần số điện thoại vậy bạn?", session_id=session_id):
+        chunks3.append(sse)
+    text3 = extract_text_from_sse(chunks3)
+
+    assert "vé xác nhận" in text3 or "mã qr" in text3.lower() or "giữ bàn" in text3
+    assert "số điện thoại" in text3
+
+
+@pytest.mark.asyncio
+async def test_sequential_reask_variation():
+    """Hỏi lại nhiều lần liên tiếp -> Biến đổi văn phong qua các lượt (reask variation)."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_sess_reask_var"
+    await clear_state(session_id)
+
+    async for _ in pipeline.process("Cho mình đặt bàn tối mai lúc 20h", session_id=session_id):
+        pass
+
+    chunks2 = []
+    async for sse in pipeline.process("5 người", session_id=session_id):
+        chunks2.append(sse)
+    text2 = extract_text_from_sse(chunks2)
+
+    chunks3 = []
+    async for sse in pipeline.process("chờ tí nhé", session_id=session_id):
+        chunks3.append(sse)
+    text3 = extract_text_from_sse(chunks3)
+
+    chunks4 = []
+    async for sse in pipeline.process("đang bận xíu", session_id=session_id):
+        chunks4.append(sse)
+    text4 = extract_text_from_sse(chunks4)
+
+    assert text3 != text2, "Lần hỏi lại 1 phải biến đổi văn phong so với lần đầu!"
+    assert text4 != text3, "Lần hỏi lại 2 phải biến đổi văn phong so với lần hỏi lại 1!"
+    assert "số điện thoại" in text3
+    assert "số điện thoại" in text4
+
+
+@pytest.mark.asyncio
+async def test_extract_guests_negative_and_zero():
+    """Kiểm tra trích xuất số khách âm, 0 và khoảng số khách."""
+    g1, _ = extract_guests("Cho mình đặt bàn tối mai 19h cho -2 người")
+    assert g1 == -2
+
+    g2, _ = extract_guests("cho 0 người")
+    assert g2 == 0
+
+    g3, _ = extract_guests("-2")
+    assert g3 == -2
+
+    g4, _ = extract_guests("0")
+    assert g4 == 0
+
+    g5, _ = extract_guests("cho 4 người")
+    assert g5 == 4
+
+    g6, _ = extract_guests("nhóm 3-4 người")
+    assert g6 == 4
+
+
+@pytest.mark.asyncio
+async def test_extract_all_slots_negative_guests_warning():
+    """Kiểm tra extract_all_slots phát hiện số khách âm/0 và tạo guests_warning."""
+    slots_neg = extract_all_slots("Cho mình đặt bàn tối mai 19h cho -2 người", {})
+    assert slots_neg.get("guests") == -2
+    assert slots_neg.get("party_size") == -2
+    assert slots_neg.get("guests_warning") is not None
+    assert "từ 1 người trở lên" in slots_neg["guests_warning"]
+    assert slots_neg.get("is_valid_guests") is False
+
+    slots_zero = extract_all_slots("0 người", {})
+    assert slots_zero.get("guests") == 0
+    assert slots_zero.get("party_size") == 0
+    assert slots_zero.get("guests_warning") is not None
+    assert "từ 1 người trở lên" in slots_zero["guests_warning"]
+    assert slots_zero.get("is_valid_guests") is False
+
+
+@pytest.mark.asyncio
+async def test_aria_rejects_negative_party_size():
+    """TC-LV5-02: Khách đặt bàn cho -2 người -> Aria từ chối lịch sự, không lưu guests âm và hướng dẫn từ 1 người trở lên."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_neg_guests_session"
+    await clear_state(session_id)
+
+    chunks = []
+    async for sse in pipeline.process("Cho mình đặt bàn tối mai 19h cho -2 người", session_id=session_id):
+        chunks.append(sse)
+    resp = extract_text_from_sse(chunks)
+
+    # 1. Aria phải cảnh báo từ chối số khách âm
+    assert "từ 1 người trở lên" in resp
+    assert "chính xác số người" in resp
+
+    # 2. State không được lưu guests = -2
+    st = await get_state(session_id)
+    assert st["slots"]["guests"] is None
+    # Ngày và giờ hợp lệ vẫn được bảo toàn
+    assert st["slots"]["date"] is not None
+    assert st["slots"]["time"] == "19:00"
+
+    # 3. Khách sửa lại số khách hợp lệ ở lượt tiếp theo -> Tiếp tục quy trình bình thường
+    chunks2 = []
+    async for sse in pipeline.process("4 người", session_id=session_id):
+        chunks2.append(sse)
+    resp2 = extract_text_from_sse(chunks2)
+
+    st2 = await get_state(session_id)
+    assert st2["slots"]["guests"] == 4
+    # Chuyển tiếp hỏi tên hoặc SĐT
+    assert "họ tên" in resp2 or "số điện thoại" in resp2
+
+
+@pytest.mark.asyncio
+async def test_aria_rejects_zero_party_size():
+    """TC-LV5-01: Khách đặt bàn cho 0 người -> Aria hướng dẫn nghiệp vụ tối thiểu từ 1 người, không bị kẹt lặp lại câu hỏi."""
+    pipeline = AriaConversationPipeline()
+    session_id = "test_zero_guests_session"
+    await clear_state(session_id)
+
+    # Lượt 1: Khách đặt bàn cho 0 người
+    chunks = []
+    async for sse in pipeline.process("Cho mình đặt bàn tối mai 19h cho 0 người", session_id=session_id):
+        chunks.append(sse)
+    resp = extract_text_from_sse(chunks)
+
+    assert "nhận đặt bàn tối thiểu từ 1 người trở lên" in resp
+    assert "số lượng người đi cùng" in resp
+    st = await get_state(session_id)
+    assert st["slots"]["guests"] is None
+    assert st["slots"]["date"] is not None
+    assert st["slots"]["time"] == "19:00"
+
+    # Lượt 2: Khách tiếp tục trả lời "0 người" -> Aria phải tiếp tục hướng dẫn nghiệp vụ, KHÔNG bị lặp câu hỏi máy móc
+    chunks2 = []
+    async for sse in pipeline.process("0 người", session_id=session_id):
+        chunks2.append(sse)
+    resp2 = extract_text_from_sse(chunks2)
+
+    assert "nhận đặt bàn tối thiểu từ 1 người trở lên" in resp2
+    assert "nhóm bạn dự kiến đi bao nhiêu người" not in resp2.lower()
+
+    # Lượt 3: Khách tiếp tục nhập "0" -> Vẫn bắt đúng và phản hồi hướng dẫn
+    chunks3 = []
+    async for sse in pipeline.process("0", session_id=session_id):
+        chunks3.append(sse)
+    resp3 = extract_text_from_sse(chunks3)
+
+    assert "nhận đặt bàn tối thiểu từ 1 người trở lên" in resp3
+
+    # Lượt 4: Khách nhập số lượng người hợp lệ -> Chuyển tiếp quy trình suôn sẻ
+    chunks4 = []
+    async for sse in pipeline.process("3 người", session_id=session_id):
+        chunks4.append(sse)
+    resp4 = extract_text_from_sse(chunks4)
+
+    st4 = await get_state(session_id)
+    assert st4["slots"]["guests"] == 3
+    assert "họ tên" in resp4 or "số điện thoại" in resp4
+
+
+@pytest.mark.asyncio
+async def test_reservation_tools_rejects_non_positive_guest_count():
+    """Kiểm tra check_availability và create_reservation tung ValueError khi guest_count <= 0."""
+    from tools.reservation_tools import check_availability, create_reservation
+
+    with pytest.raises(ValueError, match="từ 1 trở lên"):
+        await check_availability("2026-10-12", "19:00", guest_count=-2)
+
+    with pytest.raises(ValueError, match="từ 1 trở lên"):
+        await check_availability("2026-10-12", "19:00", guest_count=0)
+
+    with pytest.raises(ValueError, match="từ 1 trở lên"):
+        await create_reservation("Nam", "0912345678", guest_count=-1, reservation_date="2026-10-12", reservation_time="19:00")
+
+    with pytest.raises(ValueError, match="từ 1 trở lên"):
+        await create_reservation("Nam", "0912345678", guest_count=0, reservation_date="2026-10-12", reservation_time="19:00")
+
+
+def test_validate_reservation_time_same_day_past():
+    """Kiểm tra validate_reservation_time với mốc giờ đã qua trong cùng ngày (TC-LV6-01)."""
+    today_str = now_vn().strftime("%Y-%m-%d")
+    valid, code, msg = validate_reservation_time(today_str, "08:00")
+    # Nếu hiện tại đã qua 08:00 sáng hoặc trong khung nửa đêm (< 6h)
+    assert valid is False
+    assert code == "PAST_TIME"
+    assert "Dạ, mốc thời gian 08:00 sáng hôm nay đã trôi qua rồi ạ." in msg
+    assert "Quý khách vui lòng chọn một khung giờ sắp tới trong ngày (từ 08:00 đến 21:30) hoặc đặt cho ngày mai giúp Aria nhé!" in msg
+
+
+def test_slot_extractor_target_iso_and_past_check():
+    """Kiểm tra slot_extractor bổ sung reservation_date, reservation_time, target_iso và time_in_past."""
+    from tools.slot_extractor import extract_all_slots
+    state = {"slots": {}}
+    extracted = extract_all_slots("Cho mình đặt bàn hôm nay lúc 8h sáng 2 người", state)
+    today_str = now_vn().strftime("%Y-%m-%d")
+
+    assert extracted["reservation_date"] == today_str
+    assert extracted["reservation_time"] == "08:00"
+    assert extracted["party_size"] == 2
+    assert extracted["target_iso"] == f"{today_str}T08:00:00+07:00"
+    assert extracted["time_in_past"] is True
+    assert "past_time_warning" in extracted
+
+
+@pytest.mark.asyncio
+async def test_tc_lv6_01_aria_rejects_past_time_same_day_conversational():
+    """
+    TC-LV6-01: Aria kiểm tra và từ chối mốc giờ đã qua trong quá khứ khi khách đặt bàn cùng ngày hôm nay.
+    - Lượt 1: 'Cho mình đặt bàn hôm nay lúc 8h sáng 2 người'
+      Aria phải từ chối ngay với câu chuẩn, không được xin thông tin liên hệ để tạo đơn.
+    - Lượt 2: Khách chọn lại giờ hợp lệ trong ngày '19:00'
+      Aria chấp nhận và tiếp tục hỏi thông tin liên hệ.
+    """
+    session_id = f"test-tc-lv6-01-{uuid.uuid4().hex[:8]}"
+    pipeline = AriaConversationPipeline()
+
+    # Lượt 1: Khách đặt hôm nay lúc 8h sáng 2 người
+    chunks1 = []
+    async for sse in pipeline.process("Cho mình đặt bàn hôm nay lúc 8h sáng 2 người", session_id=session_id):
+        chunks1.append(sse)
+    resp1 = extract_text_from_sse(chunks1)
+
+    expected_exact = (
+        "Dạ, mốc thời gian 08:00 sáng hôm nay đã trôi qua rồi ạ. "
+        "Quý khách vui lòng chọn một khung giờ sắp tới trong ngày (từ 08:00 đến 21:30) "
+        "hoặc đặt cho ngày mai giúp Aria nhé!"
+    )
+    assert expected_exact in resp1
+    assert "họ tên" not in resp1
+    assert "số điện thoại" not in resp1
+
+    st1 = await get_state(session_id)
+    assert st1["slots"]["time"] is None
+    assert st1["slots"]["guests"] == 2
+    today_str = now_vn().strftime("%Y-%m-%d")
+    assert st1["slots"]["date"] == today_str
+
+    # Lượt 2: Khách chọn lại giờ hợp lệ trong ngày (19:00)
+    chunks2 = []
+    async for sse in pipeline.process("vậy 19h tối nay nhé", session_id=session_id):
+        chunks2.append(sse)
+    resp2 = extract_text_from_sse(chunks2)
+
+    st2 = await get_state(session_id)
+    assert st2["slots"]["time"] == "19:00"
+    assert "họ tên" in resp2 or "số điện thoại" in resp2
+
+
+@pytest.mark.asyncio
+async def test_create_reservation_rejects_past_time():
+    """Kiểm tra create_reservation từ chối tạo đơn nếu thời gian đặt trong quá khứ."""
+    from tools.reservation_tools import create_reservation
+    today_str = now_vn().strftime("%Y-%m-%d")
+
+    with pytest.raises(ValueError, match="Không thể tạo đơn đặt bàn ở thời điểm đã qua"):
+        await create_reservation(
+            customer_name="Hoàng Long",
+            customer_phone="0987654321",
+            guest_count=2,
+            reservation_date=today_str,
+            reservation_time="08:00",
+        )
+
+
+def test_rfc5322_email_validation():
+    """Kiểm tra validator email RFC 5322."""
+    from tools.slot_extractor import is_valid_email, extract_email
+
+    assert is_valid_email("tuan@gmail.com") is True
+    assert is_valid_email("lechihoanglong7@gmail.com") is True
+    assert is_valid_email("user.name+tag@sub.domain.co") is True
+
+    assert is_valid_email("tuan@@sai-dinh-dang") is False
+    assert is_valid_email("tuan@com") is False
+    assert is_valid_email("tuan@domain") is False
+    assert is_valid_email("@domain.com") is False
+    assert is_valid_email("") is False
+    assert is_valid_email(None) is False
+
+    # Kiểm tra extract_email
+    em_valid, w_valid = extract_email("email là tuan@gmail.com")
+    assert em_valid == "tuan@gmail.com"
+    assert w_valid is None
+
+    em_invalid, w_invalid = extract_email("email tuan@@sai-dinh-dang")
+    assert em_invalid == "tuan@@sai-dinh-dang"
+    assert "Dạ email `tuan@@sai-dinh-dang` hình như chưa đúng định dạng chuẩn." in w_invalid
+
+    # Trường hợp từ chối email
+    em_none, w_none = extract_email("mình không có email nha")
+    assert em_none is None
+    assert w_none is None
+
+
+def test_slot_extractor_email_warning():
+    """Kiểm tra slot_extractor phát hiện email sai cú pháp và trả về validation_check."""
+    from tools.slot_extractor import extract_all_slots
+
+    state = {"slots": {}}
+    extracted = extract_all_slots(
+        "Mình là Tuấn 0912345678 email tuan@@sai-dinh-dang, đặt bàn tối mai 20h 2 người",
+        state
+    )
+
+    assert extracted["customer_name"] == "Tuấn"
+    assert extracted["customer_phone"] == "0912345678"
+    assert extracted["customer_email"] == "tuan@@sai-dinh-dang"
+    assert extracted["email_rfc5322_valid"] is False
+    assert extracted["validation_check"]["email_rfc5322_valid"] is False
+    assert "Dạ email `tuan@@sai-dinh-dang` hình như chưa đúng định dạng chuẩn." in extracted["email_warning"]
+
+
+@pytest.mark.asyncio
+async def test_tc_lv6_03_aria_rejects_invalid_email_format():
+    """
+    TC-LV6-03: Aria kiểm tra định dạng email và cảnh báo khi email sai cú pháp.
+    - Lượt 1: 'Mình là Tuấn 0912345678 email tuan@@sai-dinh-dang, đặt bàn tối mai 20h 2 người'
+      Aria phải cảnh báo email sai định dạng, không được tạo đơn hay xin xác nhận ngay.
+    - Lượt 2: Khách cung cấp lại email chuẩn 'tuan@gmail.com'
+      Aria nhận email hợp lệ và tiếp tục tóm tắt xác nhận.
+    """
+    session_id = f"test-tc-lv6-03-{uuid.uuid4().hex[:8]}"
+    pipeline = AriaConversationPipeline()
+
+    # Lượt 1: Khách gửi thông tin kèm email sai định dạng tuan@@sai-dinh-dang
+    chunks1 = []
+    async for sse in pipeline.process(
+        "Mình là Tuấn 0912345678 email tuan@@sai-dinh-dang, đặt bàn tối mai 20h 2 người",
+        session_id=session_id
+    ):
+        chunks1.append(sse)
+    resp1 = extract_text_from_sse(chunks1)
+
+    expected_warning = "Dạ email `tuan@@sai-dinh-dang` hình như chưa đúng định dạng chuẩn. Bạn vui lòng kiểm tra lại email để nhận vé QR chính xác nhé!"
+    assert expected_warning in resp1
+    assert "Bạn xác nhận đặt bàn không ạ" not in resp1
+
+    st1 = await get_state(session_id)
+    # Email sai không được lưu vào slots
+    assert st1["slots"]["customer_email"] is None
+    # Các thông tin khác đã được trích xuất chính xác
+    assert st1["slots"]["customer_name"] == "Tuấn"
+    assert st1["slots"]["customer_phone"] == "0912345678"
+    assert st1["slots"]["guests"] == 2
+    assert st1["slots"]["time"] == "20:00"
+
+    # Lượt 2: Khách cập nhật lại email hợp lệ
+    with patch("pipelines.aria_pipeline.check_availability", new_callable=AsyncMock) as mock_check:
+        mock_check.return_value = {"available": True, "available_tables": 2}
+        chunks2 = []
+        async for sse in pipeline.process(
+            "email của mình là tuan@gmail.com nhé",
+            session_id=session_id
+        ):
+            chunks2.append(sse)
+        resp2 = extract_text_from_sse(chunks2)
+
+    st2 = await get_state(session_id)
+    assert st2["slots"]["customer_email"] == "tuan@gmail.com"
+    assert "Bạn xác nhận đặt bàn không ạ" in resp2 or "xác nhận" in resp2.lower()
+
+
+@pytest.mark.asyncio
+async def test_create_reservation_rejects_invalid_email():
+    """Kiểm tra create_reservation từ chối tạo đơn nếu email sai định dạng RFC 5322."""
+    from tools.reservation_tools import create_reservation
+    future_date = (now_vn().date() + timedelta(days=2)).strftime("%Y-%m-%d")
+
+    with pytest.raises(ValueError, match="Email không đúng định dạng RFC 5322"):
+        await create_reservation(
+            customer_name="Tuấn",
+            customer_phone="0912345678",
+            guest_count=2,
+            reservation_date=future_date,
+            reservation_time="20:00",
+            customer_email="tuan@@sai-dinh-dang",
+        )
+
+
+@pytest.mark.asyncio
+async def test_tc_lv9_03_urgent_fast_dining_recommendation():
+    """
+    TC-LV9-03: Khách cần ăn gấp trong 15 phút, Aria từ chối gợi ý món bò hầm
+    và ưu tiên các món làm sẵn / sơ chế nhanh, kèm cam kết báo bếp ưu tiên.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-tc-lv9-03-{uuid.uuid4().hex[:8]}"
+    query = "Mình đang vội cần ăn nhanh trong 15 phút, món nào ra nhanh nhất?"
+
+    chunks = []
+    async for sse in pipeline.process(query, session_id=session_id):
+        chunks.append(sse)
+    resp = extract_text_from_sse(chunks)
+
+    # 1. TUYỆT ĐỐI KHÔNG gợi ý món Bò Sốt Tiêu Đen (món hầm mềm chậm)
+    assert "Bò Sốt Tiêu Đen" not in resp, "Aria không được gợi ý món bò sốt tiêu đen hầm lâu khi khách cần ăn gấp trong 15 phút"
+    assert "bò hầm" not in resp.lower()
+
+    # 2. Phải gợi ý món ra nhanh / có sẵn
+    assert any(dish in resp for dish in [
+        "Bánh Flan", "Phở Bò Tái Nạm", "Gỏi cuốn", "Bánh Mì Thập Cẩm", "Súp Bắp Cua"
+    ]), f"Aria phải gợi ý món làm sẵn hoặc trụng nhanh. Response nhận được: {resp}"
+
+    # 3. Phải có cam kết ghi chú báo bếp ưu tiên làm gấp
+    assert "ghi chú báo bếp ưu tiên làm gấp ngay" in resp or "báo bếp ưu tiên" in resp.lower()
+
+
+@pytest.mark.asyncio
+async def test_tc_lv9_04_split_tables_adjacent_special_requests():
+    """
+    TC-LV9-04: Aria trích xuất và hiển thị ghi chú chia 2 bàn 4 người ngồi cạnh nhau khi khách đặt bàn cho 8 người.
+    - Lượt 1: 'Mình đặt bàn tối mai 19h cho 8 người nhưng muốn chia làm 2 bàn 4 người ngồi cạnh nhau nhé'
+      Aria phải ghi nhận số khách = 8 và special_requests = 'chia 2 bàn 4 người ngồi cạnh nhau'.
+    - Lượt 2: 'Mình tên Nam 0912345678'
+      Aria tóm tắt đơn đặt bàn với trường '• Ghi chú: **chia 2 bàn 4 người ngồi cạnh nhau**'.
+    """
+    session_id = f"test-tc-lv9-04-{uuid.uuid4().hex[:8]}"
+    pipeline = AriaConversationPipeline()
+    await clear_state(session_id)
+
+    # Lượt 1: Yêu cầu đặt bàn 8 người và chia 2 bàn cạnh nhau
+    chunks1 = []
+    async for sse in pipeline.process(
+        "Mình đặt bàn tối mai 19h cho 8 người nhưng muốn chia làm 2 bàn 4 người ngồi cạnh nhau nhé",
+        session_id=session_id
+    ):
+        chunks1.append(sse)
+    resp1 = extract_text_from_sse(chunks1)
+
+    st1 = await get_state(session_id)
+    assert st1["slots"]["guests"] == 8
+    assert st1["slots"]["special_requests"] == "chia 2 bàn 4 người ngồi cạnh nhau"
+    assert "chia 2 bàn 4 người ngồi cạnh nhau" in resp1
+
+    # Lượt 2: Cung cấp tên và số điện thoại
+    with patch("pipelines.aria_pipeline.check_availability", new_callable=AsyncMock) as mock_avail:
+        mock_avail.return_value = {"available": True, "available_tables": 2}
+        chunks2 = []
+        async for sse in pipeline.process(
+            "Mình tên Nam 0912345678",
+            session_id=session_id
+        ):
+            chunks2.append(sse)
+        resp2 = extract_text_from_sse(chunks2)
+
+    st2 = await get_state(session_id)
+    assert st2["slots"]["customer_name"] == "Nam"
+    assert st2["slots"]["customer_phone"] == "0912345678"
+    assert st2["slots"]["special_requests"] == "chia 2 bàn 4 người ngồi cạnh nhau"
+
+    # Kiểm tra bảng tóm tắt có đầy đủ thông tin:
+    assert "8 người" in resp2
+    assert "Nam" in resp2
+    assert "0912345678" in resp2
+    assert "Ghi chú" in resp2
+    assert "chia 2 bàn 4 người ngồi cạnh nhau" in resp2
+    assert "400,000 VNĐ" in resp2  # Cọc 50k/người cho nhóm 8 người
+
+
+@pytest.mark.asyncio
+async def test_intent_classifier_and_faq_engine_parking():
+    """Kiểm tra IntentClassifier và FAQEngine nhận diện và phản hồi câu hỏi về bãi đỗ/đậu xe (TC-LV9-05)."""
+    from tools.intent_classifier import IntentClassifier, classify_intent
+    from tools.faq_engine import FAQEngine
+
+    test_queries = [
+        "Nhà hàng mình có bãi đậu xe ô tô không bạn?",
+        "Quán có chỗ đỗ xe ô tô không?",
+        "Đi xe hơi đậu ở đâu vậy quán?",
+        "Có chỗ gửi xe máy không em?",
+        "Bãi giữ xe ở đâu ạ?"
+    ]
+
+    for q in test_queries:
+        res = classify_intent(q)
+        assert res["intent"] == "facility_inquiry", f"Query '{q}' should be facility_inquiry"
+        assert res["sub_intent"] == "faq_parking", f"Query '{q}' should be faq_parking"
+
+    answer = FAQEngine.get_faq_answer("Nhà hàng mình có bãi đậu xe ô tô không bạn?")
+    assert "bãi đỗ xe ô tô và xe máy rộng rãi" in answer
+    assert "nhân viên bảo vệ" in answer
+    assert "miễn phí" in answer
+
+
+@pytest.mark.asyncio
+async def test_tc_lv9_05_parking_facility_inquiry_pipeline():
+    """
+    Test Case TC-LV9-05: Khách hỏi về bãi đậu xe ô tô.
+    Aria phải phản hồi thông tin bãi đỗ xe và bảo vệ, tuyệt đối không gợi ý món ăn (Bún Riêu Cua...).
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-parking-{uuid.uuid4().hex[:8]}"
+
+    chunks = []
+    async for sse in pipeline.process(
+        "Nhà hàng mình có bãi đậu xe ô tô không bạn?",
+        session_id=session_id
+    ):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # 1. Kiểm tra có đúng thông tin tiện ích bãi đỗ xe
+    assert "bãi đỗ xe ô tô và xe máy" in full_text
+    assert "nhân viên bảo vệ" in full_text
+    assert "miễn phí" in full_text
+
+    # 2. Tuyệt đối không có gợi ý món ăn lạc đề
+    assert "Bún Riêu Cua" not in full_text
+    assert "Đậu Hũ Chiên" not in full_text
+    assert "Gợi ý" not in full_text
+
+    # 3. Kiểm tra payload done không chứa món gợi ý
+    done_payloads = [
+        json.loads(c.replace("data: ", "")) for c in chunks
+        if c.startswith("data: ") and '"type": "done"' in c
+    ]
+    assert len(done_payloads) == 1
+    assert done_payloads[0].get("suggestedItems") == []
+
+
+@pytest.mark.asyncio
+async def test_tc_lv9_05_parking_side_query_during_reservation():
+    """
+    Kiểm tra khi khách đang trong luồng đặt bàn mà hỏi chen ngang về bãi đậu xe.
+    Aria phải giải đáp thông tin bãi đỗ xe kèm nhắc quay lại thông tin đặt bàn.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-parking-side-{uuid.uuid4().hex[:8]}"
+
+    # Thiết lập trạng thái đang chờ giờ
+    await save_state(session_id, {
+        "fsm_state": "COLLECTING_SLOTS",
+        "slots": {
+            "date": "2026-10-15",
+            "time": None,
+            "guests": 4,
+            "customer_name": None,
+            "customer_phone": None,
+            "customer_email": None,
+            "special_requests": None
+        }
+    })
+
+    chunks = []
+    async for sse in pipeline.process(
+        "Nhà hàng có bãi đậu xe ô tô không bạn?",
+        session_id=session_id
+    ):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # Phải có thông tin bãi đỗ xe
+    assert "bãi đỗ xe ô tô và xe máy" in full_text
+    assert "nhân viên bảo vệ" in full_text
+    # Và phải có nhắc quay lại đặt bàn
+    assert "Quay lại thông tin đặt bàn" in full_text
+
+
+@pytest.mark.asyncio
+async def test_intent_classifier_and_policy_engine_corkage():
+    """Kiểm tra IntentClassifier và PolicyEngine nhận diện chính sách phụ thu khui rượu (TC-LV10-01)."""
+    from tools.intent_classifier import IntentClassifier, classify_intent
+    from tools.policy_engine import PolicyEngine
+
+    test_queries = [
+        "Bọn mình mang 1 chai rượu vang từ nhà đi thì nhà hàng có tính phí khui rượu không?",
+        "Nhà hàng có tính phí khui rượu không?",
+        "Corkage fee bao nhiêu vậy quán?",
+        "Phụ thu mang rượu từ nhà vào là bao nhiêu?",
+        "Đem rượu vang đi có tính phí không?",
+        "Có được mang rượu từ ngoài vào không?",
+        "Phí mở rượu là bao nhiêu ạ?"
+    ]
+
+    for q in test_queries:
+        res = classify_intent(q)
+        assert res["intent"] == "policy_inquiry", f"Query '{q}' should be policy_inquiry"
+        assert res["sub_intent"] == "corkage_policy", f"Query '{q}' should be corkage_policy"
+        assert IntentClassifier.is_corkage_inquiry(q) is True
+
+    answer = PolicyEngine.get_corkage_policy()
+    assert "corkage fee" in answer
+    assert "150.000đ/chai vang" in answer
+    assert "xô đá" in answer
+
+
+@pytest.mark.asyncio
+async def test_tc_lv10_01_corkage_fee_policy_pipeline():
+    """
+    Test Case TC-LV10-01: Khách hỏi về phí khui rượu vang mang từ nhà đi.
+    Aria phải phản hồi chính sách phụ thu khui rượu (150.000đ/chai vang), tuyệt đối không gợi ý Phở Bò / Hủ Tiếu Nam Vang.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-corkage-{uuid.uuid4().hex[:8]}"
+
+    chunks = []
+    async for sse in pipeline.process(
+        "Bọn mình mang 1 chai rượu vang từ nhà đi thì nhà hàng có tính phí khui rượu không?",
+        session_id=session_id
+    ):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # 1. Phải giải thích đúng chính sách phụ thu khui rượu
+    assert "corkage fee" in full_text
+    assert "150.000đ/chai vang" in full_text
+    assert "xô đá" in full_text or "ly rượu" in full_text
+
+    # 2. Tuyệt đối không có gợi ý món ăn lạc đề (Phở Bò, Hủ Tiếu Nam Vang...)
+    assert "Phở Bò" not in full_text
+    assert "Hủ Tiếu" not in full_text
+    assert "Nam Vang" not in full_text
+    assert "Gợi ý" not in full_text
+
+    # 3. Payload done không chứa danh sách món gợi ý
+    done_payloads = [
+        json.loads(c.replace("data: ", "")) for c in chunks
+        if c.startswith("data: ") and '"type": "done"' in c
+    ]
+    assert len(done_payloads) == 1
+    assert done_payloads[0].get("suggestedItems") == []
+
+
+@pytest.mark.asyncio
+async def test_tc_lv10_01_corkage_side_query_during_reservation():
+    """
+    Kiểm tra khi khách đang trong luồng đặt bàn mà hỏi chen ngang về phí khui rượu.
+    Aria phải giải đáp thông tin phí khui rượu kèm nhắc quay lại thông tin đặt bàn.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-corkage-side-{uuid.uuid4().hex[:8]}"
+
+    # Thiết lập trạng thái đang chờ giờ
+    await save_state(session_id, {
+        "fsm_state": "COLLECTING_SLOTS",
+        "slots": {
+            "date": "2026-10-15",
+            "time": None,
+            "guests": 4,
+            "customer_name": None,
+            "customer_phone": None,
+            "customer_email": None,
+            "special_requests": None
+        }
+    })
+
+    chunks = []
+    async for sse in pipeline.process(
+        "Bọn mình mang 1 chai rượu vang từ nhà đi thì nhà hàng có tính phí khui rượu không?",
+        session_id=session_id
+    ):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # Phải có thông tin phụ thu khui rượu
+    assert "corkage fee" in full_text
+    assert "150.000đ/chai vang" in full_text
+    # Và phải có nhắc quay lại đặt bàn
+    assert "Quay lại thông tin đặt bàn" in full_text
+
+
+@pytest.mark.asyncio
+async def test_tc_lv10_02_birthday_compound_query_pipeline():
+    """
+    Test Case TC-LV10-02: Khách vừa muốn đặt bàn vừa hỏi hỗ trợ trang trí tiệc sinh nhật & giữ lạnh bánh kem.
+    Aria phải giải đáp chính sách sinh nhật/bánh kem trước, sau đó mới hỏi giờ và số lượng khách.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-bday-{uuid.uuid4().hex[:8]}"
+
+    msg = "Tối mai mình đặt bàn tổ chức sinh nhật cho bạn gái, quán có hỗ trợ trang trí và giữ lạnh bánh kem không?"
+    chunks = []
+    async for sse in pipeline.process(msg, session_id=session_id):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # 1. Phải giải đáp chính sách hỗ trợ tủ lạnh bảo quản bánh kem và gói trang trí sinh nhật
+    assert "bảo quản bánh kem miễn phí" in full_text
+    assert "trang trí" in full_text
+    assert "bạn gái" in full_text
+
+    # 2. Dẫn dắt tiếp luồng đặt bàn một cách lịch sự, tự nhiên
+    assert "mấy giờ" in full_text
+    assert "bao nhiêu người" in full_text
+    assert "Để Aria giữ chỗ tốt nhất" in full_text
+
+    # 3. State phải lưu lại ngày mai và yêu cầu đặc biệt tiệc sinh nhật
+    st = await get_state(session_id)
+    assert st["slots"]["date"] is not None
+    assert st["slots"]["special_requests"] is not None
+
+
+@pytest.mark.asyncio
+async def test_tc_lv10_02_birthday_inquiry_detection():
+    """Kiểm tra IntentClassifier.detect_inquiry nhận diện đúng câu hỏi sinh nhật/bánh kem trong cả câu đơn và câu ghép."""
+    from tools.intent_classifier import IntentClassifier
+
+    q1 = "Tối mai mình đặt bàn tổ chức sinh nhật cho bạn gái, quán có hỗ trợ trang trí và giữ lạnh bánh kem không?"
+    inq1 = IntentClassifier.detect_inquiry(q1)
+    assert inq1 is not None
+    assert inq1["type"] == "policy"
+    assert inq1["sub_intent"] == "birthday_policy"
+
+    q2 = "Quán có tủ lạnh bảo quản bánh kem không bạn?"
+    inq2 = IntentClassifier.detect_inquiry(q2)
+    assert inq2 is not None
+    assert inq2["sub_intent"] == "birthday_policy"
+
+    q3 = "Nhà hàng có nhận trang trí tiệc sinh nhật không?"
+    inq3 = IntentClassifier.detect_inquiry(q3)
+    assert inq3 is not None
+    assert inq3["sub_intent"] == "birthday_policy"
+
+
+@pytest.mark.asyncio
+async def test_tc_lv10_03_takeaway_order_pipeline():
+    """
+    Test Case TC-LV10-03: Khách hỏi dịch vụ mua mang về và đặt mang về (Takeaway Order).
+    Câu thoại: 'Nhà hàng có bán mang về không? Mình muốn ghé lấy 2 phần Bún Bò Huế'
+    Kỳ vọng:
+    1. Xác nhận rõ ràng chính sách đóng gói mang về của nhà hàng:
+       'Dạ nhà hàng có phục vụ mua mang về (đóng hộp giữ nhiệt cẩn thận) ạ!'
+    2. Tiếp nhận đơn hàng 2 phần Bún Bò Huế (tổng 140.000đ) và hỏi giờ ghé lấy:
+       'Aria xin ghi nhận 2 phần Bún Bò Huế (tổng 140.000đ). Bạn dự kiến khoảng mấy giờ ghé lấy để bếp chuẩn bị nóng hổi sẵn sàng ạ?'
+    3. Trả về món Bún Bò Huế (quantity: 2) trong suggestedItems của event done.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-takeaway-{uuid.uuid4().hex[:8]}"
+
+    msg = "Nhà hàng có bán mang về không? Mình muốn ghé lấy 2 phần Bún Bò Huế"
+    chunks = []
+    async for sse in pipeline.process(msg, session_id=session_id):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # 1. Xác nhận chính sách mang về
+    assert "Dạ nhà hàng có phục vụ mua mang về (đóng hộp giữ nhiệt cẩn thận) ạ!" in full_text
+
+    # 2. Bóc tách đúng 2 phần Bún Bò Huế và tính tổng tiền
+    assert "2 phần Bún Bò Huế" in full_text
+    assert "140.000đ" in full_text
+    assert "Bạn dự kiến khoảng mấy giờ ghé lấy" in full_text
+
+    # 3. Kiểm tra event done có suggestedItems
+    done_payload = None
+    for c in chunks:
+        for line in c.split("\n"):
+            if line.startswith("data: "):
+                try:
+                    payload = json.loads(line[6:])
+                    if payload.get("type") == "done":
+                        done_payload = payload
+                        break
+                except Exception:
+                    pass
+
+    assert done_payload is not None
+    suggested = done_payload.get("suggestedItems", [])
+    assert len(suggested) >= 1
+    assert any(it.get("name") == "Bún Bò Huế" and it.get("quantity") == 2 for it in suggested)
+
+
+def test_tc_lv10_03_takeaway_tools_unit():
+    """Kiểm tra các hàm tiện ích bóc tách đơn mang về trong takeaway_tools.py."""
+    from tools.takeaway_tools import (
+        is_takeaway_message,
+        extract_takeaway_items,
+        format_takeaway_response,
+    )
+
+    # 1. Nhận diện từ khóa mang về
+    assert is_takeaway_message("Nhà hàng có bán mang về không?") is True
+    assert is_takeaway_message("Mình muốn ghé lấy 2 phần Bún Bò Huế") is True
+    assert is_takeaway_message("Cho em đóng gói đem về 1 tô phở") is True
+    assert is_takeaway_message("Đặt bàn 4 người tối nay lúc 19h") is False
+
+    # 2. Bóc tách món và số lượng
+    mock_menu = [
+        {"id": "bun-bo-1", "name": "Bún Bò Huế", "price": 70000},
+        {"id": "pho-bo-1", "name": "Phở Bò Tái", "price": 65000},
+    ]
+
+    items = extract_takeaway_items("Mình muốn ghé lấy 2 phần Bún Bò Huế", mock_menu)
+    assert len(items) == 1
+    assert items[0]["name"] == "Bún Bò Huế"
+    assert items[0]["quantity"] == 2
+    assert items[0]["total_price"] == 140000.0
+
+    items_text_num = extract_takeaway_items("Cho mình mang về ba phần Phở Bò Tái nhé", mock_menu)
+    assert len(items_text_num) == 1
+    assert items_text_num[0]["name"] == "Phở Bò Tái"
+    assert items_text_num[0]["quantity"] == 3
+    assert items_text_num[0]["total_price"] == 195000.0
+
+    # 3. Format phản hồi
+    resp = format_takeaway_response(items)
+    assert "Dạ nhà hàng có phục vụ mua mang về (đóng hộp giữ nhiệt cẩn thận) ạ!" in resp
+    assert "2 phần Bún Bò Huế (tổng 140.000đ)" in resp
+    assert "Bạn dự kiến khoảng mấy giờ ghé lấy" in resp
+
+
+@pytest.mark.asyncio
+async def test_tc_lv10_04_vat_invoice_pipeline():
+    """
+    Test Case TC-LV10-04: Khách doanh nghiệp hỏi thủ tục xuất hóa đơn tài chính VAT (đỏ).
+    Câu thoại: 'Công ty mình đi ăn có xuất được hóa đơn đỏ VAT không, cần cung cấp thông tin gì?'
+    Kỳ vọng:
+    1. Nhận diện đúng intent vat_invoice_inquiry / chính sách hóa đơn VAT.
+    2. Phản hồi hướng dẫn chi tiết theo quy định:
+       - 'Dạ nhà hàng có xuất hóa đơn GTGT (VAT) điện tử đầy đủ theo quy định ạ!'
+       - 'Tên công ty, Mã số thuế (MST), Địa chỉ công ty và Email nhận hóa đơn điện tử cho thu ngân/Aria nhé!'
+    3. Không bị nhầm lẫn sang gợi ý món ăn (Bún Bò Huế) hay fallback ẩm thực.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-vat-{uuid.uuid4().hex[:8]}"
+
+    msg = "Công ty mình đi ăn có xuất được hóa đơn đỏ VAT không, cần cung cấp thông tin gì?"
+    chunks = []
+    async for sse in pipeline.process(msg, session_id=session_id):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # 1. Phản hồi hướng dẫn xuất hóa đơn VAT đầy đủ
+    assert "xuất hóa đơn GTGT (VAT) điện tử" in full_text
+    assert "Mã số thuế (MST)" in full_text
+    assert "Email nhận hóa đơn điện tử" in full_text
+
+    # 2. Tuyệt đối không trả lời gợi ý món ăn (Bún Bò Huế)
+    assert "Bún Bò Huế" not in full_text
+    assert "gợi ý" not in full_text
+
+    # 3. Không có suggestedItems trong done event
+    done_payload = None
+    for c in chunks:
+        for line in c.split("\n"):
+            if line.startswith("data: "):
+                try:
+                    payload = json.loads(line[6:])
+                    if payload.get("type") == "done":
+                        done_payload = payload
+                        break
+                except Exception:
+                    pass
+
+    assert done_payload is not None
+    assert len(done_payload.get("suggestedItems", [])) == 0
+
+
+@pytest.mark.asyncio
+async def test_tc_lv10_04_vat_invoice_compound_pipeline():
+    """
+    Test Case TC-LV10-04 (Mở rộng): Khách vừa đặt bàn 10 người cho công ty vừa hỏi hóa đơn VAT.
+    Aria phải trả lời chính sách VAT trước, tiếp tục luồng đặt bàn và lưu special_requests.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-vat-compound-{uuid.uuid4().hex[:8]}"
+
+    msg = "Tối mai mình đặt bàn cho 10 người công ty, quán có xuất hóa đơn đỏ VAT không, cần thông tin gì?"
+    chunks = []
+    async for sse in pipeline.process(msg, session_id=session_id):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # 1. Giải đáp hóa đơn VAT
+    assert "xuất hóa đơn GTGT (VAT) điện tử" in full_text
+    assert "Mã số thuế (MST)" in full_text
+
+    # 2. Tiếp tục hỏi giờ đặt bàn và lưu ý cọc 10 người
+    assert "mấy giờ" in full_text
+    assert "đặt cọc 50.000đ/người" in full_text
+
+    # 3. State đã lưu đúng slots và special_requests
+    st = await get_state(session_id)
+    assert st["slots"]["date"] is not None
+    assert st["slots"]["guests"] == 10
+    assert "xuất hóa đơn đỏ VAT" in (st["slots"]["special_requests"] or "")
+
+
+def test_tc_lv10_04_vat_invoice_intent_classification():
+    """Kiểm tra IntentClassifier nhận diện chính xác intent xuất hóa đơn tài chính VAT."""
+    from tools.intent_classifier import (
+        IntentClassifier,
+        IntentType,
+        is_vat_inquiry,
+        is_policy_inquiry,
+    )
+
+    queries = [
+        "Công ty mình đi ăn có xuất được hóa đơn đỏ VAT không, cần cung cấp thông tin gì?",
+        "Bên mình muốn xuất hóa đơn công ty cần mã số thuế không?",
+        "Cho mình hỏi xuất hóa đơn tài chính cần thông tin gì?",
+        "Quán có xuất hóa đơn đỏ không?",
+        "Nhà hàng có hỗ trợ xuất hóa đơn GTGT điện tử không?",
+        "Xuất hóa đơn đỏ thì cần MST và địa chỉ công ty gửi cho ai?",
+    ]
+
+    for q in queries:
+        cls_res = IntentClassifier.classify(q)
+        assert cls_res["intent"] == IntentType.VAT_INVOICE_INQUIRY.value, f"Failed for {q}"
+        assert cls_res["sub_intent"] == "vat_invoice_policy", f"Failed sub_intent for {q}"
+
+        inq = IntentClassifier.detect_inquiry(q)
+        assert inq is not None, f"Failed detect_inquiry for {q}"
+        assert inq["type"] == "policy"
+        assert inq["sub_intent"] == "vat_invoice_policy"
+
+        assert is_vat_inquiry(q) is True
+
+        is_pol, sub_pol = is_policy_inquiry(q)
+        assert is_pol is True
+        assert sub_pol == "vat_invoice_policy"
+
+    # Không bị nhầm câu đặt bàn thông thường
+    assert is_vat_inquiry("Đặt bàn 4 người tối nay lúc 19h") is False
+    assert is_vat_inquiry("Quán có món gì ngon?") is False
+
+
 
 

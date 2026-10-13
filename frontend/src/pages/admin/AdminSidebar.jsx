@@ -1,14 +1,48 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import api from '../../services/api';
+import { useSocket } from '../../contexts/SocketContext';
 
 const AdminSidebar = () => {
     const { logout } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [escalationCount, setEscalationCount] = useState(0);
+    const socket = useSocket();
     const { t, i18n } = useTranslation();
+
+    const fetchEscalationCount = useCallback(async () => {
+        try {
+            const res = await api.get('/api/reservations/escalations');
+            setEscalationCount(res.data.count || res.data.data?.length || 0);
+        } catch (_) {}
+    }, []);
+
+    useEffect(() => {
+        fetchEscalationCount();
+    }, [fetchEscalationCount, location.pathname]);
+
+    useEffect(() => {
+        if (!socket) return;
+        socket.emit('join_room', 'admin');
+
+        const handleUpdate = () => {
+            fetchEscalationCount();
+        };
+
+        socket.on('large_group_escalation', handleUpdate);
+        socket.on('new_reservation', handleUpdate);
+        socket.on('ai_handoff_alert', handleUpdate);
+
+        return () => {
+            socket.off('large_group_escalation', handleUpdate);
+            socket.off('new_reservation', handleUpdate);
+            socket.off('ai_handoff_alert', handleUpdate);
+        };
+    }, [socket, fetchEscalationCount]);
 
     const toggleLanguage = () => {
         const newLang = i18n.language === 'vi' ? 'en' : 'vi';
@@ -110,7 +144,14 @@ const AdminSidebar = () => {
 
                     {/* Phase 5: Đặt bàn & Ca làm việc */}
                     <Link to="/admin/reservations" className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium text-sm ${location.pathname === '/admin/reservations' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-600'}`}>
-                        <span className="material-symbols-outlined mr-3 text-[22px]">event_seat</span> {t('admin.reservations')}
+                        <span className="material-symbols-outlined mr-3 text-[22px]">event_seat</span>
+                        <span className="flex-1">{t('admin.reservations')}</span>
+                        {escalationCount > 0 && (
+                            <span className="ml-auto bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse flex items-center gap-0.5" title="Yêu cầu đặt bàn đoàn từ Aria">
+                                <span className="material-symbols-outlined text-[14px]">priority_high</span>
+                                {escalationCount}
+                            </span>
+                        )}
                     </Link>
                     <Link to="/admin/shifts" className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium text-sm ${location.pathname === '/admin/shifts' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-600'}`}>
                         <span className="material-symbols-outlined mr-3 text-[22px]">schedule</span> {t('admin.shifts')}

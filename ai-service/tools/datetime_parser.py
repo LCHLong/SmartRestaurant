@@ -243,15 +243,60 @@ def validate_reservation_time(
 
     now = now_vn()
 
-    # 1. Kiểm tra ngày/giờ quá khứ
+    # 1. Tính toán khung giờ mở cửa / đón khách để dùng cho thông báo lỗi
+    open_str = open_time or "08:00"
+    close_str = close_time or "22:00"
+    try:
+        o_h, o_m = map(int, open_str.split(":"))
+        c_h, c_m = map(int, close_str.split(":"))
+        open_mins = o_h * 60 + o_m
+        close_mins = c_h * 60 + c_m
+        last_seating_mins = max(open_mins, close_mins - 30)
+        last_seating_str = f"{last_seating_mins // 60:02d}:{last_seating_mins % 60:02d}"
+    except Exception:
+        last_seating_str = "21:30"
+
+    # 2. Kiểm tra ngày/giờ quá khứ
+    is_past = False
+    is_same_day_past = False
+
     if dt_requested <= now:
+        is_past = True
+        if dt_requested.date() == now.date():
+            is_same_day_past = True
+    elif now.hour < 6 and dt_requested.date() == now.date() and dt_requested.hour >= 6:
+        # Trường hợp nửa đêm (00:00 - 05:59): theo góc nhìn ngày kinh doanh / sinh hoạt,
+        # các mốc giờ ban ngày (VD: 08:00 sáng hôm nay) là mốc đã trôi qua 16+ tiếng trước (TC-LV6-01).
+        is_past = True
+        is_same_day_past = True
+
+    if is_past:
+        if is_same_day_past:
+            req_h = dt_requested.hour
+            if 1 <= req_h < 11:
+                session_name = "sáng"
+            elif 11 <= req_h < 13:
+                session_name = "trưa"
+            elif 13 <= req_h < 18:
+                session_name = "chiều"
+            else:
+                session_name = "tối"
+            time_display = f"{time_str} {session_name}".strip()
+
+            return (
+                False,
+                "PAST_TIME",
+                f"Dạ, mốc thời gian {time_display} hôm nay đã trôi qua rồi ạ. "
+                f"Quý khách vui lòng chọn một khung giờ sắp tới trong ngày (từ {open_str} đến {last_seating_str}) "
+                f"hoặc đặt cho ngày mai giúp Aria nhé!"
+            )
         return (
             False,
             "PAST_TIME",
             f"Thời gian {date_str} lúc {time_str} đã qua rồi. Bạn vui lòng chọn một mốc thời gian trong tương lai nhé!"
         )
 
-    # 2. Giới hạn tối đa 30 ngày (Proposal T19)
+    # 3. Giới hạn tối đa 30 ngày (Proposal T19)
     days_diff = (dt_requested.date() - now.date()).days
     if days_diff > 30:
         return (
@@ -260,7 +305,7 @@ def validate_reservation_time(
             f"Nhà hàng chỉ nhận đặt bàn trước tối đa trong vòng 30 ngày (đến ngày {(now.date() + timedelta(days=30)).strftime('%d/%m/%Y')}) ạ."
         )
 
-    # 3. Kiểm tra giờ đón khách theo cấu hình động
+    # 4. Kiểm tra giờ đón khách theo cấu hình động
     req_time_mins = dt_requested.hour * 60 + dt_requested.minute
 
     # Nếu có cấu hình theo ca cụ thể (operating_shifts)

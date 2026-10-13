@@ -27,7 +27,7 @@ function extractDishesFromMarkdown(text) {
 // Mini card cho món được gợi ý
 function SuggestedItemCard({ item, onAdd }) {
   return (
-    <div className="flex items-center gap-2 bg-white/80 border border-orange-100 rounded-xl p-2 mt-2 shadow-sm">
+    <div className="flex items-center gap-2.5 bg-white/90 border border-orange-100 rounded-xl p-2.5 mt-2 shadow-xs hover:border-orange-200 hover:shadow-sm transition-all">
       {item.image_url && (
         <img
           src={item.image_url}
@@ -44,10 +44,11 @@ function SuggestedItemCard({ item, onAdd }) {
       </div>
       <button
         onClick={() => onAdd(item)}
-        className="flex-shrink-0 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-lg px-2 py-1.5 text-xs font-semibold transition-all duration-150 flex items-center gap-1"
+        className="flex-shrink-0 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 flex items-center gap-1 cursor-pointer"
         aria-label={`Thêm ${item.name} vào giỏ`}
       >
         <span className="material-symbols-outlined text-sm">add</span>
+        <span className="hidden sm:inline">Thêm</span>
       </button>
     </div>
   );

@@ -1,7 +1,9 @@
 import { Link, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import api from '../services/api';
+import { useSocket } from '../contexts/SocketContext';
 
 const WaiterSidebar = () => {
     const { logout } = useAuth();
@@ -9,6 +11,38 @@ const WaiterSidebar = () => {
     const location = useLocation();
     const { t, i18n } = useTranslation();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [escalationCount, setEscalationCount] = useState(0);
+    const socket = useSocket();
+
+    const fetchEscalationCount = useCallback(async () => {
+        try {
+            const res = await api.get('/api/reservations/escalations');
+            setEscalationCount(res.data.count || res.data.data?.length || 0);
+        } catch (_) {}
+    }, []);
+
+    useEffect(() => {
+        fetchEscalationCount();
+    }, [fetchEscalationCount, location.pathname]);
+
+    useEffect(() => {
+        if (!socket) return;
+        socket.emit('join_room', 'waiter');
+
+        const handleUpdate = () => {
+            fetchEscalationCount();
+        };
+
+        socket.on('large_group_escalation', handleUpdate);
+        socket.on('new_reservation', handleUpdate);
+        socket.on('ai_handoff_alert', handleUpdate);
+
+        return () => {
+            socket.off('large_group_escalation', handleUpdate);
+            socket.off('new_reservation', handleUpdate);
+            socket.off('ai_handoff_alert', handleUpdate);
+        };
+    }, [socket, fetchEscalationCount]);
 
     const handleLogout = () => {
         if (window.confirm(t('common.logout_confirm'))) {
@@ -74,7 +108,14 @@ const WaiterSidebar = () => {
                         <span className="material-symbols-outlined mr-3 text-[22px]">list_alt</span> {t('waiter.order_list')}
                     </Link>
                     <Link to="/waiter/map" className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium text-sm ${location.pathname === '/waiter/map' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-600'}`}>
-                        <span className="material-symbols-outlined mr-3 text-[22px]">table_restaurant</span> {t('waiter.table_map')}
+                        <span className="material-symbols-outlined mr-3 text-[22px]">table_restaurant</span>
+                        <span className="flex-1">{t('waiter.table_map')}</span>
+                        {escalationCount > 0 && (
+                            <span className="ml-auto bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse flex items-center gap-0.5" title="Yêu cầu đặt bàn đoàn từ Aria">
+                                <span className="material-symbols-outlined text-[14px]">priority_high</span>
+                                {escalationCount}
+                            </span>
+                        )}
                     </Link>
                     {/* Phase 5: Lịch trực */}
                     <Link to="/waiter/shifts" className={`flex items-center px-4 py-3 rounded-xl transition-all font-medium text-sm ${location.pathname === '/waiter/shifts' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-700 hover:bg-emerald-50 hover:text-emerald-600'}`}>

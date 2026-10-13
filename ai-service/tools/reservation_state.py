@@ -134,9 +134,10 @@ async def clear_state(session_id: str) -> None:
 
 
 def is_slots_complete(state: Dict[str, Any]) -> bool:
-    """Kiểm tra xem đã đủ 3 slot cốt lõi (date, time, guests) để check availability chưa."""
+    """Kiểm tra xem đã đủ 3 slot cốt lõi (date, time, guests >= 1) để check availability chưa."""
     slots = state.get("slots", {})
-    return bool(slots.get("date") and slots.get("time") and slots.get("guests"))
+    guests = slots.get("guests")
+    return bool(slots.get("date") and slots.get("time") and guests and isinstance(guests, int) and guests > 0)
 
 
 def is_guest_info_complete(state: Dict[str, Any]) -> bool:

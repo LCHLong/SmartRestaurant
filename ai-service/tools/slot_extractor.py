@@ -11,10 +11,31 @@ Trích xuất thực thể (slots) đặt bàn từ câu thoại của người 
 
 import re
 from typing import Optional, Dict, Any, Tuple
-from tools.datetime_parser import parse_date, parse_time
+from tools.datetime_parser import parse_date, parse_time, validate_reservation_time
+from tools.recommendation_engine import detect_urgency
+try:
+    from tools.intent_classifier import IntentClassifier
+except ImportError:
+    from .intent_classifier import IntentClassifier
 
+
+VN_MOBILE_PREFIXES = ('03', '05', '07', '08', '09')
 VN_PHONE_REGEX = re.compile(r'(?:\+84[\s.-]?|0)[35789](?:[\s.-]?\d){8}\b')
 LANDLINE_PHONE_REGEX = re.compile(r'(?:\+84[\s.-]?|0)2(?:[\s.-]?\d){9}\b')
+
+
+def is_valid_vn_phone(phone: Optional[str]) -> bool:
+    """
+    Kiểm tra số điện thoại di động Việt Nam hợp lệ:
+    - Đúng chuẩn 10 chữ số
+    - Bắt đầu bằng một trong các đầu số hợp lệ: 03, 05, 07, 08, 09
+    """
+    if not phone or not isinstance(phone, str):
+        return False
+    digits = re.sub(r'[\s.-]', '', phone.strip())
+    if digits.startswith("+84"):
+        digits = "0" + digits[3:]
+    return bool(re.match(r'^0[35789]\d{8}$', digits))
 
 
 def extract_phone(text: str) -> Tuple[Optional[str], Optional[str]]:
@@ -23,28 +44,37 @@ def extract_phone(text: str) -> Tuple[Optional[str], Optional[str]]:
     Returns:
         (phone_normalized, warning_message)
     """
-    # Kiểm tra số bàn cố định
+    # 1. Kiểm tra số máy bàn cố định
     if LANDLINE_PHONE_REGEX.search(text):
         return None, "Số bạn vừa nhập là số máy bàn cố định. Nhà hàng cần số điện thoại di động 10 số (bắt đầu bằng 03, 05, 07, 08, 09) để gửi tin nhắn xác nhận qua SMS/Zalo ạ."
 
+    # 2. Tìm số điện thoại di động 10 số hợp lệ
     m = VN_PHONE_REGEX.search(text)
     if m:
         phone_raw = m.group(0)
         digits = re.sub(r'[\s.-]', '', phone_raw)
         if digits.startswith("+84"):
             digits = "0" + digits[3:]
-        if len(digits) == 10:
+        if is_valid_vn_phone(digits):
             return digits, None
 
-    # Tìm chuỗi số bất thường nếu người dùng nhập số điện thoại sai định dạng (VD: 123456)
-    number_sequences = re.findall(r'\b\d{5,15}\b', text)
-    if number_sequences:
-        for candidate in number_sequences:
-            if candidate in ("2025", "2026", "2027", "2028"):
+    # 3. Tìm chuỗi số bất thường hoặc số điện thoại bị thiếu/thừa số (VD: 0987321, 123456)
+    potential_phone_patterns = [
+        r'\b(?:\+84|0)(?:[\s.-]?\d){4,13}\b',
+        r'\b\d{5,15}\b'
+    ]
+    for pat in potential_phone_patterns:
+        matches = re.findall(pat, text)
+        for candidate in matches:
+            cand_digits = re.sub(r'[\s.-]', '', candidate)
+            if cand_digits.startswith("+84"):
+                cand_digits = "0" + cand_digits[3:]
+            if cand_digits in ("2025", "2026", "2027", "2028"):
                 continue
-            if 1 <= int(candidate) <= 50:
+            if 1 <= len(cand_digits) <= 2 and 1 <= int(cand_digits) <= 50:
                 continue
-            return None, "Số điện thoại chưa đúng định dạng di động 10 số của Việt Nam (VD: 0912345678). Bạn nhập lại giúp Aria nhé!"
+            if not is_valid_vn_phone(cand_digits):
+                return None, "Số điện thoại chưa đúng định dạng di động 10 số của Việt Nam (VD: 0912345678). Bạn nhập lại giúp Aria nhé!"
 
     return None, None
 
@@ -53,31 +83,97 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
     """
     Trích xuất số lượng khách.
     Hỗ trợ trường hợp: "2 người lớn và 1 trẻ em" -> tổng 3 khách, ghi chú "1 trẻ em".
-    Hỗ trợ câu trả lời ngắn: "2", "4", "4 ng", "4 người", "đi 4"...
+    Hỗ trợ khoảng: "3-4 người", "4-6 khách" -> cận trên để đảm bảo xếp bàn vừa vặn.
+    Hỗ trợ câu trả lời ngắn: "2", "4", "4 ng", "4 người", "đi 4", "-2", "0"...
+    Hỗ trợ phát hiện số khách âm hoặc bằng 0 (<= 0) để hệ thống cảnh báo và từ chối.
     
     Returns:
         (total_guests: int or None, note: str or None)
     """
     text_lower = text.lower().strip()
 
-    # Trường hợp: X người lớn và Y trẻ em / em bé / bé / nhỏ
-    adult_child_pattern = r'(\d+)\s*(?:người\s*lớn|lớn).*?(?:và|\+|,)?\s*(\d+)\s*(?:trẻ\s*em|em\s*bé|bé|nhỏ)'
+    # 1. Trường hợp: X người lớn và Y trẻ em / em bé / bé / nhỏ
+    adult_child_pattern = r'([-–—]?\d+)\s*(?:người\s*lớn|lớn).*?(?:và|\+|,)?\s*([-–—]?\d+)\s*(?:trẻ\s*em|em\s*bé|bé|nhỏ)'
     m_combo = re.search(adult_child_pattern, text_lower)
     if m_combo:
-        adults = int(m_combo.group(1))
-        children = int(m_combo.group(2))
+        adults = int(m_combo.group(1).replace('–', '-').replace('—', '-'))
+        children = int(m_combo.group(2).replace('–', '-').replace('—', '-'))
         total = adults + children
         note = f"{children} trẻ em"
         return total, note
 
-    # Trường hợp câu trả lời chỉ có số (hoặc số kèm từ phụ nhẹ): "2", "4", "4 ng", "khoảng 4", "tầm 4"
+    # 2. Trường hợp khoảng số lượng khách: "3-4 người", "3 - 5 khách" -> lấy cận trên để xếp bàn đủ chỗ
+    range_pattern = r'(\d+)\s*[-–—]\s*(\d+)\s*(?:người|khách|pax|chỗ|suất|bạn|ng)'
+    m_range = re.search(range_pattern, text_lower)
+    if m_range:
+        low = int(m_range.group(1))
+        high = int(m_range.group(2))
+        val = max(low, high)
+        if 1 <= val <= 100:
+            return val, None
+
+    # 3. Trường hợp số âm độc lập: "-2", "-2 người", "-5 khách", "–3"
+    m_single_neg = re.search(r'^(?:dạ|khoảng|tầm|đi|đặt|cho)?\s*[-–—]\s*(\d{1,2})\s*(?:người|khách|pax|chỗ|bạn|ng|ạ|nhe|nhé|nha)?$', text_lower)
+    if m_single_neg:
+        return -int(m_single_neg.group(1)), None
+
+    # 4. Trường hợp số 0 độc lập: "0", "0 người", "0 khách", "không ai"
+    m_single_zero = re.search(r'^(?:dạ|khoảng|tầm|đi|đặt|cho)?\s*0\s*(?:người|khách|pax|chỗ|bạn|ng|ạ|nhe|nhé|nha)?$', text_lower)
+    if m_single_zero:
+        return 0, None
+    if re.search(r'^(?:dạ\s*)?không\s*(?:có\s*)?(?:ai|người\s*nào)$', text_lower):
+        return 0, None
+
+    # 5. Các mẫu số khách âm trong câu: "-2 người", "cho -2 khách", "bàn -3 chỗ"...
+    neg_patterns = [
+        r'(?:^|[^\d])[-–—]\s*(\d+)\s*(?:người|khách|pax|chỗ|suất|bạn|ng|thành\s*viên|đứa)',
+        r'bàn\s*[-–—]\s*(\d+)',
+        r'nhóm\s*(?:có\s*)?[-–—]\s*(\d+)',
+        r'đi\s*[-–—]\s*(\d+)',
+        r'([-–—]\s*\d+)\s*(?:người\s*lớn|lớn)',
+    ]
+    for pat in neg_patterns:
+        m = re.search(pat, text_lower)
+        if m:
+            raw_val = m.group(1).replace(' ', '').replace('–', '-').replace('—', '-')
+            if raw_val.startswith('-'):
+                return int(raw_val), None
+            return -int(raw_val), None
+
+    # 6. Các mẫu số khách bằng 0 trong câu: "0 người", "cho 0 khách", "không người", "bàn 0 người"...
+    zero_patterns = [
+        r'(?:^|[^\d])0\s*(?:người|khách|pax|chỗ|suất|bạn|ng|thành\s*viên|đứa)',
+        r'bàn\s*0\s*(?:người|khách|chỗ)?',
+        r'nhóm\s*(?:có\s*)?0',
+        r'đi\s*0\s*(?:người|khách)?',
+        r'(?:^|[^\d])không\s+(?:người|khách)',
+    ]
+    for pat in zero_patterns:
+        m = re.search(pat, text_lower)
+        if m:
+            return 0, None
+
+    # 7. Trường hợp câu trả lời chỉ có số dương: "2", "4", "4 ng", "khoảng 4", "tầm 4"
     single_num = re.search(r'^(?:dạ|khoảng|tầm|đi|đặt|cho)?\s*(\d{1,2})\s*(?:người|khách|pax|chỗ|bạn|ng|ạ|nhe|nhé|nha)?$', text_lower)
     if single_num:
         val = int(single_num.group(1))
         if 1 <= val <= 100:
             return val, None
 
-    # Các mẫu số lượng khách thông thường
+    # 7.1 Trường hợp chia bàn: "cho 8 người chia làm 2 bàn 4 người" hoặc "chia làm 2 bàn 4 người"
+    total_split_m = re.search(r'(\d+)\s*(?:người|khách|pax)\s*.*?(?:chia|tách)\s*(?:làm|thành)?\s*(\d+)\s*bàn', text_lower)
+    if total_split_m:
+        val = int(total_split_m.group(1))
+        if 1 <= val <= 100:
+            return val, None
+
+    split_table_m = re.search(r'(?:chia|tách)\s*(?:làm|thành)?\s*(\d+)\s*bàn(?:\s*(?:mỗi\s*bàn\s*)?(\d+)\s*(?:người|khách))', text_lower)
+    if split_table_m:
+        val = int(split_table_m.group(1)) * int(split_table_m.group(2))
+        if 1 <= val <= 100:
+            return val, None
+
+    # 8. Các mẫu số lượng khách thông thường
     patterns = [
         r'(\d+)\s*(?:người|khách|pax|chỗ|suất|bạn|ng|thành\s*viên|đứa)',
         r'bàn\s*(\d+)\s*(?:người|khách|chỗ)?',
@@ -93,7 +189,7 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
             if 1 <= val <= 100:
                 return val, None
 
-    # Mẫu đổi ý: "đi X người thôi", "đổi thành X người"
+    # 9. Mẫu đổi ý: "đi X người thôi", "đổi thành X người"
     correction_patterns = [
         r'(?:đi|thành|đổi\s*thành|thôi|chỉ)\s*(\d+)\s*(?:người|khách)?',
     ]
@@ -108,37 +204,90 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
 
 
 def extract_special_requests(text: str) -> list[str]:
-    """Trích xuất yêu cầu đặc biệt về chỗ ngồi, tiện ích."""
+    """Trích xuất yêu cầu đặc biệt về chỗ ngồi, tiện ích, sắp xếp bàn."""
     text_lower = text.lower()
     requests = []
 
+    # 1. Bố trí & sắp xếp bàn (chia bàn, tách bàn, số lượng bàn, ngồi cạnh nhau)
+    split_pattern = r'(?:muốn|cần|xin|hãy)?\s*(chia|tách)\s*(?:làm|thành)?\s*(\d+)\s*bàn(?:\s*(?:mỗi\s*bàn\s*)?(\d+)\s*(?:người|khách|chỗ))?(?:\s*(?:ngồi\s*)?(cạnh|gần|sát)\s*nhau)?'
+    m_split = re.search(split_pattern, text_lower)
+    if m_split:
+        action = m_split.group(1)
+        tables = m_split.group(2)
+        people = m_split.group(3)
+        near = m_split.group(4)
+        parts = [f"{action} {tables} bàn"]
+        if people:
+            parts.append(f"{people} người")
+        if near:
+            parts.append(f"ngồi {near} nhau")
+        requests.append(" ".join(parts))
+
+    # 2. Mẫu ghép bàn / kê bàn / xếp bàn (VD: ghép 2 bàn cạnh nhau, ghép bàn...)
+    join_pattern = r'(?:muốn|cần|xin|hãy)?\s*(ghép|kê|xếp)\s*(?:lại)?\s*(\d+)?\s*bàn(?:\s*(?:ngồi\s*)?(cạnh|gần|sát)\s*nhau)?'
+    m_join = re.search(join_pattern, text_lower)
+    if m_join and not m_split:
+        action = m_join.group(1)
+        tables = m_join.group(2)
+        near = m_join.group(3)
+        table_str = f"{tables} bàn" if tables else "bàn"
+        near_str = f"ngồi {near} nhau" if near else ""
+        requests.append(f"{action} {table_str} {near_str}".strip())
+
+    # 3. Yêu cầu ngồi cạnh nhau / gần nhau / bàn cạnh nhau đơn lẻ
+    if not any("cạnh nhau" in r or "gần nhau" in r or "sát nhau" in r for r in requests):
+        if "2 bàn cạnh nhau" in text_lower or "hai bàn cạnh nhau" in text_lower:
+            requests.append("2 bàn cạnh nhau")
+        elif "ngồi cạnh nhau" in text_lower or "bàn cạnh nhau" in text_lower:
+            requests.append("ngồi cạnh nhau")
+        elif "ngồi gần nhau" in text_lower or "bàn gần nhau" in text_lower:
+            requests.append("ngồi gần nhau")
+        elif "kê sát nhau" in text_lower or "sát nhau" in text_lower:
+            requests.append("kê sát nhau")
+
+    # 4. Khu vực trong nhà / ngoài trời / ban công
     if "ngoài trời" in text_lower or "outdoor" in text_lower or "thoáng" in text_lower:
         requests.append("khu vực ngoài trời")
+    elif "ban công" in text_lower or "rooftop" in text_lower or "sân thượng" in text_lower:
+        requests.append("khu vực ban công / sân thượng")
     elif "trong nhà" in text_lower or "phòng lạnh" in text_lower or "máy lạnh" in text_lower:
         requests.append("khu vực trong nhà")
 
+    # 5. Ghế trẻ em
     if "ghế trẻ em" in text_lower or "ghế ăn dặm" in text_lower or "ghế cho bé" in text_lower:
         requests.append("ghế trẻ em")
 
+    # 6. Cửa sổ / view
     if "cửa sổ" in text_lower or "view đẹp" in text_lower or "gần cửa sổ" in text_lower:
         requests.append("gần cửa sổ")
 
+    # 7. Yên tĩnh / riêng tư
     if "yên tĩnh" in text_lower or "riêng tư" in text_lower:
         requests.append("chỗ yên tĩnh")
 
+    # 8. Sinh nhật / kỷ niệm
     if "sinh nhật" in text_lower or "birthday" in text_lower:
         requests.append("tiệc sinh nhật")
 
     if "kỷ niệm" in text_lower or "anniversary" in text_lower:
         requests.append("kỷ niệm")
 
+    # 9. Phòng riêng / VIP
     if "phòng riêng" in text_lower or "phòng vip" in text_lower:
         requests.append("phòng riêng")
 
+    # 10. Cảnh báo dị ứng
     if "dị ứng" in text_lower:
         m = re.search(r'dị ứng\s*([^,\.\n]+)', text_lower)
         if m:
             requests.append(f"dị ứng: {m.group(1).strip()}")
+
+    # 11. Yêu cầu xuất hóa đơn VAT / công ty
+    if any(k in text_lower for k in [
+        "hóa đơn đỏ", "hoá đơn đỏ", "hóa đơn vat", "hoá đơn vat", "xuất vat", "xuất hóa đơn", "xuất hoá đơn",
+        "hóa đơn gtgt", "hoá đơn gtgt", "mã số thuế", "mst", "hóa đơn công ty", "hoá đơn công ty"
+    ]):
+        requests.append("xuất hóa đơn đỏ VAT")
 
     return requests
 
@@ -189,6 +338,13 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
             if name:
                 return name
 
+    # Mẫu họ tên đứng đầu câu trước dấu phẩy và SĐT/email (VD: "Lê Chí Hoàng Long, 0987654321...")
+    leading_match = re.match(r'^\s*([A-ZÀ-Ỹa-zà-ỹ\s]{2,30})\s*,\s*(?:\+84|0|\d)', text)
+    if leading_match:
+        leading_cand = _sanitize(leading_match.group(1))
+        if leading_cand and not any(w.lower() in ("đặt", "bàn", "cho", "mình", "tôi", "ngày", "lúc", "giờ", "quán") for w in leading_cand.split()):
+            return leading_cand
+
     # Nếu đang thiếu tên và câu thoại ngắn (1-4 từ), không chứa các từ khoá ngày/giờ/đặt bàn/món ăn
     slots = current_state.get("slots", {})
     if not slots.get("customer_name") and not current_state.get("user_info", {}).get("is_logged_in"):
@@ -196,8 +352,8 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
             return None
 
         # Loại bỏ cụm từ chỉ số lượng khách trước khi trích xuất tên ngắn (hỗ trợ "4 người, Hùng", "Hùng 4 người")
-        text_without_guests = re.sub(r'\b(?:khoảng|tầm|chừng|cỡ|đi|đặt|cho|bàn|nhóm)?\s*\d{1,2}\s*(?:người|khách|pax|chỗ|bạn|ng|lớn|trẻ\s*em|em\s*bé|bé)?\b', ' ', text_clean, flags=re.IGNORECASE)
-        text_without_guests = re.sub(r'\b(?:khoảng|tầm|chừng|cỡ|đi|đặt|cho|bàn)\s*\d{1,2}\b', ' ', text_without_guests, flags=re.IGNORECASE)
+        text_without_guests = re.sub(r'\b(?:khoảng|tầm|chừng|cỡ|đi|đặt|cho|bàn|nhóm)?\s*[-–—]?\d{1,2}\s*(?:người|khách|pax|chỗ|bạn|ng|lớn|trẻ\s*em|em\s*bé|bé)?\b', ' ', text_clean, flags=re.IGNORECASE)
+        text_without_guests = re.sub(r'\b(?:khoảng|tầm|chừng|cỡ|đi|đặt|cho|bàn)\s*[-–—]?\d{1,2}\b', ' ', text_without_guests, flags=re.IGNORECASE)
 
         clean_text = re.sub(r'[,.:;!?~_\-/\(\)\[\]"\'`]+', ' ', text_without_guests).strip()
         # Cắt bỏ các từ nhãn sđt / email nếu còn sót sau khi đã tách phone/email
@@ -285,6 +441,72 @@ def is_cancellation(message: str) -> bool:
     return False
 
 
+def is_additional_booking_intent(message: str) -> bool:
+    """
+    Phát hiện ý định đặt thêm bàn / đặt thêm một đơn khác khi đang có bàn:
+    VD:
+    - 'Ngoài ra tôi còn muốn đặt thêm bàn vào ngày mốt lúc 21 giờ'
+    - 'Tôi muốn đặt thêm 1 bàn nữa vào thứ 7'
+    - 'Đặt thêm một bàn vào ngày mốt'
+    - 'Thêm một bàn nữa lúc 19h'
+    - 'Đặt thêm bàn nữa'
+    - 'Còn muốn đặt thêm'
+    """
+    msg = message.lower().strip()
+    patterns = [
+        r'(?:ngoài\s*ra|tiện\s*thể|với\s*lại).*?(?:đặt|thêm|bàn)',
+        r'(?:muốn\s*)?đặt\s*thêm\s*(?:một\s*|1\s*)?(?:bàn|chỗ|suất)?',
+        r'thêm\s*(?:một\s*|1\s*)?bàn\s*(?:nữa)?',
+        r'đặt\s*(?:một\s*|1\s*)?bàn\s*(?:nữa|khác)',
+        r'(?:còn|muốn)\s*đặt\s*thêm',
+    ]
+    return any(re.search(pat, msg) for pat in patterns)
+
+
+def is_reschedule_intent(message: str) -> bool:
+    """
+    Phát hiện ý định đổi lịch / dời giờ của đơn hiện tại:
+    VD: 'Đổi sang ngày mai 19h', 'Dời lịch sang thứ 7', 'Chuyển sang 20h', 'Đổi giờ thành 21h'
+    """
+    msg = message.lower().strip()
+    keywords = [
+        "đổi sang", "đổi lịch", "đổi giờ", "dời sang", "dời lịch",
+        "chuyển sang", "chuyển lịch", "sửa lại", "thay vì", "đổi thành",
+        "chuyển thành", "sửa thành", "đổi ngày", "đổi thời gian"
+    ]
+    return any(k in msg for k in keywords)
+
+
+def check_schedule_choice(message: str) -> str:
+    """
+    Phân loại phản hồi của khách khi đang có pending_schedule_choice:
+    Returns: 'RESCHEDULE' | 'ADD_NEW' | 'KEEP_CURRENT' | 'UNKNOWN'
+    """
+    msg = message.lower().strip()
+    if any(k in msg for k in ["đổi", "dời", "chuyển", "thay", "lịch mới", "giờ mới", "ngày mới"]):
+        return "RESCHEDULE"
+    if any(k in msg for k in ["thêm", "đặt thêm", "thêm bàn", "bàn nữa", "mới", "tạo mới", "cả hai", "hai bàn", "thêm đơn"]):
+        return "ADD_NEW"
+    if any(k in msg for k in ["giữ", "cũ", "không đổi", "ko đổi", "như cũ", "đơn cũ", "giữ nguyên"]):
+        return "KEEP_CURRENT"
+    return "UNKNOWN"
+
+
+def is_phone_inquiry(message: str) -> bool:
+    """
+    Phát hiện câu hỏi của khách về việc tại sao cần số điện thoại / thông tin liên hệ:
+    VD: 'Tại sao cần số điện thoại?', 'Sao phải đưa sđt vậy bạn?', 'Cần số đt làm gì?'
+    """
+    msg = message.lower().strip()
+    keywords = [
+        "tại sao cần", "sao cần", "sao phải", "cần sđt làm gì", "cần số điện thoại làm gì",
+        "cần số đt làm gì", "không cho sđt", "không đưa sđt", "ko cho sđt", "bắt buộc phải có sđt",
+        "sao lại xin sđt", "sao xin số", "lấy số điện thoại làm gì", "lấy sđt làm gì",
+        "không có sđt", "ko có sđt", "không để sđt", "ko để sđt"
+    ]
+    return any(k in msg for k in keywords)
+
+
 def check_side_query_intent(message: str) -> Tuple[bool, str]:
     """
     Phân loại câu hỏi phụ / tư vấn trong khi đang trong flow đặt bàn:
@@ -293,9 +515,22 @@ def check_side_query_intent(message: str) -> Tuple[bool, str]:
     """
     msg = message.lower().strip()
 
-    # 1. Câu hỏi về thông tin / tiện ích / dịch vụ nhà hàng (Facility & Restaurant Info)
+    # 1. Câu hỏi về thông tin / tiện ích / chính sách nhà hàng (Facility & Restaurant Info & Policy)
+    try:
+        is_fac, _ = IntentClassifier.is_facility_inquiry(message)
+        if is_fac:
+            return True, "FACILITY_INFO"
+        is_pol, _ = IntentClassifier.is_policy_inquiry(message)
+        if is_pol:
+            return True, "FACILITY_INFO"
+    except Exception:
+        pass
+
     facility_keywords = [
-        "đỗ xe", "gửi xe", "bãi xe", "bãi đỗ", "bãi giữ", "chỗ để xe", "ô tô", "xe máy",
+        "đỗ xe", "đậu xe", "gửi xe", "bãi xe", "bãi đỗ", "bãi đậu", "bãi giữ", "chỗ để xe",
+        "chỗ đỗ xe", "chỗ đậu xe", "chỗ gửi xe", "ô tô", "xe hơi", "xe máy", "xe ô tô",
+        "khui rượu", "phí khui", "phụ thu rượu", "corkage", "mở rượu", "rượu mang vào", "rượu từ nhà",
+        "bánh kem", "bánh sinh nhật", "trang trí", "giữ lạnh", "tủ lạnh", "bảo quản bánh", "giữ mát bánh",
         "wifi", "wi-fi", "mật khẩu wifi", "pass wifi",
         "mở cửa", "đóng cửa", "mấy giờ mở", "mấy giờ đóng", "giờ hoạt động", "giờ mở",
         "địa chỉ", "ở đâu", "vị trí", "đường nào", "quán ở", "chỗ nào", "tìm đường",
@@ -333,15 +568,67 @@ def check_side_query_intent(message: str) -> Tuple[bool, str]:
     return False, "NONE"
 
 
-EMAIL_REGEX = re.compile(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b')
+RFC5322_EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$')
 
 
-def extract_email(text: str) -> Optional[str]:
-    """Trích xuất địa chỉ email từ tin nhắn."""
-    m = EMAIL_REGEX.search(text)
-    if m:
-        return m.group(0).lower().strip()
-    return None
+def is_valid_email(email: Optional[str]) -> bool:
+    r"""
+    Kiểm tra email hợp lệ theo chuẩn RFC 5322 regex:
+    ^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$
+    """
+    if not email or not isinstance(email, str):
+        return False
+    return bool(RFC5322_EMAIL_REGEX.match(email.strip()))
+
+
+def extract_email(text: str) -> Tuple[Optional[str], Optional[str]]:
+    """
+    Trích xuất và kiểm tra định dạng email từ tin nhắn.
+    Returns:
+        (email_str, email_warning)
+    """
+    text_lower = text.lower().strip()
+
+    # 0. Bỏ qua nếu là câu từ chối cung cấp email
+    opt_out_keywords = [
+        'không có email', 'ko có email', 'không dùng email', 'ko dùng email',
+        'không cần email', 'ko cần email', 'chưa có email', 'bỏ qua email',
+        'không có mail', 'ko có mail', 'không cần mail', 'ko cần mail',
+        'không email', 'ko email'
+    ]
+    if any(k in text_lower for k in opt_out_keywords):
+        return None, None
+
+    # 1. Tìm token chứa '@'
+    at_tokens = re.findall(r'[^\s,;:!?\'"()<>{}\[\]]*@[^\s,;:!?\'"()<>{}\[\]]*', text)
+    candidates = []
+    for tok in at_tokens:
+        clean_tok = tok.strip('.,;:!?\'"`')
+        if clean_tok and clean_tok != '@':
+            candidates.append(clean_tok)
+
+    # 2. Tìm theo từ khoá email / mail nếu chưa có candidate có @
+    if not candidates:
+        kw_match = re.search(r'\b(?:email|mail|e-mail)\s*(?:là|:|\s)\s*([^\s,;:!?\'"()<>{}\[\]]+)', text, re.IGNORECASE)
+        if kw_match:
+            cand = kw_match.group(1).strip('.,;:!?\'"`')
+            ignore_words = {
+                'không', 'ko', 'k', 'hông', 'chưa', 'để', 'nếu', 'nhận', 'có',
+                'cần', 'gì', 'ạ', 'nhé', 'nha', 'nào', 'của', 'tôi', 'mình',
+                'cho', 'gửi', 'qua'
+            }
+            if cand.lower() not in ignore_words and len(cand) >= 3:
+                candidates.append(cand)
+
+    if not candidates:
+        return None, None
+
+    cand = candidates[0]
+    if is_valid_email(cand):
+        return cand.lower(), None
+    else:
+        warning = f"Dạ email `{cand}` hình như chưa đúng định dạng chuẩn. Bạn vui lòng kiểm tra lại email để nhận vé QR chính xác nhé!"
+        return cand, warning
 
 
 def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
@@ -355,21 +642,42 @@ def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
     date_str, date_ambiguous = parse_date(message)
     if date_str:
         extracted["date"] = date_str
+        extracted["reservation_date"] = date_str
 
     # 2. Giờ
     time_str, time_ambiguous, amb_hour = parse_time(message, pending_ambiguous_hour=pending_hour)
     if time_str:
         extracted["time"] = time_str
+        extracted["reservation_time"] = time_str
         extracted["time_ambiguous"] = False
         extracted["pending_ambiguous_hour"] = None
     elif time_ambiguous:
         extracted["time_ambiguous"] = True
         extracted["pending_ambiguous_hour"] = amb_hour or 7
 
+    # 2.1 Kiểm tra tính hợp lệ ngày giờ (nếu có đủ date và time)
+    if extracted.get("date") and extracted.get("time"):
+        extracted["target_iso"] = f"{extracted['date']}T{extracted['time']}:00+07:00"
+        is_val, err_code, err_msg = validate_reservation_time(extracted["date"], extracted["time"])
+        if not is_val and err_code == "PAST_TIME":
+            extracted["past_time_warning"] = err_msg
+            extracted["time_in_past"] = True
+        else:
+            extracted["time_in_past"] = False
+
     # 3. Số khách
     guests, child_note = extract_guests(message)
-    if guests:
+    if guests is not None:
         extracted["guests"] = guests
+        extracted["party_size"] = guests
+        if guests == 0:
+            extracted["guests_warning"] = "Dạ, nhà hàng nhận đặt bàn tối thiểu từ 1 người trở lên ạ. Quý khách vui lòng cung cấp số lượng người đi cùng nhé!"
+            extracted["is_valid_guests"] = False
+        elif guests < 0:
+            extracted["guests_warning"] = "Dạ, số lượng khách đặt bàn phải từ 1 người trở lên ạ. Quý khách vui lòng cho Aria biết chính xác số người trong nhóm nhé!"
+            extracted["is_valid_guests"] = False
+        else:
+            extracted["is_valid_guests"] = True
 
     # 4. Số điện thoại
     phone, phone_warning = extract_phone(message)
@@ -378,10 +686,17 @@ def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
     if phone_warning:
         extracted["phone_warning"] = phone_warning
 
-    # 5. Email
-    email = extract_email(message)
+    # 5. Email (TC-LV6-03: Kiểm tra định dạng RFC 5322)
+    email, email_warning = extract_email(message)
     if email:
         extracted["customer_email"] = email
+        if email_warning:
+            extracted["email_warning"] = email_warning
+            extracted["email_rfc5322_valid"] = False
+            extracted["validation_check"] = {"email_rfc5322_valid": False}
+        else:
+            extracted["email_rfc5322_valid"] = True
+            extracted["validation_check"] = {"email_rfc5322_valid": True}
 
     # 6. Tên
     name = extract_name(message, current_state, phone, email)
@@ -394,5 +709,11 @@ def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
         specials.append(child_note)
     if specials:
         extracted["special_requests"] = ", ".join(specials)
+
+    # 8. Yêu cầu ăn nhanh / thời gian gấp (TC-LV9-03)
+    is_urgent, prep_limit = detect_urgency(message)
+    if is_urgent:
+        extracted["is_urgent"] = True
+        extracted["max_prep_time_minutes"] = prep_limit
 
     return extracted

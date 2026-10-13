@@ -22,6 +22,7 @@ import time
 from processors.index_manager import DualIndexManager
 from processors.metadata_filter import CulinaryEntityExtractor, MetadataFilter, ExtractedEntities
 from processors.cross_encoder_reranker import CrossEncoderReranker
+from tools.menu_catalog import get_preparation_time_minutes
 
 
 def min_max_normalize(scores_dict: Dict[int, float], eps: float = 1e-9) -> Dict[int, float]:
@@ -260,6 +261,8 @@ class HybridMenuRetriever:
                 top_k=top_k,
                 rerank_weight=rerank_weight
             )
+            if extracted and extracted.is_urgent:
+                reranked.sort(key=lambda x: get_preparation_time_minutes(x.get("item", x)))
             rerank_elapsed_ms = (time.perf_counter() - rerank_start) * 1000.0
             self.last_rerank_stats = {
                 "enabled": True,
@@ -270,6 +273,8 @@ class HybridMenuRetriever:
             }
             return reranked
         else:
+            if extracted and extracted.is_urgent:
+                final_candidates.sort(key=lambda x: get_preparation_time_minutes(x.get("item", x)))
             self.last_rerank_stats = {
                 "enabled": False,
                 "engine": None,

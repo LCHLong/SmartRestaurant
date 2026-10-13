@@ -32,6 +32,11 @@ ARIA_GROUNDED_SYSTEM_PROMPT = """Bạn là Aria — trợ lý AI tư vấn ẩm 
    - Khi khách hàng thể hiện sự không muốn ăn, không thích, ngán, kiêng hoặc loại trừ bất kỳ nguyên liệu/thành phần nào (ví dụ: "không muốn ăn thịt", "không ăn thịt", "ngán thịt", "không thích hành", "kiêng cay", "ít dầu mỡ"):
    - TUYỆT ĐỐI KHÔNG ĐƯỢC đề xuất bất kỳ món nào có chứa thành phần bị loại trừ đó, KỂ CẢ KHI món đó xuất hiện trong khối [DANH MỤC THỰC ĐƠN XÁC THỰC].
    - Hãy ưu tiên lựa chọn các món thanh đạm, rau củ, canh, hoặc món chay/không chứa thành phần kiêng kỵ từ thực đơn để giới thiệu cho khách.
+9. NGUYÊN TẮC PHỤC VỤ NHANH KHI KHÁCH ĐANG VỘI / CẦN ĂN GẤP (FAST DINING GUARDRAIL):
+   - Khi khách hàng có nhu cầu ăn nhanh, đang vội, cần phục vụ gấp (ví dụ: "trong 15 phút", "ăn gấp", "vội", "ra nhanh nhất"):
+   - TUYỆT ĐỐI KHÔNG ĐƯỢC đề xuất các món hầm lâu, om, ninh, lẩu hoặc món chế biến chậm (như "Bò Sốt Tiêu Đen Bánh Mì Nóng Giòn", món hầm, bò kho, lẩu,...).
+   - CHỈ ĐƯỢC PHÉP gợi ý các món có sẵn/làm sẵn tức thì (như tráng miệng, bánh flan, đồ uống pha sẵn) hoặc món sơ chế nhanh/trụng nhanh (như gỏi cuốn sơ chế sẵn, phở/bún trụng nước dùng nóng có sẵn, bánh mì kẹp) với thời gian chuẩn bị dưới 10-15 phút.
+   - BẮT BUỘC phải kèm theo lời cam kết/hỗ trợ ghi chú báo bếp: "*(Aria xin phép ghi chú báo bếp ưu tiên làm gấp ngay để quý khách kịp giờ nhé!)*".
 
 ## ĐỊNH DẠNG TRẢ LỜI & GỢI Ý MÓN
 Khi đề xuất món ăn cho khách, luôn dùng định dạng rõ ràng (mỗi món 1 dòng):
@@ -100,6 +105,13 @@ def format_grounded_candidates(candidates: List[Dict[str, Any]], max_items: int 
         else:
             allergen_str = "Không có cảnh báo dị ứng phổ biến"
 
+        # Prep time
+        prep_time = raw.get("preparation_time_minutes") or raw.get("prep_time")
+        if prep_time is not None:
+            prep_str = f"~{prep_time} phút"
+        else:
+            prep_str = "10-15 phút (tiêu chuẩn)"
+
         # Rerank Metadata
         final_rank = c.get("final_rank", idx)
         combined_score = c.get("combined_score")
@@ -108,6 +120,7 @@ def format_grounded_candidates(candidates: List[Dict[str, Any]], max_items: int 
         block = [
             f"[{idx}] **{name}** (Hạng #{final_rank}{score_str})",
             f"   • Giá niêm yết: {price}",
+            f"   • Thời gian chế biến dự kiến: {prep_str}",
             f"   • Độ cay: {spice_str} | Năng lượng: {calo_str}",
             f"   • Thành phần nguyên liệu: {ingr_str}",
             f"   • Cảnh báo dị ứng: {allergen_str}",
