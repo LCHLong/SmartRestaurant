@@ -16,6 +16,8 @@ from typing import Dict, Any, Optional, List, Tuple
 
 class IntentType(str, Enum):
     FACILITY_INQUIRY = "facility_inquiry"
+    POLICY_INQUIRY = "policy_inquiry"
+    CORKAGE_POLICY = "corkage_policy"
     RESERVATION = "reservation"
     MENU_CONSULTATION = "menu_consultation"
     HUMAN_HANDOFF = "human_handoff"
@@ -42,6 +44,30 @@ HOURS_KEYWORDS = [
 LOCATION_KEYWORDS = [
     "địa chỉ", "ở đâu", "vị trí", "đường nào", "quán ở", "chỗ nào", "tìm đường", "quán nằm ở"
 ]
+
+CORKAGE_KEYWORDS = [
+    "khui rượu", "phí khui rượu", "phí khui", "phụ thu rượu", "phụ thu mang rượu",
+    "corkage", "corkage fee", "rượu mang vào", "rượu mang theo", "mang rượu",
+    "mang rượu từ nhà", "rượu từ nhà", "tính phí khui", "mở rượu", "phí mở rượu",
+    "phí mở", "đem rượu", "tự mang rượu", "uống rượu mang theo", "phụ thu đồ uống",
+    "đồ uống ngoài", "đồ uống từ ngoài", "mang nước ngoài vào", "mang bia từ nhà",
+    "phí mang rượu", "mang chai rượu", "mang 1 chai rượu", "mang rượu vang", "chai rượu vang từ nhà"
+]
+
+BIRTHDAY_KEYWORDS = [
+    "bánh kem", "mang bánh kem", "bánh sinh nhật", "tổ chức sinh nhật",
+    "tiệc sinh nhật", "trang trí sinh nhật", "hỗ trợ sinh nhật"
+]
+
+TAKEAWAY_KEYWORDS = [
+    "mua mang về", "mang về", "take away", "takeaway", "đóng gói mang về", "gói mang về", "đem về"
+]
+
+POLICY_SUB_INTENTS = {
+    "corkage_policy": CORKAGE_KEYWORDS,
+    "birthday_policy": BIRTHDAY_KEYWORDS,
+    "takeaway_policy": TAKEAWAY_KEYWORDS,
+}
 
 FACILITY_SUB_INTENTS = {
     "faq_parking": PARKING_KEYWORDS,
@@ -108,7 +134,36 @@ class IntentClassifier:
                 "matched_keywords": matched_res
             }
 
-        # 3. Tiện ích nhà hàng / FAQ (ưu tiên kiểm tra trước khi suy đoán món ăn)
+        # 3. Chính sách nhà hàng (Policy Inquiry: Corkage fee, Birthday, Takeaway...)
+        corkage_matched = [k for k in CORKAGE_KEYWORDS if k in msg]
+        if not corkage_matched:
+            has_drink = any(w in msg for w in ["rượu", "vang", "bia", "đồ uống", "thức uống"])
+            has_fee = any(w in msg for w in ["khui", "mở", "phụ thu", "tính phí", "corkage", "phí"])
+            has_bring = any(w in msg for w in ["mang", "đem", "từ nhà", "ngoài vào", "vào"])
+            if (has_drink and has_fee) or (has_drink and has_bring and any(w in msg for w in ["phí", "tính", "được không", "được ko", "không", "ko"])):
+                corkage_matched = ["corkage_pattern_matched"]
+
+        if corkage_matched:
+            return {
+                "intent": IntentType.POLICY_INQUIRY.value,
+                "sub_intent": "corkage_policy",
+                "confidence": 0.95,
+                "matched_keywords": corkage_matched
+            }
+
+        for sub_intent, kw_list in POLICY_SUB_INTENTS.items():
+            if sub_intent == "corkage_policy":
+                continue
+            matched = [k for k in kw_list if k in msg]
+            if matched:
+                return {
+                    "intent": IntentType.POLICY_INQUIRY.value,
+                    "sub_intent": sub_intent,
+                    "confidence": 0.93,
+                    "matched_keywords": matched
+                }
+
+        # 4. Tiện ích nhà hàng / FAQ (ưu tiên kiểm tra trước khi suy đoán món ăn)
         for sub_intent, kw_list in FACILITY_SUB_INTENTS.items():
             matched = [k for k in kw_list if k in msg]
             if matched:
@@ -119,7 +174,7 @@ class IntentClassifier:
                     "matched_keywords": matched
                 }
 
-        # 4. Mặc định là tư vấn món ăn / thực đơn
+        # 5. Mặc định là tư vấn món ăn / thực đơn
         return {
             "intent": IntentType.MENU_CONSULTATION.value,
             "sub_intent": "menu_inquiry",
@@ -141,7 +196,32 @@ class IntentClassifier:
         res = cls.classify(message)
         return res["intent"] == IntentType.FACILITY_INQUIRY.value and res["sub_intent"] == "faq_parking"
 
+    @classmethod
+    def is_policy_inquiry(cls, message: str) -> Tuple[bool, Optional[str]]:
+        """Kiểm tra nhanh xem câu hỏi có thuộc nhóm chính sách (Policy) hay không."""
+        res = cls.classify(message)
+        if res["intent"] in (IntentType.POLICY_INQUIRY.value, "corkage_policy", "restaurant_policy"):
+            return True, res["sub_intent"]
+        return False, None
+
+    @classmethod
+    def is_corkage_inquiry(cls, message: str) -> bool:
+        """Kiểm tra cụ thể câu hỏi về phụ thu khui rượu (corkage fee)."""
+        res = cls.classify(message)
+        return res.get("sub_intent") == "corkage_policy" or res.get("intent") in ("corkage_policy", "policy_inquiry")
+
 
 def classify_intent(message: str) -> Dict[str, Any]:
     """Hàm wrapper tiện ích phân loại ý định."""
     return IntentClassifier.classify(message)
+
+
+def is_corkage_inquiry(message: str) -> bool:
+    """Wrapper kiểm tra nhanh câu hỏi phí khui rượu."""
+    return IntentClassifier.is_corkage_inquiry(message)
+
+
+def is_policy_inquiry(message: str) -> Tuple[bool, Optional[str]]:
+    """Wrapper kiểm tra nhanh câu hỏi chính sách."""
+    return IntentClassifier.is_policy_inquiry(message)
+

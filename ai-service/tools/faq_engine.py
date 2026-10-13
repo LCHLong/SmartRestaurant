@@ -50,6 +50,13 @@ class FAQEngine:
 
         msg = message.lower().strip()
 
+        # 0. Phụ thu khui rượu (Corkage)
+        if sub_intent == "corkage_policy" or any(k in msg for k in [
+            "khui rượu", "phí khui", "phụ thu rượu", "corkage", "mở rượu",
+            "phí mở", "rượu mang vào", "rượu từ nhà", "mang rượu"
+        ]):
+            return "Dạ, nhà hàng có hỗ trợ khách mang rượu từ ngoài vào với mức phí phụ thu khui rượu (corkage fee) là 150.000đ/chai vang và phục vụ sẵn ly rượu, xô đá ướp lạnh chu đáo ạ!"
+
         # 1. Bãi đỗ / đậu xe
         if sub_intent == "faq_parking" or any(k in msg for k in [
             "đỗ xe", "đậu xe", "bãi đỗ", "bãi đậu", "bãi xe", "gửi xe",

@@ -508,10 +508,13 @@ def check_side_query_intent(message: str) -> Tuple[bool, str]:
     """
     msg = message.lower().strip()
 
-    # 1. Câu hỏi về thông tin / tiện ích / dịch vụ nhà hàng (Facility & Restaurant Info)
+    # 1. Câu hỏi về thông tin / tiện ích / chính sách nhà hàng (Facility & Restaurant Info & Policy)
     try:
         is_fac, _ = IntentClassifier.is_facility_inquiry(message)
         if is_fac:
+            return True, "FACILITY_INFO"
+        is_pol, _ = IntentClassifier.is_policy_inquiry(message)
+        if is_pol:
             return True, "FACILITY_INFO"
     except Exception:
         pass
@@ -519,6 +522,7 @@ def check_side_query_intent(message: str) -> Tuple[bool, str]:
     facility_keywords = [
         "đỗ xe", "đậu xe", "gửi xe", "bãi xe", "bãi đỗ", "bãi đậu", "bãi giữ", "chỗ để xe",
         "chỗ đỗ xe", "chỗ đậu xe", "chỗ gửi xe", "ô tô", "xe hơi", "xe máy", "xe ô tô",
+        "khui rượu", "phí khui", "phụ thu rượu", "corkage", "mở rượu", "rượu mang vào", "rượu từ nhà",
         "wifi", "wi-fi", "mật khẩu wifi", "pass wifi",
         "mở cửa", "đóng cửa", "mấy giờ mở", "mấy giờ đóng", "giờ hoạt động", "giờ mở",
         "địa chỉ", "ở đâu", "vị trí", "đường nào", "quán ở", "chỗ nào", "tìm đường",

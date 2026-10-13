@@ -67,6 +67,7 @@ from tools.slot_extractor import (
 )
 from tools.intent_classifier import IntentClassifier, classify_intent
 from tools.faq_engine import FAQEngine, get_faq_answer
+from tools.policy_engine import PolicyEngine, get_policy_answer
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -279,11 +280,15 @@ class AriaConversationPipeline:
                     yield sse_item
                 return  # Kết thúc lượt thoại đặt bàn
 
-            # ── 3. Luồng tra cứu tiện ích & FAQ nhà hàng (Facility / Parking / Wifi...) ──
+            # ── 3. Luồng tra cứu tiện ích, FAQ & chính sách nhà hàng (Facility & Policy) ──
             is_fac_inquiry, sub_fac_intent = IntentClassifier.is_facility_inquiry(message)
-            if is_fac_inquiry:
+            is_pol_inquiry, sub_pol_intent = IntentClassifier.is_policy_inquiry(message)
+            if is_fac_inquiry or is_pol_inquiry:
                 settings = await get_restaurant_settings(restaurant_id)
-                ans = FAQEngine.get_faq_answer(message, settings=settings, sub_intent=sub_fac_intent)
+                if is_pol_inquiry:
+                    ans = PolicyEngine.get_policy_answer(message, settings=settings, sub_intent=sub_pol_intent)
+                else:
+                    ans = FAQEngine.get_faq_answer(message, settings=settings, sub_intent=sub_fac_intent)
                 for t in self._chunk_tokens(ans):
                     yield self._sse("token", {"content": t})
                 yield self._sse("done", {
@@ -1462,7 +1467,10 @@ class AriaConversationPipeline:
 
     @staticmethod
     def _answer_facility_question(message: str, settings: Dict[str, Any]) -> str:
-        """Trả lời các câu hỏi tiện ích, dịch vụ, địa chỉ, giờ mở cửa của nhà hàng."""
+        """Trả lời các câu hỏi tiện ích, dịch vụ, địa chỉ, giờ mở cửa, chính sách của nhà hàng."""
+        is_pol, sub_pol = IntentClassifier.is_policy_inquiry(message)
+        if is_pol:
+            return PolicyEngine.get_policy_answer(message, settings=settings, sub_intent=sub_pol)
         return FAQEngine.get_faq_answer(message, settings=settings)
 
     async def _stream_offline_grounded(

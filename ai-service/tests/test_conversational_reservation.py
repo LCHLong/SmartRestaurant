@@ -1773,3 +1773,109 @@ async def test_tc_lv9_05_parking_side_query_during_reservation():
     assert "nhân viên bảo vệ" in full_text
     # Và phải có nhắc quay lại đặt bàn
     assert "Quay lại thông tin đặt bàn" in full_text
+
+
+@pytest.mark.asyncio
+async def test_intent_classifier_and_policy_engine_corkage():
+    """Kiểm tra IntentClassifier và PolicyEngine nhận diện chính sách phụ thu khui rượu (TC-LV10-01)."""
+    from tools.intent_classifier import IntentClassifier, classify_intent
+    from tools.policy_engine import PolicyEngine
+
+    test_queries = [
+        "Bọn mình mang 1 chai rượu vang từ nhà đi thì nhà hàng có tính phí khui rượu không?",
+        "Nhà hàng có tính phí khui rượu không?",
+        "Corkage fee bao nhiêu vậy quán?",
+        "Phụ thu mang rượu từ nhà vào là bao nhiêu?",
+        "Đem rượu vang đi có tính phí không?",
+        "Có được mang rượu từ ngoài vào không?",
+        "Phí mở rượu là bao nhiêu ạ?"
+    ]
+
+    for q in test_queries:
+        res = classify_intent(q)
+        assert res["intent"] == "policy_inquiry", f"Query '{q}' should be policy_inquiry"
+        assert res["sub_intent"] == "corkage_policy", f"Query '{q}' should be corkage_policy"
+        assert IntentClassifier.is_corkage_inquiry(q) is True
+
+    answer = PolicyEngine.get_corkage_policy()
+    assert "corkage fee" in answer
+    assert "150.000đ/chai vang" in answer
+    assert "xô đá" in answer
+
+
+@pytest.mark.asyncio
+async def test_tc_lv10_01_corkage_fee_policy_pipeline():
+    """
+    Test Case TC-LV10-01: Khách hỏi về phí khui rượu vang mang từ nhà đi.
+    Aria phải phản hồi chính sách phụ thu khui rượu (150.000đ/chai vang), tuyệt đối không gợi ý Phở Bò / Hủ Tiếu Nam Vang.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-corkage-{uuid.uuid4().hex[:8]}"
+
+    chunks = []
+    async for sse in pipeline.process(
+        "Bọn mình mang 1 chai rượu vang từ nhà đi thì nhà hàng có tính phí khui rượu không?",
+        session_id=session_id
+    ):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # 1. Phải giải thích đúng chính sách phụ thu khui rượu
+    assert "corkage fee" in full_text
+    assert "150.000đ/chai vang" in full_text
+    assert "xô đá" in full_text or "ly rượu" in full_text
+
+    # 2. Tuyệt đối không có gợi ý món ăn lạc đề (Phở Bò, Hủ Tiếu Nam Vang...)
+    assert "Phở Bò" not in full_text
+    assert "Hủ Tiếu" not in full_text
+    assert "Nam Vang" not in full_text
+    assert "Gợi ý" not in full_text
+
+    # 3. Payload done không chứa danh sách món gợi ý
+    done_payloads = [
+        json.loads(c.replace("data: ", "")) for c in chunks
+        if c.startswith("data: ") and '"type": "done"' in c
+    ]
+    assert len(done_payloads) == 1
+    assert done_payloads[0].get("suggestedItems") == []
+
+
+@pytest.mark.asyncio
+async def test_tc_lv10_01_corkage_side_query_during_reservation():
+    """
+    Kiểm tra khi khách đang trong luồng đặt bàn mà hỏi chen ngang về phí khui rượu.
+    Aria phải giải đáp thông tin phí khui rượu kèm nhắc quay lại thông tin đặt bàn.
+    """
+    pipeline = AriaConversationPipeline()
+    session_id = f"test-corkage-side-{uuid.uuid4().hex[:8]}"
+
+    # Thiết lập trạng thái đang chờ giờ
+    await save_state(session_id, {
+        "fsm_state": "COLLECTING_SLOTS",
+        "slots": {
+            "date": "2026-10-15",
+            "time": None,
+            "guests": 4,
+            "customer_name": None,
+            "customer_phone": None,
+            "customer_email": None,
+            "special_requests": None
+        }
+    })
+
+    chunks = []
+    async for sse in pipeline.process(
+        "Bọn mình mang 1 chai rượu vang từ nhà đi thì nhà hàng có tính phí khui rượu không?",
+        session_id=session_id
+    ):
+        chunks.append(sse)
+
+    full_text = extract_text_from_sse(chunks)
+
+    # Phải có thông tin phụ thu khui rượu
+    assert "corkage fee" in full_text
+    assert "150.000đ/chai vang" in full_text
+    # Và phải có nhắc quay lại đặt bàn
+    assert "Quay lại thông tin đặt bàn" in full_text
+
