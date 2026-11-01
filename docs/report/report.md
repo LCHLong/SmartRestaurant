@@ -88,19 +88,19 @@ Trong dự án **SmartRestaurant**, phân hệ Trợ lý ảo **Aria** được 
 
 * **Bảy chiều kiến trúc bắt buộc (*Seven Architectural Dimensions*):**
 
-  1. *Ngữ nghĩa truy xuất:* Lập kế hoạch nguồn dữ liệu hiểu lược đồ (*schema-aware planning*), không phụ thuộc vào độ tương đồng vector.
+  1. *Ngữ nghĩa truy xuất (Retrieval semantics):* Lập kế hoạch nguồn dữ liệu hiểu lược đồ (*schema-aware planning*), không phụ thuộc vào độ tương đồng vector.
 
-  2. *Phân quyền & Kiểm soát:* Đặt cổng chính sách (*policy gates*) trước khi câu lệnh được thực thi.
+  2. *Phân quyền & Kiểm soát (Authorization):* Đặt cổng chính sách (*policy gates*) trước khi câu lệnh được thực thi.
 
-  3. *Nhận diện ý định:* Quản lý tiến trình thông qua máy trạng thái tường minh (*explicit state machine*).
+  3. *Nhận diện ý định (Intent recognition):* Quản lý tiến trình thông qua trạng thái tác vụ và phạm vi dữ liệu tường minh (*explicit task and scope state*), làm cơ sở cho việc thiết lập Máy trạng thái FSM hữu hạn.
 
-  4. *Phân giải thực thể:* Gắn kết thực thể vào mã định danh chuẩn tắc (*canonical identifiers*) và chủ động hỏi lại khi mơ hồ (*interactive disambiguation*).
+  4. *Phân giải thực thể (Entity resolution):* Gắn kết thực thể vào mã định danh chuẩn tắc (*canonical identifiers*) và chủ động hỏi lại khi mơ hồ (*interactive disambiguation*).
 
-  5. *Đánh giá theo giai đoạn:* Đo lường độc lập từng chặng: bóc tách ý định, chuẩn hóa thực thể, tuân thủ chính sách và thực thi API.
+  5. *Đánh giá theo giai đoạn (Evaluation):* Đo lường độc lập từng chặng: bóc tách ý định, chuẩn hóa thực thể, tuân thủ chính sách và thực thi API.
 
-  6. *Chế độ thất bại:* Ngăn ngừa ảo giác lược đồ, sai lệch khóa nối và thao tác sai dữ liệu.
+  6. *Chế độ thất bại (Failure modes):* Ngăn ngừa ảo giác lược đồ, sai lệch khóa nối và thao tác sai dữ liệu.
 
-  7. *Hồ sơ độ trễ:* Tối ưu hóa chuỗi phối hợp giữa các dịch vụ chính sách, CSDL và mô hình ngôn ngữ.
+  7. *Hồ sơ độ trễ (Latency profile):* Tối ưu hóa chuỗi phối hợp giữa các dịch vụ chính sách, CSDL và mô hình ngôn ngữ.
 
 ## 3. LÝ DO LỰA CHỌN PAPER 02 CHO TÍNH NĂNG ĐẶT BÀN (PHẢN BIỆN HỌC THUẬT)
 
@@ -136,17 +136,16 @@ Các bài báo còn lại giải quyết những khía cạnh chuyên biệt kh�
 
 Nhóm phát triển đã tổ chức lại hệ thống theo **Kiến trúc Phân tầng có Quản trị (*Governed Reference Architecture*)** của Paper 02. Dưới đây là 8 công việc chính được rút gọn, tập trung vào điểm nghẽn thực tế và giải pháp kỹ thuật gắn liền với từng tầng kiến trúc:
 
-```
+```mermaid
 flowchart TD
-    L1["1. Văn bản thô (Raw Message String)"]
-    L2["2. Diễn giải Ý định & Bóc tách Slot thô (Intent & Unparsed Slots)"]
-    L3["3. Gắn kết Thực thể Chuẩn tắc (Canonical ISO Values)"]
-    L4["4. Cổng Kiểm soát Chính sách (Policy Gate Assertions)"]
-    L5["5. Gọi Hợp đồng API Định kiểu (Typed Tool Contract)"]
-    L6["6. Giao dịch CSDL & Che mờ PII (PostgreSQL Transaction & Masking)"]
+    L1["1. Văn bản thô<br/>(Raw Message String)"]
+    L2["2. Diễn giải Ý định & Bóc tách Slot thô<br/>(Intent & Unparsed Slots)"]
+    L3["3. Gắn kết Thực thể Chuẩn tắc<br/>(Canonical ISO Values)"]
+    L4["4. Cổng Kiểm soát Chính sách<br/>(Policy Gate Assertions)"]
+    L5["5. Gọi Hợp đồng API Định kiểu<br/>(Typed Tool Contract)"]
+    L6["6. Giao dịch CSDL & Che mờ PII<br/>(PostgreSQL Transaction & Masking)"]
 
     L1 --> L2 --> L3 --> L4 --> L5 --> L6
-
 ```
 
 ### 1. Máy trạng thái hữu hạn quản trị tiến trình đặt bàn (Tầng Giao tiếp & Trạng thái)
@@ -201,7 +200,7 @@ flowchart TD
 
 Quá trình nâng cấp hệ sinh thái AI Aria là một tiến trình tiến hóa kiến trúc liên tục, kết hợp hài hòa giữa kế thừa và đổi mới:
 
-```
+```mermaid
 flowchart TD
     subgraph S1 ["1. KẾ THỪA VÀ NÂNG CẤP TỪ PAPER 01"]
         direction TB
@@ -320,7 +319,7 @@ Các chỉ số triển khai trong mã nguồn `ai-service/evaluation/judge.py` 
 
 Dưới đây là **Sơ đồ Kiến trúc Toàn diện của Toàn bộ Hệ thống SmartRestaurant AI**, hợp nhất trọn vẹn cả **Paper 01** (Đường ống Tư vấn Thực đơn Ngữ nghĩa), **Paper 02** (Tác tử Đặt bàn Giao dịch có Quản trị), cùng hạ tầng Backend Node.js, CSDL PostgreSQL và giao diện người dùng:
 
-```
+```mermaid
 flowchart TD
     %% ==========================================
     %% CLIENT & FRONTEND LAYER
@@ -427,7 +426,7 @@ Dưới đây là bảng khảo cứu đối chiếu và chấm điểm độ ph
 
 | STT | Tính Năng Đề Xuất Cải Tiến | Nguồn Tài Liệu | Tiêu Đề Bài Báo & Tác Giả / Tổ Chức | Điểm (/10) | Xếp Loại & Căn Cứ Đánh Giá Điểm Số | Phương Án Áp Dụng Cụ Thể Vào Kiến Trúc Aria | 
 | ----- | ----- | ----- | ----- | ----- | ----- | ----- | 
-| 1 | **Đặt bàn & Ghép chỗ động** | **Có sẵn trong `paper/`** | **Paper 02:** *Beyond Document Retrieval*  Syed Naveed Ahmed *(UT Arlington, 2026)* | **`9.5`** | **Rất Xuất Sắc**  Nền tảng chuẩn mực cho FSM và Policy Gates kiểm soát giao dịch dữ liệu có cấu trúc thời gian thực. | Nền tảng luồng hội thoại đặt bàn hiện tại của hệ thống (`reservation_state.py`, `reservation_tools.py`). | 
+| 1 | **Đặt bàn & Ghép chỗ động** | **Có sẵn trong `paper/`** | **Paper 02:** *Beyond Document Retrieval*  Sheikh Nazib Ahmed *(UT Arlington, 2026)* | **`9.5`** | **Rất Xuất Sắc**  Nền tảng chuẩn mực cho FSM và Policy Gates kiểm soát giao dịch dữ liệu có cấu trúc thời gian thực. | Nền tảng luồng hội thoại đặt bàn hiện tại của hệ thống (`reservation_state.py`, `reservation_tools.py`). | 
 | 2 | **Đặt bàn & Ghép chỗ động** | **Mở rộng trên arXiv** | **EpisodeSim:** *Classic AI as Scaffolding for LLM Social Agents*  Stanford University *(arXiv:2409.11394, 2024)* | **`9.0`** | **Rất Cao**  Khảo sát trực tiếp ngữ cảnh đặt chỗ nhà hàng; chứng minh LLM cần Symbolic Scaffolding để quản lý tài nguyên bàn ghế. | Xây dựng thuật toán ghép bàn động (ghép 2 bàn 4 chỗ hoặc 4 bàn đôi kề nhau thành bàn dài 8 chỗ), tối ưu hóa công suất ghế RevPASH. | 
 | 3 | **Đặt bàn & Ghép chỗ động** | **Mở rộng trên arXiv** | **Genie Worksheets:** *Controllable Task-Oriented Agents*  Stanford OVAL Lab *(Monica Lam, arXiv:2407.05677)* | **`8.5`** | **Cao**  Quản lý form đặt bàn dưới dạng bảng khai báo phụ thuộc; chống trôi ngữ cảnh khi khách đổi ý liên tục. | Quản lý bảng tính khai báo đặt bàn, tự động tính tiền cọc và phòng VIP khi đổi số khách. | 
 | 4 | **Đặt bàn & Ghép chỗ động** | **Có sẵn trong `paper/`** | **Paper 04:** *Self-Evolving Agentic Customer Support*  Chih Hui Wang et al. *(LinkedIn Corp, 2026)* | **`8.0`** | **Khá Cao**  Vòng lặp tự phản tư ngoại tuyến tối ưu hóa câu nhắc từ các phiên chat đặt bàn thất bại. | Tự động gom các turn đặt bàn lỗi (kết hợp bảng `chat_feedbacks`) để tinh chỉnh Few-shot examples định kỳ hàng tuần. | 
@@ -485,22 +484,21 @@ Hệ thống đặt bàn hiện tại (`reservationController.js`, `tableControl
 
   * `OfflineRefinementJob` — Cronjob hàng tuần đọc dữ liệu từ `chat_feedbacks` và log đặt bàn thất bại để điều chỉnh trọng số ưu tiên.
 
-```
+```mermaid
 flowchart TD
-    A["Khách yêu cầu bàn 8 người"] --> B["Slot Extractor — Paper 02 FSM"]
-    B --> C{"TableAvailabilityChecker\n(Đơn bàn 8 chỗ trống?)"}
-    C -->|Có| D["Đặt bàn đơn — Luồng Paper 02 hiện tại"]
-    C -->|Không| E["TableCombinationSolver\nCP-SAT: Tìm tổ hợp 2 bàn 4 chỗ / 4 bàn đôi"]
-    E --> F{"Tìm được tổ hợp\nkề nhau, cùng khu?"}
-    F -->|Không| G["Báo hết chỗ — Gợi ý khung giờ khác\nRevPASH_Optimizer"]
-    F -->|Có| H["ReservationWorksheet\nTính lại: Cọc, VIP, Phí dịch vụ"]
-    H --> I["Hiển thị Card xác nhận\nGhép bàn: T3 (4 chỗ) + T4 (4 chỗ) = 8 chỗ, khu A"]
-    I -->|Khách xác nhận| J["create_combined_reservation_tool\nIdempotency-Key kép"]
-    J --> K[("PostgreSQL: Tạo bản ghi ghép bàn\nlink_group_id chung")]
-    K --> L["Socket.io -> Waiter/TableMapPage: Thông báo ghép bàn"]
+    A["Khách yêu cầu bàn 8 người"] --> B["Slot Extractor<br/>(Paper 02 FSM)"]
+    B --> C{"TableAvailabilityChecker<br/>(Đơn bàn 8 chỗ trống?)"}
+    C -->|Có| D["Đặt bàn đơn<br/>(Luồng Paper 02 hiện tại)"]
+    C -->|Không| E["TableCombinationSolver<br/>CP-SAT: Tìm tổ hợp 2 bàn 4 chỗ / 4 bàn đôi"]
+    E --> F{"Tìm được tổ hợp<br/>kề nhau, cùng khu?"}
+    F -->|Không| G["Báo hết chỗ - Gợi ý giờ khác<br/>(RevPASH Optimizer)"]
+    F -->|Có| H["ReservationWorksheet<br/>Tính lại: Cọc, VIP, Phí dịch vụ"]
+    H --> I["Hiển thị Card xác nhận<br/>Ghép bàn: T3 (4 chỗ) + T4 (4 chỗ) = 8 chỗ, khu A"]
+    I -->|Khách xác nhận| J["create_combined_reservation_tool<br/>Idempotency-Key kép"]
+    J --> K[("PostgreSQL: Tạo bản ghi ghép bàn<br/>link_group_id chung")]
+    K --> L["Socket.io -> Waiter/TableMapPage:<br/>Thông báo ghép bàn"]
 
-    M["OfflineRefinementJob\n(Đọc chat_feedbacks hàng tuần)"] -.->|Điều chỉnh trọng số| E
-
+    M["OfflineRefinementJob<br/>(Đọc chat_feedbacks hàng tuần)"] -.->|Điều chỉnh trọng số| E
 ```
 
 ### 9.2. Tính năng F2 — Tư vấn Món ăn bằng Đồ thị Tri thức Ẩm thực
@@ -537,22 +535,22 @@ Hệ thống Paper 01 hiện tại (`hybrid_retriever.py`, `metadata_filter.py`)
 
   * `IngredientSubstitutor` — Truy vấn KG và bảng `modifiers` để đề xuất `SubstituteIngredient` khi gặp dị ứng.
 
-```
+```mermaid
 flowchart TD
-    A["Câu hỏi mơ hồ\n'trời mưa lạnh ăn gì ấm?'"] --> B["EmotionContextExtractor\nmood=cozy, temp=cold, body=light"]
-    B --> C["FlavorProfile Mapping\n{warmth: HIGH, richness: MED, acidity: LOW}"]
+    A["Câu hỏi mơ hồ<br/>'trời mưa lạnh ăn gì ấm?'"] --> B["EmotionContextExtractor<br/>mood=cozy, temp=cold, body=light"]
+    B --> C["FlavorProfile Mapping<br/>{warmth: HIGH, richness: MED, acidity: LOW}"]
     C --> D["CoEChainPlanner"]
 
-    D --> E1["FAISS Semantic Search\n(Dense 768d)"]
-    D --> E2["BM25 Keyword Search\n'ấm, nhẹ, canh, súp'"]
-    D --> E3["KG Traversal\nFlavorProfile -> Dishes"]
+    D --> E1["FAISS Semantic Search<br/>(Dense 768d)"]
+    D --> E2["BM25 Keyword Search<br/>'ấm, nhẹ, canh, súp'"]
+    D --> E3["KG Traversal<br/>FlavorProfile -> Dishes"]
 
-    E1 & E2 & E3 --> F["RRF Fusion\n0.50*FAISS + 0.35*BM25 + 0.15*KG"]
+    E1 & E2 & E3 --> F["RRF Fusion<br/>0.50*FAISS + 0.35*BM25 + 0.15*KG"]
     F --> G["Cross-Encoder Reranker"]
-    G --> H["MMR Selection (lambda=0.65)\nChọn 3 món đa dạng"]
+    G --> H["MMR Selection (lambda=0.65)<br/>Chọn 3 món đa dạng"]
     H --> I{"Có dị ứng trong hồ sơ?"}
-    I -->|Có| J["IngredientSubstitutor\nKG + Modifiers: tìm SubstituteIngredient"]
-    I -->|Không| K["Strict Grounded Prompt — Paper 01\nSinh câu trả lời ẩm thực"]
+    I -->|Có| J["IngredientSubstitutor<br/>KG + Modifiers: tìm SubstituteIngredient"]
+    I -->|Không| K["Strict Grounded Prompt - Paper 01<br/>Sinh câu trả lời ẩm thực"]
     J --> K
     K --> L["Streaming Response + Emoji ẩm thực"]
 
@@ -589,7 +587,7 @@ flowchart TD
 
   * `TTSResponseEngine` & `BargeinDetector` — Tổng hợp giọng nói phản hồi tự nhiên và tích hợp VAD (Voice Activity Detection) phát hiện khi khách ngắt lời để đổi món.
 
-```
+```mermaid
 sequenceDiagram
     participant K as Khách (AriaChatWidget tại bàn)
     participant VG as VoiceGateway (pipecatClient.js)
@@ -602,8 +600,8 @@ sequenceDiagram
     ASR-->>VG: Partial transcript "cho tôi..."
     ASR-->>VG: Final transcript "cho tôi hai tô phở bò"
     VG->>ARIA: text = "cho tôi hai tô phở bò"
-    ARIA->>ARIA: Intent: ORDER_ADD\nNER: món=phở bò, qty=2
-    ARIA->>ARIA: Metadata Hard-Filter (Paper 01)\nKiểm tra dị ứng hồ sơ khách
+    ARIA->>ARIA: Intent: ORDER_ADD<br/>NER: món=phở bò, qty=2
+    ARIA->>ARIA: Metadata Hard-Filter (Paper 01)<br/>Kiểm tra dị ứng hồ sơ khách
     ARIA-->>VG: response_text = "Dạ, em ghi 2 tô phở bò cho mình nhé ạ!"
     VG->>TTS: Synthesize response_text
     TTS-->>K: Audio playback (< 500ms) + Sync CartContext
@@ -655,21 +653,21 @@ MemGPT đề xuất kiến trúc **3 tầng bộ nhớ** tương tự hệ đi�
 
   * `SessionSummaryJob` — Async worker cuối phiên thực thi lệnh `memory_edit` cập nhật `guest_profiles`.
 
-```
+```mermaid
 flowchart TD
-    A["Khách đăng nhập — JWT (authMiddleware.js)"] --> B["MemoryLoadHook"]
-    B --> C[("Archival Memory\nPostgreSQL guest_profiles")]
-    B --> D[("Recall Memory\npgvector order_history")]
+    A["Khách đăng nhập - JWT (authMiddleware.js)"] --> B["MemoryLoadHook"]
+    B --> C[("Archival Memory<br/>PostgreSQL guest_profiles")]
+    B --> D[("Recall Memory<br/>pgvector order_history")]
 
-    C --> E["System Prompt Enrichment (system_prompt_builder.py)\n'Khách Nguyễn Văn A, dị ứng hải sản,\nthích bàn số 7 cạnh cửa sổ'"]
-    D --> F["Ngữ cảnh lịch sử\n'Lần trước gọi phở bò + chả giò'"]
+    C --> E["System Prompt Enrichment (system_prompt_builder.py)<br/>'Khách Nguyễn Văn A, dị ứng hải sản,<br/>thích bàn số 7 cạnh cửa sổ'"]
+    D --> F["Ngữ cảnh lịch sử<br/>'Lần trước gọi phở bò + chả giò'"]
 
-    E & F --> G["Aria Conversation Pipeline\n(Paper 01 + Paper 02 đầy đủ)"]
+    E & F --> G["Aria Conversation Pipeline<br/>(Paper 01 + Paper 02 đầy đủ)"]
 
     G --> H["Phiên chat kết thúc"]
     H --> I["SessionSummaryJob (Async)"]
     I --> J["LLM tóm tắt sở thích mới phát hiện"]
-    J --> K["memory_edit\nCập nhật guest_profiles"]
+    J --> K["memory_edit<br/>Cập nhật guest_profiles"]
     K --> C
 
 ```
@@ -716,18 +714,18 @@ Action: upsell_suggest_tool(item="chè đậu xanh", reason="kết hợp thanh m
 
   * `UpsellSuggestTool` — Sinh lời gợi ý ngắn gọn kèm lý do ẩm thực thuyết phục và cho phép thêm 1-click vào `CartContext`.
 
-```
+```mermaid
 flowchart LR
-    A["Sự kiện thêm món chính / Chốt Order"] --> B["UpsellTriggerDetector\n(Thiếu đồ uống / tráng miệng?)"]
-    B -->|Trigger| C["ReAct Loop — Tối đa 2 vòng"]
-    C --> D["CartAnalyzerTool\nPhân tích CartContext"]
-    C --> E["UpsellKGSearchTool\nTìm món cân bằng vị"]
+    A["Sự kiện thêm món chính / Chốt Order"] --> B["UpsellTriggerDetector<br/>(Thiếu đồ uống / tráng miệng?)"]
+    B -->|Trigger| C["ReAct Loop - Tối đa 2 vòng"]
+    C --> D["CartAnalyzerTool<br/>Phân tích CartContext"]
+    C --> E["UpsellKGSearchTool<br/>Tìm món cân bằng vị"]
     D & E --> F["Thought: Chọn món kèm tối ưu"]
-    F --> G["UpsellSuggestTool\nSinh lời gợi ý tự nhiên"]
-    G --> H["Streaming to AriaChatWidget\n'Anh/chị dùng thêm chè đậu xanh\nkhông ạ? Rất hợp để tráng miệng sau phở...'"]
+    F --> G["UpsellSuggestTool<br/>Sinh lời gợi ý tự nhiên"]
+    G --> H["Streaming to AriaChatWidget<br/>'Anh/chị dùng thêm chè đậu xanh<br/>không ạ? Rất hợp để tráng miệng sau phở...'"]
     H --> I{"Khách phản hồi"}
-    I -->|Đồng ý| J["add_to_cart_tool\nCập nhật CartContext.jsx"]
-    I -->|Từ chối| K["Ghi nhận vào Redis Session\nKhông gợi ý lặp lại trong phiên"]
+    I -->|Đồng ý| J["add_to_cart_tool<br/>Cập nhật CartContext.jsx"]
+    I -->|Từ chối| K["Ghi nhận vào Redis Session<br/>Không gợi ý lặp lại trong phiên"]
 
 ```
 
@@ -765,22 +763,22 @@ Qwen2-VL là mô hình Vision-Language mã nguồn mở đạt SOTA trên nhiề
 
   * `AllergenVisualAlert` — Đối chiếu `detected_allergens` với ràng buộc dị ứng của khách qua `metadata_filter.py` để cảnh báo an toàn.
 
-```
+```mermaid
 flowchart TD
-    A["Khách tải ảnh món ăn trên AriaChatWidget"] --> B["uploadController.js\nValidate: size <= 5MB, JPEG/PNG/WEBP"]
-    B --> C["Qwen2VLAnalyzer\nQwen2-VL Vision-Language API"]
-    C --> D["dish_description: 'Tô bún bò nước dùng đỏ,\nrau thơm, chả bò'"]
+    A["Khách tải ảnh món ăn trên AriaChatWidget"] --> B["uploadController.js<br/>Validate: size <= 5MB, JPEG/PNG/WEBP"]
+    B --> C["Qwen2VLAnalyzer<br/>Qwen2-VL Vision-Language API"]
+    C --> D["dish_description: 'Tô bún bò nước dùng đỏ,<br/>rau thơm, chả bò'"]
     C --> E["detected_allergens: ['tôm (mắm ruốc)', 'đậu phộng?']"]
 
-    D --> F["VisualMenuMatcher (hybrid_retriever.py)\nFAISS + BM25 search: top-3 món tương đương"]
+    D --> F["VisualMenuMatcher (hybrid_retriever.py)<br/>FAISS + BM25 search: top-3 món tương đương"]
     F --> G["Kết quả: Bún bò Huế (95%), Bún riêu (78%), Bún mắm (71%)"]
 
-    E --> H{"Giao với hồ sơ dị ứng\n(metadata_filter.py)?"}
-    H -->|Có| I["AllergenVisualAlert\nCảnh báo nguyên liệu trước khi gợi ý"]
-    H -->|Không| J["Strict Grounded Prompt — Paper 01\nGiải thích món tương đương trong thực đơn"]
+    E --> H{"Giao với hồ sơ dị ứng<br/>(metadata_filter.py)?"}
+    H -->|Có| I["AllergenVisualAlert<br/>Cảnh báo nguyên liệu trước khi gợi ý"]
+    H -->|Không| J["Strict Grounded Prompt - Paper 01<br/>Giải thích món tương đương trong thực đơn"]
     I --> J
 
-    G & J --> K["Response: 'Ảnh của anh/chị tương đồng 95% với\nBún bò Huế nhà em ạ! Giá 85k, hiện đang còn món...'"]
+    G & J --> K["Response: 'Ảnh của anh/chị tương đồng 95% với<br/>Bún bò Huế nhà em ạ! Giá 85k, hiện đang còn món...'"]
 
 ```
 
@@ -816,21 +814,21 @@ Hệ thống SmartRestaurant hiện đã xây dựng sẵn nền tảng cơ sở
 
   * `FairnessExplainer` — Sinh bản thuyết minh tiếng Việt trên `ShiftManagement.jsx` giải thích độ cân bằng số giờ làm giữa các nhân viên.
 
-```
+```mermaid
 flowchart TD
-    subgraph INTERNAL ["Nội bộ — StaffRosterAgent (Bảo vệ bởi roleMiddleware.js)"]
-        A["Quản lý nhập yêu cầu trên ShiftManagement.jsx:\n'Tuần tới cần 3 bồi/ca tối, Minh nghỉ thứ 6'"]
-        A --> B["ConstraintNLPExtractor\nLLM: Hard vs Soft Constraints JSON"]
-        B --> C["Hard: max_hours=48, rest_between=11h\nSoft: Minh.day_off=Friday + Dự báo từ bảng reservations"]
-        C --> D["CPSATScheduler\nGoogle OR-Tools CP-SAT"]
-        D --> E{"Tìm được lời giải\ntối ưu?"}
-        E -->|Có| F["Lưu vào bảng shifts (shiftController.js)\n+ FairnessExplainer"]
-        E -->|Không| G["Báo cáo xung đột cụ thể\n'Thiếu 1 nhân viên phục vụ ca tối Thứ 7'"]
+    subgraph INTERNAL ["Nội bộ - StaffRosterAgent (Bảo vệ bởi roleMiddleware.js)"]
+        A["Quản lý nhập yêu cầu trên ShiftManagement.jsx:<br/>'Tuần tới cần 3 bồi/ca tối, Minh nghỉ thứ 6'"]
+        A --> B["ConstraintNLPExtractor<br/>LLM: Hard vs Soft Constraints JSON"]
+        B --> C["Hard: max_hours=48, rest_between=11h<br/>Soft: Minh.day_off=Friday + Dự báo từ bảng reservations"]
+        C --> D["CPSATScheduler<br/>Google OR-Tools CP-SAT"]
+        D --> E{"Tìm được lời giải<br/>tối ưu?"}
+        E -->|Có| F["Lưu vào bảng shifts (shiftController.js)<br/>+ FairnessExplainer"]
+        E -->|Không| G["Báo cáo xung đột cụ thể<br/>'Thiếu 1 nhân viên phục vụ ca tối Thứ 7'"]
         F --> H["Cập nhật ShiftManagement.jsx & MyShiftsPage.jsx"]
     end
 
-    subgraph PUBLIC ["Công khai — Aria (CustomerFacingAgent)"]
-        I["Khách hỏi về lịch trực nhân viên"] --> J["Router chặn theo Paper 05\n'Thông tin nội bộ nhà hàng, em xin phép không tiết lộ ạ'"]
+    subgraph PUBLIC ["Công khai - Aria (CustomerFacingAgent)"]
+        I["Khách hỏi về lịch trực nhân viên"] --> J["Router chặn theo Paper 05<br/>'Thông tin nội bộ nhà hàng, em xin phép không tiết lộ ạ'"]
     end
 
 ```
@@ -867,7 +865,7 @@ Paper 03 luận giải rằng một hệ thống AI hành động trong thế gi
 
   * `ProactiveNotifier` — Module đẩy tin nhắn chủ động từ Aria xuống `AriaChatWidget` của thực khách ngay khi nhận sự kiện món ăn hoàn tất từ KDS hoặc cảnh báo sớm nếu bếp quá tải.
 
-```
+```mermaid
 sequenceDiagram
     participant CH as Đầu bếp (KitchenDisplayPage.jsx)
     participant SK as Socket.io Server (socket.js)
@@ -911,20 +909,20 @@ Kiến trúc phân tầng của Paper 01 + Paper 02 **hoàn toàn độc lập n
 
 #### 9.9.3. Sơ đồ luồng
 
-```
+```mermaid
 flowchart TD
-    A["Tin nhắn đầu vào\n'Do you have vegetarian noodle soup?'"] --> B["LanguageDetector (kết hợp i18n.js)\nlangdetect -> 'en'"]
-    B --> C["Multilingual Embedding (Dense 768d)\nparaphrase-multilingual-mpnet-base-v2"]
-    C --> D["FAISS 768d Search trên menu_embeddings.npy\n(Truy vấn đa ngôn ngữ trên cùng không gian vector 768d)"]
-    D --> E["Metadata Hard-Filter — Paper 01\n(Allergen, Budget — chuẩn hóa độc lập ngôn ngữ)"]
-    E --> F["System Prompt Injection (system_prompt_builder.py)\n'Respond in English. Add cultural note for Vietnamese dishes.'"]
-    F --> G["LLM Generation — Llama 3.3 70B\n(Đa ngôn ngữ bản xứ)"]
-    G --> H["Response EN: 'We have Phở Chay,\na fragrant Vietnamese vegetarian noodle soup...'\n+ Cultural note: 'Traditionally enjoyed with fresh herbs & lime...'"]
+    A["Tin nhắn đầu vào<br/>'Do you have vegetarian noodle soup?'"] --> B["LanguageDetector (kết hợp i18n.js)<br/>langdetect -> 'en'"]
+    B --> C["Multilingual Embedding (Dense 768d)<br/>paraphrase-multilingual-mpnet-base-v2"]
+    C --> D["FAISS 768d Search trên menu_embeddings.npy<br/>(Truy vấn đa ngôn ngữ trên cùng không gian vector 768d)"]
+    D --> E["Metadata Hard-Filter - Paper 01<br/>(Allergen, Budget - chuẩn hóa độc lập ngôn ngữ)"]
+    E --> F["System Prompt Injection (system_prompt_builder.py)<br/>'Respond in English. Add cultural note for Vietnamese dishes.'"]
+    F --> G["LLM Generation - Llama 3.3 70B<br/>(Đa ngôn ngữ bản xứ)"]
+    G --> H["Response EN: 'We have Phở Chay,<br/>a fragrant Vietnamese vegetarian noodle soup...'<br/>+ Cultural note: 'Traditionally enjoyed with fresh herbs & lime...'"]
 
     I["Khách Hàn: '내일 저녁 7시에 4명 예약하고 싶어요'"] --> B2["LanguageDetector -> 'ko'"]
-    B2 --> C2["Intent: RESERVATION\n(Paper 02 FSM — reservation_state.py)"]
-    C2 --> D2["Multilingual Slot Extraction\nFSM lưu chuẩn ISO: 2026-11-02, 19:00, 4 guests"]
-    D2 --> E2["Policy Gate — Paper 02\n(Kiểm tra giờ mở cửa 08:00-21:30 — độc lập ngôn ngữ)"]
+    B2 --> C2["Intent: RESERVATION<br/>(Paper 02 FSM - reservation_state.py)"]
+    C2 --> D2["Multilingual Slot Extraction<br/>FSM lưu chuẩn ISO: 2026-11-02, 19:00, 4 guests"]
+    D2 --> E2["Policy Gate - Paper 02<br/>(Kiểm tra giờ mở cửa 08:00-21:30 - độc lập ngôn ngữ)"]
     E2 --> F2["Response KO: '네, 2026년 11월 2일 19:00, 4분 예약 확인을 위해...'"]
 
 ```
@@ -947,27 +945,27 @@ flowchart TD
 
 ### 10.2. Lộ trình Phát triển (Roadmap)
 
-```
+```mermaid
 flowchart LR
-    subgraph Q1 ["Quý 1 — Nền tảng Mở rộng"]
-        F9["F9: Đa ngôn ngữ\n(2 tuần)"]
-        F4["F4: Bộ nhớ khách quen\n(3 tuần)"]
+    subgraph Q1 ["Quý 1 - Nền tảng Mở rộng"]
+        F9["F9: Đa ngôn ngữ<br/>(2 tuần)"]
+        F4["F4: Bộ nhớ khách quen<br/>(3 tuần)"]
     end
 
-    subgraph Q2 ["Quý 2 — Tư vấn Thông minh"]
-        F2["F2: Đồ thị ẩm thực KG\n(4 tuần)"]
-        F5["F5: Upsell ReAct\n(2 tuần)"]
-        F1["F1: Ghép bàn động\n(3 tuần)"]
+    subgraph Q2 ["Quý 2 - Tư vấn Thông minh"]
+        F2["F2: Đồ thị ẩm thực KG<br/>(4 tuần)"]
+        F5["F5: Upsell ReAct<br/>(2 tuần)"]
+        F1["F1: Ghép bàn động<br/>(3 tuần)"]
     end
 
-    subgraph Q3 ["Quý 3 — Đa phương tiện"]
-        F3["F3: Giọng nói WebRTC\n(6 tuần)"]
-        F6["F6: Nhận diện ảnh\n(3 tuần)"]
-        F8["F8: Điều phối bếp KDS\n(4 tuần)"]
+    subgraph Q3 ["Quý 3 - Đa phương tiện"]
+        F3["F3: Giọng nói WebRTC<br/>(6 tuần)"]
+        F6["F6: Nhận diện ảnh<br/>(3 tuần)"]
+        F8["F8: Điều phối bếp KDS<br/>(4 tuần)"]
     end
 
-    subgraph Q4 ["Quý 4 — Nội bộ & Vận hành"]
-        F7["F7: Ca trực nhân viên\n(5 tuần)"]
+    subgraph Q4 ["Quý 4 - Nội bộ & Vận hành"]
+        F7["F7: Ca trực nhân viên<br/>(5 tuần)"]
     end
 
     Q1 --> Q2 --> Q3 --> Q4
