@@ -118,6 +118,18 @@ class SessionSummarizer:
         updated_zone = extracted["detected_zone"] or (current_profile.preferred_zone if current_profile else None)
         updated_notes = extracted["special_notes"] or (current_profile.special_notes if current_profile else None)
 
+        memory_facts = []
+        if extracted.get("detected_allergies"):
+            memory_facts.append(f"Khách có đề cập dị ứng: {', '.join(extracted['detected_allergies'])}")
+        if extracted.get("detected_spice"):
+            memory_facts.append(f"Khẩu vị cay: {extracted['detected_spice']}")
+        if extracted.get("detected_zone"):
+            memory_facts.append(f"Vị trí bàn yêu thích: {extracted['detected_zone']}")
+        if extracted.get("special_notes"):
+            memory_facts.append(f"Ghi chú phục vụ: {extracted['special_notes']}")
+        if not memory_facts and conversation_history:
+            memory_facts.append("Khách đã hoàn thành phiên trao đổi tư vấn với Aria")
+
         return {
             "allergies": merged_allergies,
             "spice_preference": updated_spice,
@@ -125,5 +137,6 @@ class SessionSummarizer:
             "favorite_dishes": merged_favs,
             "special_notes": updated_notes,
             "visit_count": (current_profile.visit_count + 1) if current_profile else 1,
-            "new_allergy_detected": len(merged_allergies) > len(current_allergies)
+            "new_allergy_detected": len(merged_allergies) > len(current_allergies),
+            "memory_facts": memory_facts
         }

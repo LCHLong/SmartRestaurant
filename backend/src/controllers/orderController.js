@@ -621,6 +621,16 @@ exports.createOrder = async (req, res) => {
       order_id: newOrder.id
     });
 
+    // Auto-checkpoint MemGPT: Kích hoạt tóm tắt ngầm nếu khách đã đăng nhập
+    if (customer_id) {
+      try {
+        const { triggerBackgroundSummarizer } = require('./aiController');
+        if (typeof triggerBackgroundSummarizer === 'function') {
+          triggerBackgroundSummarizer(req.body.sessionId || null, customer_id).catch(() => {});
+        }
+      } catch (_) {}
+    }
+
     res.status(201).json({
       success: true,
       message: 'Đặt món thành công',

@@ -143,6 +143,8 @@ def test_session_summarizer_extraction():
     assert merged["preferred_zone"] == "ngoài trời"
     assert merged["visit_count"] == 2
     assert merged["new_allergy_detected"] is True
+    assert "memory_facts" in merged
+    assert len(merged["memory_facts"]) > 0
 
 
 def test_dynamic_context_with_guest_profile():

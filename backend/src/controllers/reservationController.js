@@ -391,6 +391,17 @@ exports.createReservation = async (req, res) => {
       console.error('[Socket Error]', socketErr.message);
     }
 
+    // Auto-checkpoint MemGPT: Kích hoạt tóm tắt ngầm nếu khách đã đăng nhập
+    const customerId = req.user?.id || reservation.customer_id;
+    if (customerId) {
+      try {
+        const { triggerBackgroundSummarizer } = require('./aiController');
+        if (typeof triggerBackgroundSummarizer === 'function') {
+          triggerBackgroundSummarizer(req.body.sessionId || null, customerId).catch(() => {});
+        }
+      } catch (_) {}
+    }
+
     return res.status(201).json({
       success: true,
       data: {

@@ -39,49 +39,55 @@
 flowchart TD
     subgraph ClientLayer ["1. Tầng Khách Hàng (React 18)"]
         User(("Thực khách đăng nhập")) --> ChatWidget["AriaChatWidget<br/>Hiển thị huy hiệu 'Khách quen'"]
+        User --> ProfilePage["Trang Quản Lý Hồ Sơ<br/>(Cho phép chỉnh sửa dị ứng)"]
     end
 
     subgraph GatewayLayer ["2. Tầng Gateway & Cache (Node.js Express)"]
         ChatWidget --> ApiGateway["Express Gateway (/api/ai/consult)"]
-        ApiGateway <--> RedisCache[("Redis Cache<br/>guest_profile:{userId}<br/>TTL 3600s (< 2ms)")]
-        ApiGateway <--> DB_Profile[("PostgreSQL: guest_profiles<br/>(Archival Memory)")]
-        ApiGateway <--> DB_Memories[("PostgreSQL: guest_memories<br/>(Recall Memory - 768d vector)")]
+        ProfilePage --> ProfileController["guestProfileController<br/>(PUT: Overwrite có xác nhận)"]
+        ApiGateway <--> RedisSession[("Redis: ai_session:{sessionId}<br/>(Working Memory Buffer)")]
+        ApiGateway <--> RedisCache[("Redis: guest_profile:{userId}<br/>(Core Profile Cache < 2ms)")]
+        ProfileController --> DB_Profile[("PostgreSQL: guest_profiles<br/>(Core Human Memory)")]
+        ApiGateway <--> DB_Memories[("PostgreSQL: guest_memories<br/>(Archival Semantic Facts)")]
     end
 
     subgraph AIMicroservice ["3. Tầng AI Microservice (FastAPI Port 8000)"]
-        ApiGateway --> MemLoader["MemGPTMemoryLoader"]
+        ApiGateway --> Pipeline["Aria Conversation Pipeline"]
         
-        subgraph MemTiers ["3 Tầng Bộ Nhớ"]
-            WM["Working Memory: Phiên chat hiện tại"]
-            RM["Recall Memory: Lịch sử món & Ký ức hội thoại cũ"]
-            AM["Archival Memory: Hồ sơ dị ứng, khẩu vị dài hạn"]
+        subgraph MemEngine ["MemGPT Memory Coordinator"]
+            WorkingMem["Working Context:<br/>Session History + Core Human Profile"]
+            ArchivalMem["Archival / Recall Search:<br/>Hybrid Retriever & Semantic Facts"]
         end
         
-        MemLoader --> MemTiers
-        MemTiers --> SafetyLatch["Allergy Safety Latch:<br/>A_new = A_current U A_detected"]
+        Pipeline --> MemEngine
+        MemEngine --> SafetyLatch["Allergy Hard Filter<br/>(Tầng RAG MetadataFilter)"]
         SafetyLatch --> PromptBuilder["system_prompt_builder.py"]
-        PromptBuilder --> Pipeline["Aria Conversation Pipeline"]
     end
 
-    subgraph AsyncWorker ["4. Tác Vụ Tóm Tắt Ngầm (Background Write-Back)"]
-        ChatWidget -.->|Kết thúc phiên / DELETE session| ApiGateway
-        ApiGateway -.->|Gọi tóm tắt| Summarizer["SessionSummarizer (AI Service)"]
-        Summarizer --> SafetyCheck{"Safety Latch:<br/>Không mất dị ứng?"}
+    subgraph AutoCheckpoint ["4. Cơ Chế Auto-Checkpoint & Write-Back"]
+        Pipeline -.->|Kích hoạt khi: Đặt bàn, Đặt món,<br/>mốc 4 lượt chat, hoặc kết thúc phiên| Summarizer["SessionSummarizer (AI Service)"]
+        Summarizer --> SafetyCheck{"Safety Latch:<br/>Phép Hợp (Union)"}
         SafetyCheck -->|Hợp nhất an toàn| DB_Profile
         Summarizer -->|Ghi mẩu ký ức| DB_Memories
     end
 ```
 
-### 2.1. Ba Tầng Bộ Nhớ MemGPT Áp Dụng Cho Aria
-1. **Working Memory (Bộ nhớ làm việc):** Ngữ cảnh hội thoại tức thời của phiên hiện tại lưu trên Redis (`ai_session:{sessionId}`, TTL 30 phút).
-2. **Recall Memory (Bộ nhớ hồi tưởng):** Các sự kiện và món ăn khách từng thưởng thức trong quá khứ, lưu dưới dạng vector 768 chiều trong bảng `guest_memories`, truy xuất tương đồng Cosine HNSW.
-3. **Archival Memory (Bộ nhớ lưu trữ dài hạn):** Hồ sơ thuộc tính bền vững trong bảng `guest_profiles`: danh sách dị ứng, khẩu vị cay, vị trí bàn quen thuộc, số lần ghé và các ngày kỷ niệm.
+### 2.1. Chuẩn Hóa Phân Tầng Bộ Nhớ MemGPT (Packer et al., 2023)
+1. **Working Context (Bộ nhớ làm việc tức thời - In-Context):**
+   - **Working Memory Buffer:** Ngữ cảnh hội thoại tức thời của phiên hiện tại lưu trên Redis (`ai_session:{sessionId}`, TTL 30 phút).
+   - **Core Memory (Human Block):** Hồ sơ thuộc tính bền vững của thực khách trong bảng `guest_profiles`: danh sách dị ứng thực phẩm, khẩu vị cay, vị trí bàn quen thuộc, số lần ghé và các ngày kỷ niệm (luôn được nạp sẵn vào Layer 2 Context của System Prompt).
+2. **Recall Memory (Bộ nhớ hồi tưởng - Out-of-Context FIFO Log):**
+   - Lịch sử đàm thoại đầy đủ của các phiên (Message Turn Logs) cho phép tìm kiếm lại các nội dung tương tác đã diễn ra.
+3. **Archival Memory (Bộ nhớ lưu trữ dài hạn - Out-of-Context Fact Store):**
+   - Bảng `guest_memories` lưu trữ các sự kiện, thói quen và nhận xét của khách trong quá khứ dạng sự kiện ngữ nghĩa, hỗ trợ cột vector 768 chiều (`embedding vector(768)`). Truy xuất và tiêm vào System Prompt của Aria dưới dạng `recall_memories`.
 
 ### 2.2. Cơ Chế Khóa An Toàn Dị Ứng (Allergy Safety Latch)
-* **Nguyên tắc toán học:** Tập hợp dị ứng được cập nhật theo phép hợp tập hợp:
+* **Nguyên tắc toán học:** Khi AI thực hiện trích xuất ngầm từ hội thoại, tập hợp dị ứng được cập nhật theo phép hợp tập hợp:
   $$A_{\text{updated}} = A_{\text{current}} \cup A_{\text{detected}}$$
 * **Nguyên tắc bất biến (Safety Invariance):**
   $$A_{\text{current}} \subseteq A_{\text{updated}} \iff \forall x \in A_{\text{current}}, x \in A_{\text{updated}}$$
+  *Bảo đảm $100\%$ không mất dữ liệu dị ứng do lỗi ảo giác hoặc suy luận của LLM.*
+* **Phân định quyền chỉnh sửa người dùng:** Khi thực khách chủ động cập nhật qua endpoint `PUT /api/guest-profile/me`, hệ thống tôn trọng quyền quyết định của người dùng (Explicit Overwrite), cho phép bỏ chọn dị ứng bị nhận diện nhầm.
 * **Bảo vệ tự động tầng RAG:** Khi khách có tiền sử dị ứng lưu trong `guest_profiles`, các chất dị ứng này được **tự động nạp vào bộ lọc cứng `MetadataFilter`**, bảo đảm loại trừ $100\%$ món ăn vi phạm ngay cả khi trong câu chat hiện tại khách không nhắc lại.
 
 ---
@@ -166,9 +172,9 @@ flowchart TD
 
 #### 2.2. Backend Controller & Business Logic (`guestProfileController.js`) `[Ước lượng: 4.5 giờ]`
 - [x] Cài đặt hàm `getMyProfile`: Truy xuất hồ sơ từ Redis cache hoặc Supabase.
-- [x] Cài đặt hàm `updateMyProfile`: Cập nhật sở thích và thực thi cơ chế hợp nhất dị ứng an toàn.
+- [x] Cài đặt hàm `updateMyProfile`: Cập nhật sở thích (cho phép ghi đè dị ứng có chủ đích khi người dùng chỉnh sửa hồ sơ cá nhân).
 - [x] Cài đặt hàm `getMyMemories`: Lấy danh sách ký ức tương tác trước đây.
-- [x] Cài đặt hàm `ingestSessionSummary`: Tiếp nhận tóm tắt từ AI Service cuối phiên.
+- [x] Cài đặt hàm `ingestSessionSummary`: Tiếp nhận tóm tắt từ AI Service, hợp nhất dị ứng an toàn (Allergy Safety Latch Union).
 
 #### 2.3. Định Tuyến REST API Gateway & Phân Quyền `[Ước lượng: 3.0 giờ]`
 - [x] Tạo file route `backend/src/routes/guestProfileRoutes.js` với middleware xác thực `verifyToken`.
@@ -180,9 +186,9 @@ flowchart TD
 - [x] Đảm bảo thời gian tra cứu hồ sơ đạt tiêu chuẩn dưới $2\text{ ms}$.
 
 #### 2.5. Tích Hợp Luồng Đàm Thoại Gateway (`aiController.js`) `[Ước lượng: 4.0 giờ]`
-- [x] Thêm hàm `getGuestProfile(userId)` chạy song song trong `Promise.all` tại `consult()`.
-- [x] Bổ sung `guestProfile` vào `pipecatPayload` gửi sang AI Service.
-- [x] Bắt sự kiện kết thúc phiên (`DELETE /api/ai/session/:sessionId`): Quét nhanh lịch sử hội thoại trước khi xóa và kích hoạt tóm tắt ngầm bất đồng bộ.
+- [x] Thêm hàm `getGuestProfile(userId)` & `getRecallMemories(userId)` chạy song song trong `Promise.all` tại `consult()`.
+- [x] Bổ sung `guestProfile` và `recallMemories` vào `pipecatPayload` gửi sang AI Service.
+- [x] Cơ chế Auto-Checkpoint & Write-Back: Tự động kích hoạt tác vụ tóm tắt ngầm gọi qua endpoint `POST /api/memory/summarize-session` của AI Service khi: (1) Đặt bàn thành công, (2) Tạo đơn món mới, (3) Mốc tích luỹ hội thoại (mỗi 4 lượt), hoặc (4) Kết thúc phiên chat.
 
 #### 2.6. Giao Diện Người Dùng & Trải Nghiệm Khách Hàng (React) `[Ước lượng: 6.0 giờ]`
 - [x] Cập nhật `frontend/src/contexts/AiChatContext.jsx`:

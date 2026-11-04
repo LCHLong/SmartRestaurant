@@ -12,9 +12,10 @@
  */
 
 const redis = require('../config/redisClient');
+const supabase = require('../config/supabaseClient');
 const { getIO } = require('../config/socket');
 const { retrieveMenuContext, getOrderHistory } = require('../services/ragService');
-const { streamFromPipecat, isPipecatHealthy } = require('../services/pipecatClient');
+const { streamFromPipecat, isPipecatHealthy, summarizeSessionWithAI } = require('../services/pipecatClient');
 const { getAbVariant } = require('../utils/abVariant');
 const Joi = require('joi');
 
@@ -114,6 +115,29 @@ async function getGuestProfile(userId) {
 }
 
 /**
+ * Lấy các mẩu ký ức hồi tưởng (MemGPT Recall / Archival Memory) từ CSDL
+ * @param {string} userId
+ * @param {number} limit
+ * @returns {Promise<Array<string>>}
+ */
+async function getRecallMemories(userId, limit = 5) {
+  if (!userId) return [];
+  try {
+    const { data, error } = await supabase
+      .from('guest_memories')
+      .select('content')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (error || !data) return [];
+    return data.map(item => item.content).filter(Boolean);
+  } catch (_) {
+    return [];
+  }
+}
+
+/**
  * Lưu lịch sử hội thoại vào Redis (rolling window MAX_HISTORY_TURNS)
  * @param {string} sessionId
  * @param {Array}  history
@@ -193,11 +217,12 @@ exports.consult = async (req, res) => {
 
   try {
     // 5. RAG & MemGPT — Lấy thực đơn, lịch sử đơn hàng, hội thoại & hồ sơ dài hạn song song
-    const [ragResult, orderHistory, history, guestProfile] = await Promise.all([
+    const [ragResult, orderHistory, history, guestProfile, recallMemories] = await Promise.all([
       retrieveMenuContext(message, resolvedRestaurantId),
       getOrderHistory(userId),
       getSessionHistory(sessionId),
-      getGuestProfile(userId)
+      getGuestProfile(userId),
+      getRecallMemories(userId)
     ]);
 
     const { context, fallbackUsed } = ragResult;
@@ -212,7 +237,8 @@ exports.consult = async (req, res) => {
       menuContext: context || [],
       orderHistory,
       conversationHistory: history,
-      guestProfile: guestProfile || null, // MemGPT Archival Memory
+      guestProfile: guestProfile || null, // MemGPT Core Human Memory
+      recallMemories: recallMemories || [], // MemGPT Archival Semantic Facts
       fallbackUsed,
       restaurantId: resolvedRestaurantId,
       userId: userId || null,
@@ -271,6 +297,21 @@ exports.consult = async (req, res) => {
 
         // 8. Lưu lịch sử hội thoại
         await saveSessionHistory(sessionId, history, message, finalText);
+
+        // 9. Auto-checkpoint tóm tắt ngầm cho khách quen:
+        // Kích hoạt khi có sự kiện quan trọng (đặt bàn) hoặc hội thoại đạt mốc tích luỹ (mỗi 4 lượt)
+        if (userId) {
+          const turnCount = history.length + 2;
+          const shouldCheckpoint = Boolean(reservation) || (turnCount >= 4 && turnCount % 4 === 0);
+          if (shouldCheckpoint) {
+            const fullHistory = [
+              ...history,
+              { role: 'user', content: message },
+              { role: 'assistant', content: finalText }
+            ];
+            triggerBackgroundSummarizer(sessionId, userId, fullHistory).catch(() => {});
+          }
+        }
       },
 
       // onError
@@ -295,6 +336,73 @@ exports.consult = async (req, res) => {
 };
 
 /**
+ * Tác vụ tóm tắt phiên ngầm (MemGPT Auto-Checkpoint & Write-Back)
+ * Gọi AI Microservice (FastAPI POST /api/memory/summarize-session) để bóc tách tri thức,
+ * sau đó cập nhật an toàn vào guest_profiles & guest_memories với Allergy Safety Latch.
+ *
+ * @param {string} sessionId
+ * @param {string} userId
+ * @param {Array}  [historyOpt]
+ */
+async function triggerBackgroundSummarizer(sessionId, userId, historyOpt = null) {
+  if (!userId) return;
+
+  try {
+    const history = historyOpt || (sessionId ? await getSessionHistory(sessionId) : []);
+    if (!history || history.length < 2) return;
+
+    // 1. Lấy profile hiện tại từ cache/DB
+    const currentProfile = await getGuestProfile(userId);
+
+    // 2. Gọi AI Service để bóc tách và hợp nhất (Allergy Safety Latch)
+    let summaryResult = null;
+    try {
+      summaryResult = await summarizeSessionWithAI({
+        sessionId,
+        userId,
+        conversationHistory: history,
+        currentProfile: currentProfile || null
+      });
+    } catch (aiErr) {
+      console.warn('[aiController] AI Service summarize-session failed, using fallback:', aiErr.message);
+    }
+
+    // 3. Chuẩn bị payload đồng bộ với guestProfileController.ingestSessionSummary
+    const guestProfileController = require('./guestProfileController');
+    let summaryPayload;
+
+    if (summaryResult) {
+      summaryPayload = {
+        userId,
+        sessionId,
+        detectedAllergies: summaryResult.allergies || [],
+        detectedSpice: summaryResult.spice_preference || undefined,
+        detectedZone: summaryResult.preferred_zone || undefined,
+        favoriteDishes: summaryResult.favorite_dishes || [],
+        newSpecialNotes: summaryResult.special_notes || undefined,
+        memoryFacts: summaryResult.memory_facts || [
+          `Khách đã tương tác trong phiên ${sessionId}`
+        ]
+      };
+    } else {
+      summaryPayload = {
+        userId,
+        sessionId,
+        detectedAllergies: [],
+        favoriteDishes: [],
+        memoryFacts: [`Khách đã tương tác trong phiên ${sessionId}`]
+      };
+    }
+
+    const mockReq = { body: summaryPayload };
+    const mockRes = { status: () => ({ json: () => {} }) };
+    await guestProfileController.ingestSessionSummary(mockReq, mockRes);
+  } catch (err) {
+    console.warn('[aiController] triggerBackgroundSummarizer error:', err.message);
+  }
+}
+
+/**
  * DELETE /api/ai/session/:sessionId
  * Xoá session Redis khi khách rời bàn
  */
@@ -307,62 +415,9 @@ exports.clearSession = async (req, res) => {
   }
 
   try {
-    // MemGPT: Nếu là khách quen đã đăng nhập, đọc lại hội thoại trước khi xóa để kích hoạt tác vụ tóm tắt ngầm
+    // MemGPT: Nếu là khách quen đã đăng nhập, kích hoạt tác vụ tóm tắt ngầm qua AI Microservice
     if (userId) {
-      getSessionHistory(sessionId).then(async (history) => {
-        if (history && history.length >= 2) {
-          try {
-            const guestProfileController = require('./guestProfileController');
-            // Tìm kiếm các tín hiệu dị ứng hoặc khẩu vị trong hội thoại
-            const textCorpus = history.map(h => h.content).join(' ').toLowerCase();
-            const detectedAllergies = [];
-            const allergensCheck = ['đậu phộng', 'hải sản', 'tôm', 'cua', 'trứng', 'sữa', 'gluten', 'bò'];
-            for (const a of allergensCheck) {
-              if (textCorpus.includes(`dị ứng ${a}`) || textCorpus.includes(`không ăn được ${a}`) || textCorpus.includes(`không ăn ${a}`)) {
-                detectedAllergies.push(a);
-              }
-            }
-
-            let detectedSpice = undefined;
-            if (textCorpus.includes('không ăn cay') || textCorpus.includes('không cay')) {
-              detectedSpice = 'không cay';
-            } else if (textCorpus.includes('ít cay') || textCorpus.includes('hơi cay')) {
-              detectedSpice = 'ít cay';
-            } else if (textCorpus.includes('cay nhiều') || textCorpus.includes('ăn cay giỏi')) {
-              detectedSpice = 'cay nồng';
-            }
-
-            let detectedZone = undefined;
-            if (textCorpus.includes('ngoài trời') || textCorpus.includes('thoáng mát')) {
-              detectedZone = 'ngoài trời';
-            } else if (textCorpus.includes('phòng vip') || textCorpus.includes('phòng riêng')) {
-              detectedZone = 'phòng VIP';
-            } else if (textCorpus.includes('cạnh cửa sổ') || textCorpus.includes('gần cửa sổ')) {
-              detectedZone = 'cạnh cửa sổ';
-            }
-
-            const mockReq = {
-              body: {
-                userId,
-                sessionId,
-                detectedAllergies,
-                detectedSpice,
-                detectedZone,
-                favoriteDishes: [],
-                memoryFacts: [
-                  `Khách đã tương tác trong phiên ${sessionId}`
-                ]
-              }
-            };
-            const mockRes = {
-              status: () => ({ json: () => {} })
-            };
-            await guestProfileController.ingestSessionSummary(mockReq, mockRes);
-          } catch (sumErr) {
-            console.warn('[aiController] Background session summarizer failed:', sumErr.message);
-          }
-        }
-      }).catch(() => {});
+      triggerBackgroundSummarizer(sessionId, userId).catch(() => {});
     }
 
     if (redis && typeof redis.del === 'function') {
@@ -380,4 +435,7 @@ exports.clearSession = async (req, res) => {
 
 // Re-export để các module khác có thể dùng trực tiếp từ aiController (backward compat)
 exports.getAbVariant = getAbVariant;
+exports.triggerBackgroundSummarizer = triggerBackgroundSummarizer;
+exports.getRecallMemories = getRecallMemories;
+exports.getGuestProfile = getGuestProfile;
 

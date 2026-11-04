@@ -27,12 +27,12 @@ const profileUpdateSchema = Joi.object({
 // Schema lưu tóm tắt phiên ngầm (Session Summary)
 const sessionSummarySchema = Joi.object({
   userId: Joi.string().uuid().required(),
-  sessionId: Joi.string().max(100).optional(),
+  sessionId: Joi.string().max(100).optional().allow(null, ''),
   detectedAllergies: Joi.array().items(Joi.string()).default([]),
-  detectedSpice: Joi.string().valid('không cay', 'ít cay', 'vừa', 'cay nồng').optional(),
-  detectedZone: Joi.string().max(100).optional(),
+  detectedSpice: Joi.string().valid('không cay', 'ít cay', 'vừa', 'cay nồng').optional().allow(null, ''),
+  detectedZone: Joi.string().max(100).optional().allow(null, ''),
   favoriteDishes: Joi.array().items(Joi.string()).default([]),
-  newSpecialNotes: Joi.string().max(500).optional(),
+  newSpecialNotes: Joi.string().max(500).optional().allow(null, ''),
   memoryFacts: Joi.array().items(Joi.string()).default([])
 });
 
@@ -112,23 +112,27 @@ exports.updateMyProfile = async (req, res) => {
   }
 
   try {
-    // 1. Lấy profile hiện tại để thực thi Allergy Safety Latch
-    const { data: currentProfile } = await supabase
-      .from('guest_profiles')
-      .select('*')
-      .eq('user_id', userId)
-      .single();
-
-    let mergedAllergies = value.allergies || [];
-    if (currentProfile && currentProfile.allergies && Array.isArray(currentProfile.allergies)) {
-      // ALLERGY SAFETY LATCH: Hợp nhất (Union) để không bao giờ tự ý xóa dị ứng cũ trừ khi yêu cầu rõ
-      mergedAllergies = Array.from(new Set([...currentProfile.allergies, ...mergedAllergies]));
+    // 1. Phân biệt người dùng chủ động sửa vs AI tự động trích xuất:
+    // - Khi người dùng chủ động cập nhật qua PUT /api/guest-profile/me:
+    //   Nếu gửi 'allergies' (kể cả mảng rỗng []), cho phép ghi đè (Explicit Overwrite)
+    //   để người dùng có thể xóa bỏ dị ứng bị gán nhầm.
+    // - Nếu không gửi 'allergies', bảo lưu mảng dị ứng hiện tại trong CSDL.
+    let targetAllergies;
+    if (value.allergies !== undefined) {
+      targetAllergies = Array.from(new Set(value.allergies.map(a => a.trim().toLowerCase()).filter(Boolean)));
+    } else {
+      const { data: currentProfile } = await supabase
+        .from('guest_profiles')
+        .select('allergies')
+        .eq('user_id', userId)
+        .single();
+      targetAllergies = currentProfile?.allergies || [];
     }
 
     const upsertData = {
       user_id: userId,
       ...value,
-      allergies: mergedAllergies,
+      allergies: targetAllergies,
       updated_at: new Date().toISOString()
     };
 
@@ -152,7 +156,7 @@ exports.updateMyProfile = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: 'Cập nhật hồ sơ khách quen thành công (đã kích hoạt Allergy Safety Latch)',
+      message: 'Cập nhật hồ sơ khách quen thành công',
       data: data
     });
   } catch (err) {

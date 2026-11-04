@@ -144,4 +144,73 @@ async function isPipecatHealthy() {
   });
 }
 
-module.exports = { streamFromPipecat, callPipecat, isPipecatHealthy };
+/**
+ * Gọi AI Microservice để tóm tắt hội thoại phiên làm việc (Session Summarizer)
+ * POST /api/memory/summarize-session
+ *
+ * @param {Object} params
+ * @param {string} params.sessionId
+ * @param {string} params.userId
+ * @param {Array}  params.conversationHistory
+ * @param {Object} params.currentProfile
+ * @returns {Promise<Object>}
+ */
+async function summarizeSessionWithAI({ sessionId, userId, conversationHistory, currentProfile }) {
+  return new Promise((resolve, reject) => {
+    const serviceUrl = new URL('/api/memory/summarize-session', PIPECAT_URL);
+    const body = JSON.stringify({
+      sessionId,
+      userId,
+      conversationHistory: (conversationHistory || []).map(h => ({
+        role: h.role || 'user',
+        content: h.content || ''
+      })),
+      currentProfile: currentProfile || null
+    });
+
+    const options = {
+      hostname: serviceUrl.hostname,
+      port: serviceUrl.port || (serviceUrl.protocol === 'https:' ? 443 : 80),
+      path: serviceUrl.pathname,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(body)
+      },
+      timeout: 10000
+    };
+
+    const transport = serviceUrl.protocol === 'https:' ? https : http;
+    const req = transport.request(options, (res) => {
+      let raw = '';
+      res.on('data', chunk => { raw += chunk; });
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            const parsed = JSON.parse(raw);
+            resolve(parsed.data || parsed);
+          } catch (e) {
+            reject(new Error(`Failed to parse AI summary response: ${e.message}`));
+          }
+        } else {
+          reject(new Error(`AI Summarizer returned status ${res.statusCode}: ${raw}`));
+        }
+      });
+    });
+
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('AI Summarizer request timeout'));
+    });
+    req.on('error', reject);
+    req.write(body);
+    req.end();
+  });
+}
+
+module.exports = {
+  streamFromPipecat,
+  callPipecat,
+  isPipecatHealthy,
+  summarizeSessionWithAI
+};
