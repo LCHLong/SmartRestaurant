@@ -151,6 +151,8 @@ class AriaConversationPipeline:
         rerank_weight: Optional[float] = None,
         feedback_type: Optional[str] = None,
         rejected_items: Optional[List[str]] = None,
+        guest_profile: Optional[Dict[str, Any]] = None,
+        recall_memories: Optional[List[str]] = None,
     ) -> AsyncGenerator[str, None]:
         """
         Xử lý toàn trình một lượt thoại của khách hàng và stream kết quả qua SSE.
@@ -347,6 +349,8 @@ class AriaConversationPipeline:
                 feedback_type=feedback_type,
                 rejected_items=rejected_items,
                 t_start=t_start,
+                guest_profile=guest_profile,
+                recall_memories=recall_memories,
             ):
                 yield sse_item
 
@@ -371,6 +375,8 @@ class AriaConversationPipeline:
         t_start: float,
         prefix_message: Optional[str] = None,
         postfix_message: Optional[str] = None,
+        guest_profile: Optional[Dict[str, Any]] = None,
+        recall_memories: Optional[List[str]] = None,
     ) -> AsyncGenerator[str, None]:
         """
         Luồng tư vấn thực đơn (Hybrid RAG: BM25 + FAISS + Reranker + LLM Stream).
@@ -404,6 +410,13 @@ class AriaConversationPipeline:
         else:
             extractor = getattr(self.retriever, "entity_extractor", None) or CulinaryEntityExtractor()
             entities = extractor.extract(search_query)
+
+            # MemGPT Archival Memory Allergy Latch: Nạp dị ứng hồ sơ thực khách vào bộ lọc cứng
+            if guest_profile and guest_profile.get("allergies"):
+                for a in guest_profile.get("allergies", []):
+                    if a and a.lower() not in [x.lower() for x in entities.allergens]:
+                        entities.allergens.append(a.lower())
+
             clean_menu_context, _ = MetadataFilter.filter_items(menu_context, entities, extractor)
 
             if not clean_menu_context:
@@ -450,6 +463,8 @@ class AriaConversationPipeline:
             table_id=table_id,
             fallback_used=fallback_used,
             restaurant_id=restaurant_id,
+            guest_profile=guest_profile,
+            recall_memories=recall_memories,
         )
 
         fallback_hint = ""
@@ -566,6 +581,8 @@ class AriaConversationPipeline:
         rerank_weight: Optional[float] = None,
         feedback_type: Optional[str] = None,
         rejected_items: Optional[List[str]] = None,
+        guest_profile: Optional[Dict[str, Any]] = None,
+        recall_memories: Optional[List[str]] = None,
     ) -> AsyncGenerator[str, None]:
         """
         Bộ máy trạng thái (FSM) xử lý lượt hội thoại đặt bàn.

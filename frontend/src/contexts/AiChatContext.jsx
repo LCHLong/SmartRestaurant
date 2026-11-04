@@ -40,7 +40,9 @@ export const AiChatProvider = ({ children }) => {
   const defaultWelcome = {
     id: 'aria-welcome-msg',
     role: 'assistant',
-    content: 'Xin chào! Em là **Aria** — trợ lý tư vấn món ăn của nhà hàng 🍽️\n\nBạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?',
+    content: user?.name
+      ? `Xin chào **${user.name}**! Em là **Aria** — rất vui được đón tiếp bạn quay lại nhà hàng 🍽️\n\nEm đã nạp hồ sơ khẩu vị của bạn. Hôm nay bạn muốn tìm món gì hoặc đặt bàn ạ?`
+      : 'Xin chào! Em là **Aria** — trợ lý tư vấn món ăn của nhà hàng 🍽️\n\nBạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?',
     suggestedItems: [],
     isStreaming: false
   };

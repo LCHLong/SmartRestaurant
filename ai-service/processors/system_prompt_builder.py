@@ -76,9 +76,12 @@ def build_dynamic_context(
     table_id: str,
     fallback_used: bool = False,
     restaurant_id: Optional[str] = None,
+    guest_profile: Optional[dict] = None,
+    recall_memories: Optional[list[str]] = None,
 ) -> str:
     """
-    Build Layer 2 — Dynamic Context string để inject vào prompt Gemini.
+    Build Layer 2 — Dynamic Context string để inject vào prompt Gemini/Groq.
+    Tích hợp MemGPT 3-tier memory (Working, Recall, Archival).
 
     Returns:
         str: Chuỗi context đầy đủ cho prompt
@@ -91,6 +94,35 @@ def build_dynamic_context(
     lines.append(f"- Bàn số: {table_id}")
     lines.append(f"- Thời điểm hiện tại tại quán: {time_of_day} ({datetime.now().strftime('%H:%M')}) (Chỉ dùng để chào hỏi; nếu khách hỏi món cho một buổi cụ thể như sáng/trưa/tối, hãy ưu tiên tư vấn đúng theo buổi khách yêu cầu, không từ chối theo giờ đồng hồ)")
     lines.append("")
+
+    # --- MemGPT Archival Memory (Hồ sơ dài hạn khách quen) ---
+    if guest_profile:
+        lines.append("## BỘ NHỚ DÀI HẠN KHÁCH QUEN (MemGPT Archival Memory)")
+        visit_count = guest_profile.get("visit_count", 1)
+        lines.append(f"- Phân loại: Khách quen thân thiết (Lượt ghé: {visit_count})")
+        allergies = guest_profile.get("allergies", [])
+        if allergies:
+            lines.append(f"- ⚠️ DỊ ỨNG THỰC PHẨM CỐ ĐỊNH (TUYỆT ĐỐI TUÂN THỦ): {', '.join(allergies).upper()}")
+        spice = guest_profile.get("spice_preference")
+        if spice:
+            lines.append(f"- Khẩu vị cay quen thuộc: {spice}")
+        zone = guest_profile.get("preferred_zone")
+        if zone:
+            lines.append(f"- Khu vực / vị trí bàn ưa thích: {zone}")
+        favs = guest_profile.get("favorite_dishes", [])
+        if favs:
+            lines.append(f"- Món yêu thích đã ghi nhận: {', '.join(favs)}")
+        notes = guest_profile.get("special_notes")
+        if notes:
+            lines.append(f"- Ghi chú thực khách: {notes}")
+        lines.append("")
+
+    # --- MemGPT Recall Memory ---
+    if recall_memories:
+        lines.append("## KÝ ỨC HỒI TƯỞNG (MemGPT Recall Memory)")
+        for mem in recall_memories:
+            lines.append(f"- {mem}")
+        lines.append("")
 
     # --- Menu context (RAG result) ---
     if fallback_used:

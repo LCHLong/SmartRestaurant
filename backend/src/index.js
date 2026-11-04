@@ -75,6 +75,9 @@ app.use('/api/feedback', require('./routes/feedbackRoutes'));
 app.use('/api/reservations', require('./routes/reservationRoutes'));
 app.use('/api/shifts', require('./routes/shiftRoutes'));
 
+// Phase 6: MemGPT - Bộ nhớ Dài hạn Khách quen
+app.use('/api/guest-profile', require('./routes/guestProfileRoutes'));
+
 app.use('/api', testEmailRouter);
 
 // --- SERVE FRONTEND IN PRODUCTION ---

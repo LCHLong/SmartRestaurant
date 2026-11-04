@@ -12,9 +12,11 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAiChat } from '../../contexts/AiChatContext';
+import { useAuth } from '../../contexts/AuthContext';
 import ChatMessage from './ChatMessage';
 
 export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
+  const { user } = useAuth();
   const {
     isOpen,
     openChat,
@@ -126,6 +128,12 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
               <p className="text-white font-semibold text-sm leading-none truncate">Aria</p>
               {/* Dot online */}
               <span className="w-2 h-2 rounded-full bg-green-300 shadow flex-shrink-0 animate-pulse" />
+              {user && (
+                <span className="text-[10px] bg-white/25 px-1.5 py-0.5 rounded text-white font-medium flex items-center gap-0.5 shadow-sm" title="Đã nạp hồ sơ khẩu vị dài hạn MemGPT">
+                  <span className="material-symbols-outlined text-[11px]">memory</span>
+                  Khách quen
+                </span>
+              )}
             </div>
             <p className="text-white/80 text-xs mt-0.5 truncate">Trợ lý tư vấn ẩm thực & đặt bàn</p>
           </div>

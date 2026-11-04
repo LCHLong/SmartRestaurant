@@ -807,7 +807,8 @@ async def test_mid_flow_dish_query_preserves_slots():
 
     state = _get_default_state()
     state["fsm_state"] = "COLLECTING_SLOTS"
-    state["slots"]["date"] = "2026-10-15"
+    future_date = (datetime.now() + timedelta(days=2)).strftime("%Y-%m-%d")
+    state["slots"]["date"] = future_date
     state["slots"]["time"] = "19:00"
     state["slots"]["guests"] = 4
     await save_state(session_id, state)
@@ -825,7 +826,7 @@ async def test_mid_flow_dish_query_preserves_slots():
 
     st = await get_state(session_id)
     assert st["fsm_state"] == "COLLECTING_SLOTS"
-    assert st["slots"]["date"] == "2026-10-15"
+    assert st["slots"]["date"] == future_date
     assert st["slots"]["time"] == "19:00"
     assert st["slots"]["guests"] == 4
     assert st["slots"]["customer_name"] is None

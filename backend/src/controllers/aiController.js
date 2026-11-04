@@ -83,6 +83,37 @@ async function getSessionHistory(sessionId) {
 }
 
 /**
+ * Lấy hồ sơ dài hạn (Archival Memory) của khách quen từ PostgreSQL/Redis
+ * Căn cứ: MemGPT Architecture (Packer et al., 2023)
+ * @param {string|null} userId
+ * @returns {Object|null}
+ */
+async function getGuestProfile(userId) {
+  if (!userId) return null;
+  const cacheKey = `guest_profile:${userId}`;
+  try {
+    if (redis && typeof redis.get === 'function') {
+      const cached = await redis.get(cacheKey);
+      if (cached) return JSON.parse(cached);
+    }
+  } catch (_) { /* cache miss */ }
+
+  try {
+    const { data } = await supabase
+      .from('guest_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    if (data && redis && typeof redis.set === 'function') {
+      await redis.set(cacheKey, JSON.stringify(data), { EX: 3600 }).catch(() => {});
+    }
+    return data || null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
  * Lưu lịch sử hội thoại vào Redis (rolling window MAX_HISTORY_TURNS)
  * @param {string} sessionId
  * @param {Array}  history
@@ -161,11 +192,12 @@ exports.consult = async (req, res) => {
   };
 
   try {
-    // 5. RAG — Lấy lịch sử đơn hàng & lịch sử hội thoại song song
-    const [ragResult, orderHistory, history] = await Promise.all([
+    // 5. RAG & MemGPT — Lấy thực đơn, lịch sử đơn hàng, hội thoại & hồ sơ dài hạn song song
+    const [ragResult, orderHistory, history, guestProfile] = await Promise.all([
       retrieveMenuContext(message, resolvedRestaurantId),
       getOrderHistory(userId),
-      getSessionHistory(sessionId)
+      getSessionHistory(sessionId),
+      getGuestProfile(userId)
     ]);
 
     const { context, fallbackUsed } = ragResult;
@@ -180,6 +212,7 @@ exports.consult = async (req, res) => {
       menuContext: context || [],
       orderHistory,
       conversationHistory: history,
+      guestProfile: guestProfile || null, // MemGPT Archival Memory
       fallbackUsed,
       restaurantId: resolvedRestaurantId,
       userId: userId || null,
@@ -267,12 +300,71 @@ exports.consult = async (req, res) => {
  */
 exports.clearSession = async (req, res) => {
   const { sessionId } = req.params;
+  const userId = req.user?.id || null;
 
   if (!sessionId) {
     return res.status(400).json({ success: false, message: 'sessionId is required' });
   }
 
   try {
+    // MemGPT: Nếu là khách quen đã đăng nhập, đọc lại hội thoại trước khi xóa để kích hoạt tác vụ tóm tắt ngầm
+    if (userId) {
+      getSessionHistory(sessionId).then(async (history) => {
+        if (history && history.length >= 2) {
+          try {
+            const guestProfileController = require('./guestProfileController');
+            // Tìm kiếm các tín hiệu dị ứng hoặc khẩu vị trong hội thoại
+            const textCorpus = history.map(h => h.content).join(' ').toLowerCase();
+            const detectedAllergies = [];
+            const allergensCheck = ['đậu phộng', 'hải sản', 'tôm', 'cua', 'trứng', 'sữa', 'gluten', 'bò'];
+            for (const a of allergensCheck) {
+              if (textCorpus.includes(`dị ứng ${a}`) || textCorpus.includes(`không ăn được ${a}`) || textCorpus.includes(`không ăn ${a}`)) {
+                detectedAllergies.push(a);
+              }
+            }
+
+            let detectedSpice = undefined;
+            if (textCorpus.includes('không ăn cay') || textCorpus.includes('không cay')) {
+              detectedSpice = 'không cay';
+            } else if (textCorpus.includes('ít cay') || textCorpus.includes('hơi cay')) {
+              detectedSpice = 'ít cay';
+            } else if (textCorpus.includes('cay nhiều') || textCorpus.includes('ăn cay giỏi')) {
+              detectedSpice = 'cay nồng';
+            }
+
+            let detectedZone = undefined;
+            if (textCorpus.includes('ngoài trời') || textCorpus.includes('thoáng mát')) {
+              detectedZone = 'ngoài trời';
+            } else if (textCorpus.includes('phòng vip') || textCorpus.includes('phòng riêng')) {
+              detectedZone = 'phòng VIP';
+            } else if (textCorpus.includes('cạnh cửa sổ') || textCorpus.includes('gần cửa sổ')) {
+              detectedZone = 'cạnh cửa sổ';
+            }
+
+            const mockReq = {
+              body: {
+                userId,
+                sessionId,
+                detectedAllergies,
+                detectedSpice,
+                detectedZone,
+                favoriteDishes: [],
+                memoryFacts: [
+                  `Khách đã tương tác trong phiên ${sessionId}`
+                ]
+              }
+            };
+            const mockRes = {
+              status: () => ({ json: () => {} })
+            };
+            await guestProfileController.ingestSessionSummary(mockReq, mockRes);
+          } catch (sumErr) {
+            console.warn('[aiController] Background session summarizer failed:', sumErr.message);
+          }
+        }
+      }).catch(() => {});
+    }
+
     if (redis && typeof redis.del === 'function') {
       await Promise.all([
         redis.del(`ai_session:${sessionId}`),

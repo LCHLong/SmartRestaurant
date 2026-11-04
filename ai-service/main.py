@@ -86,6 +86,17 @@ class ChatRequest(BaseModel):
     user_id: Optional[str] = None
     reservationMode: bool = False
     reservation_mode: bool = False
+    guestProfile: Optional[dict] = None
+    guest_profile: Optional[dict] = None
+    recallMemories: list[str] = []
+    recall_memories: list[str] = []
+
+
+class SessionSummaryRequest(BaseModel):
+    sessionId: Optional[str] = None
+    userId: Optional[str] = None
+    conversationHistory: list[HistoryItem] = []
+    currentProfile: Optional[dict] = None
 
 
 # ---------- Endpoints ----------
@@ -132,6 +143,8 @@ async def chat(request: ChatRequest):
                 top_k=request.topK,
                 feedback_type=request.feedbackType,
                 rejected_items=request.rejectedItems,
+                guest_profile=request.guestProfile or request.guest_profile,
+                recall_memories=request.recallMemories or request.recall_memories or [],
             ):
                 yield sse_chunk
         except Exception as e:
@@ -146,3 +159,29 @@ async def chat(request: ChatRequest):
             "X-Accel-Buffering": "no",
         }
     )
+
+
+@app.post("/api/memory/summarize-session")
+async def summarize_session(request: SessionSummaryRequest):
+    """
+    Tác vụ tóm tắt phiên ngầm (MemGPT Archival Write-Back).
+    Bóc tách khẩu vị, dị ứng mới và hợp nhất an toàn với Allergy Safety Latch.
+    """
+    from processors.session_summarizer import SessionSummarizer
+    from tools.guest_profile_store import GuestProfile
+
+    summarizer = SessionSummarizer()
+    cur_profile = None
+    if request.currentProfile:
+        try:
+            cur_profile = GuestProfile(**request.currentProfile)
+        except Exception:
+            pass
+
+    history_dicts = [h.model_dump() for h in request.conversationHistory]
+    merged_result = summarizer.summarize_and_merge(cur_profile, history_dicts)
+    return {
+        "success": True,
+        "message": "Đã tóm tắt phiên và bảo toàn an toàn dị ứng qua Allergy Safety Latch",
+        "data": merged_result
+    }
