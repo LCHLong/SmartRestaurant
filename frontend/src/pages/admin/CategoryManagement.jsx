@@ -18,10 +18,6 @@ const CategoryManagement = () => {
         return { headers: { Authorization: `Bearer ${token}` } };
     };
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
-
     const fetchCategories = async () => {
         try {
             const res = await axios.get(`${API_URL}/api/categories`);
@@ -32,6 +28,10 @@ const CategoryManagement = () => {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        fetchCategories();
+    }, []);
 
     const handleDelete = async (id) => {
         if (!window.confirm(t('category.confirm_delete'))) return;

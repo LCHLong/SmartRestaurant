@@ -72,7 +72,7 @@ export default function CouponListPage() {
                     <p className="text-sm text-gray-500">{t('coupon.list_subtitle')}</p>
                 </div>
                 <button
-                    onClick={() => setIsAddModalOpen(true)}
+                    onClick={() => navigate('/admin/coupons/create')}
                     className="w-full sm:w-auto px-4 sm:px-6 py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all flex items-center justify-center gap-2"
                 >
                     <span className="material-symbols-outlined text-lg sm:text-xl">add</span>

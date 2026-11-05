@@ -392,7 +392,7 @@ exports.createReservation = async (req, res) => {
     }
 
     // Auto-checkpoint MemGPT: Kích hoạt tóm tắt ngầm nếu khách đã đăng nhập
-    const customerId = req.user?.id || reservation.customer_id;
+    const customerId = (req.user && req.user.id) || effectiveUserId || reservation.user_id;
     if (customerId) {
       try {
         const { triggerBackgroundSummarizer } = require('./aiController');

@@ -304,7 +304,7 @@ export const AiChatProvider = ({ children }) => {
     if (oldSessionId) {
       api.delete(`/api/ai/session/${oldSessionId}`).catch(() => {});
     }
-  }, [sessionId]);
+  }, [sessionId, defaultWelcome]);
 
   return (
     <AiChatContext.Provider value={{

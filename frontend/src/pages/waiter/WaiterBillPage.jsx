@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import api from '../../services/api';
 
 export default function WaiterBillPage() {
+    const { t } = useTranslation();
     const { orderId } = useParams();
     const navigate = useNavigate();
     const [order, setOrder] = useState(null);
