@@ -36,12 +36,12 @@ export const AiChatProvider = ({ children }) => {
 
   // ---- State ----
   const [isOpen, setIsOpen] = useState(false);
-  // Tin nhắn chào mừng mặc định hiển thị tức thì (0ms latency, không cần chờ mạng)
+  const displayName = user?.name || user?.full_name;
   const defaultWelcome = {
     id: 'aria-welcome-msg',
     role: 'assistant',
-    content: user?.name
-      ? `Xin chào **${user.name}**! Em là **Aria** — rất vui được đón tiếp bạn quay lại nhà hàng 🍽️\n\nEm đã nạp hồ sơ khẩu vị của bạn. Hôm nay bạn muốn tìm món gì hoặc đặt bàn ạ?`
+    content: displayName
+      ? `Xin chào **${displayName}**! Em là **Aria** — rất vui được đón tiếp bạn quay lại nhà hàng 🍽️\n\nEm đã nạp hồ sơ khẩu vị của bạn. Hôm nay bạn muốn tìm món gì hoặc đặt bàn ạ?`
       : 'Xin chào! Em là **Aria** — trợ lý tư vấn món ăn của nhà hàng 🍽️\n\nBạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?',
     suggestedItems: [],
     isStreaming: false
@@ -286,12 +286,14 @@ export const AiChatProvider = ({ children }) => {
     });
   }, []);
 
-  // ---- Clear session khi rời trang (cleanup) ----
+  // ---- Clear session khi rời trang (cleanup / unmount) ----
   useEffect(() => {
     return () => {
-      api.delete(`/api/ai/session/${sessionId}`).catch(() => {});
+      api.delete(`/api/ai/session/${sessionId}`, {
+        params: user?.id ? { userId: user.id } : {}
+      }).catch(() => {});
     };
-  }, [sessionId]);
+  }, [sessionId, user?.id]);
 
   const resetSession = useCallback(() => {
     const oldSessionId = sessionId;

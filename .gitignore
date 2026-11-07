@@ -10,3 +10,8 @@ ACCOUNTS_NOTE.md
 __pycache__/
 *.pyc
 .vite/
+
+# Specs & Agent artifacts
+docs/specs/
+specs/
+.agents/

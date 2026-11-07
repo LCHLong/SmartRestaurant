@@ -1432,36 +1432,39 @@ async def test_tc_lv6_01_aria_rejects_past_time_same_day_conversational():
     session_id = f"test-tc-lv6-01-{uuid.uuid4().hex[:8]}"
     pipeline = AriaConversationPipeline()
 
-    # Lượt 1: Khách đặt hôm nay lúc 8h sáng 2 người
-    chunks1 = []
-    async for sse in pipeline.process("Cho mình đặt bàn hôm nay lúc 8h sáng 2 người", session_id=session_id):
-        chunks1.append(sse)
-    resp1 = extract_text_from_sse(chunks1)
+    fixed_now = now_vn().replace(hour=10, minute=0, second=0, microsecond=0)
+    with patch("tools.datetime_parser.now_vn", return_value=fixed_now), \
+         patch("pipelines.aria_pipeline.now_vn", return_value=fixed_now):
+        # Lượt 1: Khách đặt hôm nay lúc 8h sáng 2 người
+        chunks1 = []
+        async for sse in pipeline.process("Cho mình đặt bàn hôm nay lúc 8h sáng 2 người", session_id=session_id):
+            chunks1.append(sse)
+        resp1 = extract_text_from_sse(chunks1)
 
-    expected_exact = (
-        "Dạ, mốc thời gian 08:00 sáng hôm nay đã trôi qua rồi ạ. "
-        "Quý khách vui lòng chọn một khung giờ sắp tới trong ngày (từ 08:00 đến 21:30) "
-        "hoặc đặt cho ngày mai giúp Aria nhé!"
-    )
-    assert expected_exact in resp1
-    assert "họ tên" not in resp1
-    assert "số điện thoại" not in resp1
+        expected_exact = (
+            "Dạ, mốc thời gian 08:00 sáng hôm nay đã trôi qua rồi ạ. "
+            "Quý khách vui lòng chọn một khung giờ sắp tới trong ngày (từ 08:00 đến 21:30) "
+            "hoặc đặt cho ngày mai giúp Aria nhé!"
+        )
+        assert expected_exact in resp1
+        assert "họ tên" not in resp1
+        assert "số điện thoại" not in resp1
 
-    st1 = await get_state(session_id)
-    assert st1["slots"]["time"] is None
-    assert st1["slots"]["guests"] == 2
-    today_str = now_vn().strftime("%Y-%m-%d")
-    assert st1["slots"]["date"] == today_str
+        st1 = await get_state(session_id)
+        assert st1["slots"]["time"] is None
+        assert st1["slots"]["guests"] == 2
+        today_str = fixed_now.strftime("%Y-%m-%d")
+        assert st1["slots"]["date"] == today_str
 
-    # Lượt 2: Khách chọn lại giờ hợp lệ trong ngày (19:00)
-    chunks2 = []
-    async for sse in pipeline.process("vậy 19h tối nay nhé", session_id=session_id):
-        chunks2.append(sse)
-    resp2 = extract_text_from_sse(chunks2)
+        # Lượt 2: Khách chọn lại giờ hợp lệ trong ngày (19:00)
+        chunks2 = []
+        async for sse in pipeline.process("vậy 19h tối nay nhé", session_id=session_id):
+            chunks2.append(sse)
+        resp2 = extract_text_from_sse(chunks2)
 
-    st2 = await get_state(session_id)
-    assert st2["slots"]["time"] == "19:00"
-    assert "họ tên" in resp2 or "số điện thoại" in resp2
+        st2 = await get_state(session_id)
+        assert st2["slots"]["time"] == "19:00"
+        assert "họ tên" in resp2 or "số điện thoại" in resp2
 
 
 @pytest.mark.asyncio

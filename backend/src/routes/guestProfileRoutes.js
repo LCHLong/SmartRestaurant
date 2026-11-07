@@ -23,8 +23,11 @@ router.get('/memories', verifyToken, guestProfileController.getMyMemories);
 
 /**
  * POST /api/guest-profile/session-summary
+ * POST /api/guest-profile/ingest-summary (Alias)
  * Cập nhật tóm tắt phiên ngầm (gọi bởi internal cron hoặc AI service)
  */
 router.post('/session-summary', guestProfileController.ingestSessionSummary);
+router.post('/ingest-summary', guestProfileController.ingestSessionSummary);
 
 module.exports = router;
+

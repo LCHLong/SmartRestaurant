@@ -129,9 +129,12 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
               {/* Dot online */}
               <span className="w-2 h-2 rounded-full bg-green-300 shadow flex-shrink-0 animate-pulse" />
               {user && (
-                <span className="text-[10px] bg-white/25 px-1.5 py-0.5 rounded text-white font-medium flex items-center gap-0.5 shadow-sm" title="Đã nạp hồ sơ khẩu vị dài hạn MemGPT">
+                <span
+                  className="text-[10px] bg-white/25 px-1.5 py-0.5 rounded text-white font-medium flex items-center gap-0.5 shadow-sm whitespace-nowrap"
+                  title="Khách quen • Đã lưu khẩu vị (Hồ sơ MemGPT đang kích hoạt)"
+                >
                   <span className="material-symbols-outlined text-[11px]">memory</span>
-                  Khách quen
+                  Khách quen • Đã lưu khẩu vị
                 </span>
               )}
             </div>

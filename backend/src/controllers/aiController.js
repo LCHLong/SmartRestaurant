@@ -227,6 +227,27 @@ exports.consult = async (req, res) => {
 
     const { context, fallbackUsed } = ragResult;
 
+    // 5.1 Cấu trúc hoá ngữ cảnh hồ sơ khách quen & ký ức MemGPT
+    const isReturningGuest = Boolean(
+      guestProfile && (
+        (guestProfile.visit_count || 1) > 1 ||
+        (Array.isArray(guestProfile.allergies) && guestProfile.allergies.length > 0) ||
+        (Array.isArray(guestProfile.favorite_dishes) && guestProfile.favorite_dishes.length > 0)
+      )
+    );
+
+    const guestMemoryFacts = guestProfile ? {
+      isReturningGuest,
+      visitCount: guestProfile.visit_count || 1,
+      allergies: guestProfile.allergies || [],
+      dietaryPreferences: guestProfile.dietary_preferences || {},
+      spicePreference: guestProfile.spice_preference || 'vừa',
+      preferredZone: guestProfile.preferred_zone || null,
+      favoriteDishes: guestProfile.favorite_dishes || [],
+      specialNotes: guestProfile.special_notes || null,
+      recentMemories: recallMemories || []
+    } : null;
+
     // 6. Build payload cho Pipecat
     // Luôn gửi context mảng hợp lệ (context || []), tránh gửi null gây lỗi 422 ở FastAPI
     const pipecatPayload = {
@@ -234,14 +255,20 @@ exports.consult = async (req, res) => {
       sessionId,
       tableId,
       cartItems,
+      context: context || [],
       menuContext: context || [],
       orderHistory,
       conversationHistory: history,
       guestProfile: guestProfile || null, // MemGPT Core Human Memory
+      guest_profile: guestProfile || null,
+      guestContext: guestMemoryFacts,
+      guest_context: guestMemoryFacts,
       recallMemories: recallMemories || [], // MemGPT Archival Semantic Facts
+      recall_memories: recallMemories || [],
       fallbackUsed,
       restaurantId: resolvedRestaurantId,
       userId: userId || null,
+      user_id: userId || null,
       feedbackType: req.body.feedbackType,
       rejectedItems: req.body.rejectedItems,
       abVariant,
@@ -299,17 +326,31 @@ exports.consult = async (req, res) => {
         await saveSessionHistory(sessionId, history, message, finalText);
 
         // 9. Auto-checkpoint tóm tắt ngầm cho khách quen:
-        // Kích hoạt khi có sự kiện quan trọng (đặt bàn) hoặc hội thoại đạt mốc tích luỹ (mỗi 4 lượt)
+        // Kích hoạt khi có:
+        // - Đặt bàn thành công (reservation)
+        // - Phát hiện khiếu nại / phàn nàn / cần trợ giúp (complaint / handoff / negative feedback)
+        // - Ngưỡng lượt hội thoại (mỗi 4 lượt hoặc từ 10 lượt trở lên)
         if (userId) {
           const turnCount = history.length + 2;
-          const shouldCheckpoint = Boolean(reservation) || (turnCount >= 4 && turnCount % 4 === 0);
+          const isComplaint = Boolean(result.isHandoff) ||
+            Boolean(result.handoffPayload && (result.handoffPayload.reason === 'COMPLAINT' || result.handoffPayload.reason === 'ASSISTANCE_REQUIRED')) ||
+            (req.body.feedbackType === 'thumbs_down') ||
+            /khiếu nại|phàn nàn|thất vọng|không hài lòng|quá tệ|chất lượng kém/i.test(message);
+
+          const shouldCheckpoint = Boolean(reservation) ||
+            isComplaint ||
+            (turnCount >= 4 && turnCount % 4 === 0) ||
+            (turnCount >= 10);
+
           if (shouldCheckpoint) {
             const fullHistory = [
               ...history,
               { role: 'user', content: message },
               { role: 'assistant', content: finalText }
             ];
-            triggerBackgroundSummarizer(sessionId, userId, fullHistory).catch(() => {});
+            triggerBackgroundSummarizer(sessionId, userId, fullHistory).catch((err) => {
+              console.warn('[aiController] triggerBackgroundSummarizer error (non-blocking):', err?.message || err);
+            });
           }
         }
       },
@@ -408,16 +449,18 @@ async function triggerBackgroundSummarizer(sessionId, userId, historyOpt = null)
  */
 exports.clearSession = async (req, res) => {
   const { sessionId } = req.params;
-  const userId = req.user?.id || null;
+  const userId = req.user?.id || req.body?.userId || req.query?.userId || null;
 
   if (!sessionId) {
     return res.status(400).json({ success: false, message: 'sessionId is required' });
   }
 
   try {
-    // MemGPT: Nếu là khách quen đã đăng nhập, kích hoạt tác vụ tóm tắt ngầm qua AI Microservice
+    // MemGPT: Nếu là khách quen đã đăng nhập, kích hoạt tác vụ tóm tắt ngầm qua AI Microservice (Session End / Unmount)
     if (userId) {
-      triggerBackgroundSummarizer(sessionId, userId).catch(() => {});
+      triggerBackgroundSummarizer(sessionId, userId).catch((err) => {
+        console.warn('[aiController] clearSession triggerBackgroundSummarizer error (non-blocking):', err?.message || err);
+      });
     }
 
     if (redis && typeof redis.del === 'function') {

@@ -13,7 +13,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Any
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -74,6 +74,7 @@ class ChatRequest(BaseModel):
     tableId: str
     cartItems: list[CartItem] = []
     menuContext: Optional[list[dict]] = None
+    context: Optional[Any] = None
     orderHistory: list[dict] = []
     conversationHistory: list[HistoryItem] = []
     fallbackUsed: bool = False
@@ -88,6 +89,8 @@ class ChatRequest(BaseModel):
     reservation_mode: bool = False
     guestProfile: Optional[dict] = None
     guest_profile: Optional[dict] = None
+    guestContext: Optional[dict] = None
+    guest_context: Optional[dict] = None
     recallMemories: list[str] = []
     recall_memories: list[str] = []
 
@@ -124,12 +127,14 @@ async def chat(request: ChatRequest):
     """
     effective_user_id = request.userId or request.user_id
     effective_reservation_mode = request.reservationMode or request.reservation_mode
+    effective_menu_context = request.menuContext or (request.context if isinstance(request.context, list) else None)
+    effective_guest_profile = request.guestProfile or request.guest_profile or request.guestContext or request.guest_context
 
     async def event_generator():
         try:
             async for sse_chunk in pipeline.process(
                 message=request.message,
-                menu_context=request.menuContext,
+                menu_context=effective_menu_context,
                 cart_items=[c.model_dump() for c in request.cartItems],
                 order_history=request.orderHistory,
                 conversation_history=[h.model_dump() for h in request.conversationHistory],
@@ -143,7 +148,7 @@ async def chat(request: ChatRequest):
                 top_k=request.topK,
                 feedback_type=request.feedbackType,
                 rejected_items=request.rejectedItems,
-                guest_profile=request.guestProfile or request.guest_profile,
+                guest_profile=effective_guest_profile,
                 recall_memories=request.recallMemories or request.recall_memories or [],
             ):
                 yield sse_chunk

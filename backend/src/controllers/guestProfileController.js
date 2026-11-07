@@ -15,7 +15,7 @@ const profileUpdateSchema = Joi.object({
   allergies: Joi.array().items(Joi.string().max(100)).optional(),
   dietary_preferences: Joi.object().optional(),
   favorite_dishes: Joi.array().items(Joi.string().max(150)).optional(),
-  spice_preference: Joi.string().valid('không cay', 'ít cay', 'vừa', 'cay nồng').optional(),
+  spice_preference: Joi.string().valid('không cay', 'ít cay', 'vừa', 'cay', 'cay nồng', 'rất cay').optional(),
   preferred_zone: Joi.string().max(100).allow(null, '').optional(),
   special_notes: Joi.string().max(500).allow(null, '').optional(),
   special_dates: Joi.array().items(Joi.object({
@@ -29,7 +29,7 @@ const sessionSummarySchema = Joi.object({
   userId: Joi.string().uuid().required(),
   sessionId: Joi.string().max(100).optional().allow(null, ''),
   detectedAllergies: Joi.array().items(Joi.string()).default([]),
-  detectedSpice: Joi.string().valid('không cay', 'ít cay', 'vừa', 'cay nồng').optional().allow(null, ''),
+  detectedSpice: Joi.string().valid('không cay', 'ít cay', 'vừa', 'cay', 'cay nồng', 'rất cay').optional().allow(null, ''),
   detectedZone: Joi.string().max(100).optional().allow(null, ''),
   favoriteDishes: Joi.array().items(Joi.string()).default([]),
   newSpecialNotes: Joi.string().max(500).optional().allow(null, ''),
@@ -65,6 +65,7 @@ exports.getMyProfile = async (req, res) => {
 
     if (error && error.code !== 'PGRST116') { // PGRST116 = Not found
       console.warn('[guestProfile] Query error:', error.message);
+      throw error;
     }
 
     const profile = data || {
@@ -80,7 +81,7 @@ exports.getMyProfile = async (req, res) => {
     };
 
     try {
-      if (redis && typeof redis.set === 'function') {
+      if ((!error || error.code === 'PGRST116') && redis && typeof redis.set === 'function') {
         await redis.set(cacheKey, JSON.stringify(profile), { EX: CACHE_TTL_SECONDS });
       }
     } catch (_) {}
@@ -121,11 +122,15 @@ exports.updateMyProfile = async (req, res) => {
     if (value.allergies !== undefined) {
       targetAllergies = Array.from(new Set(value.allergies.map(a => a.trim().toLowerCase()).filter(Boolean)));
     } else {
-      const { data: currentProfile } = await supabase
+      const { data: currentProfile, error: readErr } = await supabase
         .from('guest_profiles')
         .select('allergies')
         .eq('user_id', userId)
         .single();
+      if (readErr && readErr.code !== 'PGRST116') {
+        console.warn('[guestProfile] updateMyProfile read error:', readErr.message);
+        throw readErr;
+      }
       targetAllergies = currentProfile?.allergies || [];
     }
 
@@ -176,12 +181,20 @@ exports.getMyMemories = async (req, res) => {
   }
 
   try {
-    const { data, error } = await supabase
+    const limit = Math.min(Math.max(parseInt(req.query?.limit, 10) || 20, 1), 100);
+
+    let query = supabase
       .from('guest_memories')
       .select('id, memory_type, content, metadata, created_at')
-      .eq('user_id', userId)
+      .eq('user_id', userId);
+
+    if (req.query?.memory_type) {
+      query = query.eq('memory_type', req.query.memory_type);
+    }
+
+    const { data, error } = await query
       .order('created_at', { ascending: false })
-      .limit(20);
+      .limit(limit);
 
     if (error) {
       console.warn('[guestProfile] getMyMemories error:', error.message);
@@ -210,14 +223,26 @@ exports.ingestSessionSummary = async (req, res) => {
 
   try {
     // 1. Lấy profile hiện tại
-    const { data: current } = await supabase
+    const { data: current, error: readErr } = await supabase
       .from('guest_profiles')
       .select('*')
       .eq('user_id', userId)
       .single();
 
-    const existingAllergies = current?.allergies || [];
-    const mergedAllergies = Array.from(new Set([...existingAllergies, ...detectedAllergies]));
+    if (readErr && readErr.code !== 'PGRST116') {
+      console.warn('[guestProfile] ingestSessionSummary query error:', readErr.message);
+      throw readErr;
+    }
+
+    const normalizedDetectedAllergies = (detectedAllergies || [])
+      .map(a => (typeof a === 'string' ? a.trim().toLowerCase() : a))
+      .filter(Boolean);
+
+    const existingAllergies = (current?.allergies || [])
+      .map(a => (typeof a === 'string' ? a.trim().toLowerCase() : a))
+      .filter(Boolean);
+
+    const mergedAllergies = Array.from(new Set([...existingAllergies, ...normalizedDetectedAllergies]));
 
     const existingFavorites = current?.favorite_dishes || [];
     const mergedFavorites = Array.from(new Set([...existingFavorites, ...favoriteDishes]));

@@ -51,8 +51,11 @@ COMMENT ON TABLE guest_memories IS 'Recall Memory theo MemGPT: Lưu trữ các m
 
 -- 4. TẠO CÁC CHỈ MỤC TỐI ƯU TRUY VẤN
 CREATE INDEX IF NOT EXISTS idx_guest_profiles_last_visit ON guest_profiles (last_visit DESC);
+CREATE INDEX IF NOT EXISTS idx_guest_profiles_allergies ON guest_profiles USING GIN (allergies);
+CREATE INDEX IF NOT EXISTS idx_guest_profiles_dietary_preferences ON guest_profiles USING GIN (dietary_preferences);
 CREATE INDEX IF NOT EXISTS idx_guest_memories_user_id ON guest_memories (user_id);
 CREATE INDEX IF NOT EXISTS idx_guest_memories_type ON guest_memories (memory_type);
+CREATE INDEX IF NOT EXISTS idx_guest_memories_user_created ON guest_memories (user_id, created_at DESC);
 
 -- Chỉ mục HNSW cho tìm kiếm vector tương đồng trên bảng ký ức hồi tưởng
 DO $$
