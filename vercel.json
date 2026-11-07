@@ -20,14 +20,7 @@
     "ai-service": {
       "root": "ai-service",
       "framework": "fastapi",
-      "bindings": [
-        {
-          "type": "service",
-          "service": "backend",
-          "format": "url",
-          "env": "BACKEND_INTERNAL_URL"
-        }
-      ]
+      "installCommand": "pip install -r requirements-vercel.txt"
     }
   },
   "rewrites": [

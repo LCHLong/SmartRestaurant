@@ -1,0 +1,20 @@
+# ===== AI Service (Groq LLM) - Serverless Vercel Build =====
+
+# Groq SDK (OpenAI-compatible)
+groq>=0.12.0
+
+# API & Web service
+fastapi>=0.115.0
+uvicorn>=0.30.0
+
+# Helpers & Environment
+pydantic>=2.10.0
+python-dotenv>=1.0.0
+httpx>=0.28.0
+redis>=5.0.0
+pytz>=2024.1
+
+# ===== Advanced Hybrid RAG (Serverless Optimized < 100MB) =====
+rank-bm25>=0.2.2
+numpy>=1.24.0
+tqdm>=4.66.0
