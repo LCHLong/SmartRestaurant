@@ -435,7 +435,7 @@ async function triggerBackgroundSummarizer(sessionId, userId, historyOpt = null)
         .join(' ')
         .toLowerCase();
 
-      const fallbackAllergens = ['đậu phộng', 'lạc', 'hải sản', 'tôm', 'cua', 'mực', 'cá', 'trứng', 'sữa', 'gluten', 'bột mì', 'bò', 'đậu nành'];
+      const fallbackAllergens = ['đậu phộng', 'lạc', 'hải sản', 'tôm', 'cua', 'mực', 'cá', 'trứng', 'sữa', 'gluten', 'bột mì', 'bò', 'đậu nành', 'mật ong', 'nấm', 'hành', 'tỏi', 'sầu riêng'];
       const detected = [];
       for (const a of fallbackAllergens) {
         if (new RegExp(`(?:dị\\s*ứng|không\\s*ăn|kiêng).*?${a}`, 'i').test(fullUserText) ||
@@ -444,16 +444,51 @@ async function triggerBackgroundSummarizer(sessionId, userId, historyOpt = null)
         }
       }
 
+      // Regex bắt động tên thực phẩm dị ứng
+      const dynamicMatch = fullUserText.match(/(?:bị\s+)?dị\s*ứng\s*(?:với|về)?\s*([a-zà-ỹ0-9\s]+?)(?:[,.;\n]|$|\bcòn\b|\bvà\b|\bnhưng\b)/i);
+      if (dynamicMatch && dynamicMatch[1]) {
+        const cand = dynamicMatch[1].trim();
+        if (cand.length >= 2 && cand.length <= 30 && !detected.includes(cand)) {
+          detected.push(cand);
+        }
+      }
+
       let spice = undefined;
-      if (/không\s*ăn\s*cay|không\s*cay|đừng\s*bỏ\s*ớt/i.test(fullUserText)) spice = 'không cay';
-      else if (/ít\s*cay|hơi\s*cay|cay\s*nhẹ/i.test(fullUserText)) spice = 'ít cay';
-      else if (/ăn\s*cay|thích\s*cay|cay\s*nồng|rất\s*cay/i.test(fullUserText)) spice = 'cay';
+      if (/không\s*(?:thích\s*)?(?:ăn\s*)?cay|không\s*cay|hết\s*(?:thích\s*)?(?:ăn\s*)?cay|đừng\s*bỏ\s*ớt|bỏ\s*cay|sợ\s*cay|khỏi\s*cay/i.test(fullUserText)) {
+        spice = 'không cay';
+      } else if (/ít\s*cay|hơi\s*cay|cay\s*nhẹ/i.test(fullUserText)) {
+        spice = 'ít cay';
+      } else if (/mặn\s*ngọt\s*chua\s*cay\s*đều\s*vị/i.test(fullUserText)) {
+        spice = 'vừa';
+      } else if (/ăn\s*cay|thích\s*cay|cay\s*nồng|rất\s*cay/i.test(fullUserText)) {
+        spice = 'cay';
+      }
+
+      // Trích xuất ghi chú khẩu vị (loại trừ các câu lệnh điều khiển)
+      const notes = [];
+      const userRawCombined = history.filter(h => h.role === 'user').map(h => h.content || '').join('\n');
+      for (const chunk of userRawCombined.split(/[\n\r.?!]+/)) {
+        const trimmed = chunk.trim();
+        if (!trimmed || trimmed.length < 5) continue;
+        if (/^(?:giới\s*thiệu|gợi\s*ý|tư\s*vấn|tìm\s*món|cập\s*nhật\s*(?:lại)?|nhắc\s*lại|xem\s*thực\s*đơn|xin\s*chào|chào\s*bạn|hello)/i.test(trimmed)) continue;
+        if (/cập\s*nhật\s*lại\s*khẩu\s*vị|giới\s*thiệu\s*món|gợi\s*ý\s*món/i.test(trimmed)) continue;
+        if (/^(?:tôi\s*)?(?:không\s*(?:thích\s*)?(?:ăn\s*)?cay|ăn\s*cay|thích\s*cay)(?:\s*nữa)?$/i.test(trimmed)) continue;
+        if (/^(?:tôi\s*)?(?:bị\s*)?dị\s*ứng\s*(?:với)?\s*[a-zà-ỹA-ZÀ-Ỹ0-9\s]+$/i.test(trimmed)) continue;
+
+        if (/món\s*chính|món\s*tráng\s*miệng|mặn\s*ngọt|chua\s*cay|thích\s*ăn|thích\s*uống|thích\s*món|ăn\s*chay/i.test(trimmed)) {
+          let cl = trimmed.replace(/^khẩu\s*vị\s*(?:của\s*tôi\s*)?là\s*:\s*/i, '')
+                          .replace(/(?:tôi\s*)?(?:bị\s*)?dị\s*ứng\s*(?:với)?\s*[a-zà-ỹ0-9\s]+/i, '')
+                          .trim().replace(/^[,;:-]+|[,;:-]+$/g, '');
+          if (cl.length >= 5 && !notes.includes(cl)) notes.push(cl);
+        }
+      }
 
       summaryPayload = {
         userId,
         sessionId,
         detectedAllergies: detected,
         detectedSpice: spice,
+        newSpecialNotes: notes.length > 0 ? notes.join('; ') : undefined,
         favoriteDishes: [],
         memoryFacts: detected.length > 0 ? [`Khách có nhắc dị ứng: ${detected.join(', ')}`] : [`Khách đã tương tác trong phiên ${sessionId}`]
       };

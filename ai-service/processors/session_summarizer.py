@@ -20,7 +20,8 @@ class SessionSummarizer:
 
     KNOWN_ALLERGENS = [
         "đậu phộng", "lạc", "hải sản", "tôm", "cua", "mực", "cá",
-        "trứng", "sữa", "gluten", "bột mì", "bò", "đậu nành", "mè", "vừng"
+        "trứng", "sữa", "gluten", "bột mì", "bò", "đậu nành", "mè", "vừng",
+        "mật ong", "nấm", "hành", "tỏi", "tiêu", "ớt", "sầu riêng", "cồn", "rượu"
     ]
 
     ALLERGY_PATTERNS = [
@@ -55,17 +56,33 @@ class SessionSummarizer:
         full_text = " ".join(user_messages).lower()
 
         # 1. Phát hiện dị ứng
+        # A. Quét qua danh sách các chất dị ứng phổ biến
         for allergen in self.KNOWN_ALLERGENS:
             for pattern in self.ALLERGY_PATTERNS:
                 regex = pattern.replace(r"([a-zà-ỹ\s]+)", allergen)
                 if re.search(regex, full_text):
                     detected_allergies.add(allergen)
 
+        # B. Bóc tách động bằng regex capture group từ các câu phát biểu của người dùng
+        capture_patterns = [
+            r"(?:bị\s+)?dị\s*ứng\s*(?:với|về)?\s*([a-zà-ỹA-ZÀ-Ỹ0-9\s]+?)(?:[,.;\n]|$|\bcòn\b|\bvà\b|\bnhưng\b)",
+            r"không\s*ăn\s*(?:được)?\s*([a-zà-ỹA-ZÀ-Ỹ0-9\s]+?)(?:[,.;\n]|$|\bcòn\b|\bvà\b|\bnhưng\b)",
+            r"kiêng\s*([a-zà-ỹA-ZÀ-Ỹ0-9\s]+?)(?:[,.;\n]|$|\bcòn\b|\bvà\b|\bnhưng\b)"
+        ]
+        for cp in capture_patterns:
+            matches = re.finditer(cp, full_text)
+            for m in matches:
+                cand = m.group(1).strip()
+                if 2 <= len(cand) <= 30 and not re.search(r"^(?:đồ|món|thực phẩm|gì|được|nữa)$", cand):
+                    detected_allergies.add(cand)
+
         # 2. Phát hiện độ cay
-        if re.search(r"không\s*ăn\s*cay|không\s*cay|đừng\s*bỏ\s*ớt", full_text):
+        if re.search(r"không\s*(?:thích\s*)?(?:ăn\s*)?cay|không\s*cay|hết\s*(?:thích\s*)?(?:ăn\s*)?cay|đừng\s*bỏ\s*ớt|bỏ\s*cay|sợ\s*cay|khỏi\s*cay", full_text):
             detected_spice = "không cay"
         elif re.search(r"ít\s*cay|hơi\s*cay|cay\s*nhẹ", full_text):
             detected_spice = "ít cay"
+        elif re.search(r"mặn\s*ngọt\s*chua\s*cay\s*đều\s*vị", full_text):
+            detected_spice = "vừa"
         elif re.search(r"ăn\s*cay\s*(?:nhiều|giỏi)|thích\s*cay|cay\s*nồng", full_text):
             detected_spice = "cay nồng"
 
@@ -79,7 +96,41 @@ class SessionSummarizer:
         elif re.search(r"tầng\s*2|trên\s*lầu", full_text):
             detected_zone = "tầng 2"
 
-        # 4. Phát hiện ghi chú đặc biệt (vd: có trẻ nhỏ, ghế ăn dặm)
+        # 4. Phát hiện ghi chú khẩu vị / sở thích món ăn chi tiết (loại trừ câu lệnh điều khiển)
+        taste_statements = []
+        raw_text_combined = "\n".join(user_messages)
+        chunks = re.split(r"[\n\r.?!]+", raw_text_combined)
+        for chunk in chunks:
+            chunk = chunk.strip()
+            if not chunk or len(chunk) < 5:
+                continue
+
+            # Bỏ qua nếu là câu lệnh điều khiển hội thoại
+            if re.search(r"^(?:giới\s*thiệu|gợi\s*ý|tư\s*vấn|tìm\s*món|cập\s*nhật\s*(?:lại)?|nhắc\s*lại|xem\s*thực\s*đơn|xin\s*chào|chào\s*bạn|hello)", chunk, re.I):
+                continue
+            if re.search(r"cập\s*nhật\s*lại\s*khẩu\s*vị|giới\s*thiệu\s*món|gợi\s*ý\s*món", chunk, re.I):
+                continue
+
+            # Bỏ qua nếu là câu nói về độ cay (đã lưu vào spice_preference)
+            if re.search(r"^(?:tôi\s*)?(?:không\s*(?:thích\s*)?(?:ăn\s*)?cay|ăn\s*cay|thích\s*cay)(?:\s*nữa)?$", chunk, re.I):
+                continue
+
+            # Bỏ qua nếu là câu khai báo dị ứng (đã lưu vào allergies)
+            if re.search(r"^(?:tôi\s*)?(?:bị\s*)?dị\s*ứng\s*(?:với)?\s*[a-zà-ỹA-ZÀ-Ỹ0-9\s]+$", chunk, re.I):
+                continue
+
+            # Chỉ trích xuất sở thích món chính, món tráng miệng, khẩu vị ăn uống
+            if re.search(r"món\s*chính|món\s*tráng\s*miệng|mặn\s*ngọt|chua\s*cay|thích\s*ăn|thích\s*uống|thích\s*món|ăn\s*chay", chunk, re.I):
+                cleaned = re.sub(r"^khẩu\s*vị\s*(?:của\s*tôi\s*)?là\s*:\s*", "", chunk, flags=re.I).strip()
+                cleaned = re.sub(r"(?:tôi\s*)?(?:bị\s*)?dị\s*ứng\s*(?:với)?\s*[a-zà-ỹA-ZÀ-Ỹ0-9\s]+", "", cleaned, flags=re.I).strip()
+                cleaned = cleaned.strip(" ,;:-")
+                if len(cleaned) >= 5 and cleaned not in taste_statements:
+                    taste_statements.append(cleaned)
+
+        if taste_statements:
+            detected_notes.append("; ".join(taste_statements))
+
+        # Phát hiện ghi chú đặc biệt khác (vd: có trẻ nhỏ, ghế ăn dặm)
         if re.search(r"trẻ\s*nhỏ|em\s*bé|ghế\s*trẻ\s*em|ghế\s*ăn\s*dặm", full_text):
             detected_notes.append("Có trẻ nhỏ, ưu tiên ghế em bé")
 
