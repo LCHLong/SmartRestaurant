@@ -337,10 +337,12 @@ exports.consult = async (req, res) => {
             (req.body.feedbackType === 'thumbs_down') ||
             /khiếu nại|phàn nàn|thất vọng|không hài lòng|quá tệ|chất lượng kém/i.test(message);
 
+          const mentionsTasteOrAllergy = /dị\s*ứng|không\s*ăn\s*(?:được)?|kiêng|khẩu\s*vị|không\s*cay|ít\s*cay|ăn\s*chay/i.test(message);
+
           const shouldCheckpoint = Boolean(reservation) ||
             isComplaint ||
-            (turnCount >= 4 && turnCount % 4 === 0) ||
-            (turnCount >= 10);
+            mentionsTasteOrAllergy ||
+            (turnCount >= 4 && turnCount % 4 === 0);
 
           if (shouldCheckpoint) {
             const fullHistory = [
@@ -426,12 +428,34 @@ async function triggerBackgroundSummarizer(sessionId, userId, historyOpt = null)
         ]
       };
     } else {
+      // Fallback: trích xuất trực tiếp bằng keyword/regex nếu AI microservice không phản hồi
+      const fullUserText = history
+        .filter(h => h.role === 'user')
+        .map(h => h.content || '')
+        .join(' ')
+        .toLowerCase();
+
+      const fallbackAllergens = ['đậu phộng', 'lạc', 'hải sản', 'tôm', 'cua', 'mực', 'cá', 'trứng', 'sữa', 'gluten', 'bột mì', 'bò', 'đậu nành'];
+      const detected = [];
+      for (const a of fallbackAllergens) {
+        if (new RegExp(`(?:dị\\s*ứng|không\\s*ăn|kiêng).*?${a}`, 'i').test(fullUserText) ||
+            new RegExp(`${a}.*?(?:dị\\s*ứng|không\\s*ăn|kiêng)`, 'i').test(fullUserText)) {
+          detected.push(a);
+        }
+      }
+
+      let spice = undefined;
+      if (/không\s*ăn\s*cay|không\s*cay|đừng\s*bỏ\s*ớt/i.test(fullUserText)) spice = 'không cay';
+      else if (/ít\s*cay|hơi\s*cay|cay\s*nhẹ/i.test(fullUserText)) spice = 'ít cay';
+      else if (/ăn\s*cay|thích\s*cay|cay\s*nồng|rất\s*cay/i.test(fullUserText)) spice = 'cay';
+
       summaryPayload = {
         userId,
         sessionId,
-        detectedAllergies: [],
+        detectedAllergies: detected,
+        detectedSpice: spice,
         favoriteDishes: [],
-        memoryFacts: [`Khách đã tương tác trong phiên ${sessionId}`]
+        memoryFacts: detected.length > 0 ? [`Khách có nhắc dị ứng: ${detected.join(', ')}`] : [`Khách đã tương tác trong phiên ${sessionId}`]
       };
     }
 
@@ -445,7 +469,7 @@ async function triggerBackgroundSummarizer(sessionId, userId, historyOpt = null)
 
 /**
  * DELETE /api/ai/session/:sessionId
- * Xoá session Redis khi khách rời bàn
+ * Xoá session Redis khi khách rời bàn hoặc kết thúc phiên
  */
 exports.clearSession = async (req, res) => {
   const { sessionId } = req.params;
@@ -456,13 +480,23 @@ exports.clearSession = async (req, res) => {
   }
 
   try {
-    // MemGPT: Nếu là khách quen đã đăng nhập, kích hoạt tác vụ tóm tắt ngầm qua AI Microservice (Session End / Unmount)
-    if (userId) {
-      triggerBackgroundSummarizer(sessionId, userId).catch((err) => {
+    // 1. Đọc lịch sử hội thoại từ Redis TRƯỚC KHI xóa key
+    let history = [];
+    if (redis && typeof redis.get === 'function') {
+      try {
+        const raw = await redis.get(`ai_session:${sessionId}`);
+        if (raw) history = JSON.parse(raw);
+      } catch (_) {}
+    }
+
+    // 2. Kích hoạt tóm tắt phiên ngầm nếu có lịch sử tương tác
+    if (userId && history && history.length >= 2) {
+      triggerBackgroundSummarizer(sessionId, userId, history).catch((err) => {
         console.warn('[aiController] clearSession triggerBackgroundSummarizer error (non-blocking):', err?.message || err);
       });
     }
 
+    // 3. Xóa Redis keys sau khi đã đọc lịch sử
     if (redis && typeof redis.del === 'function') {
       await Promise.all([
         redis.del(`ai_session:${sessionId}`),

@@ -247,6 +247,25 @@ exports.ingestSessionSummary = async (req, res) => {
     const existingFavorites = current?.favorite_dishes || [];
     const mergedFavorites = Array.from(new Set([...existingFavorites, ...favoriteDishes]));
 
+    // Kiểm tra xem session này đã từng được lưu ký ức trước đó chưa.
+    // Nếu là checkpoint giữa chừng của cùng một phiên hội thoại, KHÔNG tăng visit_count để tránh đếm sai.
+    let isNewSession = true;
+    if (sessionId) {
+      const { data: existingSessionMemory } = await supabase
+        .from('guest_memories')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('session_id', sessionId)
+        .limit(1);
+
+      if (existingSessionMemory && existingSessionMemory.length > 0) {
+        isNewSession = false;
+      }
+    }
+
+    const currentVisitCount = current?.visit_count || 0;
+    const newVisitCount = isNewSession ? (currentVisitCount + 1) : (current?.visit_count || 1);
+
     const updatePayload = {
       user_id: userId,
       allergies: mergedAllergies,
@@ -254,7 +273,7 @@ exports.ingestSessionSummary = async (req, res) => {
       spice_preference: detectedSpice || current?.spice_preference || 'vừa',
       preferred_zone: detectedZone || current?.preferred_zone || null,
       special_notes: newSpecialNotes || current?.special_notes || null,
-      visit_count: (current?.visit_count || 0) + 1,
+      visit_count: newVisitCount,
       last_visit: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
