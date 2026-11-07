@@ -10,7 +10,6 @@ ACCOUNTS_NOTE.md
 __pycache__/
 *.pyc
 .vite/
-.vercel/
 
 # Specs & Agent artifacts
 docs/specs/

@@ -67,8 +67,11 @@ class CrossEncoderReranker:
 
     def _init_engine(self, use_onnx: bool = False) -> None:
         """Thử khởi tạo engine theo thứ tự ưu tiên."""
+        import os
+        disable_heavy = os.getenv("DISABLE_HEAVY_RERANKER", "false").lower() in ("true", "1", "yes")
+
         # 1. Thử nạp SentenceTransformers CrossEncoder
-        if not use_onnx:
+        if not use_onnx and not disable_heavy:
             try:
                 import os
                 import sys
