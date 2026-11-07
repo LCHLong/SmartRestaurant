@@ -9,7 +9,7 @@ import httpx
 from typing import Optional, Dict, Any, List
 from tools.datetime_parser import validate_reservation_time
 
-BACKEND_URL = os.getenv("BACKEND_INTERNAL_URL", "http://localhost:5001")
+BACKEND_URL = os.getenv("BACKEND_INTERNAL_URL", "http://localhost:5001").rstrip("/")
 INTERNAL_SERVICE_SECRET = os.getenv("INTERNAL_SERVICE_SECRET", "aria-ai-internal-service-secret")
 TIMEOUT = 12.0  # seconds
 

@@ -13,6 +13,12 @@ const { URL } = require('url');
 const PIPECAT_URL = process.env.PIPECAT_SERVICE_URL || 'http://localhost:8000';
 const REQUEST_TIMEOUT_MS = 30000; // 30 giây timeout
 
+function getPipecatEndpoint(path) {
+  const base = PIPECAT_URL.endsWith('/') ? PIPECAT_URL : `${PIPECAT_URL}/`;
+  const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+  return new URL(cleanPath, base);
+}
+
 /**
  * Gọi Pipecat /chat endpoint — nhận stream SSE (Server-Sent Events)
  * Pipecat sẽ stream từng token text về qua SSE, Node.js đọc và emit Socket.io
@@ -23,7 +29,7 @@ const REQUEST_TIMEOUT_MS = 30000; // 30 giây timeout
  * @param {Function} onError - callback(err: Error)
  */
 function streamFromPipecat(payload, onToken, onDone, onError) {
-  const serviceUrl = new URL('/chat', PIPECAT_URL);
+  const serviceUrl = getPipecatEndpoint('chat');
   const body = JSON.stringify(payload);
 
   const options = {
@@ -129,7 +135,7 @@ function callPipecat(payload) {
  */
 async function isPipecatHealthy() {
   return new Promise((resolve) => {
-    const healthUrl = new URL('/health', PIPECAT_URL);
+    const healthUrl = getPipecatEndpoint('health');
     const transport = healthUrl.protocol === 'https:' ? https : http;
 
     const req = transport.get(healthUrl.toString(), (res) => {
@@ -157,7 +163,7 @@ async function isPipecatHealthy() {
  */
 async function summarizeSessionWithAI({ sessionId, userId, conversationHistory, currentProfile }) {
   return new Promise((resolve, reject) => {
-    const serviceUrl = new URL('/api/memory/summarize-session', PIPECAT_URL);
+    const serviceUrl = getPipecatEndpoint('api/memory/summarize-session');
     const body = JSON.stringify({
       sessionId,
       userId,
