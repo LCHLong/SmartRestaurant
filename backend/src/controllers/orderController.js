@@ -698,12 +698,22 @@ exports.getOrder = async (req, res) => {
 // Helper function to add items to existing order
 const addItemsToExistingOrder = async (req, res, orderId, items) => {
   try {
-    // 0. Verify QR Token if provided (required for customer-facing flow)
+    // 0. Verify QR Token if customer-facing flow
+    const isStaff = req.user && ['waiter', 'admin', 'super_admin'].includes(req.user.role);
     const { qr_token } = req.body;
-    // We only enforce this if it's NOT a waiter request (waiter doesn't need QR)
-    // Simple check: Waiters usually have a token in header, but here we can check if qr_token is sent
-    // Actually, for consistency, if qr_token is sent, we verify it.
-    if (qr_token) {
+    if (!isStaff) {
+      if (!qr_token) {
+        return res.status(401).json({ success: false, message: 'Thiếu mã QR token của bàn để thêm món' });
+      }
+      const { data: orderData } = await supabase.from('orders').select('table_id').eq('id', orderId).single();
+      if (!orderData) {
+        return res.status(404).json({ success: false, message: 'Không tìm thấy đơn hàng' });
+      }
+      const qrVerify = await verifyQRTokenInDatabase(orderData.table_id, qr_token);
+      if (!qrVerify.success) {
+        return res.status(401).json({ success: false, message: qrVerify.message });
+      }
+    } else if (qr_token) {
       const { data: orderData } = await supabase.from('orders').select('table_id').eq('id', orderId).single();
       if (orderData) {
         const qrVerify = await verifyQRTokenInDatabase(orderData.table_id, qr_token);
@@ -891,6 +901,17 @@ const addItemsToExistingOrder = async (req, res, orderId, items) => {
         order_id: orderId,
         items_added: orderItemsData.length
       });
+    }
+
+    // Auto-checkpoint MemGPT: Kích hoạt tóm tắt ngầm nếu khách đã đăng nhập
+    const customerId = currentOrder.customer_id || (req.user && req.user.id);
+    if (customerId) {
+      try {
+        const { triggerBackgroundSummarizer } = require('./aiController');
+        if (typeof triggerBackgroundSummarizer === 'function') {
+          triggerBackgroundSummarizer(req.body.sessionId || null, customerId).catch(() => {});
+        }
+      } catch (_) {}
     }
 
     res.status(200).json({

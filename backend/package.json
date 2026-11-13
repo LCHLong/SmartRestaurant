@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
+    "test": "node --test tests/guestProfile.test.js tests/test_guest_profiles_memgpt.js",
     "seed:reservations": "node src/scripts/seed_reservations_and_shifts.js"
   },
   "keywords": [],

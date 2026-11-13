@@ -328,9 +328,9 @@ exports.createReservation = async (req, res) => {
       insertData.idempotency_key = idempotencyKey;
     }
 
-    // Gắn user_id nếu là khách đã đăng nhập (trực tiếp hoặc gọi qua internal AI service)
-    const internalSecret = process.env.INTERNAL_SERVICE_SECRET || 'aria-ai-internal-service-secret';
-    const isInternal = req.headers['x-internal-service'] === 'aria-ai' || req.headers['x-internal-secret'] === internalSecret;
+    // Gắn user_id nếu là khách đã đăng nhập (trực tiếp hoặc gọi qua internal AI service với secret timing-safe)
+    const { isInternalService } = require('../middleware/authMiddleware');
+    const isInternal = isInternalService(req);
     const effectiveUserId = (req.user && req.user.id) || (isInternal ? req.headers['x-internal-user-id'] : null);
     if (effectiveUserId) {
       insertData.user_id = effectiveUserId;
@@ -1200,8 +1200,8 @@ exports.escalateReservation = async (req, res) => {
       insertData.idempotency_key = idempotencyKey;
     }
 
-    const internalSecret = process.env.INTERNAL_SERVICE_SECRET || 'aria-ai-internal-service-secret';
-    const isInternal = req.headers['x-internal-service'] === 'aria-ai' || req.headers['x-internal-secret'] === internalSecret;
+    const { isInternalService } = require('../middleware/authMiddleware');
+    const isInternal = isInternalService(req);
     const effectiveUserId = (req.user && req.user.id) || (isInternal ? req.headers['x-internal-user-id'] : null);
     if (effectiveUserId) {
       insertData.user_id = effectiveUserId;

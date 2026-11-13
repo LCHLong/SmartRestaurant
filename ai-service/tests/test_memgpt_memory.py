@@ -214,3 +214,93 @@ def test_archival_allergy_metadata_filtering():
     assert "Gỏi ngó sen tôm thịt" not in clean_names
     assert "Cơm chiên dưa bò" in clean_names
     assert any("đậu phộng" in r.get("rejection_reason", "") for r in rejected_items)
+
+
+def test_embedding_generator_dimension_and_consistency():
+    """Kiểm tra module sinh vector embedding 768 chiều phục vụ pgvector."""
+    from tools.embedding_helper import generate_semantic_embedding, generate_batch_embeddings
+    import numpy as np
+
+    text1 = "Khách thích ăn ít cay và ngồi ngoài trời"
+    text2 = "Khách thích ăn ít cay và ngồi ngoài trời"
+    text3 = "Khách ăn chay thanh đạm"
+
+    vec1 = generate_semantic_embedding(text1, dimension=768)
+    vec2 = generate_semantic_embedding(text2, dimension=768)
+    vec3 = generate_semantic_embedding(text3, dimension=768)
+
+    assert len(vec1) == 768
+    assert len(vec2) == 768
+    assert len(vec3) == 768
+
+    # Tính tất định (Deterministic)
+    assert vec1 == vec2
+
+    # L2 Normalized (chuẩn hóa độ dài vector xấp xỉ 1.0)
+    norm1 = np.linalg.norm(np.array(vec1, dtype=np.float32))
+    assert abs(norm1 - 1.0) < 1e-4
+
+    # Batch generation
+    batch = generate_batch_embeddings([text1, text3], dimension=768)
+    assert len(batch) == 2
+    assert batch[0] == vec1
+    assert batch[1] == vec3
+
+
+@pytest.mark.asyncio
+async def test_reservation_pipeline_side_queries_preserve_allergy():
+    """
+    Kiểm tra rào chắn an toàn:
+    Khi khách đang ở trong luồng đặt bàn nhưng hỏi ngang về thực đơn (side-query),
+    Aria Pipeline bắt buộc phải truyền guest_profile vào _handle_consultation_flow
+    để MetadataFilter loại bỏ 100% món ăn chứa chất dị ứng đã lưu trong hồ sơ.
+    """
+    from unittest.mock import AsyncMock, patch
+    from pipelines.aria_pipeline import AriaConversationPipeline
+
+    pipeline = AriaConversationPipeline()
+
+    guest_profile = {
+        "allergies": ["đậu phộng"],
+        "spice_preference": "vừa",
+        "visit_count": 3
+    }
+
+    menu_context = [
+        {"id": "1", "name": "Gỏi ngó sen tôm thịt", "allergens": ["đậu phộng"], "price": 85000},
+        {"id": "2", "name": "Cơm chiên dưa bò", "allergens": ["bò"], "price": 75000}
+    ]
+
+    # Kiểm tra phương thức _handle_consultation_flow nhận đúng guest_profile và loại bỏ món dị ứng
+    passed_guest_profiles = []
+
+    async def mock_consultation_flow(*args, **kwargs):
+        passed_guest_profiles.append(kwargs.get("guest_profile"))
+        yield 'data: {"type": "token", "content": "test"}\n\n'
+
+    with patch.object(pipeline, "_handle_consultation_flow", side_effect=mock_consultation_flow):
+        # 1. Test side query khi khách tạm dừng / hủy
+        with patch("pipelines.aria_pipeline.is_cancellation", return_value=True), \
+             patch("pipelines.aria_pipeline.check_side_query_intent", return_value=(True, "MENU_CONSULTATION")), \
+             patch("pipelines.aria_pipeline.clear_state", new_callable=AsyncMock):
+
+            items = []
+            async for item in pipeline._handle_reservation_turn(
+                message="tôi không đặt bàn nữa, cho xem thực đơn",
+                session_id="test_sess_1",
+                user_id="user_1",
+                menu_context=menu_context,
+                cart_items=[],
+                order_history=[],
+                conversation_history=[],
+                table_id="T01",
+                state={"state": "COLLECTING_SLOTS", "slots": {}},
+                t_start=0.0,
+                guest_profile=guest_profile
+            ):
+                items.append(item)
+
+            assert len(passed_guest_profiles) == 1
+            assert passed_guest_profiles[0] is not None
+            assert "đậu phộng" in passed_guest_profiles[0]["allergies"]
+

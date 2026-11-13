@@ -187,16 +187,15 @@ exports.getMyOrders = async (req, res) => {
 /**
  * 4. GET BASIC INFO (INTERNAL ENDPOINT)
  * Cho phép AI service lấy thông tin cơ bản của user theo userId để auto-fill đặt bàn.
- * Chỉ cho phép gọi nội bộ (kiểm tra X-Internal-Service hoặc X-Internal-Secret).
+ * Chỉ cho phép gọi nội bộ có Secret hợp lệ (timing-safe check).
  */
 exports.getBasicInfo = async (req, res) => {
     try {
-        const internalSecret = process.env.INTERNAL_SERVICE_SECRET || 'aria-ai-internal-service-secret';
-        const isInternal = req.headers['x-internal-service'] === 'aria-ai' || req.headers['x-internal-secret'] === internalSecret;
-        if (!isInternal) {
+        const { isInternalService } = require('../middleware/authMiddleware');
+        if (!req.isInternalService && !isInternalService(req)) {
             return res.status(403).json({
                 success: false,
-                message: 'Forbidden: Endpoint này chỉ dành cho dịch vụ nội bộ'
+                message: 'Forbidden: Endpoint này chỉ dành cho dịch vụ nội bộ có Secret hợp lệ'
             });
         }
 

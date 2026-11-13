@@ -95,8 +95,9 @@ router.post('/attendance/check-in', shiftController.checkInShift);
 /** Nhân viên điểm danh kết thúc ca */
 router.post('/attendance/check-out', shiftController.checkOutShift);
 
-/** Xem danh sách yêu cầu đổi ca */
+/** Xem danh sách yêu cầu đổi ca (hỗ trợ cả /swap-requests và alias /swap-requests/my từ MyShiftsPage) */
 router.get('/swap-requests', shiftController.getSwapRequests);
+router.get('/swap-requests/my', shiftController.getSwapRequests);
 
 /** Nhân viên gửi yêu cầu đổi ca */
 router.post('/swap-requests', shiftController.createSwapRequest);

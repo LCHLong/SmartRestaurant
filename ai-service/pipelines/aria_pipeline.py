@@ -610,6 +610,8 @@ class AriaConversationPipeline:
                     rejected_items=rejected_items,
                     t_start=t_start,
                     prefix_message=prefix,
+                    guest_profile=guest_profile,
+                    recall_memories=recall_memories,
                 ):
                     yield item
                 return
@@ -873,6 +875,8 @@ class AriaConversationPipeline:
                             rejected_items=rejected_items,
                             t_start=t_start,
                             postfix_message=postfix,
+                            guest_profile=guest_profile,
+                            recall_memories=recall_memories,
                         ):
                             yield item
                         return
@@ -1220,6 +1224,8 @@ class AriaConversationPipeline:
                     rejected_items=rejected_items,
                     t_start=t_start,
                     postfix_message=postfix,
+                    guest_profile=guest_profile,
+                    recall_memories=recall_memories,
                 ):
                     yield item
                 return

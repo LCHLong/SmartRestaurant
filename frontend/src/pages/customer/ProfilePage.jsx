@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import toast from 'react-hot-toast';
 import api from '../../services/api';
+import { useAiChat } from '../../contexts/AiChatContext';
 
 const commonAllergens = ['Đậu phộng', 'Tôm', 'Cua biển', 'Hải sản có vỏ', 'Sữa tươi', 'Trứng', 'Gluten / Bột mì', 'Đậu nành'];
 
 const ProfilePage = () => {
     const navigate = useNavigate();
     const { t } = useTranslation();
+    const { refreshGuestProfile } = useAiChat();
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [message, setMessage] = useState({ type: '', text: '' });
@@ -20,20 +23,6 @@ const ProfilePage = () => {
         avatar_url: ''
     });
 
-    // Dining & Allergy Profile state
-    const [diningProfile, setDiningProfile] = useState({
-        allergies: [],
-        spice_preference: 'vừa',
-        preferred_zone: '',
-        favorite_dishes: [],
-        special_notes: '',
-        visit_count: 1
-    });
-    const [loadingDining, setLoadingDining] = useState(false);
-    const [savingDining, setSavingDining] = useState(false);
-    const [diningMessage, setDiningMessage] = useState({ type: '', text: '' });
-    const [newAllergyInput, setNewAllergyInput] = useState('');
-
     // Password form state
     const [passwordData, setPasswordData] = useState({
         oldPassword: '',
@@ -41,9 +30,24 @@ const ProfilePage = () => {
         confirmPassword: ''
     });
 
+    // MemGPT Guest Profile state (Phase 6 - Tính năng F4)
+    const [guestProfile, setGuestProfile] = useState({
+        allergies: [],
+        spice_preference: 'vừa',
+        preferred_zone: '',
+        special_notes: '',
+        favorite_dishes: [],
+        visit_count: 1
+    });
+    const [loadingGuestProfile, setLoadingGuestProfile] = useState(true);
+    const [savingGuestProfile, setSavingGuestProfile] = useState(false);
+    const [newAllergenInput, setNewAllergenInput] = useState('');
+    const [guestProfileMessage, setGuestProfileMessage] = useState({ type: '', text: '' });
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+
     useEffect(() => {
         fetchUserProfile();
-        fetchDiningProfile();
+        fetchGuestProfile();
     }, []);
 
     const fetchUserProfile = async () => {
@@ -74,75 +78,80 @@ const ProfilePage = () => {
         }
     };
 
-    const fetchDiningProfile = async () => {
+    const fetchGuestProfile = async () => {
         try {
-            setLoadingDining(true);
-            const token = localStorage.getItem('token');
-            if (!token) return;
+            setLoadingGuestProfile(true);
             const res = await api.get('/api/guest-profile/me');
-            if (res.data?.success && res.data?.data) {
+            if (res.data?.success && res.data.data) {
                 const d = res.data.data;
-                setDiningProfile({
+                setGuestProfile({
                     allergies: Array.isArray(d.allergies) ? d.allergies : [],
                     spice_preference: d.spice_preference || 'vừa',
                     preferred_zone: d.preferred_zone || '',
-                    favorite_dishes: Array.isArray(d.favorite_dishes) ? d.favorite_dishes : [],
                     special_notes: d.special_notes || '',
+                    favorite_dishes: Array.isArray(d.favorite_dishes) ? d.favorite_dishes : [],
                     visit_count: d.visit_count || 1
                 });
             }
         } catch (err) {
-            console.warn('[ProfilePage] Không thể nạp hồ sơ khẩu vị:', err?.message || err);
+            console.error('Lỗi nạp hồ sơ khách quen MemGPT:', err);
         } finally {
-            setLoadingDining(false);
+            setLoadingGuestProfile(false);
         }
     };
 
-    const handleAddAllergy = (valToAdd) => {
-        const val = (valToAdd || newAllergyInput).trim().toLowerCase();
+    const handleAddAllergen = (itemToAdd) => {
+        const val = (itemToAdd || newAllergenInput).trim().toLowerCase();
         if (!val) return;
-        if (!diningProfile.allergies.map(a => a.toLowerCase()).includes(val)) {
-            setDiningProfile(prev => ({
-                ...prev,
-                allergies: [...prev.allergies, val]
-            }));
+        if (guestProfile.allergies.includes(val)) {
+            toast.error(`"${val}" đã có trong danh sách dị ứng!`);
+            return;
         }
-        setNewAllergyInput('');
+        setGuestProfile(prev => ({
+            ...prev,
+            allergies: [...prev.allergies, val]
+        }));
+        setNewAllergenInput('');
     };
 
-    const handleRemoveAllergy = (allergyToRemove) => {
-        setDiningProfile(prev => ({
+    const handleRemoveAllergen = (allergenToRemove) => {
+        setGuestProfile(prev => ({
             ...prev,
-            allergies: prev.allergies.filter(a => a !== allergyToRemove)
+            allergies: prev.allergies.filter(a => a !== allergenToRemove)
         }));
     };
 
-    const handleSaveDiningProfile = async (e) => {
-        e.preventDefault();
-        setSavingDining(true);
-        setDiningMessage({ type: '', text: '' });
+    const handleSaveGuestProfile = async () => {
+        setSavingGuestProfile(true);
+        setGuestProfileMessage({ type: '', text: '' });
+        setShowConfirmModal(false);
+
         try {
-            const res = await api.put('/api/guest-profile/me', {
-                allergies: diningProfile.allergies,
-                spice_preference: diningProfile.spice_preference,
-                preferred_zone: diningProfile.preferred_zone || null,
-                special_notes: diningProfile.special_notes || null,
-                favorite_dishes: diningProfile.favorite_dishes
-            });
+            const payload = {
+                allergies: guestProfile.allergies, // Explicit Overwrite
+                spice_preference: guestProfile.spice_preference,
+                preferred_zone: guestProfile.preferred_zone.trim() || null,
+                special_notes: guestProfile.special_notes.trim() || null,
+                favorite_dishes: guestProfile.favorite_dishes
+            };
+
+            const res = await api.put('/api/guest-profile/me', payload);
             if (res.data?.success) {
-                setDiningMessage({
+                setGuestProfileMessage({
                     type: 'success',
-                    text: 'Đã lưu hồ sơ khẩu vị & an toàn dị ứng thành công.'
+                    text: 'Đã lưu hồ sơ khẩu vị và bảo toàn rào chắn dị ứng thành công!'
                 });
-                setTimeout(() => setDiningMessage({ type: '', text: '' }), 4000);
+                toast.success('Hồ sơ ẩm thực đã được cập nhật thành công!');
+                if (refreshGuestProfile) {
+                    refreshGuestProfile();
+                }
             }
         } catch (err) {
-            setDiningMessage({
-                type: 'error',
-                text: err.response?.data?.message || 'Lỗi khi cập nhật khẩu vị. Vui lòng thử lại.'
-            });
+            const errMsg = err.response?.data?.message || 'Lỗi khi lưu hồ sơ ẩm thực';
+            setGuestProfileMessage({ type: 'error', text: errMsg });
+            toast.error(errMsg);
         } finally {
-            setSavingDining(false);
+            setSavingGuestProfile(false);
         }
     };
 
@@ -373,123 +382,123 @@ const ProfilePage = () => {
                         </form>
                     </div>
 
-                    {/* Section 2: Khẩu vị & Dị ứng thực phẩm */}
-                    <div className="bg-white shadow-sm rounded-2xl p-5 sm:p-7 border border-gray-200/80">
+                    {/* Section 2: Sở thích Ẩm thực & Dị ứng (Aria Memory - Phase 6 MemGPT F4) */}
+                    <div className="bg-white shadow-sm rounded-2xl p-5 sm:p-7 border border-orange-200/80 relative">
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 mb-4 border-b border-gray-100 gap-2">
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <span className="material-symbols-outlined text-emerald-600 text-xl">restaurant</span>
+                                    <span className="material-symbols-outlined text-orange-500 text-2xl">psychology</span>
                                     <h2 className="text-base sm:text-lg font-bold text-gray-900">
-                                        Khẩu vị & Dị ứng thực phẩm
+                                        Sở thích Ẩm thực & Dị ứng (Aria Memory)
                                     </h2>
                                 </div>
                                 <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
-                                    Lưu ý sở thích ăn uống để nhà hàng phục vụ chu đáo và an toàn nhất cho bạn.
+                                    Hồ sơ dài hạn MemGPT giúp trợ lý ảo Aria tự động ghi nhớ khẩu vị, vị trí ngồi và kích hoạt rào chắn
+                                    <strong className="text-gray-700 font-semibold"> Allergy Safety Latch</strong> loại trừ 100% món ăn gây dị ứng.
                                 </p>
                             </div>
-                            {diningProfile.visit_count > 0 && (
-                                <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-200 self-start sm:self-auto">
-                                    <span className="material-symbols-outlined text-xs">verified</span>
-                                    Khách quen ({diningProfile.visit_count} lần ghé)
+                            {guestProfile.visit_count > 1 ? (
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 bg-orange-50 text-orange-700 rounded-full border border-orange-200 self-start sm:self-auto">
+                                    <span className="material-symbols-outlined text-xs">memory</span>
+                                    Khách quen • {guestProfile.visit_count} lượt ghé
+                                </span>
+                            ) : (
+                                <span className="inline-flex items-center gap-1 text-xs font-semibold px-3 py-1 bg-blue-50 text-blue-700 rounded-full border border-blue-200 self-start sm:self-auto">
+                                    Thực khách mới
                                 </span>
                             )}
                         </div>
 
-                        {diningMessage.text && (
-                            <div
-                                className={`p-3 mb-4 rounded-xl text-xs sm:text-sm border ${diningMessage.type === 'success'
+                        {guestProfileMessage.text && (
+                            <div className={`p-3 mb-4 rounded-xl text-xs sm:text-sm border ${
+                                guestProfileMessage.type === 'success'
                                     ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
                                     : 'bg-red-50 text-red-800 border-red-200'
-                                }`}
-                            >
-                                {diningMessage.text}
+                            }`}>
+                                {guestProfileMessage.text}
                             </div>
                         )}
 
-                        {loadingDining ? (
+                        {loadingGuestProfile ? (
                             <div className="flex items-center justify-center py-8">
-                                <div className="animate-spin rounded-full h-8 w-8 border-2 border-emerald-600 border-t-transparent"></div>
+                                <div className="animate-spin rounded-full h-8 w-8 border-2 border-orange-500 border-t-transparent"></div>
+                                <span className="ml-2 text-xs text-gray-500">Đang nạp hồ sơ khẩu vị dài hạn từ máy chủ...</span>
                             </div>
                         ) : (
-                            <form onSubmit={handleSaveDiningProfile} className="space-y-5">
-                                {/* Dị ứng thực phẩm */}
-                                <div>
-                                    <div className="flex items-center gap-1.5 mb-1">
-                                        <span className="material-symbols-outlined text-amber-500 text-base">warning</span>
-                                        <label className="text-xs sm:text-sm font-semibold text-gray-800">
-                                            Dị ứng & Kiêng khem thực phẩm
+                            <div className="space-y-5">
+                                {/* 1. DỊ ỨNG THỰC PHẨM (ALLERGY SAFETY LATCH & EXPLICIT OVERWRITE) */}
+                                <div className="bg-rose-50/50 border border-rose-200 rounded-xl p-4">
+                                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                                        <label className="text-xs sm:text-sm font-semibold text-rose-900 flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-rose-600 text-lg">warning</span>
+                                            Dị ứng thực phẩm (Bảo toàn tuyệt đối)
                                         </label>
+                                        <span className="text-[11px] text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full font-medium">
+                                            Rào chắn an toàn 100%
+                                        </span>
                                     </div>
-                                    <p className="text-xs text-gray-500 mb-2.5">
-                                        Nhà hàng sẽ chủ động cảnh báo hoặc loại trừ các món có thành phần này khi phục vụ bạn.
+                                    <p className="text-xs text-rose-700 mb-3">
+                                        Aria sẽ loại bỏ hoàn toàn các món có thành phần dị ứng này. Bạn có thể bấm dấu <strong>×</strong> để xóa nếu bị nhận diện sai (hệ thống sẽ áp dụng <em>Explicit Overwrite</em> khi lưu).
                                     </p>
 
-                                    {/* Danh sách dị ứng hiện tại */}
-                                    <div className="flex flex-wrap gap-2 mb-3 min-h-[44px] p-2.5 bg-gray-50 rounded-xl border border-gray-200">
-                                        {diningProfile.allergies.length === 0 ? (
-                                            <span className="text-xs text-gray-400 italic py-1">
-                                                Chưa ghi nhận dị ứng nào. Nhập bên dưới hoặc bấm gợi ý để thêm.
-                                            </span>
-                                        ) : (
-                                            diningProfile.allergies.map((allergy, idx) => (
+                                    {/* Danh sách thẻ dị ứng hiện tại */}
+                                    <div className="flex flex-wrap gap-2 mb-3 min-h-[40px] p-2 bg-white rounded-xl border border-rose-200">
+                                        {guestProfile.allergies.length > 0 ? (
+                                            guestProfile.allergies.map((allergy) => (
                                                 <span
-                                                    key={idx}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-red-50 text-red-700 border border-red-200/70"
+                                                    key={allergy}
+                                                    className="inline-flex items-center gap-1.5 bg-rose-100 text-rose-800 text-xs sm:text-sm font-medium px-3 py-1 rounded-full border border-rose-300 shadow-sm"
                                                 >
-                                                    <span className="material-symbols-outlined text-xs">block</span>
                                                     <span>{allergy}</span>
                                                     <button
                                                         type="button"
-                                                        onClick={() => handleRemoveAllergy(allergy)}
-                                                        className="hover:text-red-900 font-bold ml-0.5 text-sm leading-none focus:outline-none"
-                                                        title={`Xóa ${allergy}`}
+                                                        onClick={() => handleRemoveAllergen(allergy)}
+                                                        className="w-4 h-4 rounded-full flex items-center justify-center text-rose-600 hover:text-white hover:bg-rose-600 transition-colors cursor-pointer"
+                                                        title={`Xóa bỏ dị ứng ${allergy}`}
                                                     >
                                                         ×
                                                     </button>
                                                 </span>
                                             ))
+                                        ) : (
+                                            <span className="text-xs text-gray-400 italic py-1">Chưa ghi nhận tiền sử dị ứng nào. Nhập bên dưới hoặc chọn gợi ý để thêm.</span>
                                         )}
                                     </div>
 
-                                    {/* Input thêm dị ứng */}
-                                    <div className="flex gap-2 mb-3">
+                                    {/* Ô nhập thêm dị ứng mới */}
+                                    <div className="flex gap-2 mb-2">
                                         <input
                                             type="text"
-                                            value={newAllergyInput}
-                                            onChange={(e) => setNewAllergyInput(e.target.value)}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter') {
-                                                    e.preventDefault();
-                                                    handleAddAllergy();
-                                                }
-                                            }}
-                                            placeholder="Ví dụ: Đậu phộng, tôm sú, hành tây..."
-                                            className="flex-1 px-3.5 py-2 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                                            value={newAllergenInput}
+                                            onChange={(e) => setNewAllergenInput(e.target.value)}
+                                            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddAllergen(); } }}
+                                            placeholder="Nhập chất dị ứng (vd: tôm, cua, đậu phộng, hải sản...)"
+                                            className="flex-1 px-3.5 py-2 border border-rose-300 rounded-xl text-xs sm:text-sm focus:ring-2 focus:ring-rose-500 focus:border-transparent bg-white"
                                         />
                                         <button
                                             type="button"
-                                            onClick={() => handleAddAllergy()}
-                                            className="px-4 py-2 bg-gray-800 text-white text-xs sm:text-sm font-semibold rounded-xl hover:bg-gray-900 transition active:scale-95"
+                                            onClick={() => handleAddAllergen()}
+                                            className="px-4 py-2 bg-rose-600 text-white rounded-xl text-xs sm:text-sm font-medium hover:bg-rose-700 active:scale-95 transition-all shadow-sm cursor-pointer"
                                         >
                                             + Thêm
                                         </button>
                                     </div>
 
-                                    {/* Gợi ý nhanh */}
-                                    <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                                        <span className="text-xs text-gray-500 mr-1">Gợi ý nhanh:</span>
+                                    {/* Gợi ý dị ứng phổ biến */}
+                                    <div className="flex items-center flex-wrap gap-1.5 text-xs text-gray-600">
+                                        <span className="text-gray-500">Gợi ý nhanh:</span>
                                         {commonAllergens.map((item) => {
-                                            const isSelected = diningProfile.allergies.map(a => a.toLowerCase()).includes(item.toLowerCase());
+                                            const isSelected = guestProfile.allergies.includes(item.trim().toLowerCase());
                                             return (
                                                 <button
                                                     key={item}
                                                     type="button"
                                                     disabled={isSelected}
-                                                    onClick={() => handleAddAllergy(item)}
-                                                    className={`text-xs px-2.5 py-1 rounded-lg transition ${
+                                                    onClick={() => handleAddAllergen(item)}
+                                                    className={`px-2.5 py-0.5 rounded-lg text-xs transition-colors cursor-pointer border ${
                                                         isSelected
-                                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed line-through border border-transparent'
-                                                            : 'bg-white text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-300 border border-gray-200'
+                                                            ? 'bg-gray-100 text-gray-400 border-transparent cursor-not-allowed line-through'
+                                                            : 'bg-white border-gray-200 text-gray-700 hover:border-rose-400 hover:text-rose-600'
                                                     }`}
                                                 >
                                                     + {item}
@@ -499,78 +508,137 @@ const ProfilePage = () => {
                                     </div>
                                 </div>
 
-                                {/* Độ cay & Khu vực bàn */}
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-gray-100">
-                                    <div>
-                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1">
-                                            <span className="material-symbols-outlined text-red-500 text-sm">local_fire_department</span>
-                                            <span>Độ cay yêu thích</span>
-                                        </label>
-                                        <select
-                                            value={diningProfile.spice_preference}
-                                            onChange={(e) => setDiningProfile({ ...diningProfile, spice_preference: e.target.value })}
-                                            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer transition"
-                                        >
-                                            <option value="không cay">Không cay (0/5)</option>
-                                            <option value="ít cay">Ít cay (1/5)</option>
-                                            <option value="vừa">Cay vừa (2/5)</option>
-                                            <option value="cay">Cay (3/5)</option>
-                                            <option value="rất cay">Rất cay (4/5+)</option>
-                                        </select>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1">
-                                            <span className="material-symbols-outlined text-emerald-600 text-sm">chair</span>
-                                            <span>Khu vực ngồi ưa thích</span>
-                                        </label>
-                                        <select
-                                            value={diningProfile.preferred_zone || ''}
-                                            onChange={(e) => setDiningProfile({ ...diningProfile, preferred_zone: e.target.value })}
-                                            className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer transition"
-                                        >
-                                            <option value="">Không có yêu cầu riêng</option>
-                                            <option value="indoor">Trong nhà (Máy lạnh)</option>
-                                            <option value="outdoor">Ngoài trời / Sân vườn thoáng đãng</option>
-                                            <option value="vip">Phòng VIP riêng tư</option>
-                                            <option value="window">Gần cửa sổ view đẹp</option>
-                                        </select>
+                                {/* 2. GU ĂN CAY (SPICE PREFERENCE) */}
+                                <div>
+                                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-red-500 text-lg">local_fire_department</span>
+                                        Khẩu vị cay quen thuộc
+                                    </label>
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                        {[
+                                            { id: 'không cay', label: 'Không cay', icon: '🥬', desc: 'Không ớt' },
+                                            { id: 'ít cay', label: 'Ít cay', icon: '🌶️', desc: 'Cay nhẹ' },
+                                            { id: 'vừa', label: 'Cay vừa', icon: '🌶️🌶️', desc: 'Vị chuẩn' },
+                                            { id: 'cay nồng', label: 'Cay nồng', icon: '🔥', desc: 'Thích ăn cay' }
+                                        ].map((spice) => {
+                                            const isSelected = guestProfile.spice_preference === spice.id;
+                                            return (
+                                                <button
+                                                    key={spice.id}
+                                                    type="button"
+                                                    onClick={() => setGuestProfile(prev => ({ ...prev, spice_preference: spice.id }))}
+                                                    className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                                                        isSelected
+                                                            ? 'border-orange-500 bg-orange-50/70 text-orange-900 shadow-sm ring-1 ring-orange-400'
+                                                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                                                    }`}
+                                                >
+                                                    <div className="text-base sm:text-lg mb-0.5">{spice.icon}</div>
+                                                    <div className="font-semibold text-xs sm:text-sm">{spice.label}</div>
+                                                    <div className="text-[11px] text-gray-500">{spice.desc}</div>
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                 </div>
 
-                                {/* Ghi chú đặc biệt */}
+                                {/* 3. KHU VỰC BÀN YÊU THÍCH (PREFERRED ZONE) */}
                                 <div>
-                                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1">
-                                        <span className="material-symbols-outlined text-gray-500 text-sm">edit_note</span>
-                                        <span>Ghi chú ăn uống riêng</span>
+                                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-blue-500 text-lg">table_restaurant</span>
+                                        Khu vực / Loại bàn ưu tiên
                                     </label>
-                                    <textarea
-                                        rows={2}
-                                        value={diningProfile.special_notes || ''}
-                                        onChange={(e) => setDiningProfile({ ...diningProfile, special_notes: e.target.value })}
-                                        placeholder="Ví dụ: Ăn chay linh hoạt vào rằm, thích ít đá trong nước ngọt, đi cùng người lớn tuổi..."
-                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+                                        {[
+                                            { id: 'ngoài trời', label: 'Ngoài trời', icon: '🌿' },
+                                            { id: 'phòng VIP', label: 'Phòng VIP', icon: '👑' },
+                                            { id: 'cạnh cửa sổ', label: 'Cạnh cửa sổ', icon: '🪟' },
+                                            { id: 'tầng 2', label: 'Tầng 2', icon: '🏢' }
+                                        ].map((zone) => {
+                                            const isSelected = guestProfile.preferred_zone === zone.id;
+                                            return (
+                                                <button
+                                                    key={zone.id}
+                                                    type="button"
+                                                    onClick={() => setGuestProfile(prev => ({ ...prev, preferred_zone: zone.id }))}
+                                                    className={`px-3 py-2 rounded-xl border text-xs sm:text-sm font-medium transition-all flex items-center gap-1.5 justify-center cursor-pointer ${
+                                                        isSelected
+                                                            ? 'border-blue-500 bg-blue-50 text-blue-800 shadow-sm ring-1 ring-blue-400'
+                                                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                                                    }`}
+                                                >
+                                                    <span>{zone.icon}</span>
+                                                    <span>{zone.label}</span>
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={guestProfile.preferred_zone}
+                                        onChange={(e) => setGuestProfile(prev => ({ ...prev, preferred_zone: e.target.value }))}
+                                        placeholder="Hoặc tự điền vị trí yêu thích khác (vd: gần quầy bar, tầng trệt...)"
+                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
                                     />
                                 </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={savingDining}
-                                    className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition duration-150 active:scale-95 flex items-center justify-center gap-1.5"
-                                >
-                                    {savingDining ? (
-                                        <>
-                                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                                            <span>Đang lưu...</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="material-symbols-outlined text-base">save</span>
-                                            <span>Lưu hồ sơ khẩu vị & Dị ứng</span>
-                                        </>
-                                    )}
-                                </button>
-                            </form>
+                                {/* 4. GHI CHÚ PHỤC VỤ ĐẶC BIỆT */}
+                                <div>
+                                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1 flex items-center gap-1.5">
+                                        <span className="material-symbols-outlined text-purple-500 text-lg">edit_note</span>
+                                        Ghi chú đặc biệt phục vụ
+                                    </label>
+                                    <textarea
+                                        rows={2}
+                                        value={guestProfile.special_notes}
+                                        onChange={(e) => setGuestProfile(prev => ({ ...prev, special_notes: e.target.value }))}
+                                        placeholder="Ví dụ: Thường đi kèm trẻ nhỏ cần ghế ăn dặm, ăn chay vào ngày rằm, thích bàn yên tĩnh tiếp khách..."
+                                        className="w-full px-3.5 py-2.5 bg-gray-50 border border-gray-300 rounded-xl text-xs sm:text-sm focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition"
+                                    />
+                                </div>
+
+                                {/* 5. MÓN ĂN QUEN THUỘC ĐÃ GHI NHẬN (FAVORITE DISHES) */}
+                                {guestProfile.favorite_dishes.length > 0 && (
+                                    <div>
+                                        <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 flex items-center gap-1.5">
+                                            <span className="material-symbols-outlined text-amber-500 text-lg">favorite</span>
+                                            Món ăn quen thuộc đã từng dùng
+                                        </label>
+                                        <div className="flex flex-wrap gap-1.5">
+                                            {guestProfile.favorite_dishes.map((dish, i) => (
+                                                <span
+                                                    key={i}
+                                                    className="text-xs bg-amber-50 border border-amber-200 text-amber-800 px-2.5 py-1 rounded-lg"
+                                                >
+                                                    🍽️ {dish}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Nút lưu hồ sơ với xác nhận */}
+                                <div className="pt-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmModal(true)}
+                                        disabled={savingGuestProfile}
+                                        className="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white rounded-xl font-semibold text-xs sm:text-sm shadow-md hover:shadow-lg transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                                    >
+                                        {savingGuestProfile ? (
+                                            <>
+                                                <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full" />
+                                                <span>Đang lưu hồ sơ...</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="material-symbols-outlined text-base">save</span>
+                                                <span>Lưu Hồ Sơ Khẩu Vị & Dị Ứng</span>
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
                         )}
                     </div>
 
@@ -631,6 +699,53 @@ const ProfilePage = () => {
                                     <span>{t('customer.profile.change_password_btn')}</span>
                                 </button>
                             </form>
+                        </div>
+                    )}
+
+                    {/* Modal xác nhận cập nhật (Explicit Overwrite Confirmation) */}
+                    {showConfirmModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                            <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-gray-100 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="flex items-center gap-3 text-orange-600 mb-3">
+                                    <span className="material-symbols-outlined text-3xl">verified_user</span>
+                                    <h3 className="text-lg font-bold text-gray-900">Xác nhận cập nhật hồ sơ</h3>
+                                </div>
+                                <div className="text-sm text-gray-600 space-y-2.5 mb-6">
+                                    <p>Bạn đang cập nhật hồ sơ khẩu vị và rào chắn an toàn dị ứng của mình:</p>
+                                    <div className="bg-rose-50 border border-rose-200 rounded-lg p-3 text-xs text-rose-800">
+                                        <p className="font-semibold mb-1">⚠️ Danh sách dị ứng sẽ lưu thành:</p>
+                                        <p className="font-mono font-medium">
+                                            {guestProfile.allergies.length > 0
+                                                ? guestProfile.allergies.join(', ')
+                                                : '(Không có chất dị ứng nào)'
+                                            }
+                                        </p>
+                                        <p className="mt-1.5 text-[11px] text-rose-600 italic">
+                                            * Các chất dị ứng đã bỏ chọn sẽ được xóa hoàn toàn khỏi hồ sơ (Explicit Overwrite).
+                                        </p>
+                                    </div>
+                                    <div className="text-xs text-gray-600">
+                                        <p>• <strong>Khẩu vị cay:</strong> {guestProfile.spice_preference}</p>
+                                        <p>• <strong>Khu vực bàn:</strong> {guestProfile.preferred_zone || 'Chưa chọn'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center justify-end gap-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmModal(false)}
+                                        className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+                                    >
+                                        Hủy bỏ
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={handleSaveGuestProfile}
+                                        className="px-4 py-2 text-sm font-semibold text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-all shadow-md active:scale-95 cursor-pointer"
+                                    >
+                                        Xác nhận lưu
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>

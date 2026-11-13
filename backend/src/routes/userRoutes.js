@@ -3,7 +3,7 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const guestOrderController = require('../controllers/guestOrderController');
 const uploadController = require('../controllers/uploadController');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, verifyInternalServiceOnly } = require('../middleware/authMiddleware');
 
 // All routes require authentication
 router.put('/profile', verifyToken, userController.updateProfile);
@@ -12,7 +12,7 @@ router.get('/orders', verifyToken, userController.getMyOrders);
 router.post('/claim-orders', verifyToken, guestOrderController.claimGuestOrders);
 router.post('/avatar', verifyToken, uploadController.uploadAvatarMiddleware, uploadController.uploadAvatar);
 
-// Internal route cho AI service lấy thông tin user
-router.get('/:id/basic-info', userController.getBasicInfo);
+// Internal route cho AI service lấy thông tin user (Yêu cầu secret nội bộ timing-safe)
+router.get('/:id/basic-info', verifyInternalServiceOnly, userController.getBasicInfo);
 
 module.exports = router;

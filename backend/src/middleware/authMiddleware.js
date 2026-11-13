@@ -60,3 +60,74 @@ exports.optionalAuth = (req, res, next) => {
   }
   next();
 };
+
+const crypto = require('crypto');
+
+/**
+ * isInternalService
+ * Kiểm tra xác thực yêu cầu từ internal service qua header x-internal-secret
+ * bằng so sánh hằng số thời gian (timing-safe comparison).
+ * @param {Object} req
+ * @returns {boolean}
+ */
+exports.isInternalService = (req) => {
+  const internalSecret = req.headers['x-internal-secret'];
+  const expectedSecret = process.env.INTERNAL_SERVICE_SECRET || process.env.INTERNAL_SERVICE_KEY || 'aria-ai-internal-service-secret';
+  if (!internalSecret || !expectedSecret) return false;
+  try {
+    const a = Buffer.from(String(internalSecret));
+    const b = Buffer.from(String(expectedSecret));
+    return a.length === b.length && crypto.timingSafeEqual(a, b);
+  } catch (_) {
+    return false;
+  }
+};
+
+/**
+ * verifyInternalServiceOnly
+ * Chặn hoàn toàn các request từ bên ngoài nếu không có secret nội bộ chính xác.
+ */
+exports.verifyInternalServiceOnly = (req, res, next) => {
+  if (exports.isInternalService(req)) {
+    req.isInternalService = true;
+    return next();
+  }
+  return res.status(403).json({
+    success: false,
+    message: 'Forbidden: Endpoint này chỉ dành cho dịch vụ nội bộ có Secret hợp lệ'
+  });
+};
+
+/**
+ * verifyInternalOrUserAuth
+ * Bảo vệ endpoint nội bộ khỏi tấn công IDOR & Unauthenticated Access (P0 Defect 1).
+ * 1. Cho phép gọi bằng Internal Service Secret (x-internal-secret header) với timingSafeEqual.
+ * 2. Nếu không có secret, yêu cầu verifyToken hợp lệ và KHÔNG cho phép cập nhật hồ sơ người dùng khác.
+ */
+exports.verifyInternalOrUserAuth = async (req, res, next) => {
+  const internalSecret = req.headers['x-internal-secret'];
+
+  if (internalSecret) {
+    if (exports.isInternalService(req)) {
+      req.isInternalService = true;
+      return next();
+    }
+    return res.status(403).json({ success: false, message: 'Invalid internal service secret' });
+  }
+
+  // Fallback to user token verification
+  return exports.verifyToken(req, res, () => {
+    // Ngăn chặn IDOR: người dùng không được truyền userId khác với id của chính mình
+    if (req.body && req.body.userId && req.body.userId !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: 'Không có quyền cập nhật hồ sơ của người dùng khác'
+      });
+    }
+    // Gán userId bằng token đã xác thực để đảm bảo an toàn tuyệt đối
+    if (req.body) {
+      req.body.userId = req.user.id;
+    }
+    return next();
+  });
+};

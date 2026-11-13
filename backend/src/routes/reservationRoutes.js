@@ -30,9 +30,8 @@ const bookingRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   skip: (req) => {
-    // Miễn rate limit cho các cuộc gọi nội bộ từ AI service
-    const internalSecret = process.env.INTERNAL_SERVICE_SECRET || 'aria-ai-internal-service-secret';
-    return req.headers['x-internal-service'] === 'aria-ai' || req.headers['x-internal-secret'] === internalSecret;
+    // Miễn rate limit cho các cuộc gọi nội bộ từ AI service có secret timing-safe
+    return authMiddleware.isInternalService(req);
   },
   message: {
     success: false,
@@ -87,8 +86,19 @@ router.post(
 /** Tạo phiên thanh toán cọc Stripe (cho nhóm >= 6 người) */
 router.post('/:id/deposit-intent', reservationController.createDepositPaymentIntent);
 
-/** Xác nhận thanh toán cọc giả lập trong môi trường dev / demo */
-router.post('/:id/mock-deposit', reservationController.confirmMockDeposit);
+/** Xác nhận thanh toán cọc giả lập trong môi trường dev / demo (chỉ cho phép Staff/Admin và cấm trên Production) */
+router.post(
+  '/:id/mock-deposit',
+  (req, res, next) => {
+    if (process.env.NODE_ENV === 'production') {
+      return res.status(403).json({ success: false, message: 'Mock deposit is disabled in production' });
+    }
+    next();
+  },
+  authMiddleware.verifyToken,
+  roleMiddleware.authorizeRoles('waiter', 'admin', 'super_admin'),
+  reservationController.confirmMockDeposit
+);
 
 // ─── Staff Routes (Waiter + Admin) ─────────────────────────────────────────
 

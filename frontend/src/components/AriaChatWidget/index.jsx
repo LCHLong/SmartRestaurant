@@ -26,6 +26,8 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
     isLoading,
     hasUnread,
     sendMessage,
+    isReturningGuest,
+    guestProfile,
   } = useAiChat();
 
   const [inputText, setInputText] = useState('');
@@ -128,10 +130,10 @@ export default function AriaChatWidget({ autoGreetDelay = 5000 }) {
               <p className="text-white font-semibold text-sm leading-none truncate">Aria</p>
               {/* Dot online */}
               <span className="w-2 h-2 rounded-full bg-green-300 shadow flex-shrink-0 animate-pulse" />
-              {user && (
+              {user && isReturningGuest && (
                 <span
                   className="text-[10px] bg-white/25 px-1.5 py-0.5 rounded text-white font-medium flex items-center gap-0.5 shadow-sm whitespace-nowrap"
-                  title="Khách quen • Đã lưu khẩu vị (Hồ sơ MemGPT đang kích hoạt)"
+                  title={`Đã nạp hồ sơ khẩu vị dài hạn MemGPT (${guestProfile?.visit_count || 2} lượt ghé)`}
                 >
                   <span className="material-symbols-outlined text-[11px]">memory</span>
                   Khách quen • Đã lưu khẩu vị

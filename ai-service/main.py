@@ -102,6 +102,12 @@ class SessionSummaryRequest(BaseModel):
     currentProfile: Optional[dict] = None
 
 
+class EmbeddingRequest(BaseModel):
+    text: Optional[str] = None
+    texts: Optional[list[str]] = None
+    dimension: int = 768
+
+
 # ---------- Endpoints ----------
 
 @app.get("/health")
@@ -189,4 +195,31 @@ async def summarize_session(request: SessionSummaryRequest):
         "success": True,
         "message": "Đã tóm tắt phiên và bảo toàn an toàn dị ứng qua Allergy Safety Latch",
         "data": merged_result
+    }
+
+
+@app.post("/api/memory/embedding")
+async def create_memory_embedding(request: EmbeddingRequest):
+    """
+    Sinh vector nhúng ngữ nghĩa (768 chiều) phục vụ pgvector và MemGPT Recall Memory.
+    """
+    from tools.embedding_helper import generate_semantic_embedding, generate_batch_embeddings
+
+    target_dim = request.dimension or 768
+
+    if request.texts:
+        embeddings = generate_batch_embeddings(request.texts, dimension=target_dim)
+        return {
+            "success": True,
+            "dimension": target_dim,
+            "count": len(embeddings),
+            "embeddings": embeddings
+        }
+
+    target_text = request.text or ""
+    embedding = generate_semantic_embedding(target_text, dimension=target_dim)
+    return {
+        "success": True,
+        "dimension": target_dim,
+        "embedding": embedding
     }
