@@ -893,6 +893,17 @@ const addItemsToExistingOrder = async (req, res, orderId, items) => {
       });
     }
 
+    // Auto-checkpoint MemGPT: Kích hoạt tóm tắt ngầm nếu khách đã đăng nhập
+    const customerId = currentOrder.customer_id || (req.user && req.user.id);
+    if (customerId) {
+      try {
+        const { triggerBackgroundSummarizer } = require('./aiController');
+        if (typeof triggerBackgroundSummarizer === 'function') {
+          triggerBackgroundSummarizer(req.body.sessionId || null, customerId).catch(() => {});
+        }
+      } catch (_) {}
+    }
+
     res.status(200).json({
       success: true,
       message: 'Đã thêm món vào đơn hàng hiện tại',

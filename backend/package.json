@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "nodemon src/index.js",
+    "test": "node --test tests/**/*.test.js",
     "seed:reservations": "node src/scripts/seed_reservations_and_shifts.js"
   },
   "keywords": [],

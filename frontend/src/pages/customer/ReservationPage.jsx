@@ -104,6 +104,7 @@ const ReservationPage = () => {
                     reservation_date: form.reservation_date,
                     reservation_time: form.reservation_time,
                     special_requests: form.special_requests.trim() || undefined,
+                    sessionId: sessionStorage.getItem('aria_session_id') || undefined,
                 },
                 {
                     headers: { 'Idempotency-Key': idempotencyKey },

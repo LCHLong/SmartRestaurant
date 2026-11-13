@@ -7,8 +7,29 @@
 const Joi = require('joi');
 const redis = require('../config/redisClient');
 const supabase = require('../config/supabaseClient');
+const { getEmbedding } = require('../services/pipecatClient');
 
 const CACHE_TTL_SECONDS = 3600; // 1 hour
+
+/**
+ * Chuẩn hóa danh sách chuỗi: trim, lowercase, loại bỏ phần tử rỗng và trùng lặp
+ * @param {Array<string>} list
+ * @returns {Array<string>}
+ */
+const normalizeList = (list) => {
+  if (!Array.isArray(list)) return [];
+  const seen = new Set();
+  const result = [];
+  for (const item of list) {
+    if (!item || typeof item !== 'string') continue;
+    const cleaned = item.trim().toLowerCase();
+    if (cleaned && !seen.has(cleaned)) {
+      seen.add(cleaned);
+      result.push(cleaned);
+    }
+  }
+  return result.sort();
+};
 
 // Schema kiểm thực cập nhật hồ sơ khách
 const profileUpdateSchema = Joi.object({
@@ -33,7 +54,9 @@ const sessionSummarySchema = Joi.object({
   detectedZone: Joi.string().max(100).optional().allow(null, ''),
   favoriteDishes: Joi.array().items(Joi.string()).default([]),
   newSpecialNotes: Joi.string().max(500).optional().allow(null, ''),
-  memoryFacts: Joi.array().items(Joi.string()).default([])
+  memoryFacts: Joi.array().items(Joi.string()).default([]),
+  incrementVisit: Joi.boolean().optional(),
+  isSessionEnd: Joi.boolean().optional()
 });
 
 /**
@@ -119,20 +142,25 @@ exports.updateMyProfile = async (req, res) => {
     // - Nếu không gửi 'allergies', bảo lưu mảng dị ứng hiện tại trong CSDL.
     let targetAllergies;
     if (value.allergies !== undefined) {
-      targetAllergies = Array.from(new Set(value.allergies.map(a => a.trim().toLowerCase()).filter(Boolean)));
+      targetAllergies = normalizeList(value.allergies);
     } else {
       const { data: currentProfile } = await supabase
         .from('guest_profiles')
         .select('allergies')
         .eq('user_id', userId)
         .single();
-      targetAllergies = currentProfile?.allergies || [];
+      targetAllergies = normalizeList(currentProfile?.allergies || []);
     }
+
+    const cleanFavorites = value.favorite_dishes !== undefined
+      ? normalizeList(value.favorite_dishes)
+      : undefined;
 
     const upsertData = {
       user_id: userId,
       ...value,
       allergies: targetAllergies,
+      ...(cleanFavorites !== undefined && { favorite_dishes: cleanFavorites }),
       updated_at: new Date().toISOString()
     };
 
@@ -216,11 +244,36 @@ exports.ingestSessionSummary = async (req, res) => {
       .eq('user_id', userId)
       .single();
 
-    const existingAllergies = current?.allergies || [];
-    const mergedAllergies = Array.from(new Set([...existingAllergies, ...detectedAllergies]));
+    // Chuẩn hóa và thực thi Allergy Safety Latch (Union không trùng lặp hoa/thường)
+    const existingAllergies = normalizeList(current?.allergies || []);
+    const newAllergies = normalizeList(detectedAllergies || []);
+    const mergedAllergies = Array.from(new Set([...existingAllergies, ...newAllergies])).sort();
 
-    const existingFavorites = current?.favorite_dishes || [];
-    const mergedFavorites = Array.from(new Set([...existingFavorites, ...favoriteDishes]));
+    const existingFavorites = normalizeList(current?.favorite_dishes || []);
+    const newFavorites = normalizeList(favoriteDishes || []);
+    const mergedFavorites = Array.from(new Set([...existingFavorites, ...newFavorites])).sort();
+
+    // Cơ chế Idempotent cho visit_count: Chỉ tăng 1 lần cho mỗi phiên (sessionId)
+    let newVisitCount;
+    if (!current) {
+      newVisitCount = 1;
+    } else if (value.incrementVisit === false) {
+      newVisitCount = current.visit_count || 1;
+    } else if (sessionId) {
+      const sessionCountedKey = `session_counted:${userId}:${sessionId}`;
+      try {
+        if (redis && typeof redis.set === 'function') {
+          const lockResult = await redis.set(sessionCountedKey, '1', { NX: true, EX: 86400 });
+          newVisitCount = (lockResult === 'OK') ? ((current.visit_count || 1) + 1) : (current.visit_count || 1);
+        } else {
+          newVisitCount = value.incrementVisit ? ((current.visit_count || 1) + 1) : (current.visit_count || 1);
+        }
+      } catch (_) {
+        newVisitCount = current.visit_count || 1;
+      }
+    } else {
+      newVisitCount = (current.visit_count || 1) + 1;
+    }
 
     const updatePayload = {
       user_id: userId,
@@ -229,23 +282,37 @@ exports.ingestSessionSummary = async (req, res) => {
       spice_preference: detectedSpice || current?.spice_preference || 'vừa',
       preferred_zone: detectedZone || current?.preferred_zone || null,
       special_notes: newSpecialNotes || current?.special_notes || null,
-      visit_count: (current?.visit_count || 0) + 1,
+      visit_count: newVisitCount,
       last_visit: new Date().toISOString(),
       updated_at: new Date().toISOString()
     };
 
     await supabase.from('guest_profiles').upsert(updatePayload, { onConflict: 'user_id' });
 
-    // 2. Thêm các fact ký ức vào guest_memories
+    // 2. Thêm các fact ký ức vào guest_memories kèm vector embedding 768 chiều (pgvector)
     if (memoryFacts && memoryFacts.length > 0) {
-      const memoryRows = memoryFacts.map(fact => ({
-        user_id: userId,
-        session_id: sessionId || null,
-        memory_type: 'conversation_fact',
-        content: fact,
-        metadata: { source: 'session_summarizer' }
-      }));
-      await supabase.from('guest_memories').insert(memoryRows);
+      const memoryRows = [];
+      for (const fact of memoryFacts) {
+        if (!fact || typeof fact !== 'string' || !fact.trim()) continue;
+        const cleanFact = fact.trim();
+        let embedding = null;
+        try {
+          embedding = await getEmbedding(cleanFact, 768);
+        } catch (_) {}
+
+        memoryRows.push({
+          user_id: userId,
+          session_id: sessionId || null,
+          memory_type: 'conversation_fact',
+          content: cleanFact,
+          embedding: (Array.isArray(embedding) && embedding.length === 768) ? embedding : null,
+          metadata: { source: 'session_summarizer' }
+        });
+      }
+
+      if (memoryRows.length > 0) {
+        await supabase.from('guest_memories').insert(memoryRows);
+      }
     }
 
     // 3. Xoá Redis cache để lượt sau nạp ngay dữ liệu mới

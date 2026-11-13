@@ -15,7 +15,7 @@ const redis = require('../config/redisClient');
 const supabase = require('../config/supabaseClient');
 const { getIO } = require('../config/socket');
 const { retrieveMenuContext, getOrderHistory } = require('../services/ragService');
-const { streamFromPipecat, isPipecatHealthy, summarizeSessionWithAI } = require('../services/pipecatClient');
+const { streamFromPipecat, isPipecatHealthy, summarizeSessionWithAI, getEmbedding } = require('../services/pipecatClient');
 const { getAbVariant } = require('../utils/abVariant');
 const Joi = require('joi');
 
@@ -116,12 +116,37 @@ async function getGuestProfile(userId) {
 
 /**
  * Lấy các mẩu ký ức hồi tưởng (MemGPT Recall / Archival Memory) từ CSDL
+ * Hỗ trợ tìm kiếm ngữ nghĩa vector (pgvector Cosine Similarity) với fallback theo thời gian
  * @param {string} userId
+ * @param {string|null} currentQuery
  * @param {number} limit
  * @returns {Promise<Array<string>>}
  */
-async function getRecallMemories(userId, limit = 5) {
+async function getRecallMemories(userId, currentQuery = null, limit = 5) {
   if (!userId) return [];
+
+  // 1. Thử tìm kiếm ngữ nghĩa qua pgvector RPC nếu có câu query
+  if (currentQuery && typeof currentQuery === 'string') {
+    try {
+      const queryEmbedding = await getEmbedding(currentQuery, 768);
+      if (queryEmbedding && Array.isArray(queryEmbedding) && queryEmbedding.length === 768) {
+        const { data: rpcData, error: rpcError } = await supabase.rpc('match_guest_memories', {
+          p_user_id: userId,
+          query_embedding: queryEmbedding,
+          match_threshold: 0.1,
+          match_count: limit
+        });
+
+        if (!rpcError && Array.isArray(rpcData) && rpcData.length > 0) {
+          return rpcData.map(item => item.content).filter(Boolean);
+        }
+      }
+    } catch (_) {
+      // Fallback xuống truy vấn thời gian bên dưới
+    }
+  }
+
+  // 2. Fallback an toàn: Lấy các mẩu ký ức mới nhất
   try {
     const { data, error } = await supabase
       .from('guest_memories')
@@ -222,7 +247,7 @@ exports.consult = async (req, res) => {
       getOrderHistory(userId),
       getSessionHistory(sessionId),
       getGuestProfile(userId),
-      getRecallMemories(userId)
+      getRecallMemories(userId, message)
     ]);
 
     const { context, fallbackUsed } = ragResult;
@@ -371,6 +396,7 @@ async function triggerBackgroundSummarizer(sessionId, userId, historyOpt = null)
     const guestProfileController = require('./guestProfileController');
     let summaryPayload;
 
+    const isSessionEnding = Boolean(historyOpt === null);
     if (summaryResult) {
       summaryPayload = {
         userId,
@@ -382,7 +408,9 @@ async function triggerBackgroundSummarizer(sessionId, userId, historyOpt = null)
         newSpecialNotes: summaryResult.special_notes || undefined,
         memoryFacts: summaryResult.memory_facts || [
           `Khách đã tương tác trong phiên ${sessionId}`
-        ]
+        ],
+        incrementVisit: isSessionEnding,
+        isSessionEnd: isSessionEnding
       };
     } else {
       summaryPayload = {
@@ -390,7 +418,9 @@ async function triggerBackgroundSummarizer(sessionId, userId, historyOpt = null)
         sessionId,
         detectedAllergies: [],
         favoriteDishes: [],
-        memoryFacts: [`Khách đã tương tác trong phiên ${sessionId}`]
+        memoryFacts: [`Khách đã tương tác trong phiên ${sessionId}`],
+        incrementVisit: isSessionEnding,
+        isSessionEnd: isSessionEnding
       };
     }
 

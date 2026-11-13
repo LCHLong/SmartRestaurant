@@ -251,7 +251,8 @@ export default function CartPage() {
                 // Add items to existing order
                 response = await api.post(`/api/orders/${existingOrderId}/items`, {
                     items: items,
-                    qr_token: qrToken
+                    qr_token: qrToken,
+                    sessionId: sessionStorage.getItem('aria_session_id') || undefined
                 });
                 orderId = existingOrderId;
             } else {
@@ -261,7 +262,8 @@ export default function CartPage() {
                     customer_id: user?.id || null,
                     items: items,
                     coupon_code: appliedVoucher?.code || null,
-                    qr_token: qrToken
+                    qr_token: qrToken,
+                    sessionId: sessionStorage.getItem('aria_session_id') || undefined
                 };
 
                 response = await api.post('/api/orders', orderData);

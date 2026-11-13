@@ -36,12 +36,14 @@ export const AiChatProvider = ({ children }) => {
 
   // ---- State ----
   const [isOpen, setIsOpen] = useState(false);
+  const [guestProfile, setGuestProfile] = useState(null);
+
   // Tin nhắn chào mừng mặc định hiển thị tức thì (0ms latency, không cần chờ mạng)
   const defaultWelcome = {
     id: 'aria-welcome-msg',
     role: 'assistant',
     content: user?.name
-      ? `Xin chào **${user.name}**! Em là **Aria** — rất vui được đón tiếp bạn quay lại nhà hàng 🍽️\n\nEm đã nạp hồ sơ khẩu vị của bạn. Hôm nay bạn muốn tìm món gì hoặc đặt bàn ạ?`
+      ? `Xin chào **${user.name}**! Em là **Aria** — trợ lý tư vấn món ăn và đặt bàn của nhà hàng 🍽️\n\nBạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?`
       : 'Xin chào! Em là **Aria** — trợ lý tư vấn món ăn của nhà hàng 🍽️\n\nBạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?',
     suggestedItems: [],
     isStreaming: false
@@ -50,6 +52,41 @@ export const AiChatProvider = ({ children }) => {
   const [messages, setMessages] = useState([defaultWelcome]);
   const [isLoading, setIsLoading] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
+
+  // Tải hồ sơ ẩm thực dài hạn của khách quen (MemGPT Archival Profile)
+  const refreshGuestProfile = useCallback(async () => {
+    if (!user?.id) {
+      setGuestProfile(null);
+      return;
+    }
+    try {
+      const res = await api.get('/api/guest-profile/me');
+      if (res.data?.success && res.data.data) {
+        const profile = res.data.data;
+        setGuestProfile(profile);
+        const isReturning = Number(profile.visit_count) > 1;
+
+        // Chỉ cá nhân hóa lời chào quay lại khi khách thực sự là khách quen (visit_count > 1)
+        setMessages(prev => {
+          if (prev.length === 1 && prev[0].id === 'aria-welcome-msg') {
+            return [{
+              ...prev[0],
+              content: isReturning
+                ? `Xin chào **${user.name || 'bạn'}**! Em là **Aria** — rất vui được đón tiếp bạn quay lại nhà hàng 🍽️\n\nEm đã nạp hồ sơ khẩu vị của bạn (Lượt ghé: ${profile.visit_count}). Hôm nay bạn muốn tìm món gì hoặc đặt bàn ạ?`
+                : `Xin chào **${user.name || 'bạn'}**! Em là **Aria** — trợ lý tư vấn món ăn của nhà hàng 🍽️\n\nBạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?`
+            }];
+          }
+          return prev;
+        });
+      }
+    } catch (_) {}
+  }, [user]);
+
+  useEffect(() => {
+    refreshGuestProfile();
+  }, [refreshGuestProfile]);
+
+  const isReturningGuest = Boolean(user && guestProfile && Number(guestProfile.visit_count) > 1);
   const [sessionId, setSessionId] = useState(() => {
     // Tái sử dụng session trong cùng tab nếu có
     const saved = sessionStorage.getItem('aria_session_id');
@@ -319,6 +356,9 @@ export const AiChatProvider = ({ children }) => {
       sendFeedback,
       sessionId,
       resetSession,
+      guestProfile,
+      isReturningGuest,
+      refreshGuestProfile,
     }}>
       {children}
     </AiChatContext.Provider>

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const guestProfileController = require('../controllers/guestProfileController');
-const { verifyToken } = require('../middleware/authMiddleware');
+const { verifyToken, verifyInternalOrUserAuth } = require('../middleware/authMiddleware');
 
 /**
  * GET /api/guest-profile/me
@@ -23,8 +23,8 @@ router.get('/memories', verifyToken, guestProfileController.getMyMemories);
 
 /**
  * POST /api/guest-profile/session-summary
- * Cập nhật tóm tắt phiên ngầm (gọi bởi internal cron hoặc AI service)
+ * Cập nhật tóm tắt phiên ngầm (được bảo vệ bởi Internal Secret hoặc User Token chống IDOR)
  */
-router.post('/session-summary', guestProfileController.ingestSessionSummary);
+router.post('/session-summary', verifyInternalOrUserAuth, guestProfileController.ingestSessionSummary);
 
 module.exports = router;
