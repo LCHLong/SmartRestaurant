@@ -1,0 +1,17 @@
+# .geminiignore - Hard Boundary for Black-box QA
+# Cấm Antigravity đọc và lập chỉ mục mã nguồn ứng dụng
+
+frontend/src/**
+backend/**
+ai-service/**
+database/**
+
+# Loại trừ các file code nhạy cảm
+*.jsx
+*.tsx
+*.py
+
+# Cho phép truy cập thư mục kiểm thử hộp đen và kết quả
+!tests/blackbox/**
+!test-results/**
+!.agents/**

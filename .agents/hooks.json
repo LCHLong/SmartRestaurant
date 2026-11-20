@@ -1,0 +1,23 @@
+{
+  "blackbox-qa-enforcer": {
+    "PreToolUse": [
+      {
+        "matcher": "read_file",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ./scripts/guard-read-file.js",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "type": "command",
+        "command": "node ./scripts/enforce-bug-issue.js",
+        "timeout": 15
+      }
+    ]
+  }
+}

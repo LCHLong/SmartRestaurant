@@ -13,5 +13,8 @@ __pycache__/
 
 # Specs & Agent artifacts
 docs/specs/
-specs/
-.agents/
+/specs/
+!test/specs/
+!test/specs/**
+# Agent temporary workspace
+.agents/teamwork/

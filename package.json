@@ -1,4 +1,10 @@
 {
+  "name": "smart-restaurant-blackbox-qa",
+  "version": "1.0.0",
+  "scripts": {
+    "test:blackbox": "npx playwright test --config=tests/blackbox/playwright.config.js",
+    "qa:report-bug": "node .agents/scripts/create-bug-issue.js"
+  },
   "devDependencies": {
     "@playwright/test": "^1.64.0"
   }
