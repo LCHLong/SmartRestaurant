@@ -10,7 +10,8 @@ ACCOUNTS_NOTE.md
 *.pem
 *.key
 
-# Ignore everything except images directory and this .gitignore
+# Ignore everything except images and videos directories and this .gitignore
 /*
 !/images/
+!/videos/
 !/.gitignore
