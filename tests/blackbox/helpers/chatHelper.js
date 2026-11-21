@@ -3,14 +3,16 @@ const { expect } = require('@playwright/test');
 const fs = require('fs');
 const path = require('path');
 
+/**
+ * Helper điều khiển tương tác Chatbox Aria trên trang /menu
+ * Khớp 100% với cấu trúc UI của AriaChatWidget
+ */
 class AriaChatHelper {
   constructor(page) {
     this.page = page;
   }
 
-  /**
-   * 1. Mở trang /menu, xử lý Modal Welcome và kích hoạt Chatbox Aria
-   */
+  // 1. Mở trang /menu và kích hoạt mở Widget Chat Aria
   async openMenuAndChat() {
     await this.page.goto('/menu');
     await this.page.waitForLoadState('domcontentloaded');
@@ -18,92 +20,44 @@ class AriaChatHelper {
     // Chờ body sẵn sàng
     await expect(this.page.locator('body')).toBeVisible();
 
-    // 1.1 Xử lý Modal "Welcome! How would you like to order?" nếu xuất hiện
-    const guestBtn = this.page.locator(
-      'button:has-text("Continue as Guest"), button:has-text("Order without login"), button:has-text("Khách"), [data-testid="btn-guest"]'
-    ).first();
-
-    if (await guestBtn.isVisible({ timeout: 2000 }).catch(() => false)) {
-      await guestBtn.click();
-      await this.page.waitForTimeout(400);
+    // Kiểm tra nếu khung chat chưa mở thì mới click mở
+    const chatInput = this.page.locator('textarea[placeholder="Nhập câu hỏi cho Aria..."]').first();
+    if (!(await chatInput.isVisible())) {
+      const openChatBtn = this.page.locator('button[aria-label="Mở Aria chat"]').first();
+      await expect(openChatBtn).toBeVisible({ timeout: 10000 });
+      await openChatBtn.click();
+      await expect(chatInput).toBeVisible({ timeout: 5000 });
+      await this.page.waitForTimeout(500);
     }
-
-    // 1.2 Kiểm tra xem ô chat đã mở sẵn chưa
-    const chatInput = this.page.locator('textarea[placeholder*="Aria"], input[placeholder*="Aria"]').first();
-
-    const isInputVisible = await chatInput.isVisible({ timeout: 500 }).catch(() => false);
-    if (!isInputVisible) {
-      // Tìm và click nút "Mở Aria chat" (nút tròn robot màu cam)
-      const chatToggle = this.page.locator(
-        'button[aria-label="Mở Aria chat"], button[data-testid="aria-chat-toggle"], button:has([class*="bot"]), button.fixed.bottom-5.right-4, button.fixed.bottom-6.right-6'
-      ).first();
-
-      if (await chatToggle.isVisible({ timeout: 5000 }).catch(() => false)) {
-        await chatToggle.click();
-        await this.page.waitForTimeout(600);
-      }
-    }
-
-    // Đợi ô chat input xuất hiện
-    await expect(this.page.locator('textarea[placeholder*="Aria"], input[placeholder*="Aria"]').first()).toBeVisible({ timeout: 10000 });
   }
 
-  /**
-   * 2. Gửi một tin nhắn văn bản vào Aria và chờ phản hồi hoàn tất
-   */
-  async sendMessage(messageText, waitMs = 0) {
-    const input = this.page.locator('textarea[placeholder*="Aria"], input[placeholder*="Aria"]').first();
-    await expect(input).toBeVisible({ timeout: 10000 });
-
-    const botMessages = this.page.locator('div[class*="rounded-tl-sm"]');
-    const initialCount = await botMessages.count();
-
+  // 2. Gõ câu hỏi và gửi cho Aria
+  async sendMessage(messageText) {
+    const input = this.page.locator('textarea[placeholder="Nhập câu hỏi cho Aria..."]').first();
+    await expect(input).toBeVisible();
     await input.fill(messageText);
-    await input.press('Enter');
 
-    // Chờ phản hồi mới xuất hiện và nội dung ổn định
-    const startTime = Date.now();
-    let prevText = '';
-    let stableCount = 0;
-
-    while (Date.now() - startTime < 35000) {
-      await this.page.waitForTimeout(500);
-      const currentCount = await botMessages.count();
-      if (currentCount > initialCount) {
-        const currentText = (await botMessages.last().innerText()).trim();
-        if (currentText.length > 0 && currentText === prevText) {
-          stableCount++;
-          if (stableCount >= 2) {
-            break;
-          }
-        } else {
-          stableCount = 0;
-          prevText = currentText;
-        }
-      }
-    }
-
-    if (waitMs > 0) {
-      await this.page.waitForTimeout(waitMs);
+    // Bấm nút gửi hoặc nhấn Enter
+    const sendBtn = this.page.locator('button[aria-label="Gửi tin nhắn"]').first();
+    if (await sendBtn.isEnabled()) {
+      await sendBtn.click();
     } else {
-      await this.page.waitForTimeout(400);
+      await input.press('Enter');
     }
+
+    // Đợi Aria bắt đầu phản hồi và hoàn thành
+    await this.page.waitForTimeout(2500);
   }
 
   /**
    * 3. Lấy tin nhắn phản hồi mới nhất của Aria
    */
   async getLastAriaResponse() {
-    const botMessages = this.page.locator('div[class*="rounded-tl-sm"]');
-    const count = await botMessages.count();
-    if (count > 0) {
-      return (await botMessages.last().innerText()).trim();
-    }
-    // Fallback: tìm qua các selector khác
-    const fallback = this.page.locator('[data-testid="chat-message-aria"], [data-sender="aria"], .aria-message');
-    const fbCount = await fallback.count();
-    if (fbCount > 0) {
-      return (await fallback.last().innerText()).trim();
+    // Tin nhắn của Aria hiển thị trong khung chat
+    const messages = this.page.locator('.chat-bubble, [class*="chat-message"], p.text-sm').all();
+    const list = await messages;
+    if (list.length > 0) {
+      return await list[list.length - 1].innerText();
     }
     return '';
   }

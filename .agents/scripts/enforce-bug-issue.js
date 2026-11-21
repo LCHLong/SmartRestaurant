@@ -106,7 +106,9 @@ Phát hiện lỗi kiểm thử trong file test-results/test-status.json:
 - Bằng chứng video: "${testStatus.video_path || 'test-results/recordings/'}"
 - Bằng chứng ảnh: "${testStatus.screenshot_path || 'test-results/screenshots/'}"
 
-Bạn BẮT BUỘC phải tạo GitHub Bug Issue bằng lệnh \`npx -y gh-axi issue create\` trước khi được phép kết thúc lượt làm việc!`
+Bạn BẮT BUỘC phải tạo GitHub Bug Issue vào repo LCHLong/SmartRestaurant bằng lệnh:
+\`npx -y gh-axi issue create --repo LCHLong/SmartRestaurant --title "..." --body "..." --label "bug,automated-qa"\`
+trước khi được phép kết thúc lượt làm việc!`
         }));
         return;
       }
