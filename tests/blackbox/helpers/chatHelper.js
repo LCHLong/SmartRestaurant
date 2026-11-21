@@ -54,21 +54,39 @@ class AriaChatHelper {
   async sendMessage(messageText, waitMs = 0) {
     const input = this.page.locator('textarea[placeholder*="Aria"], input[placeholder*="Aria"]').first();
     await expect(input).toBeVisible({ timeout: 10000 });
-    await input.fill(messageText);
 
-    // Gửi bằng phím Enter trên textarea
+    const botMessages = this.page.locator('div[class*="rounded-tl-sm"]');
+    const initialCount = await botMessages.count();
+
+    await input.fill(messageText);
     await input.press('Enter');
 
-    // Chờ 800ms để Aria bắt đầu xử lý (input chuyển sang disabled)
-    await this.page.waitForTimeout(800);
+    // Chờ phản hồi mới xuất hiện và nội dung ổn định
+    const startTime = Date.now();
+    let prevText = '';
+    let stableCount = 0;
 
-    // Chờ cho đến khi Aria hoàn tất (input được enable trở lại)
-    await expect(input).toBeEnabled({ timeout: 35000 });
+    while (Date.now() - startTime < 35000) {
+      await this.page.waitForTimeout(500);
+      const currentCount = await botMessages.count();
+      if (currentCount > initialCount) {
+        const currentText = (await botMessages.last().innerText()).trim();
+        if (currentText.length > 0 && currentText === prevText) {
+          stableCount++;
+          if (stableCount >= 2) {
+            break;
+          }
+        } else {
+          stableCount = 0;
+          prevText = currentText;
+        }
+      }
+    }
 
     if (waitMs > 0) {
       await this.page.waitForTimeout(waitMs);
     } else {
-      await this.page.waitForTimeout(800);
+      await this.page.waitForTimeout(400);
     }
   }
 
@@ -108,7 +126,7 @@ class AriaChatHelper {
    */
   getProductCards() {
     return this.page.locator(
-      '[data-testid="food-card"], [data-testid="product-card"], .product-card, .food-card, [data-testid="dish-card"], div[class*="rounded-tl-sm"] button:has-text("Thêm")'
+      '[data-testid="food-card"], [data-testid="product-card"], .product-card, .food-card, [data-testid="dish-card"], div[class*="rounded-tl-sm"]:has(button:has-text("Thêm vào giỏ")), div[class*="rounded-tl-sm"]:has(button:has-text("Thêm"))'
     );
   }
 
@@ -117,7 +135,7 @@ class AriaChatHelper {
    */
   getBookingCards() {
     return this.page.locator(
-      '[data-testid="booking-card"], [data-testid="reservation-card"], .reservation-card, .booking-card, div:has-text("RES-")'
+      '[data-testid="booking-card"], [data-testid="reservation-card"], .reservation-card, .booking-card, div[class*="rounded"]:has(button:has-text("Hủy")), div[class*="rounded"]:has(button:has-text("Chỉnh sửa"))'
     );
   }
 

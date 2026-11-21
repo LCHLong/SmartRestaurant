@@ -69,70 +69,76 @@ test.describe('Phân Hệ 5: Hỗ Trợ Thực Khách & Nút Gọi Nhân Viên (
 
   // TC-SUP-06: Thao tác nút "Gọi nhân viên bàn" 1 chạm
   test('TC-SUP-06: Thực khách nhấn nút [🛎️ Gọi nhân viên bàn]', async ({ page }) => {
+    // Gửi lệnh gọi nhân viên qua chat
+    await aria.sendMessage('Gọi nhân viên phục vụ tới bàn giúp tôi.');
+    const response = await aria.getLastAriaResponse();
+
+    // Theo FR-CHAT-13: Nút gọi nhân viên bàn phải hiển thị trong chat
     const callStaffBtn = page.locator(
-      'button[data-testid="btn-call-staff"], button:has-text("Gọi nhân viên"), [data-testid="call-staff-btn"], button[aria-label*="nhân viên"], button[aria-label*="Gọi phục vụ"]'
+      'button:has-text("Gọi nhân viên"), button[data-testid="btn-call-staff"], button[aria-label*="Gọi phục vụ"]'
     ).first();
 
-    const isBtnVisible = await callStaffBtn.isVisible({ timeout: 3000 }).catch(() => false);
-    if (isBtnVisible) {
-      await callStaffBtn.click();
-      await page.waitForTimeout(1000);
-      await aria.takeStepScreenshot('tc-sup-06-call-staff-button');
+    await expect(callStaffBtn).toBeVisible({ timeout: 5000 });
+    await aria.takeStepScreenshot('tc-sup-06-call-staff-button');
 
-      // Kiểm tra có thông báo tiếp nhận gọi nhân viên
-      const alertOrMsg = page.locator('text=/đã gửi|tiếp nhận|nhân viên sẽ|đang đến/i');
-      await expect(alertOrMsg.first()).toBeVisible({ timeout: 5000 }).catch(() => {});
-    } else {
-      // Gọi qua chat command
-      await aria.sendMessage('Gọi nhân viên phục vụ tới bàn giúp tôi.');
-      const response = await aria.getLastAriaResponse();
-      await aria.takeStepScreenshot('tc-sup-06-call-staff-text');
-      expect(response.toLowerCase()).toMatch(/(nhân viên|hỗ trợ|bàn|phục vụ|đang đến|thông báo)/i);
-    }
+    // Thao tác click vào nút
+    await callStaffBtn.click();
+    await page.waitForTimeout(1000);
+
+    // Kiểm tra có thông báo tiếp nhận gọi nhân viên hoặc toast xác nhận
+    const alertOrMsg = page.locator('text=/đã gửi|tiếp nhận|nhân viên sẽ|đang đến|thông báo tới nhân viên/i');
+    await expect(alertOrMsg.first()).toBeVisible({ timeout: 5000 });
   });
 
   // TC-SUP-07: Chọn lý do gọi nhân viên nhanh qua Quick Tags
   test('TC-SUP-07: Chọn lý do gọi nhân viên nhanh (Xin thêm đá / Chén đĩa / Thanh toán)', async ({ page }) => {
-    await aria.sendMessage('Tôi cần gọi nhân viên để xin thêm đá lạnh và thanh toán hóa đơn.');
-    const response = await aria.getLastAriaResponse();
+    await aria.sendMessage('Gọi nhân viên phục vụ tới bàn giúp tôi.');
+    await page.waitForTimeout(1000);
 
+    // Theo FR-CHAT-14: Phải hiển thị các tùy chọn tag lý do nhanh
+    const quickTag = page.locator('button:has-text("đá"), button:has-text("chén"), button:has-text("thanh toán"), [data-testid*="quick-tag"]').first();
+    await expect(quickTag).toBeVisible({ timeout: 4000 });
     await aria.takeStepScreenshot('tc-sup-07-call-staff-quick-tag');
-
-    expect(response.length).toBeGreaterThan(0);
-    expect(response.toLowerCase()).toMatch(/(nhân viên|đá lạnh|thanh toán|hỗ trợ|đã báo|phục vụ)/i);
   });
 
   // TC-SUP-08: Chống spam nút gọi nhân viên (Rate Limiting Cooldown 45s)
   test('TC-SUP-08: Nhấn nút gọi nhân viên liên tục kiểm tra cooldown', async ({ page }) => {
+    await aria.sendMessage('Gọi nhân viên phục vụ tới bàn giúp tôi.');
+    await page.waitForTimeout(1000);
+
     const callStaffBtn = page.locator(
-      'button[data-testid="btn-call-staff"], button:has-text("Gọi nhân viên"), [data-testid="call-staff-btn"]'
+      'button:has-text("Gọi nhân viên"), [data-testid="btn-call-staff"]'
     ).first();
 
-    const isBtnVisible = await callStaffBtn.isVisible({ timeout: 3000 }).catch(() => false);
-    if (isBtnVisible) {
-      await callStaffBtn.click();
-      await page.waitForTimeout(300);
-      // Bấm lần thứ hai ngay lập tức
-      await callStaffBtn.click().catch(() => {});
-      await page.waitForTimeout(500);
-    } else {
-      await aria.sendMessage('Gọi nhân viên!');
-      await aria.sendMessage('Gọi nhân viên gấp!');
-    }
+    await expect(callStaffBtn).toBeVisible({ timeout: 5000 });
+    await callStaffBtn.click({ force: true });
+    await page.waitForTimeout(200);
+    // Bấm liên tiếp lần 2
+    await callStaffBtn.click({ force: true });
 
     await aria.takeStepScreenshot('tc-sup-08-call-staff-cooldown');
-    await expect(page.locator('body')).toBeVisible();
+
+    // Theo FR-CHAT-15: Hệ thống phải bật cooldown 45s hoặc cảnh báo vui lòng đợi
+    const cooldownNotice = page.locator('text=/vui lòng đợi|cooldown|45s|đang tiếp nhận/i');
+    await expect(cooldownNotice.first()).toBeVisible({ timeout: 4000 });
   });
 
   // TC-SUP-09: Xử lý gián đoạn mạng khi gọi nhân viên
   test('TC-SUP-09: Bắt lỗi hoặc xử lý gián đoạn kết nối khi gọi phục vụ', async ({ page }) => {
-    // Thử gửi yêu cầu hỗ trợ
-    await aria.sendMessage('Bàn tôi đang cần hỗ trợ gấp nhưng mạng hơi yếu.');
-    const response = await aria.getLastAriaResponse();
+    await page.context().setOffline(true);
+    try {
+      const input = page.locator('textarea[placeholder*="Aria"], input[placeholder*="Aria"]').first();
+      await input.fill('Gọi nhân viên bàn!');
+      await input.press('Enter');
+      await page.waitForTimeout(2000);
 
-    await aria.takeStepScreenshot('tc-sup-09-network-resilience');
-    expect(response.length).toBeGreaterThan(0);
-    await expect(page.locator('body')).toBeVisible();
+      await aria.takeStepScreenshot('tc-sup-09-network-resilience');
+      // Khi offline hệ thống phải hiển thị thông báo lỗi mạng
+      const errorMsg = page.locator('text=/gián đoạn|mất kết nối|mạng|offline|thử lại/i');
+      await expect(errorMsg.first()).toBeVisible({ timeout: 5000 });
+    } finally {
+      await page.context().setOffline(false);
+    }
   });
 
   // TC-SUP-10: Tiếp nhận phàn nàn & Báo động khẩn cấp tới Quản lý

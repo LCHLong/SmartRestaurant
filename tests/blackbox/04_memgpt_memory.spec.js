@@ -53,7 +53,8 @@ test.describe('Phân Hệ 4: Nhớ Khẩu Vị Khách Quen MemGPT (SPEC-MOD-04)'
     await aria.takeStepScreenshot('tc-mem-04-reorder-as-usual');
 
     expect(response.length).toBeGreaterThan(0);
-    expect(response.toLowerCase()).toMatch(/(combo|như cũ|tuần trước|đơn hàng|món|xác nhận|gợi ý|giỏ)/i);
+    // Aria phải truy xuất đơn hàng tuần trước và hỏi xác nhận lại
+    expect(response.toLowerCase()).toMatch(/(combo|như cũ|tuần trước|đơn hàng|món quen|lịch sử|xác nhận)/i);
   });
 
   // TC-MEM-05: Gợi ý món mới dựa trên gu ẩm thực đã lưu trữ
@@ -64,8 +65,9 @@ test.describe('Phân Hệ 4: Nhớ Khẩu Vị Khách Quen MemGPT (SPEC-MOD-04)'
     await aria.takeStepScreenshot('tc-mem-05-new-dish-from-taste');
 
     expect(response.length).toBeGreaterThan(0);
-    // Không gợi ý món bò và không gợi ý món cay
-    expect(response.toLowerCase()).toMatch(/(gợi ý|đậm đà|không cay|heo|gà|vịt|nấm|hấp|sốt)/i);
+    // Không gợi ý món bò và phù hợp gu không cay
+    expect(response.toLowerCase()).not.toContain('bò');
+    expect(response.toLowerCase()).toMatch(/(đậm đà|không cay|heo|gà|vịt|nấm|hấp|sốt)/i);
   });
 
   // TC-MEM-06: Ghi đè khẩu vị tạm thời cho 1 bữa ăn (Context Override)

@@ -62,12 +62,15 @@ test.describe('Phân Hệ 6: Bảo Mật, Phòng Thủ Prompt & Hành Trình E2E
   test('TC-SEC-04: Xử lý chuỗi văn bản siêu dài chống tràn bộ đệm (10.000 ký tự)', async ({ page }) => {
     const longText = 'Aria tư vấn món ăn ngon '.repeat(450); // ~10.000 ký tự
     await aria.sendMessage(longText);
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(1000);
 
     await aria.takeStepScreenshot('tc-sec-04-long-buffer-defense');
 
-    // Ứng dụng không bị crash
+    // Ứng dụng không bị crash và tiếp tục nhận lệnh bình thường
     await expect(page.locator('body')).toBeVisible();
+    await aria.sendMessage('Quán mở cửa mấy giờ?');
+    const followUp = await aria.getLastAriaResponse();
+    expect(followUp.toLowerCase()).toMatch(/(giờ|mở cửa|đóng cửa|sáng|tối|hoạt động)/i);
   });
 
   // TC-SEC-05: Xoay chuyển ngữ cảnh liên tục (Context Switching Resilience)
@@ -90,6 +93,8 @@ test.describe('Phân Hệ 6: Bảo Mật, Phòng Thủ Prompt & Hành Trình E2E
 
     await aria.takeStepScreenshot('tc-sec-05-context-switching');
     expect(finalResp.length).toBeGreaterThan(0);
+    // Aria phải duy trì ngữ cảnh bàn đặt thay vì coi là câu hỏi mới
+    expect(finalResp.toLowerCase()).toMatch(/(bàn|19:00|đặt|tiếp tục|xác nhận|thông tin|chưa|tiến trình)/i);
   });
 
   // TC-SEC-06: Hành trình người dùng liên hoàn End-to-End (E2E-01 & E2E-02)

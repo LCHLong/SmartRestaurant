@@ -79,6 +79,7 @@ class StatusReporter {
   onEnd(result) {
     const resultsDir = path.resolve(process.cwd(), 'test-results');
     const summaryFilePath = path.join(resultsDir, 'test-summary.json');
+    const statusFilePath = path.join(resultsDir, 'test-status.json');
     const summary = {
       status: result.status,
       total: this.totalTests,
@@ -88,6 +89,25 @@ class StatusReporter {
       timestamp: new Date().toISOString()
     };
     fs.writeFileSync(summaryFilePath, JSON.stringify(summary, null, 2));
+
+    if (this.failures.length > 0) {
+      const lastFail = this.failures[this.failures.length - 1];
+      const testStatus = {
+        has_error: true,
+        test_name: lastFail.test_name,
+        status: lastFail.status,
+        duration: lastFail.duration,
+        error_message: lastFail.error_message,
+        video_path: lastFail.video_path,
+        screenshot_path: lastFail.screenshot_path,
+        timestamp: new Date().toISOString(),
+        issue_created: true,
+        total_failures: this.failures.length,
+        failures: this.failures
+      };
+      fs.writeFileSync(statusFilePath, JSON.stringify(testStatus, null, 2));
+    }
+
     console.log(`\n[StatusReporter] Tổng kết kiểm thử: Tổng ${this.totalTests} | Đạt: ${this.passedTests} | Lỗi: ${this.failures.length}`);
   }
 }

@@ -18,26 +18,20 @@ test.describe('Phân Hệ 2: Thẻ Món Ăn & Giỏ Hàng Tương Tác Trong Cha
     const response = await aria.getLastAriaResponse();
     expect(response.length).toBeGreaterThan(0);
 
-    // Kiểm tra có nhắc đến tên món hoặc có thẻ món ăn
+    // Theo FR-CHAT-06: Bắt buộc hiển thị Thẻ món ăn tương tác với nút thêm vào giỏ
     const productCard = aria.getProductCards().first();
-    const isCardVisible = await productCard.isVisible({ timeout: 4000 }).catch(() => false);
-    if (isCardVisible) {
-      await expect(productCard).toBeVisible();
-      // Thẻ phải có nút thêm vào giỏ
-      const addBtn = productCard.locator('button:has-text("Thêm"), button[data-testid*="cart"], button[data-testid*="add"]').first();
-      await expect(addBtn).toBeVisible();
-    } else {
-      expect(response.toLowerCase()).toMatch(/(bò bít tết|sốt tiêu|185|giỏ|món)/i);
-    }
+    await expect(productCard).toBeVisible({ timeout: 5000 });
+    const addBtn = productCard.locator('button:has-text("Thêm"), button[data-testid*="cart"], button[data-testid*="add"]').first();
+    await expect(addBtn).toBeVisible();
   });
 
   // TC-ATC-02: Thao tác 1 chạm cơ bản trên thẻ món ăn
   test('TC-ATC-02: Thực khách nhấn nút [+ Thêm vào giỏ] trên thẻ món ăn', async ({ page }) => {
     await aria.sendMessage('Cho tôi xem món Bò bít tết sốt tiêu đen.');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(1000);
 
     const productCard = aria.getProductCards().first();
-    const isCardVisible = await productCard.isVisible({ timeout: 4000 }).catch(() => false);
+    const isCardVisible = await productCard.isVisible({ timeout: 3000 }).catch(() => false);
 
     if (isCardVisible) {
       const addBtn = productCard.locator('button:has-text("Thêm"), button[data-testid*="add"]').first();
@@ -58,13 +52,17 @@ test.describe('Phân Hệ 2: Thẻ Món Ăn & Giỏ Hàng Tương Tác Trong Cha
 
   // TC-ATC-03: Thêm món qua câu lệnh ngôn ngữ tự nhiên
   test('TC-ATC-03: Thêm đồng thời cơm chiên hải sản và 2 ly nước chanh dây qua chat', async ({ page }) => {
+    const countBefore = await aria.getCartCount();
     await aria.sendMessage('Cho 1 phần Cơm chiên hải sản và 2 ly Nước chanh dây vào giỏ nhé.');
     const response = await aria.getLastAriaResponse();
 
     await aria.takeStepScreenshot('tc-atc-03-nlp-add-cart');
 
     expect(response.length).toBeGreaterThan(0);
-    expect(response.toLowerCase()).toMatch(/(cơm chiên|nước chanh|giỏ hàng|đã thêm|tạm tính|thành công|1|2)/i);
+    // Aria phải xác nhận thêm vào giỏ hàng và cập nhật số lượng
+    expect(response.toLowerCase()).toMatch(/(đã thêm|giỏ hàng|thành công)/i);
+    const countAfter = await aria.getCartCount();
+    expect(countAfter).toBeGreaterThan(countBefore);
   });
 
   // TC-ATC-04: Tùy biến món & Ghi chú hương vị (Modifiers)
@@ -75,35 +73,35 @@ test.describe('Phân Hệ 2: Thẻ Món Ăn & Giỏ Hàng Tương Tác Trong Cha
     await aria.takeStepScreenshot('tc-atc-04-modifiers');
 
     expect(response.length).toBeGreaterThan(0);
-    expect(response.toLowerCase()).toMatch(/(trà sữa|phở|đường|đá|trân châu|hành|ớt|giỏ|ghi chú)/i);
+    // Phải ghi nhận các modifiers/ghi chú hương vị
+    expect(response.toLowerCase()).toMatch(/(ghi chú|tùy chọn|đã lưu|đã thêm|50%|70%|không hành|nhiều ớt)/i);
   });
 
   // TC-ATC-05: Tăng/Giảm số lượng trực tiếp trên thẻ món
   test('TC-ATC-05: Tăng/Giảm số lượng trực tiếp trên thẻ món ăn trước khi thêm', async ({ page }) => {
     await aria.sendMessage('Cho tôi xem món Bò bít tết sốt tiêu đen.');
-    await page.waitForTimeout(2000);
+    await page.waitForTimeout(1000);
 
     const productCard = aria.getProductCards().first();
-    const isCardVisible = await productCard.isVisible({ timeout: 4000 }).catch(() => false);
+    const isCardVisible = await productCard.isVisible({ timeout: 3000 }).catch(() => false);
 
     if (isCardVisible) {
       const plusBtn = productCard.locator('button:has-text("+"), [data-testid="btn-increase"]').first();
-      if (await plusBtn.isVisible().catch(() => false)) {
-        await plusBtn.click();
-        await page.waitForTimeout(300);
-        await plusBtn.click();
-        await page.waitForTimeout(300);
-      }
+      await expect(plusBtn).toBeVisible();
+      await plusBtn.click();
+      await page.waitForTimeout(300);
+      await plusBtn.click();
+      await page.waitForTimeout(300);
       const addBtn = productCard.locator('button:has-text("Thêm"), [data-testid*="add"]').first();
       await addBtn.click();
       await page.waitForTimeout(1000);
     } else {
       await aria.sendMessage('Thêm 3 phần Bò bít tết vào giỏ hàng.');
+      const response = await aria.getLastAriaResponse();
+      expect(response.toLowerCase()).toMatch(/(đã thêm 3|3 phần|3 suất|số lượng:? 3|3 bò bít tết)/i);
     }
 
     await aria.takeStepScreenshot('tc-atc-05-quantity-change');
-    const response = await aria.getLastAriaResponse();
-    expect(response.length).toBeGreaterThan(0);
   });
 
   // TC-ATC-06: Xử lý click liên tục (Debounce / Rapid Click)
@@ -167,7 +165,8 @@ test.describe('Phân Hệ 2: Thẻ Món Ăn & Giỏ Hàng Tương Tác Trong Cha
     await aria.takeStepScreenshot('tc-atc-09-mini-cart');
 
     expect(response.length).toBeGreaterThan(0);
-    expect(response.toLowerCase()).toMatch(/(giỏ hàng|tổng|món|tạm tính|trống|chưa có|tiền|vnđ|đ)/i);
+    // Tóm tắt giỏ hàng phải có thông tin danh sách món, tổng tiền hoặc trạng thái giỏ
+    expect(response.toLowerCase()).toMatch(/(giỏ hàng hiện tại|tổng tiền|tạm tính|danh sách món|chưa có món|giỏ hàng của bạn|tiến hành đặt món)/i);
   });
 
   // TC-ATC-10: Xóa hoặc giảm món khỏi giỏ ngay trong chat
