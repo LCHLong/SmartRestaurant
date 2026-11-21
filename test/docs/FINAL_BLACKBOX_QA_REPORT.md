@@ -8,7 +8,7 @@
 - **Kết quả tổng thể:** 
   - **ĐẠT (PASSED):** 29 / 63 (46.0%)
   - **LỖI (FAILED):** 34 / 63 (54.0%)
-- **Trạng thái GitHub Bug Issues:** 8 Issues đã tạo thành công qua `npx -y gh-axi` (#60, #61, #62, #63, #64, #65, #66, #67)
+- **Trạng thái GitHub Bug Issues:** 8 Issues đã tạo thành công trên repository chính thức `https://github.com/LCHLong/SmartRestaurant/issues` (#21, #22, #23, #24, #25, #26, #27, #28)
 - **Bằng chứng video & ảnh:** 63/63 files video `.webm` và 124 ảnh chụp màn hình `.png` lưu trữ hoàn chỉnh tại `test-results/artifacts/`
 
 ---
@@ -106,36 +106,36 @@
 
 ---
 
-## 3. DANH SÁCH 8 GITHUB BUG ISSUES ĐÃ TẠO TỰ ĐỘNG (QUA GH-AXI)
+## 3. DANH SÁCH 8 GITHUB BUG ISSUES ĐÃ TẠO TỰ ĐỘNG TẠI REPO CHÍNH THỨC (LCHLong/SmartRestaurant)
 
-| Issue ID | Tiêu đề Issue | Mức độ nghiêm trọng | Test Cases liên quan |
-| :---: | :--- | :---: | :--- |
-| **#60** | `[Bug][Aria-QA] Backend 500 Internal Server Error when querying available reservation slots (TC-RES-05)` | **Fatal / Blocker** | `TC-RES-05` |
-| **#61** | `[Bug][Aria-QA] Severe Allergy Safety Breach: Aria ignores fish allergy query and recommends irrelevant dishes (TC-REC-06)` | **Critical / Safety** | `TC-REC-06` |
-| **#62** | `[Bug][Aria-QA] MemGPT Memory Engine Non-Functional: Fails customer greeting, taste storage, gout restriction, and GDPR memory purge (TC-MEM-01..10)` | **High / Functional** | `TC-MEM-01`, `03`, `04`, `06`, `07`, `08`, `09`, `10` |
-| **#63** | `[Bug][Aria-QA] Reservation Business Rules Bypassed: Aria accepts 2 AM after-hours booking and mishandles party size & temporal NLP (TC-RES-01..12)` | **High / Business** | `TC-RES-01`, `03`, `06`, `08`, `09`, `11`, `12` |
-| **#64** | `[Bug][Aria-QA] Chatbot Intent Classification Loop: Bot recommends random food when adding/removing cart items, bargaining, or requesting external brands (TC-ATC-02..11, TC-REC-02..10)` | **Medium / UX** | `TC-ATC-02`, `10`, `11`, `TC-REC-02`, `03`, `09`, `10` |
-| **#65** | `[Bug][Aria-QA] Toxicity Moderation & Emergency Manager Escalation Bypassed with Food Suggestions (TC-SEC-02, TC-SUP-10)` | **Medium / Policy** | `TC-SEC-02`, `TC-SUP-10` |
-| **#66** | `[Bug][Aria-QA] Missing In-Chat Food Cards: Aria outputs plain text recommendations instead of interactive dish cards with add-to-cart controls (TC-ATC-01..05)` | **High / UI-UX** | `TC-ATC-01`, `02`, `03`, `04`, `05` |
-| **#67** | `[Bug][Aria-QA] Call Staff Button Pointer Interception & Missing Cooldown / Quick Reason Tags (TC-SUP-06..08)` | **Medium / Component** | `TC-SUP-06`, `07`, `08` |
+| Issue ID | Tiêu đề Issue | Mức độ nghiêm trọng | Test Cases liên quan | Đường dẫn Issue |
+| :---: | :--- | :---: | :--- | :--- |
+| **#21** | `[Bug][Aria-QA] Backend 500 Internal Server Error when querying available reservation slots (TC-RES-05)` | **Fatal / Blocker** | `TC-RES-05` | https://github.com/LCHLong/SmartRestaurant/issues/21 |
+| **#22** | `[Bug][Aria-QA] Severe Allergy Safety Breach: Aria ignores fish allergy query and recommends irrelevant dishes (TC-REC-06)` | **Critical / Safety** | `TC-REC-06` | https://github.com/LCHLong/SmartRestaurant/issues/22 |
+| **#23** | `[Bug][Aria-QA] MemGPT Memory Engine Non-Functional: Fails customer greeting, taste storage, gout restriction, and GDPR memory purge (TC-MEM-01..10)` | **High / Functional** | `TC-MEM-01`, `03`, `04`, `06`, `07`, `08`, `09`, `10` | https://github.com/LCHLong/SmartRestaurant/issues/23 |
+| **#24** | `[Bug][Aria-QA] Reservation Business Rules Bypassed: Aria accepts 2 AM after-hours booking and mishandles party size & temporal NLP (TC-RES-01..12)` | **High / Business** | `TC-RES-01`, `03`, `06`, `08`, `09`, `11`, `12` | https://github.com/LCHLong/SmartRestaurant/issues/24 |
+| **#25** | `[Bug][Aria-QA] Chatbot Intent Classification Loop: Bot recommends random food when adding/removing cart items, bargaining, or requesting external brands (TC-ATC-02..11, TC-REC-02..10)` | **Medium / UX** | `TC-ATC-02`, `10`, `11`, `TC-REC-02`, `03`, `09`, `10` | https://github.com/LCHLong/SmartRestaurant/issues/25 |
+| **#26** | `[Bug][Aria-QA] Toxicity Moderation & Emergency Manager Escalation Bypassed with Food Suggestions (TC-SEC-02, TC-SUP-10)` | **Medium / Policy** | `TC-SEC-02`, `TC-SUP-10` | https://github.com/LCHLong/SmartRestaurant/issues/26 |
+| **#27** | `[Bug][Aria-QA] Missing In-Chat Food Cards: Aria outputs plain text recommendations instead of interactive dish cards with add-to-cart controls (TC-ATC-01..05)` | **High / UI-UX** | `TC-ATC-01`, `02`, `03`, `04`, `05` | https://github.com/LCHLong/SmartRestaurant/issues/27 |
+| **#28** | `[Bug][Aria-QA] Call Staff Button Pointer Interception & Missing Cooldown / Quick Reason Tags (TC-SUP-06..08)` | **Medium / Component** | `TC-SUP-06`, `07`, `08` | https://github.com/LCHLong/SmartRestaurant/issues/28 |
 
 ---
 
 ## 4. PHÂN TÍCH NGUYÊN NHÂN GỐC TỪ GÓC NHÌN HỘP ĐEN
 
-1. **Sụp đổ Backend Endpoint `/api/reservations/available-slots` (#60):**
+1. **Sụp đổ Backend Endpoint `/api/reservations/available-slots` (#21):**
    - Lỗi HTTP 500 `TypeError: fetch failed` khi kiểm tra khung giờ trống khiến luồng đặt bàn tự động sụp đổ hoàn toàn ở bước xác nhận cuối.
-2. **Nguy cơ An toàn Sức khỏe Thực khách (#61):**
+2. **Nguy cơ An toàn Sức khỏe Thực khách (#22):**
    - Bot bỏ qua chất dị ứng nguy hiểm (cá biển trong gia vị) và chuyển sang gợi ý đồ uống, vi phạm nghiêm trọng quy chuẩn an toàn dị ứng 5 tầng.
-3. **Mất kết nối hoàn toàn với Memory Engine MemGPT (#62):**
+3. **Mất kết nối hoàn toàn với Memory Engine MemGPT (#23):**
    - Dịch vụ AI không lưu trữ hay truy xuất hồ sơ khẩu vị khách hàng trên Redis/MemGPT, biến toàn bộ phân hệ thành stateless recommendation.
-4. **Thiếu ràng buộc nghiệp vụ Đặt bàn (#63):**
+4. **Thiếu ràng buộc nghiệp vụ Đặt bàn (#24):**
    - Không giới hạn khung giờ (nhận khách lúc 2h sáng), không nhận diện được khẩu ngữ thời gian tương đối của Việt Nam ("tối mốt bảy giờ kém mười lăm"), không có giới hạn trần cho đoàn tiệc lớn.
-5. **Vòng lặp Phân loại Ý định (Intent Classification Fallback Loop) (#64, #65):**
+5. **Vòng lặp Phân loại Ý định (Intent Classification Fallback Loop) (#25, #26):**
    - Khi gặp các câu lệnh thuộc các domain khác (thương hiệu đối thủ, mặc cả giá, xúc phạm, than phiền dịch vụ), bot luôn fallback về template gợi ý món ăn.
-6. **Thiếu linh kiện UI Thẻ món ăn và Thẻ đặt bàn trong Chat (#66):**
+6. **Thiếu linh kiện UI Thẻ món ăn và Thẻ đặt bàn trong Chat (#27):**
    - Khung chat chỉ render text markdown thô, không render `Product Card` chứa ảnh, giá và nút bấm `[+ Thêm vào giỏ]` theo đúng FR-CHAT-06.
-7. **Lỗi Pointer Interception & Thiếu Cooldown ở Nút Gọi Phục Vụ (#67):**
+7. **Lỗi Pointer Interception & Thiếu Cooldown ở Nút Gọi Phục Vụ (#28):**
    - Nút gọi nhân viên xuất hiện dưới phản hồi bị phần tử nền che chắn con trỏ; khi bấm không kích hoạt thông báo socket hoặc đếm ngược cooldown 45s.
 
 ---
