@@ -154,8 +154,9 @@ test.describe('Phân Hệ 3: Đặt Bàn Tự Động Qua NLP Tiếng Việt (SP
 
     await aria.takeStepScreenshot('tc-res-12-abnormal-guest-count');
 
-    // Phải bắt lỗi số âm và đoàn tiệc lớn
-    expect(response1.toLowerCase() + ' ' + response2.toLowerCase()).toMatch(/(không hợp lệ|ít nhất 1|tối thiểu|lớn|sự kiện|quản lý|hotline|liên hệ|tiệc)/i);
+    // Phải bắt lỗi số âm (phải từ 1 người trở lên) và chuyển tiếp đoàn tiệc lớn (>30 khách)
+    expect(response1.toLowerCase()).toMatch(/(phải từ 1|ít nhất 1|tối thiểu|không hợp lệ)/i);
+    expect(response2.toLowerCase()).toMatch(/(quản lý|sự kiện|vip|hotline|liên hệ|30|tiệc)/i);
   });
 
   // TC-RES-13: Ngoại lệ: Số điện thoại không hợp lệ

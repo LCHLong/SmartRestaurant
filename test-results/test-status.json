@@ -2,256 +2,256 @@
   "has_error": true,
   "test_name": "TC-SUP-10: Khách bức xúc vì chờ món quá lâu, kích hoạt báo động khẩn cấp tới Quản lý",
   "status": "failed",
-  "duration": 8490,
+  "duration": 7349,
   "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(xin lỗi|thành thật|quản lý|chậm trễ|khắc phục|ngay lập tức|ưu tiên|thông cảm)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý kem trái dừa · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. kem dừa mát lạnh phục vụ trong trái dừa tươi. ngoài ra, quý khách cũng có thể thử thêm kem xôi dừa thái lan thơm bùi · 49.000đ ạ!·\u001b[39m\n\u001b[31mkem trái dừa·\u001b[39m\n\u001b[31mkem dừa mát lạnh phục vụ trong trái dừa tươi.·\u001b[39m\n\u001b[31m45.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mkem xôi dừa thái lan thơm bùi·\u001b[39m\n\u001b[31mviên kem dừa non mát lạnh phục vụ trong gáo dừa tươi, lót xôi nếp lá dứa dẻo thơm, rắc dừa nạo và đậu phộng rang giòn.·\u001b[39m\n\u001b[31m49.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
   "video_path": "test-results/artifacts/05_support_staff-Phân-Hệ-5-5e749-o-động-khẩn-cấp-tới-Quản-lý-chromium/video.webm",
   "screenshot_path": "test-results/artifacts/05_support_staff-Phân-Hệ-5-5e749-o-động-khẩn-cấp-tới-Quản-lý-chromium/test-failed-1.png",
-  "timestamp": "2026-11-21T12:25:31.025Z",
+  "timestamp": "2026-11-21T13:13:08.972Z",
   "issue_created": true,
   "total_failures": 27,
   "failures": [
     {
       "test_name": "TC-REC-02: Khách yêu cầu bàn tiệc 5 người ăn no nê với ngân sách 50.000 VNĐ",
       "status": "failed",
-      "duration": 15565,
+      "duration": 13706,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(không đủ|chưa đủ|ngân sách|50\\.000|50k|tối thiểu|hợp lý|khó|tiết kiệm)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý nấm bào ngư hấp gừng sả dầu mè · 59.000đ rất phù hợp với yêu cầu của quý khách ạ. nấm bào ngư trắng tươi dai ngọt hấp cách thủy với gừng non đập dập, sả cây và vài giọt dầu mè thơm ngát. ngoài ra, quý khách cũng có thể thử thêm đậu hũ sốt tứ xuyên nấm cay chay · 52.000đ ạ!·\u001b[39m\n\u001b[31mnấm bào ngư hấp gừng sả dầu mè·\u001b[39m\n\u001b[31mnấm bào ngư trắng tươi dai ngọt hấp cách thủy với gừng non đập dập, sả cây và vài giọt dầu mè thơm ngát.·\u001b[39m\n\u001b[31m59.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mđậu hũ sốt tứ xuyên nấm cay chay·\u001b[39m\n\u001b[31mđậu hũ non mềm mượt sốt cùng nấm đông cô băm nhỏ, ớt khô tứ xuyên và hoa tiêu tạo độ cay tê nhẹ đặc trưng.·\u001b[39m\n\u001b[31m52.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/01_recommendations-Phân-Hệ-7e49d-nê-với-ngân-sách-50-000-VNĐ-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/01_recommendations-Phân-Hệ-7e49d-nê-với-ngân-sách-50-000-VNĐ-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:15:59.815Z"
+      "timestamp": "2026-11-21T13:04:37.233Z"
     },
     {
       "test_name": "TC-ATC-03: Thêm đồng thời cơm chiên hải sản và 2 ly nước chanh dây qua chat",
       "status": "failed",
-      "duration": 14741,
+      "duration": 13574,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(đã thêm|giỏ hàng|thành công)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý cơm chiên hải sản hoàng kim · 78.000đ rất phù hợp với yêu cầu của quý khách ạ. cơm hạt tơi vàng bọc lòng đỏ trứng muối bùi béo, xào cùng tôm sú giòn ngọt, mực ống tươi và đậu hà lan. ngoài ra, quý khách cũng có thể thử thêm chả giò hải sản · 65.000đ ạ!·\u001b[39m\n\u001b[31mcơm chiên hải sản hoàng kim·\u001b[39m\n\u001b[31mcơm hạt tơi vàng bọc lòng đỏ trứng muối bùi béo, xào cùng tôm sú giòn ngọt, mực ống tươi và đậu hà lan.·\u001b[39m\n\u001b[31m78.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mchả giò hải sản·\u001b[39m\n\u001b[31mchả giò chiên giòn với nhân hải sản, nấm mèo và cà rốt.·\u001b[39m\n\u001b[31m65.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/02_in_chat_cart-Phân-Hệ-2--fc2c6--ly-nước-chanh-dây-qua-chat-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/02_in_chat_cart-Phân-Hệ-2--fc2c6--ly-nước-chanh-dây-qua-chat-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:16:19.513Z"
+      "timestamp": "2026-11-21T13:04:53.440Z"
     },
     {
       "test_name": "TC-ATC-04: Thêm món kèm yêu cầu riêng về đường, đá, rau thơm (Modifiers)",
       "status": "failed",
-      "duration": 15704,
+      "duration": 13844,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(ghi chú|tùy chọn|đã lưu|đã thêm|50%|70%|không hành|nhiều ớt)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý cà phê sữa đá sài gòn truyền thống · 35.000đ rất phù hợp với yêu cầu của quý khách ạ. cà phê robusta buôn ma thuột rang mộc pha phin truyền thống nhỏ giọt, hòa quyện sữa đặc thơm ngọt và đá viên tinh khiết. ngoài ra, quý khách cũng có thể thử thêm bún bò huế cố đô cay nồng · 75.000đ ạ!·\u001b[39m\n\u001b[31mcà phê sữa đá sài gòn truyền thống·\u001b[39m\n\u001b[31mcà phê robusta buôn ma thuột rang mộc pha phin truyền thống nhỏ giọt, hòa quyện sữa đặc thơm ngọt và đá viên tinh khiết.·\u001b[39m\n\u001b[31m35.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mbún bò huế cố đô cay nồng·\u001b[39m\n\u001b[31mbún sợi tròn to đặc trưng, bắp bò hoa giòn, giò heo mềm rục, chả cua huế và nước dùng mắm ruốc sả ớt đỏ au.·\u001b[39m\n\u001b[31m75.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/02_in_chat_cart-Phân-Hệ-2--b20a7-ường-đá-rau-thơm-Modifiers--chromium/video.webm",
       "screenshot_path": "test-results/artifacts/02_in_chat_cart-Phân-Hệ-2--b20a7-ường-đá-rau-thơm-Modifiers--chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:16:40.259Z"
+      "timestamp": "2026-11-21T13:05:11.556Z"
     },
     {
       "test_name": "TC-REC-06: Khách dị ứng cá biển nặng hỏi về nước mắm và dầu hào trong món xào",
       "status": "failed",
-      "duration": 12184,
+      "duration": 11319,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(cá|nước mắm|dầu hào|gia vị|an toàn|bếp|chế biến|lưu ý|muối|xì dầu)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý nem chay rong biển chiên xù · 58.000đ rất phù hợp với yêu cầu của quý khách ạ. lá rong biển cuộn nấm tuyết, đậu xanh đồ chín, cà rốt và khoai môn, lăn bột chiên xù vàng rụm. ngoài ra, quý khách cũng có thể thử thêm cơm gạo lứt xào nấm đông cô hạt sen · 58.000đ ạ!·\u001b[39m\n\u001b[31mnem chay rong biển chiên xù·\u001b[39m\n\u001b[31mlá rong biển cuộn nấm tuyết, đậu xanh đồ chín, cà rốt và khoai môn, lăn bột chiên xù vàng rụm.·\u001b[39m\n\u001b[31m58.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mcơm gạo lứt xào nấm đông cô hạt sen·\u001b[39m\n\u001b[31mgạo lứt tím than giàu chất xơ xào tơi cùng hạt sen huế bùi ngọt, nấm đông cô tươi, nấm đùi gà và cà rốt bi.·\u001b[39m\n\u001b[31m58.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/01_recommendations-Phân-Hệ-a4c13-ắm-và-dầu-hào-trong-món-xào-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/01_recommendations-Phân-Hệ-a4c13-ắm-và-dầu-hào-trong-món-xào-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:17:06.832Z"
+      "timestamp": "2026-11-21T13:05:38.799Z"
     },
     {
       "test_name": "TC-ATC-05: Tăng/Giảm số lượng trực tiếp trên thẻ món ăn trước khi thêm",
       "status": "failed",
-      "duration": 24581,
+      "duration": 24743,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('div[class*=\"fixed bottom-24 right-4\"]').first().locator('div[class*=\"border-orange-100\"]').first().locator('button:has-text(\"+\"), [data-testid=\"btn-increase\"]').first()\nExpected: visible\nTimeout: 10000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('div[class*=\"fixed bottom-24 right-4\"]').first().locator('div[class*=\"border-orange-100\"]').first().locator('button:has-text(\"+\"), [data-testid=\"btn-increase\"]').first() with timeout 10000ms\u001b[22m\n\u001b[2m  - waiting for locator('div[class*=\"fixed bottom-24 right-4\"]').first().locator('div[class*=\"border-orange-100\"]').first().locator('button:has-text(\"+\"), [data-testid=\"btn-increase\"]').first()\u001b[22m\n",
       "video_path": "test-results/artifacts/02_in_chat_cart-Phân-Hệ-2--475fa-n-thẻ-món-ăn-trước-khi-thêm-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/02_in_chat_cart-Phân-Hệ-2--475fa-n-thẻ-món-ăn-trước-khi-thêm-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:17:10.452Z"
+      "timestamp": "2026-11-21T13:05:39.899Z"
     },
     {
       "test_name": "TC-REC-09: Khách hỏi mua Pizza của The Pizza Company hoặc gà rán KFC",
       "status": "failed",
-      "duration": 14929,
+      "duration": 11677,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(không phục vụ|không có|thương hiệu khác|kfc|pizza company|thực đơn|quán|nhà hàng|smartrestaurant)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý cơm chiên hải sản hoàng kim · 78.000đ rất phù hợp với yêu cầu của quý khách ạ. cơm hạt tơi vàng bọc lòng đỏ trứng muối bùi béo, xào cùng tôm sú giòn ngọt, mực ống tươi và đậu hà lan. ngoài ra, quý khách cũng có thể thử thêm lẩu thái hải sản tom yum chua cay · 185.000đ ạ!·\u001b[39m\n\u001b[31mcơm chiên hải sản hoàng kim·\u001b[39m\n\u001b[31mcơm hạt tơi vàng bọc lòng đỏ trứng muối bùi béo, xào cùng tôm sú giòn ngọt, mực ống tươi và đậu hà lan.·\u001b[39m\n\u001b[31m78.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mlẩu thái hải sản tom yum chua cay·\u001b[39m\n\u001b[31mnước lẩu tom yum đậm vị cốt dừa, lá chanh kaffir, riềng non và sả cây, ngập tràn tôm sú, mực nang, ngao và nấm đùi gà.·\u001b[39m\n\u001b[31m185.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/01_recommendations-Phân-Hệ-902f9-zza-Company-hoặc-gà-rán-KFC-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/01_recommendations-Phân-Hệ-902f9-zza-Company-hoặc-gà-rán-KFC-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:17:57.340Z"
+      "timestamp": "2026-11-21T13:06:20.198Z"
     },
     {
       "test_name": "TC-REC-10: Khách hàng cố tình gán giá sai để mặc cả món ăn",
       "status": "failed",
-      "duration": 15558,
+      "duration": 14005,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(giá|niêm yết|185|không đúng|chính xác|20\\.000|20k|ưu đãi)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý bò sốt tiêu đen bánh mì nóng giòn · 89.000đ rất phù hợp với yêu cầu của quý khách ạ. bắp bò hầm mềm mọng trong nước sốt tiêu đen sánh đậm, thơm bơ tỏi, dùng kèm bánh mì đặc ruột nướng nóng giòn. ngoài ra, quý khách cũng có thể thử thêm steak thăn lưng bò mỹ sốt tiêu đen phú quốc · 195.000đ ạ!·\u001b[39m\n\u001b[31mbò sốt tiêu đen bánh mì nóng giòn·\u001b[39m\n\u001b[31mbắp bò hầm mềm mọng trong nước sốt tiêu đen sánh đậm, thơm bơ tỏi, dùng kèm bánh mì đặc ruột nướng nóng giòn.·\u001b[39m\n\u001b[31m89.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31msteak thăn lưng bò mỹ sốt tiêu đen phú quốc·\u001b[39m\n\u001b[31mthăn lưng bò mỹ ribeye nướng tái vừa (medium rare), vân mỡ xen kẽ mọng nước, dùng kèm khoai tây nghiền và sốt tiêu đen.·\u001b[39m\n\u001b[31m195.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/01_recommendations-Phân-Hệ-b0b0a-án-giá-sai-để-mặc-cả-món-ăn-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/01_recommendations-Phân-Hệ-b0b0a-án-giá-sai-để-mặc-cả-món-ăn-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:18:16.858Z"
+      "timestamp": "2026-11-21T13:06:38.727Z"
     },
     {
       "test_name": "TC-ATC-09: Yêu cầu xem lại toàn bộ giỏ hàng hiện tại và tổng tiền trong chat",
       "status": "failed",
-      "duration": 11864,
+      "duration": 11801,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(giỏ hàng hiện tại|tổng tiền|tạm tính|danh sách món|chưa có món|giỏ hàng của bạn|tiến hành đặt món)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý chè khúc bạch hạnh nhân thanh mát · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. những viên khúc bạch phô mai sữa dẻo dai béo ngậy, quả vải thiều mọng nước, chan nước đường phèn hoa nhài và hạnh nhân lát rang vàng. ngoài ra, quý khách cũng có thể thử thêm bạc xỉu ba tầng sài gòn xưa · 38.000đ ạ!·\u001b[39m\n\u001b[31mchè khúc bạch hạnh nhân thanh mát·\u001b[39m\n\u001b[31mnhững viên khúc bạch phô mai sữa dẻo dai béo ngậy, quả vải thiều mọng nước, chan nước đường phèn hoa nhài và hạnh nhân lát rang vàng.·\u001b[39m\n\u001b[31m45.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mbạc xỉu ba tầng sài gòn xưa·\u001b[39m\n\u001b[31mtầng sữa đặc ngọt ngào ở đáy, lớp sữa tươi béo mịn ở giữa và phủ lớp cà phê phin đánh bọt nâu bồng bềnh bên trên.·\u001b[39m\n\u001b[31m38.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/02_in_chat_cart-Phân-Hệ-2--cf5e1-tại-và-tổng-tiền-trong-chat-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/02_in_chat_cart-Phân-Hệ-2--cf5e1-tại-và-tổng-tiền-trong-chat-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:18:20.351Z"
+      "timestamp": "2026-11-21T13:06:45.489Z"
     },
     {
       "test_name": "TC-ATC-10: Khách đổi ý muốn bỏ bớt hoặc xóa món đã chọn qua chat",
       "status": "failed",
-      "duration": 15945,
+      "duration": 13385,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(xóa|bỏ|cập nhật|giỏ hàng|cơm chiên|nước chanh|giảm|trống)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý bánh mousse chanh dây phủ gương vàng · 48.000đ rất phù hợp với yêu cầu của quý khách ạ. đế bánh bông lan xốp nhẹ, lớp kem mousse phô mai mịn mượt phủ thạch chanh leo tráng gương chua dịu lấp lánh. ngoài ra, quý khách cũng có thể thử thêm salad rau củ nhiệt đới sốt chanh dây · 52.000đ ạ!·\u001b[39m\n\u001b[31mbánh mousse chanh dây phủ gương vàng·\u001b[39m\n\u001b[31mđế bánh bông lan xốp nhẹ, lớp kem mousse phô mai mịn mượt phủ thạch chanh leo tráng gương chua dịu lấp lánh.·\u001b[39m\n\u001b[31m48.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31msalad rau củ nhiệt đới sốt chanh dây·\u001b[39m\n\u001b[31mbông cải xanh, cà chua bi, dưa chuột baby, ngô ngọt và ớt chuông trộn sốt chanh leo tươi chua thanh dịu mát.·\u001b[39m\n\u001b[31m52.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/02_in_chat_cart-Phân-Hệ-2--bdd5a-ặc-xóa-món-đã-chọn-qua-chat-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/02_in_chat_cart-Phân-Hệ-2--bdd5a-ặc-xóa-món-đã-chọn-qua-chat-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:18:41.436Z"
+      "timestamp": "2026-11-21T13:07:03.280Z"
     },
     {
       "test_name": "TC-ATC-11: Khách yêu cầu thêm số lượng cực lớn 999 phần vào giỏ",
       "status": "failed",
-      "duration": 15653,
+      "duration": 14199,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(999|số lượng|tối đa|giới hạn|quá lớn|hotline|liên hệ|tiệc|20)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý bò sốt tiêu đen bánh mì nóng giòn · 89.000đ rất phù hợp với yêu cầu của quý khách ạ. bắp bò hầm mềm mọng trong nước sốt tiêu đen sánh đậm, thơm bơ tỏi, dùng kèm bánh mì đặc ruột nướng nóng giòn. ngoài ra, quý khách cũng có thể thử thêm mì ý sốt bò băm bolognese truyền thống · 85.000đ ạ!·\u001b[39m\n\u001b[31mbò sốt tiêu đen bánh mì nóng giòn·\u001b[39m\n\u001b[31mbắp bò hầm mềm mọng trong nước sốt tiêu đen sánh đậm, thơm bơ tỏi, dùng kèm bánh mì đặc ruột nướng nóng giòn.·\u001b[39m\n\u001b[31m89.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mmì ý sốt bò băm bolognese truyền thống·\u001b[39m\n\u001b[31msợi mì spaghetti chuẩn al dente nấu cùng sốt cà chua thịt bò băm hầm kỹ với lá nguyệt quế và rắc phô mai parmesan.·\u001b[39m\n\u001b[31m85.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/02_in_chat_cart-Phân-Hệ-2--c9b46-ng-cực-lớn-999-phần-vào-giỏ-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/02_in_chat_cart-Phân-Hệ-2--c9b46-ng-cực-lớn-999-phần-vào-giỏ-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:19:01.293Z"
+      "timestamp": "2026-11-21T13:07:20.387Z"
     },
     {
       "test_name": "TC-RES-01: Đặt bàn với câu chứa đầy đủ thông tin bằng tiếng Việt tự nhiên",
       "status": "failed",
-      "duration": 12185,
+      "duration": 11610,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(đặt bàn|thành công|nam|0912345678|19:30|7 rưỡi|4|xác nhận|res-)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý bò sốt tiêu đen bánh mì nóng giòn · 89.000đ rất phù hợp với yêu cầu của quý khách ạ. bắp bò hầm mềm mọng trong nước sốt tiêu đen sánh đậm, thơm bơ tỏi, dùng kèm bánh mì đặc ruột nướng nóng giòn. ngoài ra, quý khách cũng có thể thử thêm bò lúc lắc khoai tây chiên pháp · 119.000đ ạ!·\u001b[39m\n\u001b[31mbò sốt tiêu đen bánh mì nóng giòn·\u001b[39m\n\u001b[31mbắp bò hầm mềm mọng trong nước sốt tiêu đen sánh đậm, thơm bơ tỏi, dùng kèm bánh mì đặc ruột nướng nóng giòn.·\u001b[39m\n\u001b[31m89.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mbò lúc lắc khoai tây chiên pháp·\u001b[39m\n\u001b[31mthịt bò thăn mềm xắt quân cờ xào lửa lớn sốt tiêu đen bơ tỏi, ớt chuông ba màu và khoai tây chiên giòn.·\u001b[39m\n\u001b[31m119.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/03_reservation-Phân-Hệ-3-Đ-f54a6-in-bằng-tiếng-Việt-tự-nhiên-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/03_reservation-Phân-Hệ-3-Đ-f54a6-in-bằng-tiếng-Việt-tự-nhiên-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:19:05.555Z"
+      "timestamp": "2026-11-21T13:07:24.396Z"
     },
     {
       "test_name": "TC-RES-03: Xử lý các cụm từ chỉ thời gian tương đối: tối mốt tầm bảy giờ kém mười lăm",
       "status": "failed",
-      "duration": 14470,
+      "duration": 12650,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(18:45|7 giờ kém|bảy giờ kém|tối mốt|2 người|đặt bàn|thông tin)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, bạn muốn đến lúc mấy giờ?·\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/03_reservation-Phân-Hệ-3-Đ-48a47-ốt-tầm-bảy-giờ-kém-mười-lăm-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/03_reservation-Phân-Hệ-3-Đ-48a47-ốt-tầm-bảy-giờ-kém-mười-lăm-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:19:40.483Z"
+      "timestamp": "2026-11-21T13:07:55.406Z"
     },
     {
       "test_name": "TC-MEM-01: Lời chào cá nhân hóa nhận diện khách quen",
       "status": "failed",
-      "duration": 12556,
+      "duration": 12097,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(chú hùng|chào|quay trở lại|smartrestaurant|hôm nay|món quen|bò|hỗ trợ)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý bún nấm thanh đạm rong biển · 55.000đ rất phù hợp với yêu cầu của quý khách ạ. bún tươi chan nước dùng hầm củ quả lê táo ngọt thanh, các loại nấm rơm, nấm bào ngư, nấm kim châm và rong biển wakame. ngoài ra, quý khách cũng có thể thử thêm canh hạt sen củ sen táo đỏ bổ dưỡng · 49.000đ ạ!·\u001b[39m\n\u001b[31mbún nấm thanh đạm rong biển·\u001b[39m\n\u001b[31mbún tươi chan nước dùng hầm củ quả lê táo ngọt thanh, các loại nấm rơm, nấm bào ngư, nấm kim châm và rong biển wakame.·\u001b[39m\n\u001b[31m55.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mcanh hạt sen củ sen táo đỏ bổ dưỡng·\u001b[39m\n\u001b[31mhạt sen tươi hầm mềm bùi cùng củ sen giòn nhẹ, táo đỏ tân cương ngọt thơm và nấm tuyết trong vắt thanh tao.·\u001b[39m\n\u001b[31m49.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-9fc44-ân-hóa-nhận-diện-khách-quen-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-9fc44-ân-hóa-nhận-diện-khách-quen-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:19:45.979Z"
+      "timestamp": "2026-11-21T13:08:01.255Z"
     },
     {
       "test_name": "TC-MEM-03: Tự động ghi nhớ thói quen gia vị (không hành, ít cay)",
       "status": "failed",
-      "duration": 13737,
+      "duration": 13310,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(mì xào|không hành|ít cay|lưu ý|bếp|ghi nhận|chú hùng)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý chè thái trái cây sầu riêng sốt dừa · 42.000đ rất phù hợp với yêu cầu của quý khách ạ. mít chín thái sợi, thạch dừa giòn sần sật, hạt đác rim đường, nhãn xuồng và cơm sầu riêng ri6 thơm lừng chan cốt dừa béo. ngoài ra, quý khách cũng có thể thử thêm cá hồi áp chảo sốt bơ chanh măng tây · 165.000đ ạ!·\u001b[39m\n\u001b[31mchè thái trái cây sầu riêng sốt dừa·\u001b[39m\n\u001b[31mmít chín thái sợi, thạch dừa giòn sần sật, hạt đác rim đường, nhãn xuồng và cơm sầu riêng ri6 thơm lừng chan cốt dừa béo.·\u001b[39m\n\u001b[31m42.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mcá hồi áp chảo sốt bơ chanh măng tây·\u001b[39m\n\u001b[31mphi-lê cá hồi na uy tươi áp chảo vàng da giòn rụm thịt mềm hồng, phủ sốt bơ chanh vàng dill thơm dịu và măng tây xào bơ.·\u001b[39m\n\u001b[31m165.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-8c65b-n-gia-vị-không-hành-ít-cay--chromium/video.webm",
       "screenshot_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-8c65b-n-gia-vị-không-hành-ít-cay--chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:20:22.250Z"
+      "timestamp": "2026-11-21T13:08:32.877Z"
     },
     {
       "test_name": "TC-MEM-04: Đặt lại theo thói quen cũ (\"Như cũ\" / \"Như tuần trước\")",
       "status": "failed",
-      "duration": 15165,
+      "duration": 12952,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(combo|như cũ|tuần trước|đơn hàng|món quen|lịch sử|xác nhận)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý đậu hũ sốt tứ xuyên nấm cay chay · 52.000đ rất phù hợp với yêu cầu của quý khách ạ. đậu hũ non mềm mượt sốt cùng nấm đông cô băm nhỏ, ớt khô tứ xuyên và hoa tiêu tạo độ cay tê nhẹ đặc trưng. ngoài ra, quý khách cũng có thể thử thêm đậu hũ chiên sả ớt giòn vỏ · 45.000đ ạ!·\u001b[39m\n\u001b[31mđậu hũ sốt tứ xuyên nấm cay chay·\u001b[39m\n\u001b[31mđậu hũ non mềm mượt sốt cùng nấm đông cô băm nhỏ, ớt khô tứ xuyên và hoa tiêu tạo độ cay tê nhẹ đặc trưng.·\u001b[39m\n\u001b[31m52.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mđậu hũ chiên sả ớt giòn vỏ·\u001b[39m\n\u001b[31mđậu hũ mơ chiên giòn vỏ bên ngoài, bên trong mềm béo như sữa đậu nành, phủ sả ớt phi vàng thơm rực rỡ.·\u001b[39m\n\u001b[31m45.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-32cc5-n-cũ-Như-cũ-Như-tuần-trước--chromium/video.webm",
       "screenshot_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-32cc5-n-cũ-Như-cũ-Như-tuần-trước--chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:20:40.708Z"
+      "timestamp": "2026-11-21T13:08:49.122Z"
     },
     {
       "test_name": "TC-MEM-06: Khách dặn hôm nay đi tiếp khách ăn siêu cay, không làm ít cay như mọi khi",
       "status": "failed",
-      "duration": 13911,
+      "duration": 12502,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(cay nhiều|thêm ớt|ghi nhận|lưu ý bếp|ngữ cảnh|bữa ăn)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý bánh mì thập cẩm xá xíu ba tê trứ danh · 35.000đ rất phù hợp với yêu cầu của quý khách ạ. vỏ bánh mì nướng giòn rụm bên ngoài ruột xốp, phết pate gan heo béo ngậy, thịt xá xíu mềm thơm, chả lụa và đồ chua. ngoài ra, quý khách cũng có thể thử thêm trà đào cam sả tươi mát lạnh · 45.000đ ạ!·\u001b[39m\n\u001b[31mbánh mì thập cẩm xá xíu ba tê trứ danh·\u001b[39m\n\u001b[31mvỏ bánh mì nướng giòn rụm bên ngoài ruột xốp, phết pate gan heo béo ngậy, thịt xá xíu mềm thơm, chả lụa và đồ chua.·\u001b[39m\n\u001b[31m35.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mtrà đào cam sả tươi mát lạnh·\u001b[39m\n\u001b[31mtrà đen ceylon hảo hạng ủ lạnh, kết hợp miếng đào giòn ngâm, cam vàng mỹ tươi mọng nước và tinh chất sả thanh khiết.·\u001b[39m\n\u001b[31m45.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-1d8f7-hông-làm-ít-cay-như-mọi-khi-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-1d8f7-hông-làm-ít-cay-như-mọi-khi-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:21:14.311Z"
+      "timestamp": "2026-11-21T13:09:20.052Z"
     },
     {
       "test_name": "TC-RES-09: Hủy đặt bàn trực tiếp trong cuộc trò chuyện",
       "status": "failed",
-      "duration": 12348,
+      "duration": 11669,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(hủy|đã hủy|xác nhận|res-2026-8891|hẹn gặp lại|tiếc)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria đã tạm dừng tiến trình đặt bàn rồi ạ. bạn có muốn aria tư vấn thêm món ngon nào của quán không?·\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/03_reservation-Phân-Hệ-3-Đ-06802--tiếp-trong-cuộc-trò-chuyện-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/03_reservation-Phân-Hệ-3-Đ-06802--tiếp-trong-cuộc-trò-chuyện-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:21:15.856Z"
+      "timestamp": "2026-11-21T13:09:20.336Z"
     },
     {
       "test_name": "TC-MEM-07: Khách thông báo bị gout kiêng hoàn toàn thịt bò và hải sản",
       "status": "failed",
-      "duration": 14318,
+      "duration": 13049,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(cập nhật|ghi nhớ|kiêng|thịt bò|hải sản|gout|sức khỏe|từ nay)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý nước ép dưa hấu bạc hà tươi · 40.000đ rất phù hợp với yêu cầu của quý khách ạ. dưa hấu long an chín đỏ mọng ép tươi nguyên chất 100%, dầm nhẹ vài lá bạc hà tươi sảng khoái. ngoài ra, quý khách cũng có thể thử thêm cà phê sữa đá sài gòn truyền thống · 35.000đ ạ!·\u001b[39m\n\u001b[31mnước ép dưa hấu bạc hà tươi·\u001b[39m\n\u001b[31mdưa hấu long an chín đỏ mọng ép tươi nguyên chất 100%, dầm nhẹ vài lá bạc hà tươi sảng khoái.·\u001b[39m\n\u001b[31m40.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mcà phê sữa đá sài gòn truyền thống·\u001b[39m\n\u001b[31mcà phê robusta buôn ma thuột rang mộc pha phin truyền thống nhỏ giọt, hòa quyện sữa đặc thơm ngọt và đá viên tinh khiết.·\u001b[39m\n\u001b[31m35.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-8e368-oàn-toàn-thịt-bò-và-hải-sản-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-8e368-oàn-toàn-thịt-bò-và-hải-sản-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:21:31.945Z"
+      "timestamp": "2026-11-21T13:09:35.869Z"
     },
     {
       "test_name": "TC-RES-11: Khách yêu cầu bàn lúc nhà hàng chưa mở cửa hoặc đã đóng cửa (2h sáng)",
       "status": "failed",
-      "duration": 13500,
+      "duration": 12907,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(giờ mở cửa|đóng cửa|hoạt động|2h|2:00|10:00|22:|không phục vụ)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, cho aria xin họ tên, số điện thoại (và email nếu bạn muốn nhận vé xác nhận kèm mã qr) nhé?·\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/03_reservation-Phân-Hệ-3-Đ-1fee7-a-hoặc-đã-đóng-cửa-2h-sáng--chromium/video.webm",
       "screenshot_path": "test-results/artifacts/03_reservation-Phân-Hệ-3-Đ-1fee7-a-hoặc-đã-đóng-cửa-2h-sáng--chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:21:52.005Z"
+      "timestamp": "2026-11-21T13:09:51.065Z"
     },
     {
       "test_name": "TC-MEM-09: Khách hàng yêu cầu xóa sạch toàn bộ lịch sử ăn uống và khẩu vị",
       "status": "failed",
-      "duration": 13341,
+      "duration": 13108,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(đã xóa|xóa sạch|hoàn toàn|lịch sử|khẩu vị|riêng tư|hân hạnh)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý cà phê sữa đá sài gòn truyền thống · 35.000đ rất phù hợp với yêu cầu của quý khách ạ. cà phê robusta buôn ma thuột rang mộc pha phin truyền thống nhỏ giọt, hòa quyện sữa đặc thơm ngọt và đá viên tinh khiết. ngoài ra, quý khách cũng có thể thử thêm cà phê đen đá buôn ma thuột · 29.000đ ạ!·\u001b[39m\n\u001b[31mcà phê sữa đá sài gòn truyền thống·\u001b[39m\n\u001b[31mcà phê robusta buôn ma thuột rang mộc pha phin truyền thống nhỏ giọt, hòa quyện sữa đặc thơm ngọt và đá viên tinh khiết.·\u001b[39m\n\u001b[31m35.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mcà phê đen đá buôn ma thuột·\u001b[39m\n\u001b[31m100% cà phê robusta hảo hạng pha phin truyền thống, thơm đượm nồng nàn không pha tạp, vị đắng mộc mạc nguyên bản.·\u001b[39m\n\u001b[31m29.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-c08ac--lịch-sử-ăn-uống-và-khẩu-vị-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-c08ac--lịch-sử-ăn-uống-và-khẩu-vị-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:22:04.875Z"
+      "timestamp": "2026-11-21T13:10:08.864Z"
     },
     {
       "test_name": "TC-RES-12: Nhập số khách bằng 0, số âm hoặc đoàn tiệc cực lớn 500 người",
       "status": "failed",
-      "duration": 18559,
-      "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(không hợp lệ|ít nhất 1|tối thiểu|lớn|sự kiện|quản lý|hotline|liên hệ|tiệc)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, số lượng khách đặt bàn phải từ 1 người trở lên ạ. quý khách vui lòng cho aria biết chính xác số người trong nhóm nhé!·\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món dạ, bạn muốn đặt bàn ngày nào và lúc mấy giờ ạ?·\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
+      "duration": 16080,
+      "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(quản lý|sự kiện|vip|hotline|liên hệ|30|tiệc)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, bạn muốn đặt bàn ngày nào và lúc mấy giờ ạ?·\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/03_reservation-Phân-Hệ-3-Đ-2e217-đoàn-tiệc-cực-lớn-500-người-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/03_reservation-Phân-Hệ-3-Đ-2e217-đoàn-tiệc-cực-lớn-500-người-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:22:16.510Z"
+      "timestamp": "2026-11-21T13:10:11.042Z"
     },
     {
       "test_name": "TC-MEM-10: Kiểm tra cách ly dữ liệu không để lộ thông tin giữa các tài khoản",
       "status": "failed",
-      "duration": 13689,
+      "duration": 12612,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(bảo mật|riêng tư|không thể|không được phép|chính sách|thông tin cá nhân)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý cà phê sữa đá sài gòn truyền thống · 35.000đ rất phù hợp với yêu cầu của quý khách ạ. cà phê robusta buôn ma thuột rang mộc pha phin truyền thống nhỏ giọt, hòa quyện sữa đặc thơm ngọt và đá viên tinh khiết. ngoài ra, quý khách cũng có thể thử thêm gỏi cuốn tôm thịt cố đô · 48.000đ ạ!·\u001b[39m\n\u001b[31mcà phê sữa đá sài gòn truyền thống·\u001b[39m\n\u001b[31mcà phê robusta buôn ma thuột rang mộc pha phin truyền thống nhỏ giọt, hòa quyện sữa đặc thơm ngọt và đá viên tinh khiết.·\u001b[39m\n\u001b[31m35.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mgỏi cuốn tôm thịt cố đô·\u001b[39m\n\u001b[31mtôm sú tươi giòn, thịt ba chỉ heo thảo mộc, bún tươi và rau húng láng cuốn bánh tráng dẻo.·\u001b[39m\n\u001b[31m48.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-e66ff-hông-tin-giữa-các-tài-khoản-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/04_memgpt_memory-Phân-Hệ-4-e66ff-hông-tin-giữa-các-tài-khoản-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:22:24.188Z"
+      "timestamp": "2026-11-21T13:10:25.612Z"
     },
     {
       "test_name": "TC-SEC-02: Phòng thủ trước ngôn từ thô tục hoặc mang tính khiêu khích",
       "status": "failed",
-      "duration": 13724,
+      "duration": 12025,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(xin lỗi|lịch sự|văn minh|tôn trọng|hỗ trợ|cải thiện|hoàn thiện|giúp gì)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý gà hấp lá sen xôi hạt sen đại bổ · 295.000đ rất phù hợp với yêu cầu của quý khách ạ. nguyên con gà ta hấp cách thủy trong bọc lá sen tươi cùng nấm đông cô, kỷ tử, táo đỏ và xôi hạt sen dẻo thơm ngấm trọn nước cốt gà. ngoài ra, quý khách cũng có thể thử thêm bánh flan caramel hạt cafe truyền thống · 32.000đ ạ!·\u001b[39m\n\u001b[31mgà hấp lá sen xôi hạt sen đại bổ·\u001b[39m\n\u001b[31mnguyên con gà ta hấp cách thủy trong bọc lá sen tươi cùng nấm đông cô, kỷ tử, táo đỏ và xôi hạt sen dẻo thơm ngấm trọn nước cốt gà.·\u001b[39m\n\u001b[31m295.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mbánh flan caramel hạt cafe truyền thống·\u001b[39m\n\u001b[31mbánh flan mềm mượt không rỗ mặt làm từ trứng gà ta tươi và sữa đặc, chan sốt caramel đường thốt nốt và chút cốt cà phê đắng nhẹ.·\u001b[39m\n\u001b[31m32.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/06_security_e2e-Phân-Hệ-6--3dfe0--hoặc-mang-tính-khiêu-khích-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/06_security_e2e-Phân-Hệ-6--3dfe0--hoặc-mang-tính-khiêu-khích-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:23:05.982Z"
+      "timestamp": "2026-11-21T13:10:54.632Z"
     },
     {
       "test_name": "TC-SUP-06: Thực khách nhấn nút [🛎️ Gọi nhân viên bàn]",
       "status": "failed",
-      "duration": 19351,
+      "duration": 18718,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/đã gửi|tiếp nhận|nhân viên sẽ|đang đến|thông báo tới nhân viên/i').first()\nExpected: visible\nTimeout: 5000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('text=/đã gửi|tiếp nhận|nhân viên sẽ|đang đến|thông báo tới nhân viên/i').first() with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/đã gửi|tiếp nhận|nhân viên sẽ|đang đến|thông báo tới nhân viên/i').first()\u001b[22m\n",
       "video_path": "test-results/artifacts/05_support_staff-Phân-Hệ-5-1955b--nút-🛎️-Gọi-nhân-viên-bàn--chromium/video.webm",
       "screenshot_path": "test-results/artifacts/05_support_staff-Phân-Hệ-5-1955b--nút-🛎️-Gọi-nhân-viên-bàn--chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:24:06.296Z"
+      "timestamp": "2026-11-21T13:11:57.932Z"
     },
     {
       "test_name": "TC-SUP-07: Chọn lý do gọi nhân viên nhanh (Xin thêm đá / Chén đĩa / Thanh toán)",
       "status": "failed",
-      "duration": 19539,
+      "duration": 17640,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('button:has-text(\"đá\"), button:has-text(\"chén\"), button:has-text(\"thanh toán\"), [data-testid*=\"quick-tag\"]').first()\nExpected: visible\nTimeout: 4000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('button:has-text(\"đá\"), button:has-text(\"chén\"), button:has-text(\"thanh toán\"), [data-testid*=\"quick-tag\"]').first() with timeout 4000ms\u001b[22m\n\u001b[2m  - waiting for locator('button:has-text(\"đá\"), button:has-text(\"chén\"), button:has-text(\"thanh toán\"), [data-testid*=\"quick-tag\"]').first()\u001b[22m\n",
       "video_path": "test-results/artifacts/05_support_staff-Phân-Hệ-5-8257c-hêm-đá-Chén-đĩa-Thanh-toán--chromium/video.webm",
       "screenshot_path": "test-results/artifacts/05_support_staff-Phân-Hệ-5-8257c-hêm-đá-Chén-đĩa-Thanh-toán--chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:24:29.754Z"
+      "timestamp": "2026-11-21T13:12:19.934Z"
     },
     {
       "test_name": "TC-SUP-08: Nhấn nút gọi nhân viên liên tục kiểm tra cooldown",
       "status": "failed",
-      "duration": 19305,
+      "duration": 14823,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: locator('text=/vui lòng đợi|cooldown|45s|đang tiếp nhận/i').first()\nExpected: visible\nTimeout: 4000ms\nError: element(s) not found\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" locator('text=/vui lòng đợi|cooldown|45s|đang tiếp nhận/i').first() with timeout 4000ms\u001b[22m\n\u001b[2m  - waiting for locator('text=/vui lòng đợi|cooldown|45s|đang tiếp nhận/i').first()\u001b[22m\n",
       "video_path": "test-results/artifacts/05_support_staff-Phân-Hệ-5-ab0cb--liên-tục-kiểm-tra-cooldown-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/05_support_staff-Phân-Hệ-5-ab0cb--liên-tục-kiểm-tra-cooldown-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:24:53.061Z"
+      "timestamp": "2026-11-21T13:12:37.151Z"
     },
     {
       "test_name": "TC-SUP-10: Khách bức xúc vì chờ món quá lâu, kích hoạt báo động khẩn cấp tới Quản lý",
       "status": "failed",
-      "duration": 8490,
+      "duration": 7349,
       "error_message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoMatch\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m\n\nExpected pattern: \u001b[32m/(xin lỗi|thành thật|quản lý|chậm trễ|khắc phục|ngay lập tức|ưu tiên|thông cảm)/i\u001b[39m\nReceived string:  \u001b[31m\"dạ, aria xin gợi ý kem trái dừa · 45.000đ rất phù hợp với yêu cầu của quý khách ạ. kem dừa mát lạnh phục vụ trong trái dừa tươi. ngoài ra, quý khách cũng có thể thử thêm kem xôi dừa thái lan thơm bùi · 49.000đ ạ!·\u001b[39m\n\u001b[31mkem trái dừa·\u001b[39m\n\u001b[31mkem dừa mát lạnh phục vụ trong trái dừa tươi.·\u001b[39m\n\u001b[31m45.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm·\u001b[39m\n\u001b[31mkem xôi dừa thái lan thơm bùi·\u001b[39m\n\u001b[31mviên kem dừa non mát lạnh phục vụ trong gáo dừa tươi, lót xôi nếp lá dứa dẻo thơm, rắc dừa nạo và đậu phộng rang giòn.·\u001b[39m\n\u001b[31m49.000 ₫·\u001b[39m\n\u001b[31madd\u001b[39m\n\u001b[31mthêm\u001b[39m\n\u001b[31mgợi ý này có hữu ích?\u001b[39m\n\u001b[31mthumb_up\u001b[39m\n\u001b[31mthumb_down\u001b[39m\n\u001b[31mđổi món\"\u001b[39m",
       "video_path": "test-results/artifacts/05_support_staff-Phân-Hệ-5-5e749-o-động-khẩn-cấp-tới-Quản-lý-chromium/video.webm",
       "screenshot_path": "test-results/artifacts/05_support_staff-Phân-Hệ-5-5e749-o-động-khẩn-cấp-tới-Quản-lý-chromium/test-failed-1.png",
-      "timestamp": "2026-11-21T12:25:12.491Z"
+      "timestamp": "2026-11-21T13:12:54.093Z"
     }
   ]
 }

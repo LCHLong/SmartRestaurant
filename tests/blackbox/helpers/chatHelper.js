@@ -37,9 +37,17 @@ class AriaChatHelper {
 
     // Kiểm tra trạng thái thực sự của Aria chat widget
     const chatWidget = this.page.locator('div[class*="fixed bottom-24 right-4"]').first();
-    const isWidgetOpen = await chatWidget.evaluate(el => {
-      return el.getAttribute('aria-hidden') === 'false' && el.classList.contains('opacity-100');
-    }).catch(() => false);
+    let isWidgetOpen = false;
+    try {
+      const isVisible = await chatWidget.isVisible({ timeout: 1500 });
+      if (isVisible) {
+        isWidgetOpen = await chatWidget.evaluate(el => {
+          return el.getAttribute('aria-hidden') === 'false' && el.classList.contains('opacity-100');
+        }).catch(() => false);
+      }
+    } catch (e) {
+      isWidgetOpen = false;
+    }
 
     if (!isWidgetOpen) {
       const openChatBtn = this.page.locator('button[aria-label="Mở Aria chat"]').first();
@@ -67,9 +75,17 @@ class AriaChatHelper {
     const chatWidget = this.page.locator('div[class*="fixed bottom-24 right-4"]').first();
 
     // Đảm bảo widget đang mở
-    const isWidgetOpen = await chatWidget.evaluate(el => {
-      return el.getAttribute('aria-hidden') === 'false' && el.classList.contains('opacity-100');
-    }).catch(() => false);
+    let isWidgetOpen = false;
+    try {
+      const isVisible = await chatWidget.isVisible({ timeout: 1000 });
+      if (isVisible) {
+        isWidgetOpen = await chatWidget.evaluate(el => {
+          return el.getAttribute('aria-hidden') === 'false' && el.classList.contains('opacity-100');
+        }).catch(() => false);
+      }
+    } catch (e) {
+      isWidgetOpen = false;
+    }
     if (!isWidgetOpen) {
       const openChatBtn = this.page.locator('button[aria-label="Mở Aria chat"]').first();
       if (await openChatBtn.isVisible()) {
