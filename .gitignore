@@ -18,3 +18,10 @@ docs/specs/
 !test/specs/**
 # Agent temporary workspace
 .agents/teamwork/
+
+# Blackbox QA Test Results & Media
+test-results/artifacts/
+test-results/screenshots/
+tests/blackbox/test-results/
+*.webm
+trace.zip

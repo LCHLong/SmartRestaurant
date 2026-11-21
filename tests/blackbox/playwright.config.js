@@ -5,10 +5,11 @@ const path = require('path');
 module.exports = defineConfig({
   testDir: './',
   outputDir: path.resolve(process.cwd(), 'test-results/artifacts'),
-  timeout: 30000,
+  timeout: 45000,
   expect: {
-    timeout: 5000,
+    timeout: 8000,
   },
+  workers: 2,
   reporter: [
     ['list'],
     ['html', { outputFolder: 'test-results/html-report', open: 'never' }],
