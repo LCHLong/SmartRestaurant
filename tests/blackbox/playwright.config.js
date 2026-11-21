@@ -12,15 +12,15 @@ module.exports = defineConfig({
   workers: 2,
   reporter: [
     ['list'],
-    ['html', { outputFolder: 'test-results/html-report', open: 'never' }],
+    ['html', { outputFolder: path.resolve(process.cwd(), 'test-results/html-report'), open: 'never' }],
     [require.resolve('./status-reporter.js')]
   ],
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:5173',
-    // CƯỠNG CHẾ 100% QUAY VIDEO VÀ CHỤP ẢNH
-    video: 'on',
-    screenshot: 'on',
-    trace: 'on',
+    // Chỉ lưu video, ảnh và trace khi test case thất bại
+    video: 'retain-on-failure',
+    screenshot: 'only-on-failure',
+    trace: 'retain-on-failure',
     headless: true,
   },
   projects: [

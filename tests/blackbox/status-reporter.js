@@ -28,9 +28,25 @@ class StatusReporter {
     const statusFilePath = path.join(resultsDir, 'test-status.json');
     this.totalTests++;
 
+    const testIdMatch = test.title.match(/TC-[A-Z0-9]+-\d+/i);
+    const testId = testIdMatch ? testIdMatch[0].toLowerCase() : null;
+
     if (result.status === 'failed' || result.status === 'timedOut') {
       const videoAttachment = result.attachments.find(a => a.name === 'video');
       const screenshotAttachment = result.attachments.find(a => a.name === 'screenshot');
+
+      let screenshotPath = screenshotAttachment ? path.relative(process.cwd(), screenshotAttachment.path) : null;
+      // Fallback to step screenshot if Playwright failure screenshot not attached
+      if (!screenshotPath && testId) {
+        const screenshotsDir = path.resolve(process.cwd(), 'test-results/screenshots');
+        if (fs.existsSync(screenshotsDir)) {
+          const files = fs.readdirSync(screenshotsDir);
+          const matched = files.find(f => f.toLowerCase().startsWith(testId));
+          if (matched) {
+            screenshotPath = path.join('test-results/screenshots', matched);
+          }
+        }
+      }
 
       const failureItem = {
         test_name: test.title,
@@ -38,7 +54,7 @@ class StatusReporter {
         duration: result.duration,
         error_message: result.error?.message || 'Unknown test error',
         video_path: videoAttachment ? path.relative(process.cwd(), videoAttachment.path) : null,
-        screenshot_path: screenshotAttachment ? path.relative(process.cwd(), screenshotAttachment.path) : null,
+        screenshot_path: screenshotPath,
         timestamp: new Date().toISOString()
       };
 
@@ -62,6 +78,21 @@ class StatusReporter {
       console.log(`\n[StatusReporter] Ghi nhận lỗi kiểm thử (${this.failures.length} lỗi): ${test.title}`);
     } else {
       this.passedTests++;
+      // Purge step screenshots taken during this passed test
+      if (testId) {
+        const screenshotsDir = path.resolve(process.cwd(), 'test-results/screenshots');
+        if (fs.existsSync(screenshotsDir)) {
+          const files = fs.readdirSync(screenshotsDir);
+          for (const file of files) {
+            if (file.toLowerCase().startsWith(testId)) {
+              try {
+                fs.unlinkSync(path.join(screenshotsDir, file));
+              } catch (e) {}
+            }
+          }
+        }
+      }
+
       // Only set has_error = false if there are NO failures accumulated
       if (this.failures.length === 0) {
         const testStatus = {
@@ -80,6 +111,33 @@ class StatusReporter {
     const resultsDir = path.resolve(process.cwd(), 'test-results');
     const summaryFilePath = path.join(resultsDir, 'test-summary.json');
     const statusFilePath = path.join(resultsDir, 'test-status.json');
+
+    // Final audit: ensure NO step screenshots of passed tests remain
+    const failedIds = new Set(
+      this.failures.map(f => {
+        const m = f.test_name.match(/TC-[A-Z0-9]+-\d+/i);
+        return m ? m[0].toLowerCase() : null;
+      }).filter(Boolean)
+    );
+
+    const screenshotsDir = path.resolve(process.cwd(), 'test-results/screenshots');
+    if (fs.existsSync(screenshotsDir)) {
+      const files = fs.readdirSync(screenshotsDir);
+      for (const file of files) {
+        const fileMatch = file.match(/tc-[a-z0-9]+-\d+/i);
+        const fileId = fileMatch ? fileMatch[0].toLowerCase() : null;
+        if (!fileId || !failedIds.has(fileId)) {
+          try {
+            fs.unlinkSync(path.join(screenshotsDir, file));
+          } catch (e) {}
+        }
+      }
+      if (fs.readdirSync(screenshotsDir).length === 0) {
+        try {
+          fs.rmdirSync(screenshotsDir);
+        } catch (e) {}
+      }
+    }
     const summary = {
       status: result.status,
       total: this.totalTests,
