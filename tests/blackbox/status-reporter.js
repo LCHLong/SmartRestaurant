@@ -101,7 +101,7 @@ class StatusReporter {
         video_path: lastFail.video_path,
         screenshot_path: lastFail.screenshot_path,
         timestamp: new Date().toISOString(),
-        issue_created: true,
+        issue_created: false,
         total_failures: this.failures.length,
         failures: this.failures
       };

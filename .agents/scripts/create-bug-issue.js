@@ -73,7 +73,7 @@ ${errorMessage}
 
   console.log(`[create-bug-issue] Đang tạo GitHub Bug Issue: "${title}"...`);
   try {
-    const cmd = `npx -y gh-axi issue create --title "${title}" --body-file "${tempBodyPath}" --label "bug,automated-qa"`;
+    const cmd = `npx -y gh-axi issue create --repo LCHLong/SmartRestaurant --title "${title}" --body-file "${tempBodyPath}" --label "bug,automated-qa"`;
     const result = execSync(cmd, { stdio: 'inherit' });
 
     // Đánh dấu đã tạo issue

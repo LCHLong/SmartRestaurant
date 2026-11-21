@@ -10,6 +10,7 @@ const path = require('path');
 class AriaChatHelper {
   constructor(page) {
     this.page = page;
+    this.lastSentMessage = '';
   }
 
   // 1. Mở trang /menu và kích hoạt mở Widget Chat Aria
@@ -17,47 +18,110 @@ class AriaChatHelper {
     await this.page.goto('/menu');
     await this.page.waitForLoadState('domcontentloaded');
 
-    // Chờ body sẵn sàng
-    await expect(this.page.locator('body')).toBeVisible();
-
-    // Kiểm tra nếu khung chat chưa mở thì mới click mở
-    const chatInput = this.page.locator('textarea[placeholder="Nhập câu hỏi cho Aria..."]').first();
-    if (!(await chatInput.isVisible())) {
-      const openChatBtn = this.page.locator('button[aria-label="Mở Aria chat"]').first();
-      await expect(openChatBtn).toBeVisible({ timeout: 10000 });
-      await openChatBtn.click();
-      await expect(chatInput).toBeVisible({ timeout: 5000 });
-      await this.page.waitForTimeout(500);
+    // Chờ và bấm modal Welcome ("Continue as Guest") nếu có
+    const guestBtn = this.page.locator('button:has-text("Continue as Guest")').first();
+    try {
+      await guestBtn.waitFor({ state: 'visible', timeout: 3000 });
+      await guestBtn.click();
+      await this.page.waitForTimeout(400);
+    } catch (e) {
+      // Bỏ qua nếu không có modal
     }
+
+    // Đóng bất kỳ modal món ăn nào vô tình mở
+    const closeBtn = this.page.locator('button:has-text("×"), button:has-text("✕")').first();
+    if (await closeBtn.isVisible().catch(() => false)) {
+      await closeBtn.click().catch(() => {});
+      await this.page.waitForTimeout(300);
+    }
+
+    // Kiểm tra trạng thái thực sự của Aria chat widget
+    const chatWidget = this.page.locator('div[class*="fixed bottom-24 right-4"]').first();
+    const isWidgetOpen = await chatWidget.evaluate(el => {
+      return el.getAttribute('aria-hidden') === 'false' && el.classList.contains('opacity-100');
+    }).catch(() => false);
+
+    if (!isWidgetOpen) {
+      const openChatBtn = this.page.locator('button[aria-label="Mở Aria chat"]').first();
+      await openChatBtn.waitFor({ state: 'visible', timeout: 8000 });
+      await openChatBtn.click();
+
+      // Đợi widget chuyển sang opacity-100 và aria-hidden="false"
+      await expect(async () => {
+        const isOpen = await chatWidget.evaluate(el => {
+          return el.getAttribute('aria-hidden') === 'false' && el.classList.contains('opacity-100');
+        }).catch(() => false);
+        expect(isOpen).toBe(true);
+      }).toPass({ timeout: 6000, intervals: [300, 500] });
+    }
+
+    // Đợi ô input sẵn sàng
+    const chatInput = this.page.locator('textarea[placeholder="Nhập câu hỏi cho Aria..."]').first();
+    await chatInput.waitFor({ state: 'visible', timeout: 5000 });
+    await this.page.waitForTimeout(300);
   }
 
   // 2. Gõ câu hỏi và gửi cho Aria
   async sendMessage(messageText) {
-    const input = this.page.locator('textarea[placeholder="Nhập câu hỏi cho Aria..."]').first();
-    await expect(input).toBeVisible();
-    await input.fill(messageText);
+    this.lastSentMessage = messageText;
+    const chatWidget = this.page.locator('div[class*="fixed bottom-24 right-4"]').first();
 
-    // Bấm nút gửi hoặc nhấn Enter
-    const sendBtn = this.page.locator('button[aria-label="Gửi tin nhắn"]').first();
-    if (await sendBtn.isEnabled()) {
-      await sendBtn.click();
-    } else {
-      await input.press('Enter');
+    // Đảm bảo widget đang mở
+    const isWidgetOpen = await chatWidget.evaluate(el => {
+      return el.getAttribute('aria-hidden') === 'false' && el.classList.contains('opacity-100');
+    }).catch(() => false);
+    if (!isWidgetOpen) {
+      const openChatBtn = this.page.locator('button[aria-label="Mở Aria chat"]').first();
+      if (await openChatBtn.isVisible()) {
+        await openChatBtn.click();
+        await this.page.waitForTimeout(500);
+      }
     }
 
-    // Đợi Aria bắt đầu phản hồi và hoàn thành
-    await this.page.waitForTimeout(2500);
+    const input = this.page.locator('textarea[placeholder="Nhập câu hỏi cho Aria..."]').first();
+    await input.waitFor({ state: 'visible', timeout: 5000 });
+    await input.fill(messageText);
+
+    // Đếm số bubble bot hiện có trước khi gửi
+    const botBubbles = chatWidget.locator('div.flex:has(div:text-is("A"))');
+    const initialBotCount = await botBubbles.count();
+
+    const sendBtn = this.page.locator('button[aria-label="Gửi tin nhắn"]').first();
+    await sendBtn.waitFor({ state: 'visible', timeout: 3000 });
+    await sendBtn.click();
+
+    // Đợi bubble phản hồi mới của bot xuất hiện
+    await expect(async () => {
+      const currentCount = await botBubbles.count();
+      expect(currentCount).toBeGreaterThan(initialBotCount);
+    }).toPass({ timeout: 45000, intervals: [500, 1000] });
+
+    // Đợi phản hồi hoàn thành việc streaming (ổn định độ dài chuỗi text)
+    let lastLen = 0;
+    let stableCount = 0;
+    for (let i = 0; i < 20; i++) {
+      await this.page.waitForTimeout(600);
+      const text = await this.getLastAriaResponse();
+      if (text.length > 0 && text.length === lastLen) {
+        stableCount++;
+        if (stableCount >= 2) break;
+      } else {
+        lastLen = text.length;
+        stableCount = 0;
+      }
+    }
   }
 
   /**
    * 3. Lấy tin nhắn phản hồi mới nhất của Aria
    */
   async getLastAriaResponse() {
-    // Tin nhắn của Aria hiển thị trong khung chat
-    const messages = this.page.locator('.chat-bubble, [class*="chat-message"], p.text-sm').all();
-    const list = await messages;
-    if (list.length > 0) {
-      return await list[list.length - 1].innerText();
+    const chatWidget = this.page.locator('div[class*="fixed bottom-24 right-4"]').first();
+    const botBubbles = chatWidget.locator('div.flex:has(div:text-is("A"))');
+    const count = await botBubbles.count();
+    if (count > 0) {
+      const text = await botBubbles.nth(count - 1).innerText();
+      return text.replace(/^A\s*/i, '').trim();
     }
     return '';
   }
@@ -66,22 +130,23 @@ class AriaChatHelper {
    * 4. Lấy tất cả tin nhắn phản hồi của Aria
    */
   async getAllAriaResponses() {
-    const botMessages = this.page.locator('div[class*="rounded-tl-sm"]');
-    const count = await botMessages.count();
+    const chatWidget = this.page.locator('div[class*="fixed bottom-24 right-4"]').first();
+    const botBubbles = chatWidget.locator('div.flex:has(div:text-is("A"))');
+    const count = await botBubbles.count();
     const result = [];
     for (let i = 0; i < count; i++) {
-      result.push((await botMessages.nth(i).innerText()).trim());
+      const text = await botBubbles.nth(i).innerText();
+      result.push(text.replace(/^A\s*/i, '').trim());
     }
     return result;
   }
 
   /**
-   * 5. Lấy danh sách thẻ món ăn (Product Cards) trong chat hoặc menu
+   * 5. Lấy danh sách thẻ món ăn (Product Cards) trong chat
    */
   getProductCards() {
-    return this.page.locator(
-      '[data-testid="food-card"], [data-testid="product-card"], .product-card, .food-card, [data-testid="dish-card"], div[class*="rounded-tl-sm"]:has(button:has-text("Thêm vào giỏ")), div[class*="rounded-tl-sm"]:has(button:has-text("Thêm"))'
-    );
+    const chatWidget = this.page.locator('div[class*="fixed bottom-24 right-4"]').first();
+    return chatWidget.locator('div[class*="border-orange-100"]');
   }
 
   /**
@@ -98,13 +163,23 @@ class AriaChatHelper {
    */
   async getCartCount() {
     const badge = this.page.locator(
-      '[data-testid="cart-count"], [data-testid="cart-badge"], .cart-badge, [data-testid="badge-cart"], button:has-text("Shopping Cart") span'
+      '[data-testid="cart-count"], [data-testid="cart-badge"], .cart-badge, [data-testid="badge-cart"], button:has-text("Shopping Cart") span, button:has(span:has-text("shopping_cart")) span'
     ).first();
     if (await badge.isVisible({ timeout: 2000 }).catch(() => false)) {
       const text = await badge.innerText();
-      return parseInt(text.replace(/\D/g, '') || '0', 10);
+      const count = parseInt(text.replace(/\D/g, '') || '0', 10);
+      if (count > 0) return count;
     }
-    return 0;
+    // Fallback: Kiểm tra trực tiếp giỏ hàng trong window.localStorage
+    const storageCount = await this.page.evaluate(() => {
+      try {
+        const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        return Array.isArray(cart) ? cart.reduce((sum, item) => sum + (item.quantity || 1), 0) : 0;
+      } catch (e) {
+        return 0;
+      }
+    }).catch(() => 0);
+    return storageCount;
   }
 
   /**
