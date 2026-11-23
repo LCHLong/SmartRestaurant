@@ -20,9 +20,9 @@ docs/specs/
 .agents/teamwork/
 
 # Blackbox QA Test Results & Media
-test-results/artifacts/
-test-results/screenshots/
-test-results/html-report/
-tests/blackbox/test-results/
-*.webm
-trace.zip
+# test-results/artifacts/
+# test-results/screenshots/
+# test-results/html-report/
+# tests/blackbox/test-results/
+# *.webm
+# trace.zip

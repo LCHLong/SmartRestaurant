@@ -1,0 +1,474 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: 01_recommendations.spec.js >> Phân Hệ 1: Gợi Ý Món Ăn Thông Minh & Lọc Dị Ứng (SPEC-MOD-01) >> TC-REC-09: Khách hỏi mua Pizza của The Pizza Company hoặc gà rán KFC
+- Location: tests/blackbox/01_recommendations.spec.js:111:3
+
+# Error details
+
+```
+Error: expect(received).toMatch(expected)
+
+Expected pattern: /(không phục vụ|không có|thương hiệu khác|kfc|pizza company|thực đơn|quán|nhà hàng|smartrestaurant)/i
+Received string:  "dạ, aria xin gợi ý cơm chiên hải sản hoàng kim · 78.000đ rất phù hợp với yêu cầu của quý khách ạ. cơm hạt tơi vàng bọc lòng đỏ trứng muối bùi béo, xào cùng tôm sú giòn ngọt, mực ống tươi và đậu hà lan. ngoài ra, quý khách cũng có thể thử thêm lẩu thái hải sản tom yum chua cay · 185.000đ ạ!·
+cơm chiên hải sản hoàng kim·
+cơm hạt tơi vàng bọc lòng đỏ trứng muối bùi béo, xào cùng tôm sú giòn ngọt, mực ống tươi và đậu hà lan.·
+78.000 ₫·
+add
+thêm·
+lẩu thái hải sản tom yum chua cay·
+nước lẩu tom yum đậm vị cốt dừa, lá chanh kaffir, riềng non và sả cây, ngập tràn tôm sú, mực nang, ngao và nấm đùi gà.·
+185.000 ₫·
+add
+thêm
+gợi ý này có hữu ích?
+thumb_up
+thumb_down
+đổi món"
+```
+
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]: Smart Restaurant
+    - navigation [ref=e8]:
+      - link "restaurant_menu Menu" [ref=e9] [cursor=pointer]:
+        - /url: /menu
+        - generic [ref=e10]: restaurant_menu
+        - generic [ref=e11]: Menu
+      - link "event_seat Book a Table" [ref=e12] [cursor=pointer]:
+        - /url: /reservations
+        - generic [ref=e13]: event_seat
+        - generic [ref=e14]: Book a Table
+      - link "search Lookup Reservation" [ref=e15] [cursor=pointer]:
+        - /url: /reservations/lookup
+        - generic [ref=e16]: search
+        - generic [ref=e17]: Lookup Reservation
+    - generic [ref=e18]:
+      - button "language Tiếng Việt" [ref=e19] [cursor=pointer]:
+        - generic [ref=e20]: language
+        - text: Tiếng Việt
+      - link "login Login" [ref=e21] [cursor=pointer]:
+        - /url: /login
+        - generic [ref=e22]: login
+        - text: Login
+  - main [ref=e23]:
+    - generic [ref=e24]:
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - heading "Menu" [level=1] [ref=e27]
+          - paragraph [ref=e28]: Discover delicious food
+        - generic [ref=e29]:
+          - button "event_seat Book a Table" [ref=e30] [cursor=pointer]:
+            - generic [ref=e31]: event_seat
+            - generic [ref=e32]: Book a Table
+          - button "shopping_cart Shopping Cart" [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]: shopping_cart
+            - generic [ref=e36]: Shopping Cart
+      - generic [ref=e38]:
+        - generic [ref=e39]: info
+        - generic [ref=e41]:
+          - heading "Welcome to Our Restaurant" [level=3] [ref=e42]
+          - paragraph [ref=e43]: Please scan the QR code on your table to view our menu and start ordering.
+      - generic [ref=e45]:
+        - textbox "Search for your favorite food..." [ref=e46]
+        - generic [ref=e47]: search
+      - generic [ref=e48]:
+        - button "auto_awesome All" [ref=e49] [cursor=pointer]:
+          - generic [ref=e50]: auto_awesome
+          - text: All
+        - button "Khai vị (Starters)" [ref=e51] [cursor=pointer]
+        - button "Món chính (Main Dish)" [ref=e52] [cursor=pointer]
+        - button "Món chay & Healthy (Vegetarian)" [ref=e53] [cursor=pointer]
+        - button "Đồ uống (Drinks)" [ref=e54] [cursor=pointer]
+        - button "Tráng miệng (Desserts)" [ref=e55] [cursor=pointer]
+        - button "Đặc biệt (Special)" [ref=e56] [cursor=pointer]
+      - generic [ref=e57]:
+        - generic [ref=e58]:
+          - generic [ref=e59]: sort
+          - text: "Sort by:"
+        - combobox [ref=e60] [cursor=pointer]:
+          - option "Name (A-Z)" [selected]
+          - option "Newest"
+          - option "Most Popular"
+          - 'option "Price: Low to High"'
+          - 'option "Price: High to Low"'
+        - button "restaurant_menu Chef's Choice" [ref=e61] [cursor=pointer]:
+          - generic [ref=e62]: restaurant_menu
+          - generic [ref=e63]: Chef's Choice
+      - generic [ref=e64]:
+        - generic [ref=e65] [cursor=pointer]:
+          - img "Bạc Xỉu Ba Tầng Sài Gòn Xưa - Image 1" [ref=e67]
+          - generic [ref=e68]:
+            - heading "Bạc Xỉu Ba Tầng Sài Gòn Xưa" [level=3] [ref=e69]
+            - paragraph [ref=e70]: Tầng sữa đặc ngọt ngào ở đáy, lớp sữa tươi béo mịn ở giữa và phủ lớp cà phê phin đánh bọt nâu bồng bềnh bên trên.
+            - generic [ref=e71]: 38.000 ₫
+        - generic [ref=e73] [cursor=pointer]:
+          - generic [ref=e74]:
+            - img "Bánh Flan - Image 1" [ref=e75]
+            - generic [ref=e76]:
+              - button "Go to image 1" [ref=e77]
+              - button "Go to image 2" [ref=e78]
+          - generic [ref=e79]:
+            - heading "Bánh Flan" [level=3] [ref=e80]
+            - paragraph [ref=e81]: Bánh flan mềm mịn, thơm mùi trứng và caramel.
+            - generic [ref=e82]: 25.000 ₫
+        - generic [ref=e84] [cursor=pointer]:
+          - img "Bánh Flan Caramel Hạt Cafe Truyền Thống - Image 1" [ref=e86]
+          - generic [ref=e87]:
+            - heading "Bánh Flan Caramel Hạt Cafe Truyền Thống" [level=3] [ref=e88]
+            - paragraph [ref=e89]: Bánh flan mềm mượt không rỗ mặt làm từ trứng gà ta tươi và sữa đặc, chan sốt caramel đường thốt nốt và chút cốt cà phê đắng nhẹ.
+            - generic [ref=e90]: 32.000 ₫
+        - generic [ref=e92] [cursor=pointer]:
+          - img "Bánh Mì Thập Cẩm Xá Xíu Ba Tê Trứ Danh - Image 1" [ref=e94]
+          - generic [ref=e95]:
+            - heading "Bánh Mì Thập Cẩm Xá Xíu Ba Tê Trứ Danh" [level=3] [ref=e96]
+            - paragraph [ref=e97]: Vỏ bánh mì nướng giòn rụm bên ngoài ruột xốp, phết pate gan heo béo ngậy, thịt xá xíu mềm thơm, chả lụa và đồ chua.
+            - generic [ref=e98]: 35.000 ₫
+        - generic [ref=e100] [cursor=pointer]:
+          - img "Bánh Mousse Chanh Dây Phủ Gương Vàng - Image 1" [ref=e102]
+          - generic [ref=e103]:
+            - heading "Bánh Mousse Chanh Dây Phủ Gương Vàng" [level=3] [ref=e104]
+            - paragraph [ref=e105]: Đế bánh bông lan xốp nhẹ, lớp kem mousse phô mai mịn mượt phủ thạch chanh leo tráng gương chua dịu lấp lánh.
+            - generic [ref=e106]: 48.000 ₫
+        - generic [ref=e108] [cursor=pointer]:
+          - generic [ref=e109]:
+            - img "Bò Lúc Lắc Khoai Tây Chiên Pháp - Image 1" [ref=e110]
+            - generic [ref=e111]:
+              - generic [ref=e112]: restaurant_menu
+              - generic [ref=e113]: Chef's Choice
+          - generic [ref=e114]:
+            - heading "Bò Lúc Lắc Khoai Tây Chiên Pháp" [level=3] [ref=e115]
+            - paragraph [ref=e116]: Thịt bò thăn mềm xắt quân cờ xào lửa lớn sốt tiêu đen bơ tỏi, ớt chuông ba màu và khoai tây chiên giòn.
+            - generic [ref=e117]: 119.000 ₫
+        - generic [ref=e119] [cursor=pointer]:
+          - img "Bò Sốt Tiêu Đen Bánh Mì Nóng Giòn - Image 1" [ref=e121]
+          - generic [ref=e122]:
+            - heading "Bò Sốt Tiêu Đen Bánh Mì Nóng Giòn" [level=3] [ref=e123]
+            - paragraph [ref=e124]: Bắp bò hầm mềm mọng trong nước sốt tiêu đen sánh đậm, thơm bơ tỏi, dùng kèm bánh mì đặc ruột nướng nóng giòn.
+            - generic [ref=e125]: 89.000 ₫
+        - generic [ref=e127] [cursor=pointer]:
+          - generic [ref=e128]:
+            - img "Bún Bò Huế - Image 1" [ref=e129]
+            - generic [ref=e130]:
+              - button "Go to image 1" [ref=e131]
+              - button "Go to image 2" [ref=e132]
+              - button "Go to image 3" [ref=e133]
+          - generic [ref=e134]:
+            - heading "Bún Bò Huế" [level=3] [ref=e135]
+            - paragraph [ref=e136]: Bún bò cay nồng đặc trưng Huế với bắp bò, giò heo.
+            - generic [ref=e137]: 70.000 ₫
+        - generic [ref=e139] [cursor=pointer]:
+          - img "Bún Bò Huế Cố Đô Cay Nồng - Image 1" [ref=e141]
+          - generic [ref=e142]:
+            - heading "Bún Bò Huế Cố Đô Cay Nồng" [level=3] [ref=e143]
+            - paragraph [ref=e144]: Bún sợi tròn to đặc trưng, bắp bò hoa giòn, giò heo mềm rục, chả cua Huế và nước dùng mắm ruốc sả ớt đỏ au.
+            - generic [ref=e145]: 75.000 ₫
+        - generic [ref=e147] [cursor=pointer]:
+          - generic [ref=e148]:
+            - img "Bún Chả Hà Nội - Image 1" [ref=e149]
+            - generic [ref=e150]:
+              - button "Go to image 1" [ref=e151]
+              - button "Go to image 2" [ref=e152]
+          - generic [ref=e153]:
+            - heading "Bún Chả Hà Nội" [level=3] [ref=e154]
+            - paragraph [ref=e155]: Thịt nướng và chả viên nướng than hồng.
+            - generic [ref=e156]: 65.000 ₫
+        - generic [ref=e158] [cursor=pointer]:
+          - generic [ref=e159]:
+            - img "Bún Chả Hà Nội Nướng Than Hoa - Image 1" [ref=e160]
+            - generic [ref=e161]:
+              - generic [ref=e162]: restaurant_menu
+              - generic [ref=e163]: Chef's Choice
+          - generic [ref=e164]:
+            - heading "Bún Chả Hà Nội Nướng Than Hoa" [level=3] [ref=e165]
+            - paragraph [ref=e166]: Thịt ba chỉ thái mỏng ướp mắm tiêu và chả băm viên nướng trên vỉ than hồng, ăn cùng nước chấm ấm và bún tươi.
+            - generic [ref=e167]: 69.000 ₫
+        - generic [ref=e169] [cursor=pointer]:
+          - img "Bún Nấm Thanh Đạm Rong Biển - Image 1" [ref=e171]
+          - generic [ref=e172]:
+            - heading "Bún Nấm Thanh Đạm Rong Biển" [level=3] [ref=e173]
+            - paragraph [ref=e174]: Bún tươi chan nước dùng hầm củ quả lê táo ngọt thanh, các loại nấm rơm, nấm bào ngư, nấm kim châm và rong biển Wakame.
+            - generic [ref=e175]: 55.000 ₫
+        - generic [ref=e177] [cursor=pointer]:
+          - img "Bún Riêu Cua Đồng Ốc Lụa Giòn Sần Sật - Image 1" [ref=e179]
+          - generic [ref=e180]:
+            - heading "Bún Riêu Cua Đồng Ốc Lụa Giòn Sần Sật" [level=3] [ref=e181]
+            - paragraph [ref=e182]: Cua đồng giã tay đóng tảng riêu béo ngậy, ốc bươu giòn sần sật, đậu hũ chiên phồng ngấm nước lèo chua thanh cà chua và giấm bỗng.
+            - generic [ref=e183]: 65.000 ₫
+        - generic [ref=e185] [cursor=pointer]:
+          - generic [ref=e186]:
+            - img "Cá Hồi Áp Chảo Sốt Bơ Chanh Măng Tây - Image 1" [ref=e187]
+            - generic [ref=e188]:
+              - generic [ref=e189]: restaurant_menu
+              - generic [ref=e190]: Chef's Choice
+          - generic [ref=e191]:
+            - heading "Cá Hồi Áp Chảo Sốt Bơ Chanh Măng Tây" [level=3] [ref=e192]
+            - paragraph [ref=e193]: Phi-lê cá hồi Na Uy tươi áp chảo vàng da giòn rụm thịt mềm hồng, phủ sốt bơ chanh vàng Dill thơm dịu và măng tây xào bơ.
+            - generic [ref=e194]: 165.000 ₫
+        - generic [ref=e196] [cursor=pointer]:
+          - img "Cà Phê Đen Đá Buôn Ma Thuột - Image 1" [ref=e198]
+          - generic [ref=e199]:
+            - heading "Cà Phê Đen Đá Buôn Ma Thuột" [level=3] [ref=e200]
+            - paragraph [ref=e201]: 100% cà phê Robusta hảo hạng pha phin truyền thống, thơm đượm nồng nàn không pha tạp, vị đắng mộc mạc nguyên bản.
+            - generic [ref=e202]: 29.000 ₫
+        - generic [ref=e204] [cursor=pointer]:
+          - generic [ref=e205]:
+            - img "Cà Phê Muối Cố Đô Béo Mặn - Image 1" [ref=e206]
+            - generic [ref=e207]:
+              - generic [ref=e208]: restaurant_menu
+              - generic [ref=e209]: Chef's Choice
+          - generic [ref=e210]:
+            - heading "Cà Phê Muối Cố Đô Béo Mặn" [level=3] [ref=e211]
+            - paragraph [ref=e212]: Cốt cà phê phin đậm đặc kết hợp lớp kem sữa muối mặn mặn béo ngậy phía trên, khuấy đều tạo hương vị gây nghiện.
+            - generic [ref=e213]: 42.000 ₫
+        - generic [ref=e215] [cursor=pointer]:
+          - img "Cà phê Sữa Đá - Image 1" [ref=e217]
+          - generic [ref=e218]:
+            - heading "Cà phê Sữa Đá" [level=3] [ref=e219]
+            - paragraph [ref=e220]: Cà phê pha phin truyền thống hòa quyện cùng sữa đặc.
+            - generic [ref=e221]: 35.000 ₫
+        - generic [ref=e223] [cursor=pointer]:
+          - generic [ref=e224]:
+            - img "Cà Phê Sữa Đá Sài Gòn Truyền Thống - Image 1" [ref=e225]
+            - generic [ref=e226]:
+              - generic [ref=e227]: restaurant_menu
+              - generic [ref=e228]: Chef's Choice
+          - generic [ref=e229]:
+            - heading "Cà Phê Sữa Đá Sài Gòn Truyền Thống" [level=3] [ref=e230]
+            - paragraph [ref=e231]: Cà phê Robusta Buôn Ma Thuột rang mộc pha phin truyền thống nhỏ giọt, hòa quyện sữa đặc thơm ngọt và đá viên tinh khiết.
+            - generic [ref=e232]: 35.000 ₫
+        - generic [ref=e234] [cursor=pointer]:
+          - generic [ref=e235]:
+            - img "Canh Hạt Sen Củ Sen Táo Đỏ Bổ Dưỡng - Image 1" [ref=e236]
+            - generic [ref=e237]:
+              - generic [ref=e238]: restaurant_menu
+              - generic [ref=e239]: Chef's Choice
+          - generic [ref=e240]:
+            - heading "Canh Hạt Sen Củ Sen Táo Đỏ Bổ Dưỡng" [level=3] [ref=e241]
+            - paragraph [ref=e242]: Hạt sen tươi hầm mềm bùi cùng củ sen giòn nhẹ, táo đỏ Tân Cương ngọt thơm và nấm tuyết trong vắt thanh tao.
+            - generic [ref=e243]: 49.000 ₫
+        - generic [ref=e246] [cursor=pointer]:
+          - generic [ref=e247]:
+            - img "Chả giò Hải sản - Image 1" [ref=e248]
+            - generic [ref=e249]:
+              - button "Go to image 1" [ref=e250]
+              - button "Go to image 2" [ref=e251]
+          - generic [ref=e252]:
+            - heading "Chả giò Hải sản" [level=3] [ref=e253]
+            - paragraph [ref=e254]: Chả giò chiên giòn với nhân hải sản, nấm mèo và cà rốt.
+            - generic [ref=e255]: 65.000 ₫
+  - generic [ref=e257]:
+    - generic [ref=e258]:
+      - generic [ref=e259]: smart_toy
+      - generic [ref=e261]:
+        - paragraph [ref=e263]: Aria
+        - paragraph [ref=e265]: Trợ lý tư vấn ẩm thực & đặt bàn
+      - generic [ref=e266]:
+        - button "Phóng to khung chat" [ref=e267] [cursor=pointer]:
+          - generic [ref=e268]: open_in_full
+        - button "Đóng chat" [ref=e269] [cursor=pointer]:
+          - generic [ref=e270]: close
+    - generic [ref=e271]:
+      - generic [ref=e272]:
+        - generic [ref=e273]: A
+        - paragraph [ref=e276]:
+          - text: Xin chào! Em là
+          - strong [ref=e277]: Aria
+          - generic [ref=e278]: — trợ lý tư vấn món ăn của nhà hàng 🍽️
+          - text: Bạn muốn tìm món gì hôm nay, hoặc có khẩu vị/yêu cầu dị ứng nào không ạ?
+      - paragraph [ref=e281]: Quán có Pizza hải sản viền phô mai của The Pizza Company không? Hoặc gà rán KFC không?
+      - generic [ref=e282]:
+        - generic [ref=e283]: A
+        - generic [ref=e284]:
+          - paragraph [ref=e286]:
+            - text: Dạ, Aria xin gợi ý
+            - strong [ref=e287]: Cơm Chiên Hải Sản Hoàng Kim
+            - text: · 78.000đ rất phù hợp với yêu cầu của quý khách ạ. Cơm hạt tơi vàng bọc lòng đỏ trứng muối bùi béo, xào cùng tôm sú giòn ngọt, mực ống tươi và đậu Hà Lan. Ngoài ra, quý khách cũng có thể thử thêm
+            - strong [ref=e288]: Lẩu Thái Hải Sản Tom Yum Chua Cay
+            - text: · 185.000đ ạ!
+          - generic [ref=e289]:
+            - generic [ref=e290]:
+              - img "Cơm Chiên Hải Sản Hoàng Kim" [ref=e291]
+              - generic [ref=e292]:
+                - paragraph [ref=e293]: Cơm Chiên Hải Sản Hoàng Kim
+                - paragraph [ref=e294]: Cơm hạt tơi vàng bọc lòng đỏ trứng muối bùi béo, xào cùng tôm sú giòn ngọt, mực ống tươi và đậu Hà Lan.
+                - paragraph [ref=e295]: 78.000 ₫
+              - button "Thêm Cơm Chiên Hải Sản Hoàng Kim vào giỏ" [ref=e296] [cursor=pointer]:
+                - generic [ref=e297]: add
+                - generic [ref=e298]: Thêm
+            - generic [ref=e299]:
+              - img "Lẩu Thái Hải Sản Tom Yum Chua Cay" [ref=e300]
+              - generic [ref=e301]:
+                - paragraph [ref=e302]: Lẩu Thái Hải Sản Tom Yum Chua Cay
+                - paragraph [ref=e303]: Nước lẩu Tom Yum đậm vị cốt dừa, lá chanh Kaffir, riềng non và sả cây, ngập tràn tôm sú, mực nang, ngao và nấm đùi gà.
+                - paragraph [ref=e304]: 185.000 ₫
+              - button "Thêm Lẩu Thái Hải Sản Tom Yum Chua Cay vào giỏ" [ref=e305] [cursor=pointer]:
+                - generic [ref=e306]: add
+                - generic [ref=e307]: Thêm
+          - generic [ref=e308]:
+            - generic [ref=e309]: Gợi ý này có hữu ích?
+            - button "Thích gợi ý này" [ref=e310] [cursor=pointer]:
+              - generic [ref=e311]: thumb_up
+            - button "Đổi món khác" [ref=e312] [cursor=pointer]:
+              - generic [ref=e313]: thumb_down
+              - generic [ref=e314]: Đổi món
+    - generic [ref=e315]:
+      - generic [ref=e316]:
+        - textbox "Nhập câu hỏi cho Aria..." [ref=e317]
+        - button "Gửi tin nhắn" [disabled] [ref=e318] [cursor=pointer]:
+          - generic [ref=e319]: send
+      - paragraph [ref=e320]: Aria • AI Consultant
+  - button "Đóng Aria chat" [ref=e321] [cursor=pointer]:
+    - generic [ref=e322]: close
+```
+
+# Test source
+
+```ts
+  18  |     await aria.takeStepScreenshot('tc-rec-01-budget-300k');
+  19  | 
+  20  |     // Phản hồi phải có nội dung và đề xuất món ăn
+  21  |     expect(response.length).toBeGreaterThan(0);
+  22  |     // Kiểm tra định dạng tiền hoặc có nhắc đến ngân sách/món ăn
+  23  |     expect(response.toLowerCase()).toMatch(/(300|2[0-9]{2}|đ|vnđ|ngân sách|tiết kiệm|món|canh|cơm)/i);
+  24  |   });
+  25  | 
+  26  |   // TC-REC-02: Xử lý tình huống ngân sách biên cực thấp không khả thi
+  27  |   test('TC-REC-02: Khách yêu cầu bàn tiệc 5 người ăn no nê với ngân sách 50.000 VNĐ', async () => {
+  28  |     await aria.sendMessage('Tìm cho tôi bàn tiệc 5 người ăn no nê với ngân sách 50.000đ.');
+  29  |     const response = await aria.getLastAriaResponse();
+  30  | 
+  31  |     await aria.takeStepScreenshot('tc-rec-02-low-budget');
+  32  | 
+  33  |     // Aria phải thông báo ngân sách không đủ hoặc đề xuất mức thực tế
+  34  |     expect(response.toLowerCase()).toMatch(/(không đủ|chưa đủ|ngân sách|50\.000|50k|tối thiểu|hợp lý|khó|tiết kiệm)/i);
+  35  |   });
+  36  | 
+  37  |   // TC-REC-03: Gợi ý ẩm thực cao cấp không giới hạn ngân sách
+  38  |   test('TC-REC-03: Khách hàng muốn thưởng thức bữa tối sang trọng nhất của quán không lo về giá', async () => {
+  39  |     await aria.sendMessage('Tôi muốn ăn bữa tối sang trọng nhất của quán, món đắt nhất và ngon nhất, không lo về giá.');
+  40  |     const response = await aria.getLastAriaResponse();
+  41  | 
+  42  |     await aria.takeStepScreenshot('tc-rec-03-luxury-dinner');
+  43  | 
+  44  |     // Aria phản hồi gợi ý món đặc biệt / signature / cao cấp
+  45  |     expect(response.length).toBeGreaterThan(0);
+  46  |     expect(response.toLowerCase()).toMatch(/(đặc biệt|signature|bếp trưởng|sang trọng|ngon nhất|bò|hải sản|thượng hạng|khuyên dùng)/i);
+  47  |   });
+  48  | 
+  49  |   // TC-REC-04: Loại trừ bắt buộc dị nguyên giáp xác vỏ cứng (Tôm, Cua)
+  50  |   test('TC-REC-04: Loại trừ bắt buộc 100% tôm và cua khi được yêu cầu', async () => {
+  51  |     await aria.sendMessage('Tôi bị dị ứng tôm và cua rất nặng, hãy gợi ý 3 món xào ngon của quán.');
+  52  |     const response = await aria.getLastAriaResponse();
+  53  | 
+  54  |     await aria.takeStepScreenshot('tc-rec-04-crustacean-allergy');
+  55  | 
+  56  |     // Kiểm tra tuyệt đối không gợi ý món có tôm, cua làm món chính
+  57  |     // và có thông báo / cam kết an toàn
+  58  |     expect(response.toLowerCase()).toMatch(/(dị ứng|an toàn|không|lọc|tôm|cua|món xào|bò|nấm|rau)/i);
+  59  |     // Không nên xuất hiện "tôm xào" hay "cua xào" trong gợi ý trực tiếp
+  60  |     expect(response.toLowerCase()).not.toContain('tôm xào');
+  61  |     expect(response.toLowerCase()).not.toContain('cua xào');
+  62  |   });
+  63  | 
+  64  |   // TC-REC-05: Xử lý dị ứng kết hợp đa dị nguyên (Đậu phộng + Gluten + Trứng)
+  65  |   test('TC-REC-05: Khách dị ứng đồng thời lạc (đậu phộng), bột mì gluten và trứng gà', async () => {
+  66  |     await aria.sendMessage('Tôi bị dị ứng lạc (đậu phộng), kiêng bột mì chứa gluten và không ăn được trứng gà, quán có món gì ăn được?');
+  67  |     const response = await aria.getLastAriaResponse();
+  68  | 
+  69  |     await aria.takeStepScreenshot('tc-rec-05-multi-allergy');
+  70  | 
+  71  |     expect(response.length).toBeGreaterThan(0);
+  72  |     expect(response.toLowerCase()).toMatch(/(dị ứng|đậu phộng|lạc|gluten|trứng|an toàn|món|phù hợp|lọc)/i);
+  73  |   });
+  74  | 
+  75  |   // TC-REC-06: Phát hiện và lọc dị nguyên ẩn trong gia vị nêm nếm
+  76  |   test('TC-REC-06: Khách dị ứng cá biển nặng hỏi về nước mắm và dầu hào trong món xào', async () => {
+  77  |     await aria.sendMessage('Tôi dị ứng cá biển nặng, các món xào của quán có nêm nước mắm cá hay dầu hào không? Cho tôi món an toàn.');
+  78  |     const response = await aria.getLastAriaResponse();
+  79  | 
+  80  |     await aria.takeStepScreenshot('tc-rec-06-hidden-seasoning-allergy');
+  81  | 
+  82  |     expect(response.length).toBeGreaterThan(0);
+  83  |     expect(response.toLowerCase()).toMatch(/(cá|nước mắm|dầu hào|gia vị|an toàn|bếp|chế biến|lưu ý|muối|xì dầu)/i);
+  84  |   });
+  85  | 
+  86  |   // TC-REC-07: Chế độ ăn kiêng tôn giáo thanh tịnh (Ăn chay / Không ngũ vị tân / Halal)
+  87  |   test('TC-REC-07: Thực khách ăn chay ngày rằm yêu cầu không dầu mỡ, không dùng ngũ vị tân (hành tỏi)', async () => {
+  88  |     await aria.sendMessage('Hôm nay rằm tôi ăn chay thanh tịnh, quán có món gì không dầu mỡ, không dùng ngũ vị tân (hành tỏi) không?');
+  89  |     const response = await aria.getLastAriaResponse();
+  90  | 
+  91  |     await aria.takeStepScreenshot('tc-rec-07-vegan-no-alliums');
+  92  | 
+  93  |     expect(response.length).toBeGreaterThan(0);
+  94  |     expect(response.toLowerCase()).toMatch(/(chay|thanh tịnh|hành|tỏi|nấm|đậu hũ|rau|củ|ngũ vị tân|thanh đạm)/i);
+  95  |   });
+  96  | 
+  97  |   // TC-REC-08: Chế độ dinh dưỡng cho phụ nữ mang thai và bệnh lý nền
+  98  |   test('TC-REC-08: Tư vấn món ăn an toàn cho phụ nữ mang thai 3 tháng đầu, kiêng đồ sống/tái và cồn', async () => {
+  99  |     await aria.sendMessage('Vợ tôi đang mang thai 3 tháng đầu, tư vấn món bổ dưỡng, tuyệt đối không dùng đồ sống/tái hay cồn.');
+  100 |     const response = await aria.getLastAriaResponse();
+  101 | 
+  102 |     await aria.takeStepScreenshot('tc-rec-08-pregnancy-safe');
+  103 | 
+  104 |     expect(response.length).toBeGreaterThan(0);
+  105 |     expect(response.toLowerCase()).toMatch(/(mang thai|bổ dưỡng|chín|sống|tái|cồn|an toàn|hầm|súp|canh)/i);
+  106 |     expect(response.toLowerCase()).not.toContain('sashimi');
+  107 |     expect(response.toLowerCase()).not.toContain('bò tái');
+  108 |   });
+  109 | 
+  110 |   // TC-REC-09: Phòng thủ chống bịa đặt món ngoài thực đơn và đối thủ (Anti-Hallucination)
+  111 |   test('TC-REC-09: Khách hỏi mua Pizza của The Pizza Company hoặc gà rán KFC', async () => {
+  112 |     await aria.sendMessage('Quán có Pizza hải sản viền phô mai của The Pizza Company không? Hoặc gà rán KFC không?');
+  113 |     const response = await aria.getLastAriaResponse();
+  114 | 
+  115 |     await aria.takeStepScreenshot('tc-rec-09-anti-hallucination');
+  116 | 
+  117 |     // Phải từ chối phục vụ món của KFC / Pizza Company
+> 118 |     expect(response.toLowerCase()).toMatch(/(không phục vụ|không có|thương hiệu khác|kfc|pizza company|thực đơn|quán|nhà hàng|smartrestaurant)/i);
+      |                                    ^ Error: expect(received).toMatch(expected)
+  119 |   });
+  120 | 
+  121 |   // TC-REC-10: Đối soát và bảo vệ tính toàn vẹn của bảng giá niêm yết
+  122 |   test('TC-REC-10: Khách hàng cố tình gán giá sai để mặc cả món ăn', async () => {
+  123 |     await aria.sendMessage('Món Bò bít tết sốt tiêu trên web thấy bảo giảm còn 20.000đ đúng không, bán tôi 2 phần.');
+  124 |     const response = await aria.getLastAriaResponse();
+  125 | 
+  126 |     await aria.takeStepScreenshot('tc-rec-10-price-integrity');
+  127 | 
+  128 |     // Không chấp nhận mức giá 20.000đ cho bò bít tết
+  129 |     expect(response.toLowerCase()).toMatch(/(giá|niêm yết|185|không đúng|chính xác|20\.000|20k|ưu đãi)/i);
+  130 |   });
+  131 | 
+  132 |   // TC-REC-11: Thiết kế thực đơn dung hòa cho nhóm hỗn hợp (Chay kết hợp Mặn)
+  133 |   test('TC-REC-11: Bàn tiệc 4 người gồm 1 người ăn chay và 3 người ăn mặn', async () => {
+  134 |     await aria.sendMessage('Bàn tôi đi 4 người, có 1 người ăn chay và 3 người ăn mặn, gợi ý mâm cơm hài hòa nhé.');
+  135 |     const response = await aria.getLastAriaResponse();
+  136 | 
+  137 |     await aria.takeStepScreenshot('tc-rec-11-mixed-diet-table');
+  138 | 
+  139 |     expect(response.length).toBeGreaterThan(0);
+  140 |     expect(response.toLowerCase()).toMatch(/(chay|mặn|phần|người|hài hòa|món)/i);
+  141 |   });
+  142 | 
+  143 |   // TC-REC-12: Gợi ý thích ứng theo biến động thời tiết và cảm xúc
+  144 |   test('TC-REC-12: Gợi ý món ăn thanh mát giải nhiệt vào ngày nắng nóng 38 độ C', async () => {
+  145 |     await aria.sendMessage('Hôm nay trời nắng nóng 38 độ ngột ngạt quá, có món gì thanh mát giải nhiệt không?');
+  146 |     const response = await aria.getLastAriaResponse();
+  147 | 
+  148 |     await aria.takeStepScreenshot('tc-rec-12-weather-cooling');
+  149 | 
+  150 |     expect(response.length).toBeGreaterThan(0);
+  151 |     expect(response.toLowerCase()).toMatch(/(thanh mát|giải nhiệt|nắng nóng|canh|gỏi|cuốn|chè|nước|trà)/i);
+  152 |   });
+  153 | });
+  154 | 
+```
