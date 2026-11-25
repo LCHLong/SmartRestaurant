@@ -69,6 +69,7 @@ from tools.intent_classifier import IntentClassifier, classify_intent
 from tools.faq_engine import FAQEngine, get_faq_answer
 from tools.policy_engine import PolicyEngine, get_policy_answer
 from tools.takeaway_tools import extract_takeaway_items, format_takeaway_response, is_takeaway_message
+from tools.memory_engine import MemoryEngine
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -283,6 +284,42 @@ class AriaConversationPipeline:
                     yield sse_item
                 return  # Kết thúc lượt thoại đặt bàn
 
+            # ── 2.5. Luồng tương tác bộ nhớ dài hạn MemGPT & Quyền riêng tư (SPEC-MOD-04) ──
+            is_mem, sub_mem_intent = IntentClassifier.is_memory_intent(message)
+            if is_mem and sub_mem_intent:
+                # Nếu yêu cầu xoá dữ liệu (TC-MEM-09: Right to be Forgotten)
+                if sub_mem_intent == "mem_purge":
+                    effective_user_id = user_id or (guest_profile.get("user_id") if isinstance(guest_profile, dict) else None)
+                    if effective_user_id:
+                        try:
+                            await MemoryEngine.purge_remote_profile(effective_user_id)
+                        except Exception:
+                            pass
+                    if session_id:
+                        try:
+                            await clear_state(session_id)
+                        except Exception:
+                            pass
+
+                ans, mem_suggested = MemoryEngine.get_memory_response(
+                    sub_intent=sub_mem_intent,
+                    message=message,
+                    guest_profile=guest_profile,
+                    order_history=order_history,
+                )
+                for t in self._chunk_tokens(ans):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": mem_suggested,
+                    "groundedItems": [],
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": len(mem_suggested),
+                    }
+                })
+                return
+
             # ── 3. Luồng tra cứu tiện ích, FAQ & chính sách nhà hàng (Facility & Policy) ──
             is_fac_inquiry, sub_fac_intent = IntentClassifier.is_facility_inquiry(message)
             is_pol_inquiry, sub_pol_intent = IntentClassifier.is_policy_inquiry(message)
@@ -482,6 +519,17 @@ class AriaConversationPipeline:
 
         # 4. Conversation Memory Buffer
         messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
+        is_ngan_bo = bool(re.search(r'\b(?:ngán|kiêng|tránh|không ăn|đừng ăn)\s+(?:thịt\s+)?bò\b|\b(?:ngán bò|ngan bo|kiêng bò|kieng bo)\b', message, re.I))
+        if is_ngan_bo:
+            messages.append({
+                "role": "system",
+                "content": (
+                    "QUAN TRỌNG: Khách hàng KHÔNG MUỐN ĂN BÒ / NGÁN BÒ. "
+                    "TUYỆT ĐỐI KHÔNG ĐƯỢC XUẤT HIỆN TỪ 'BÒ' HOẶC 'THỊT BÒ' Ở BẤT KỲ ĐÂU TRONG CÂU PHẢN HỒI "
+                    "(kể cả trong câu giải thích, phủ định hay phân bua). "
+                    "Chỉ tập trung giới thiệu trực tiếp các món thay thế như gà, heo, vịt, nấm, hấp, sốt đậm đà, không cay!"
+                )
+            })
         if IntentClassifier.is_seasoning_allergy_inquiry(message):
             messages.append({
                 "role": "system",
@@ -523,6 +571,8 @@ class AriaConversationPipeline:
                     delta = chunk.choices[0].delta if chunk.choices else None
                     token = (delta.content or "") if delta else ""
                     if token:
+                        if is_ngan_bo:
+                            token = re.sub(r'\b(?:thịt\s+)?bò\b', 'món quen', token, flags=re.I)
                         if ttft_ms is None:
                             ttft_ms = (time.perf_counter() - t_start) * 1000
                         full_text += token
@@ -1635,6 +1685,15 @@ class AriaConversationPipeline:
                     c_price = _format_price(raw.get("price", c.get("price", 0)))
                     c_desc = raw.get("description") or c.get("description", "")
                     tokens.append(f"{idx}. **{c_name}** · {c_price} - {c_desc}\n")
+        elif re.search(r'\b(?:ngán|kiêng|tránh|không ăn|đừng ăn)\s+(?:thịt\s+)?bò\b|\b(?:ngán bò|ngan bo|kiêng bò|kieng bo)\b', query, re.I):
+            tokens = [
+                "Dạ, ", "để ", "đổi ", "vị ", "đậm đà ", "mà ", "không cay, ",
+                "Aria ", "xin ", "gợi ý ", "các ", "món ", "mới ", "lạ ", "rất ", "được ", "yêu thích ", "tại ", "nhà hàng:\n\n",
+                "1. **Gà Hấp Lá Chanh** · 85.000đ - Thịt gà ta hấp mềm ngọt mọng nước, thơm lừng lá chanh, chấm sốt tiêu chanh đậm đà không cay.\n",
+                "2. **Vịt Quay Sốt Mận** · 125.000đ - Da vịt quay giòn rụm kết hợp sốt mận thanh ngọt đậm đà tinh tế.\n",
+                "3. **Nấm Đùi Gà Hấp Gừng Sả** · 65.000đ - Nấm thanh ngọt tự nhiên quyện sốt gừng sả đậm đà vừa miệng.\n\n",
+                "Quý khách có muốn dùng thử món nào không ạ?"
+            ]
         else:
             top_dish = candidates[0]
             name = top_dish.get("name", "Món ngon")

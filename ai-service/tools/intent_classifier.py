@@ -23,6 +23,7 @@ class IntentType(str, Enum):
     VAT_INVOICE_INQUIRY = "vat_invoice_inquiry"
     RESERVATION = "reservation"
     MENU_CONSULTATION = "menu_consultation"
+    MEMORY_INTENT = "memory_intent"
     HUMAN_HANDOFF = "human_handoff"
     GREETING = "greeting"
     UNKNOWN = "unknown"
@@ -216,7 +217,22 @@ class IntentClassifier:
                     "matched_keywords": matched
                 }
 
-        # 5. Mặc định là tư vấn món ăn / thực đơn
+        # 5. Bộ nhớ dài hạn & Quyền riêng tư MemGPT (Right to be Forgotten, Transparency, Isolation, Greeting, Update...)
+        try:
+            from tools.memory_engine import MemoryEngine
+            mem_res = MemoryEngine.detect_memory_intent(msg)
+            if mem_res:
+                sub_mem, conf = mem_res
+                return {
+                    "intent": IntentType.MEMORY_INTENT.value,
+                    "sub_intent": sub_mem,
+                    "confidence": conf,
+                    "matched_keywords": [sub_mem]
+                }
+        except ImportError:
+            pass
+
+        # 6. Mặc định là tư vấn món ăn / thực đơn
         return {
             "intent": IntentType.MENU_CONSULTATION.value,
             "sub_intent": "menu_inquiry",
@@ -409,6 +425,18 @@ class IntentClassifier:
         return has_seasoning and has_allergen_or_fish and has_context
 
     @classmethod
+    def is_memory_intent(cls, message: str) -> Tuple[bool, Optional[str]]:
+        """Kiểm tra xem câu thoại có thuộc nhóm tác vụ bộ nhớ dài hạn MemGPT hay không."""
+        try:
+            from tools.memory_engine import MemoryEngine
+            res = MemoryEngine.detect_memory_intent(message)
+            if res:
+                return True, res[0]
+        except ImportError:
+            pass
+        return False, None
+
+    @classmethod
     def is_takeaway_order(cls, message: str) -> bool:
         """Kiểm tra xem câu thoại có kèm món để đặt mang về hay không."""
         if not cls.is_takeaway_inquiry(message):
@@ -441,6 +469,11 @@ def is_vat_inquiry(message: str) -> bool:
 def is_seasoning_allergy_inquiry(message: str) -> bool:
     """Wrapper kiểm tra nhanh câu hỏi dị ứng gia vị nêm nếm."""
     return IntentClassifier.is_seasoning_allergy_inquiry(message)
+
+
+def is_memory_intent(message: str) -> Tuple[bool, Optional[str]]:
+    """Wrapper kiểm tra nhanh câu hỏi hoặc yêu cầu bộ nhớ MemGPT."""
+    return IntentClassifier.is_memory_intent(message)
 
 
 def is_policy_inquiry(message: str) -> Tuple[bool, Optional[str]]:
