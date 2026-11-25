@@ -81,11 +81,18 @@ VAT_KEYWORDS = [
     "hóa đơn", "hoá đơn"
 ]
 
+SEASONING_ALLERGY_KEYWORDS = [
+    "nước mắm", "nuoc mam", "dầu hào", "dau hao", "nêm nước mắm", "nêm dầu hào",
+    "chiết xuất từ cá", "chiết xuất từ hàu", "cốt cá", "gia vị món xào", "nêm nếm",
+    "xì dầu đậu nành", "nhiễm chéo", "nước mắm cá", "dầu hào hàu"
+]
+
 POLICY_SUB_INTENTS = {
     "corkage_policy": CORKAGE_KEYWORDS,
     "birthday_policy": BIRTHDAY_KEYWORDS,
     "takeaway_policy": TAKEAWAY_KEYWORDS,
     "vat_invoice_policy": VAT_KEYWORDS,
+    "seasoning_allergy_policy": SEASONING_ALLERGY_KEYWORDS,
 }
 
 FACILITY_SUB_INTENTS = {
@@ -274,9 +281,18 @@ class IntentClassifier:
                 "matched_keywords": vat_matched
             }
 
-        # 4. Kiểm tra các chính sách khác
+        # 4. Kiểm tra thắc mắc an toàn dị ứng gia vị nêm nếm (Seasoning Allergen Policy)
+        if cls.is_seasoning_allergy_inquiry(msg):
+            return {
+                "type": "policy",
+                "sub_intent": "seasoning_allergy_policy",
+                "confidence": 0.95,
+                "matched_keywords": ["seasoning_allergy_inquiry"]
+            }
+
+        # 5. Kiểm tra các chính sách khác
         for sub_intent, kw_list in POLICY_SUB_INTENTS.items():
-            if sub_intent in ("corkage_policy", "birthday_policy", "vat_invoice_policy"):
+            if sub_intent in ("corkage_policy", "birthday_policy", "vat_invoice_policy", "seasoning_allergy_policy"):
                 continue
             matched = [k for k in kw_list if k in msg]
             if matched:
@@ -287,7 +303,7 @@ class IntentClassifier:
                     "matched_keywords": matched
                 }
 
-        # 5. Kiểm tra tiện ích / FAQ
+        # 6. Kiểm tra tiện ích / FAQ
         for sub_intent, kw_list in FACILITY_SUB_INTENTS.items():
             matched = [k for k in kw_list if k in msg]
             if matched:
@@ -369,6 +385,30 @@ class IntentClassifier:
         ) and any(k in message.lower() for k in TAKEAWAY_KEYWORDS)
 
     @classmethod
+    def is_seasoning_allergy_inquiry(cls, message: str) -> bool:
+        """
+        Nhận diện thắc mắc an toàn dị ứng gia vị nêm nếm (nước mắm, dầu hào, cá biển, hàu, nhiễm chéo).
+        """
+        if not message:
+            return False
+        msg = message.lower().strip()
+        has_seasoning = any(w in msg for w in [
+            "nước mắm", "nuoc mam", "dầu hào", "dau hao", "gia vị", "gia vi",
+            "nêm", "nem", "nêm nếm", "nem nem", "nước tương", "nuoc tuong",
+            "xì dầu", "xi dau", "hạt nêm", "hat nem"
+        ])
+        has_allergen_or_fish = any(w in msg for w in [
+            "dị ứng", "di ung", "cá", "ca", "cá biển", "ca bien", "hải sản", "hai san",
+            "hàu", "hau", "hàu biển", "hau bien", "kiêng", "kieng", "nhiễm chéo", "nhiem cheo"
+        ])
+        has_context = any(w in msg for w in [
+            "món xào", "mon xao", "xào", "xao", "bếp", "bep", "chế biến", "che bien",
+            "chiết xuất", "chiet xuat", "quán có", "quan co", "an toàn", "an toan",
+            "nấu", "nau", "món", "mon"
+        ])
+        return has_seasoning and has_allergen_or_fish and has_context
+
+    @classmethod
     def is_takeaway_order(cls, message: str) -> bool:
         """Kiểm tra xem câu thoại có kèm món để đặt mang về hay không."""
         if not cls.is_takeaway_inquiry(message):
@@ -396,6 +436,11 @@ def is_takeaway_inquiry(message: str) -> bool:
 def is_vat_inquiry(message: str) -> bool:
     """Wrapper kiểm tra nhanh câu hỏi xuất hóa đơn VAT."""
     return IntentClassifier.is_vat_inquiry(message)
+
+
+def is_seasoning_allergy_inquiry(message: str) -> bool:
+    """Wrapper kiểm tra nhanh câu hỏi dị ứng gia vị nêm nếm."""
+    return IntentClassifier.is_seasoning_allergy_inquiry(message)
 
 
 def is_policy_inquiry(message: str) -> Tuple[bool, Optional[str]]:

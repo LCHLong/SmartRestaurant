@@ -38,6 +38,15 @@ class PolicyEngine:
         "Tên công ty, Mã số thuế (MST), Địa chỉ công ty và Email nhận hóa đơn điện tử cho thu ngân/Aria nhé!"
     )
 
+    DEFAULT_SEASONING_ALLERGY_ANSWER = (
+        "Dạ, Aria xin ghi nhận tình trạng dị ứng cá biển và hải sản nghiêm trọng của quý khách để đảm bảo an toàn tuyệt đối ạ!\n\n"
+        "Về gia vị chế biến: Các món xào tiêu chuẩn của nhà hàng thông thường có sử dụng dầu hào (chiết xuất từ hàu biển) "
+        "và nước mắm truyền thống cốt cá để tạo vị đậm đà.\n\n"
+        "Để quý khách hoàn toàn an tâm dùng bữa, quý khách có thể yêu cầu đầu bếp nêm riêng bằng **muối tinh** (muối khoáng) "
+        "hoặc **xì dầu** (nước tương) đậu nành lên men nguyên chất thuần thực vật. Đồng thời, Aria sẽ chuyển lưu ý đặc biệt "
+        "đến đầu bếp cam kết sử dụng chảo và dụng cụ nấu riêng biệt để tuyệt đối chống nhiễm chéo dị nguyên (cross-contamination) ạ!"
+    )
+
     @classmethod
     def get_corkage_policy(cls, settings: Optional[Dict[str, Any]] = None) -> str:
         """Trả lời chính sách phụ thu khui rượu (corkage fee)."""
@@ -70,6 +79,13 @@ class PolicyEngine:
         return cls.DEFAULT_VAT_ANSWER
 
     @classmethod
+    def get_seasoning_allergy_policy(cls, settings: Optional[Dict[str, Any]] = None) -> str:
+        """Trả lời chính sách an toàn dị ứng gia vị nêm nếm & chống nhiễm chéo bếp."""
+        if settings and settings.get("seasoning_allergy_policy"):
+            return settings["seasoning_allergy_policy"]
+        return cls.DEFAULT_SEASONING_ALLERGY_ANSWER
+
+    @classmethod
     def get_policy_answer(
         cls,
         message: str,
@@ -87,6 +103,13 @@ class PolicyEngine:
             sub_intent = classified.get("sub_intent")
 
         msg = message.lower().strip()
+
+        # 0. An toàn dị ứng gia vị nêm nếm (Nước mắm, Dầu hào, Món xào, Cá biển, Nhiễm chéo)
+        if sub_intent == "seasoning_allergy_policy" or (
+            any(k in msg for k in ["nước mắm", "dầu hào", "gia vị", "nêm", "nêm nếm", "hạt nêm", "xì dầu"])
+            and any(k in msg for k in ["dị ứng", "cá", "cá biển", "hàu", "hải sản", "kiêng", "nhiễm chéo"])
+        ):
+            return cls.get_seasoning_allergy_policy(settings)
 
         # 1. Phụ thu khui rượu (Corkage)
         if sub_intent == "corkage_policy" or any(k in msg for k in [

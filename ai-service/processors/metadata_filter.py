@@ -145,7 +145,7 @@ class CulinaryEntityExtractor:
         "cơm": ["cơm", "com", "cơm chiên", "cơm sườn", "cơm tấm"],
         "lẩu": ["lẩu", "lau", "hotpot"],
         "khai vị": ["khai vị", "khai vi", "gỏi", "goi", "salad", "chả giò", "cha gio", "nem"],
-        "đồ uống": ["đồ uống", "do uong", "nước", "nuoc", "trà", "tra", "cà phê", "ca phe", "nước ép", "nuoc ep", "sinh tố", "sinh to"],
+        "đồ uống": ["đồ uống", "do uong", "thức uống", "thuc uong", "nước uống", "nuoc uong", "trà", "tra", "cà phê", "ca phe", "nước ép", "nuoc ep", "sinh tố", "sinh to", "nước ngọt", "nuoc ngot"],
         "tráng miệng": ["tráng miệng", "trang mieng", "chè", "che", "bánh", "banh", "kem"]
     }
 

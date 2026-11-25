@@ -286,7 +286,9 @@ class AriaConversationPipeline:
             # ── 3. Luồng tra cứu tiện ích, FAQ & chính sách nhà hàng (Facility & Policy) ──
             is_fac_inquiry, sub_fac_intent = IntentClassifier.is_facility_inquiry(message)
             is_pol_inquiry, sub_pol_intent = IntentClassifier.is_policy_inquiry(message)
-            if is_fac_inquiry or is_pol_inquiry or is_takeaway_message(message):
+            # Lưu ý: Thắc mắc dị ứng gia vị (seasoning_allergy_policy) luôn chuyển giao vào Consultation Flow
+            # để vừa giải thích chính sách an toàn dị ứng 5 tầng, vừa truy xuất và gợi ý món an toàn với thẻ món ăn.
+            if is_fac_inquiry or (is_pol_inquiry and sub_pol_intent != "seasoning_allergy_policy") or is_takeaway_message(message):
                 settings = await get_restaurant_settings(restaurant_id)
                 # Kiểm tra chuyên biệt đơn mua mang về / ghé lấy (TC-LV10-03)
                 if sub_pol_intent == "takeaway_policy" or IntentClassifier.is_takeaway_inquiry(message) or is_takeaway_message(message):
@@ -480,6 +482,18 @@ class AriaConversationPipeline:
 
         # 4. Conversation Memory Buffer
         messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
+        if IntentClassifier.is_seasoning_allergy_inquiry(message):
+            messages.append({
+                "role": "system",
+                "content": (
+                    "KHẨN CẤP - TUÂN THỦ QUY CHUẨN AN TOÀN DỊ ỨNG 5 TẦNG CHO GIA VỊ NÊM NẾM (FR-REC-04):\n"
+                    "1. Xác nhận và ghi nhận rõ tình trạng dị ứng cá biển/hải sản nghiêm trọng của khách.\n"
+                    "2. Giải đáp trung thực: Các món xào tiêu chuẩn của nhà hàng thông thường có sử dụng dầu hào (chiết xuất từ hàu biển) và nước mắm truyền thống cốt cá để tạo vị đậm đà.\n"
+                    "3. Hướng dẫn khách yêu cầu bếp thay thế nêm riêng bằng muối tinh (muối khoáng) hoặc xì dầu (nước tương) đậu nành lên men nguyên chất thuần thực vật.\n"
+                    "4. Cam kết Aria sẽ chuyển lưu ý đặc biệt đến đầu bếp sử dụng chảo và dụng cụ nấu riêng biệt để tuyệt đối chống nhiễm chéo dị nguyên (cross-contamination).\n"
+                    "5. Đề xuất các món ăn an toàn từ danh mục thực đơn xác thực bên dưới (nêu rõ món có thể nêm riêng muối/xì dầu hoặc món hấp thanh đạm, tuyệt đối không chứa cá biển/hàu)."
+                )
+            })
         recent_history = conversation_history[-self.max_history_turns:] if conversation_history else []
         for turn in recent_history:
             role = turn.get("role", "user")
@@ -1603,6 +1617,24 @@ class AriaConversationPipeline:
             tokens.extend([
                 f"\n{KITCHEN_PRIORITY_NOTE}"
             ])
+        elif IntentClassifier.is_seasoning_allergy_inquiry(query):
+            tokens = [
+                "Dạ, ", "Aria ", "xin ", "ghi nhận ", "tình trạng ", "dị ứng ", "cá biển ", "và ", "hải sản ", "nghiêm trọng ", "của ", "quý khách ", "để ", "đảm bảo ", "an toàn ", "tuyệt đối ", "ạ!\n\n",
+                "Về ", "gia vị ", "chế biến: ", "Các ", "món xào ", "tiêu chuẩn ", "của ", "nhà hàng ", "thông thường ", "có ", "sử dụng ", "dầu hào ", "(chiết xuất từ hàu biển) ",
+                "và ", "nước mắm ", "truyền thống ", "cốt ", "cá ", "để ", "tạo vị ", "đậm đà.\n\n",
+                "Để ", "quý khách ", "hoàn toàn ", "an tâm ", "dùng bữa, ", "quý khách ", "có thể ", "yêu cầu ", "đầu bếp ", "thay thế ", "nêm riêng ", "bằng ", "**muối tinh** ", "(muối khoáng) ",
+                "hoặc ", "**xì dầu** ", "(nước tương) ", "đậu nành ", "lên men ", "nguyên chất ", "thuần thực vật. ",
+                "Đồng thời, ", "Aria ", "sẽ ", "chuyển ", "lưu ý ", "đặc biệt ", "đến ", "đầu bếp ", "cam kết ", "sử dụng ", "chảo ", "và ", "dụng cụ ", "nấu ", "riêng biệt ",
+                "để ", "tuyệt đối ", "chống ", "nhiễm chéo ", "dị nguyên ", "(cross-contamination) ạ.\n\n",
+                "Dạ, ", "đây là ", "các món ", "an toàn ", "không ", "chứa ", "thành phần ", "cá biển ", "rất ", "phù hợp ", "với ", "quý khách:\n\n",
+            ]
+            if candidates:
+                for idx, c in enumerate(candidates[:2], 1):
+                    raw = c.get("item", c)
+                    c_name = c.get("name") or raw.get("name", "Món ngon")
+                    c_price = _format_price(raw.get("price", c.get("price", 0)))
+                    c_desc = raw.get("description") or c.get("description", "")
+                    tokens.append(f"{idx}. **{c_name}** · {c_price} - {c_desc}\n")
         else:
             top_dish = candidates[0]
             name = top_dish.get("name", "Món ngon")
