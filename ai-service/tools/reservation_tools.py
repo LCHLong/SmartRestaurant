@@ -5,6 +5,7 @@ Tất cả hàm đều là async, xử lý timeout, status code, và internal he
 """
 
 import os
+import asyncio
 import httpx
 from typing import Optional, Dict, Any, List
 from tools.datetime_parser import validate_reservation_time
@@ -86,16 +87,41 @@ async def check_availability(
     }
 
     async with httpx.AsyncClient(timeout=TIMEOUT) as client:
-        resp = await client.get(
-            f"{BACKEND_URL}/api/reservations/available-slots",
-            params={
-                "date": date,
-                "time": time,
-                "guest_count": guest_count
-            },
-            headers=headers
-        )
-        resp.raise_for_status()
+        last_error = None
+        resp = None
+        # Cơ chế thử lại 1 lần nếu có lỗi mạng nhất thời
+        for attempt in range(2):
+            try:
+                resp = await client.get(
+                    f"{BACKEND_URL}/api/reservations/available-slots",
+                    params={
+                        "date": date,
+                        "time": time,
+                        "guest_count": guest_count
+                    },
+                    headers=headers
+                )
+                if resp.status_code == 200:
+                    break
+                elif resp.status_code >= 500:
+                    last_error = "SERVER_ERROR: Hệ thống backend tạm thời gặp sự cố kỹ thuật khi kiểm tra bàn."
+                    if attempt == 0:
+                        await asyncio.sleep(0.3)
+                        continue
+                else:
+                    data = resp.json() if resp.headers.get("content-type", "").startswith("application/json") else {}
+                    err_msg = data.get("error", {}).get("message", f"Mã lỗi HTTP {resp.status_code}")
+                    last_error = f"API_ERROR: {err_msg}"
+                    break
+            except (httpx.RequestError, httpx.TimeoutException) as conn_err:
+                last_error = f"SERVER_ERROR: Không thể kết nối tới dịch vụ backend ({type(conn_err).__name__})."
+                if attempt == 0:
+                    await asyncio.sleep(0.3)
+                    continue
+
+        if resp is None or resp.status_code != 200:
+            raise Exception(last_error or "SERVER_ERROR: Không thể kiểm tra bàn trống.")
+
         data = resp.json()
         if not data.get("success"):
             err_msg = data.get("error", {}).get("message", "Lỗi kiểm tra bàn trống")

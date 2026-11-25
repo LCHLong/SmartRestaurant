@@ -59,22 +59,36 @@ function BookingConfirmationCard({ reservation }) {
   const [copied, setCopied] = useState(false);
   if (!reservation) return null;
 
+  const rawCode = reservation.booking_code || '';
+  const displayCode = rawCode.startsWith('#') ? rawCode : `#${rawCode}`;
+
   const copyCode = () => {
-    navigator.clipboard?.writeText(reservation.booking_code);
+    navigator.clipboard?.writeText(rawCode);
     setCopied(true);
     toast.success('Đã sao chép mã đặt bàn!');
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const handleEdit = () => {
+    window.location.href = `/reservations/lookup?code=${encodeURIComponent(rawCode)}`;
+  };
+
+  const handleCancel = () => {
+    window.location.href = `/reservations/lookup?code=${encodeURIComponent(rawCode)}&action=cancel`;
+  };
+
   return (
-    <div className="mt-2.5 bg-gradient-to-br from-orange-50 via-white to-amber-50 border border-orange-200 rounded-2xl p-3.5 shadow-sm max-w-[95%]">
+    <div
+      data-testid="booking-card"
+      className="booking-card reservation-card mt-2.5 bg-gradient-to-br from-orange-50 via-white to-amber-50 border border-orange-200 rounded-2xl p-3.5 shadow-sm max-w-[95%]"
+    >
       <div className="flex items-center justify-between pb-2 mb-2 border-b border-orange-100">
         <div className="flex items-center gap-1.5 text-emerald-700 font-bold text-xs">
           <span className="material-symbols-outlined text-sm text-emerald-600">verified</span>
           Đặt bàn thành công
         </div>
         <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-semibold uppercase">
-          {reservation.status || 'Chờ xác nhận'}
+          {reservation.status === 'confirmed' ? 'Đã xác nhận giữ chỗ ✓' : (reservation.status || 'Chờ xác nhận')}
         </span>
       </div>
 
@@ -82,7 +96,7 @@ function BookingConfirmationCard({ reservation }) {
         <div>
           <div className="text-[10px] text-gray-500 font-medium">Mã đặt bàn</div>
           <div className="text-base font-extrabold text-orange-600 tracking-wide">
-            {reservation.booking_code}
+            {displayCode}
           </div>
         </div>
         <button
@@ -123,14 +137,24 @@ function BookingConfirmationCard({ reservation }) {
         </div>
       )}
 
-      <div className="mt-2.5 pt-2 border-t border-orange-100 flex items-center justify-between">
-        <a
-          href={`/reservation/lookup?code=${reservation.booking_code}`}
-          className="text-xs text-orange-600 hover:text-orange-700 font-semibold flex items-center gap-1 hover:underline"
+      {/* Thao tác nhanh: Chỉnh sửa thông tin & Hủy giữ chỗ */}
+      <div className="mt-3 pt-2.5 border-t border-orange-100 flex items-center justify-between gap-2">
+        <button
+          onClick={handleEdit}
+          className="flex-1 py-1.5 px-2 bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+          title="Chỉnh sửa thông tin đặt bàn"
         >
-          <span>Xem chi tiết đơn</span>
-          <span className="material-symbols-outlined text-xs">arrow_forward</span>
-        </a>
+          <span className="material-symbols-outlined text-xs">edit</span>
+          <span>Chỉnh sửa thông tin</span>
+        </button>
+        <button
+          onClick={handleCancel}
+          className="flex-1 py-1.5 px-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 transition-colors cursor-pointer"
+          title="Hủy giữ chỗ"
+        >
+          <span className="material-symbols-outlined text-xs">cancel</span>
+          <span>Hủy giữ chỗ</span>
+        </button>
       </div>
     </div>
   );

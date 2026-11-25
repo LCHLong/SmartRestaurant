@@ -711,6 +711,9 @@ class AriaConversationPipeline:
 
                     email_note = f" và email **{email}**" if email else ""
 
+                    b_code = res_data.get('booking_code', '')
+                    display_b_code = b_code if (not b_code or b_code.startswith('#')) else f"#{b_code}"
+
                     queued = state.pop("queued_booking", None)
                     if queued:
                         new_slots = {
@@ -747,7 +750,7 @@ class AriaConversationPipeline:
 
                             resp = (
                                 f"🎉 **Đặt bàn 1 thành công!**\n\n"
-                                f"• Mã đặt bàn: **{res_data.get('booking_code')}**\n"
+                                f"• Mã đặt bàn: **{display_b_code}**\n"
                                 f"• Ngày giờ: **{slots['time']}** · **{slots['date']}**\n"
                                 f"• Số lượng: **{slots['guests']} người**\n"
                                 f"• Tên: **{name}** · SĐT: **{_mask_phone(phone)}**\n"
@@ -768,7 +771,7 @@ class AriaConversationPipeline:
                             sug_str = f" như **{sug[0]}** hoặc **{sug[1]}**" if len(sug) >= 2 else " khác"
                             resp = (
                                 f"🎉 **Đặt bàn 1 thành công!**\n\n"
-                                f"• Mã đặt bàn: **{res_data.get('booking_code')}**\n"
+                                f"• Mã đặt bàn: **{display_b_code}**\n"
                                 f"• Ngày giờ: **{slots['time']}** · **{slots['date']}**\n"
                                 f"• Số lượng: **{slots['guests']} người**\n"
                                 f"• Tên: **{name}** · SĐT: **{_mask_phone(phone)}**\n"
@@ -784,7 +787,7 @@ class AriaConversationPipeline:
                         await save_state(session_id, state)
                         resp = (
                             f"🎉 **Đặt bàn thành công!**\n\n"
-                            f"• Mã đặt bàn: **{res_data.get('booking_code')}**\n"
+                            f"• Mã đặt bàn: **{display_b_code}**\n"
                             f"• Ngày giờ: **{slots['time']}** · **{slots['date']}**\n"
                             f"• Số lượng: **{slots['guests']} người**\n"
                             f"• Tên: **{name}** · SĐT: **{_mask_phone(phone)}**\n"
@@ -1424,9 +1427,14 @@ class AriaConversationPipeline:
                 )
 
         except Exception as e:
+            print(f"[aria_pipeline] Lỗi kiểm tra bàn trống: {e}")
             state["fsm_state"] = "COLLECTING_SLOTS"
             await save_state(session_id, state)
-            resp = f"Aria gặp sự cố khi kiểm tra bàn trống: {str(e)}. Bạn có muốn thử lại không?"
+            resp = (
+                "Dạ, hệ thống kiểm tra bàn trống của nhà hàng tạm thời gián đoạn kết nối. "
+                "Aria rất xin lỗi vì sự bất tiện này! Bạn vui lòng thử lại sau giây lát hoặc "
+                "để lại lời nhắn để nhân viên hỗ trợ giữ bàn cho bạn nhé ạ."
+            )
 
         for t in self._chunk_tokens(resp):
             yield self._sse("token", {"content": t})
