@@ -71,6 +71,16 @@ from tools.faq_engine import FAQEngine, get_faq_answer
 from tools.policy_engine import PolicyEngine, get_policy_answer
 from tools.takeaway_tools import extract_takeaway_items, format_takeaway_response, is_takeaway_message
 from tools.memory_engine import MemoryEngine
+from tools.cart_tools import (
+    is_cart_action,
+    extract_cart_add_items,
+    extract_cart_remove_items,
+    format_cart_response,
+    is_competitor_query,
+    get_competitor_refusal,
+    is_bargain_query,
+    get_bargain_refusal,
+)
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -331,6 +341,136 @@ class AriaConversationPipeline:
                     }
                 })
                 return
+
+            # ── 2.6. Nhận diện câu hỏi về thương hiệu đối thủ (TC-REC-09, TC-REC-10) ──
+            is_comp, comp_brand = is_competitor_query(message)
+            if is_comp:
+                ans = get_competitor_refusal(comp_brand)
+                for t in self._chunk_tokens(ans):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": 0,
+                    }
+                })
+                return
+
+            # ── 2.7. Nhận diện mặc cả / trả giá món ăn (TC-ATC-11) ──
+            if is_bargain_query(message):
+                ans = get_bargain_refusal()
+                for t in self._chunk_tokens(ans):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": 0,
+                    }
+                })
+                return
+
+            # ── 2.8. Luồng thao tác giỏ hàng tương tác (SPEC-MOD-02: TC-ATC-03, TC-ATC-04, TC-ATC-09, TC-ATC-10) ──
+            is_cart, cart_action_type = is_cart_action(message)
+            if is_cart:
+                corpus = getattr(getattr(self.retriever, "index_manager", None), "corpus_items", None) or menu_context or []
+
+                if cart_action_type == "add_to_cart":
+                    added_items = extract_cart_add_items(message, corpus)
+                    ans = format_cart_response("add_to_cart", added_items, current_cart=cart_items)
+                    suggested = []
+                    for it in added_items:
+                        suggested.append({
+                            "id": it.get("id"),
+                            "name": it.get("name"),
+                            "price": it.get("price"),
+                            "image_url": it.get("image_url", ""),
+                            "description": it.get("description", ""),
+                            "quantity": it.get("quantity", 1),
+                            "modifiers": it.get("modifiers", []),
+                            "notes": it.get("notes", "")
+                        })
+                    for t in self._chunk_tokens(ans):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {
+                        "cartAction": {
+                            "type": "add_to_cart",
+                            "items": added_items
+                        },
+                        "suggestedItems": suggested,
+                        "groundedItems": [],
+                        "metrics": {
+                            "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "rag_count": len(added_items),
+                        }
+                    })
+                    return
+
+                elif cart_action_type == "remove_from_cart":
+                    removed_items = extract_cart_remove_items(message, cart_items=cart_items)
+                    ans = format_cart_response("remove_from_cart", removed_items, current_cart=cart_items)
+                    for t in self._chunk_tokens(ans):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {
+                        "cartAction": {
+                            "type": "remove_from_cart",
+                            "items": removed_items
+                        },
+                        "suggestedItems": [],
+                        "groundedItems": [],
+                        "metrics": {
+                            "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "rag_count": 0,
+                        }
+                    })
+                    return
+
+                elif cart_action_type == "view_cart":
+                    ans = format_cart_response("view_cart", [], current_cart=cart_items)
+                    total_amount = sum(float(it.get("price") or 0) * it.get("quantity", 1) for it in (cart_items or []))
+                    for t in self._chunk_tokens(ans):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {
+                        "cartAction": {
+                            "type": "view_cart",
+                            "items": cart_items or [],
+                            "total": total_amount
+                        },
+                        "suggestedItems": [],
+                        "groundedItems": [],
+                        "metrics": {
+                            "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "rag_count": 0,
+                        }
+                    })
+                    return
+
+                elif cart_action_type == "clear_cart":
+                    ans = format_cart_response("clear_cart", [], current_cart=[])
+                    for t in self._chunk_tokens(ans):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {
+                        "cartAction": {
+                            "type": "clear_cart",
+                            "items": []
+                        },
+                        "suggestedItems": [],
+                        "groundedItems": [],
+                        "metrics": {
+                            "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "rag_count": 0,
+                        }
+                    })
+                    return
 
             # ── 3. Luồng tra cứu tiện ích, FAQ & chính sách nhà hàng (Facility & Policy) ──
             is_fac_inquiry, sub_fac_intent = IntentClassifier.is_facility_inquiry(message)

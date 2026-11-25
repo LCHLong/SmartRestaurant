@@ -54,6 +54,94 @@ function SuggestedItemCard({ item, onAdd }) {
   );
 }
 
+// Thẻ Giỏ Hàng Thu Nhỏ (Mini Cart Card) trực quan (SPEC-MOD-02)
+function MiniCartCard({ cartAction }) {
+  if (!cartAction) return null;
+
+  const isAdd = cartAction.type === 'add_to_cart';
+  const isView = cartAction.type === 'view_cart';
+  const isRemove = cartAction.type === 'remove_from_cart';
+  const items = cartAction.items || [];
+
+  const title = isAdd
+    ? 'Đã thêm vào giỏ hàng'
+    : isRemove
+    ? 'Đã bớt món khỏi giỏ'
+    : 'Giỏ hàng của bạn';
+
+  const badgeColor = isAdd
+    ? 'bg-emerald-100 text-emerald-800'
+    : isRemove
+    ? 'bg-rose-100 text-rose-800'
+    : 'bg-orange-100 text-orange-800';
+
+  const icon = isAdd ? 'shopping_bag' : isRemove ? 'remove_shopping_cart' : 'shopping_cart';
+
+  return (
+    <div
+      data-testid="mini-cart-card"
+      className="mini-cart-card mt-2.5 bg-gradient-to-br from-emerald-50 via-white to-green-50 border border-emerald-200 rounded-2xl p-3 shadow-xs max-w-[95%]"
+    >
+      <div className="flex items-center justify-between pb-2 mb-2 border-b border-emerald-100">
+        <div className="flex items-center gap-1.5 text-emerald-800 font-bold text-xs">
+          <span className="material-symbols-outlined text-sm text-emerald-600">{icon}</span>
+          {title}
+        </div>
+        <span className={`text-[10px] px-2 py-0.5 rounded-full font-semibold uppercase ${badgeColor}`}>
+          {items.length} món
+        </span>
+      </div>
+
+      {items.length > 0 ? (
+        <div className="space-y-1.5 mb-2.5">
+          {items.map((it, idx) => (
+            <div key={idx} className="flex items-start justify-between gap-2 text-xs bg-white/80 p-2 rounded-lg border border-emerald-100">
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-gray-800 truncate">
+                  <span className="text-emerald-700 font-bold mr-1">{it.quantity || 1}x</span>
+                  {it.name}
+                </p>
+                {it.modifiers && it.modifiers.length > 0 && (
+                  <p className="text-[10px] text-gray-500 truncate mt-0.5">
+                    {it.modifiers.map(m => m.name).join(', ')}
+                  </p>
+                )}
+                {it.notes && (
+                  <p className="text-[10px] text-amber-600 italic truncate mt-0.5">
+                    Ghi chú: {it.notes}
+                  </p>
+                )}
+              </div>
+              {it.price ? (
+                <span className="font-bold text-emerald-700 shrink-0">
+                  {formatPrice(Number(it.price) * (it.quantity || 1))}
+                </span>
+              ) : null}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-xs text-gray-500 py-1 text-center">Giỏ hàng đang trống</p>
+      )}
+
+      {cartAction.total ? (
+        <div className="flex items-center justify-between text-xs font-bold text-gray-800 pt-1 border-t border-emerald-100 mb-2">
+          <span>Tổng tạm tính:</span>
+          <span className="text-emerald-600 text-sm">{formatPrice(cartAction.total)}</span>
+        </div>
+      ) : null}
+
+      <a
+        href="/cart"
+        className="w-full py-1.5 px-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 active:scale-95 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-xs"
+      >
+        <span className="material-symbols-outlined text-sm">shopping_cart_checkout</span>
+        <span>Mở Giỏ Hàng & Đặt Món</span>
+      </a>
+    </div>
+  );
+}
+
 // Card xác nhận đặt bàn trực quan cho khách
 function BookingConfirmationCard({ reservation }) {
   const [copied, setCopied] = useState(false);
@@ -268,6 +356,11 @@ export default function ChatMessage({ message }) {
         {/* Booking Confirmation Card khi đặt bàn thành công */}
         {!message.isStreaming && message.reservation && (
           <BookingConfirmationCard reservation={message.reservation} />
+        )}
+
+        {/* Thẻ Giỏ Hàng Thu Nhỏ (Mini Cart Card) khi có tương tác giỏ hàng */}
+        {!message.isStreaming && message.cartAction && (
+          <MiniCartCard cartAction={message.cartAction} />
         )}
 
         {/* Mini cards gợi ý món */}

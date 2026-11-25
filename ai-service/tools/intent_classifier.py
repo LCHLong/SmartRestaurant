@@ -25,6 +25,12 @@ class IntentType(str, Enum):
     MENU_CONSULTATION = "menu_consultation"
     MEMORY_INTENT = "memory_intent"
     HUMAN_HANDOFF = "human_handoff"
+    CART_ACTION = "cart_action"
+    ADD_TO_CART = "add_to_cart"
+    REMOVE_FROM_CART = "remove_from_cart"
+    VIEW_CART = "view_cart"
+    COMPETITOR_QUERY = "competitor_query"
+    PRICE_BARGAINING = "price_bargaining"
     GREETING = "greeting"
     UNKNOWN = "unknown"
 
@@ -160,6 +166,37 @@ class IntentClassifier:
                 "confidence": 0.90,
                 "matched_keywords": matched_res
             }
+
+        # 2.5. Ý định thao tác giỏ hàng & hỏi thương hiệu đối thủ / mặc cả giá (SPEC-MOD-01 & SPEC-MOD-02)
+        try:
+            from tools.cart_tools import is_competitor_query, is_bargain_query, is_cart_action
+            is_comp, comp_brand = is_competitor_query(msg)
+            if is_comp:
+                return {
+                    "intent": IntentType.COMPETITOR_QUERY.value,
+                    "sub_intent": comp_brand or "competitor",
+                    "confidence": 0.96,
+                    "matched_keywords": [comp_brand] if comp_brand else ["competitor"]
+                }
+
+            if is_bargain_query(msg):
+                return {
+                    "intent": IntentType.PRICE_BARGAINING.value,
+                    "sub_intent": "price_bargaining",
+                    "confidence": 0.95,
+                    "matched_keywords": ["bargain"]
+                }
+
+            is_cart, cart_type = is_cart_action(msg)
+            if is_cart:
+                return {
+                    "intent": IntentType.CART_ACTION.value,
+                    "sub_intent": cart_type,
+                    "confidence": 0.95,
+                    "matched_keywords": [cart_type]
+                }
+        except ImportError:
+            pass
 
         # 3. Chính sách nhà hàng (Policy Inquiry: Corkage fee, Birthday, Takeaway...)
         corkage_matched = [k for k in CORKAGE_KEYWORDS if k in msg]
@@ -446,6 +483,25 @@ class IntentClassifier:
         return len(items) > 0
 
 
+    @classmethod
+    def is_cart_action(cls, message: str) -> Tuple[bool, Optional[str]]:
+        """Kiểm tra thao tác giỏ hàng (add_to_cart, remove_from_cart, view_cart, clear_cart)."""
+        from tools.cart_tools import is_cart_action
+        return is_cart_action(message)
+
+    @classmethod
+    def is_competitor_query(cls, message: str) -> Tuple[bool, Optional[str]]:
+        """Kiểm tra câu hỏi về thương hiệu đối thủ (KFC, The Pizza Company...)."""
+        from tools.cart_tools import is_competitor_query
+        return is_competitor_query(message)
+
+    @classmethod
+    def is_bargain_query(cls, message: str) -> bool:
+        """Kiểm tra câu hỏi trả giá / mặc cả."""
+        from tools.cart_tools import is_bargain_query
+        return is_bargain_query(message)
+
+
 def classify_intent(message: str) -> Dict[str, Any]:
     """Hàm wrapper tiện ích phân loại ý định."""
     return IntentClassifier.classify(message)
@@ -479,5 +535,21 @@ def is_memory_intent(message: str) -> Tuple[bool, Optional[str]]:
 def is_policy_inquiry(message: str) -> Tuple[bool, Optional[str]]:
     """Wrapper kiểm tra nhanh câu hỏi chính sách."""
     return IntentClassifier.is_policy_inquiry(message)
+
+
+def is_cart_action(message: str) -> Tuple[bool, Optional[str]]:
+    """Wrapper kiểm tra thao tác giỏ hàng."""
+    return IntentClassifier.is_cart_action(message)
+
+
+def is_competitor_query(message: str) -> Tuple[bool, Optional[str]]:
+    """Wrapper kiểm tra hỏi đối thủ."""
+    return IntentClassifier.is_competitor_query(message)
+
+
+def is_bargain_query(message: str) -> bool:
+    """Wrapper kiểm tra mặc cả giá."""
+    return IntentClassifier.is_bargain_query(message)
+
 
 

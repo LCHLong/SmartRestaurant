@@ -317,12 +317,14 @@ exports.consult = async (req, res) => {
         const finalText = result.text || fullResponse;
         const suggestedItems = result.suggestedItems || [];
         const reservation = result.reservation || null;
+        const cartAction = result.cartAction || null;
 
         emitToClient('ai_response', {
           sessionId,
           content: finalText,
           suggestedItems,
           reservation,
+          cartAction,
           abVariant
         });
 
