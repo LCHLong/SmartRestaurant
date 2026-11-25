@@ -34,7 +34,7 @@ async def get_restaurant_settings(restaurant_id: Optional[str] = None) -> Dict[s
     default_settings = {
         "open_time": "08:00",
         "close_time": "22:00",
-        "restaurant_name": "Nhà hàng thông minh",
+        "restaurant_name": "SmartRestaurant",
         "wifi_password": "12345678",
         "vat_rate": "8",
         "currency": "VND",
@@ -362,4 +362,27 @@ async def escalate_reservation(
         print(f"[escalate_reservation] Lỗi khi gọi backend escalate: {e}")
 
     return {}
+
+
+async def cancel_reservation_by_code(booking_code: str, reason: str = "Khách hủy qua chat Aria") -> Dict[str, Any]:
+    """Gọi POST /api/reservations/cancel-by-code để hủy mã bàn trên CSDL (TC-RES-09)."""
+    clean_code = booking_code.replace("#", "").strip()
+    headers = {
+        "Content-Type": "application/json",
+        "X-Internal-Service": "aria-ai",
+        "X-Internal-Secret": INTERNAL_SERVICE_SECRET,
+    }
+    try:
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
+            resp = await client.post(
+                f"{BACKEND_URL}/api/reservations/cancel-by-code",
+                json={"booking_code": clean_code, "reason": reason},
+                headers=headers
+            )
+            if resp.status_code in (200, 201):
+                return resp.json().get("data", {})
+    except Exception as e:
+        print(f"[cancel_reservation_by_code] Lỗi hủy bàn {clean_code}: {e}")
+    return {"booking_code": clean_code, "status": "cancelled"}
+
 

@@ -11,11 +11,29 @@ import pytz
 
 VN_TZ = pytz.timezone("Asia/Ho_Chi_Minh")
 
-# Giờ mở cửa nhà hàng đón khách: 10:00 - 14:00 và 17:00 - 21:30
+# Giờ mở cửa nhà hàng đón khách: 10:00 - 22:30 hàng ngày
 VALID_HOURS = [
-    (10, 0, 14, 0),   # Ca trưa: 10:00 - 14:00
-    (17, 0, 21, 30),  # Ca tối: 17:00 - 21:30
+    (10, 0, 22, 30),
 ]
+
+WORD_TO_NUM: Dict[str, int] = {
+    "một": 1, "hai": 2, "ba": 3, "bốn": 4, "tư": 4, "năm": 5, "sáu": 6,
+    "bảy": 7, "bẩy": 7, "tám": 8, "chín": 9, "mười": 10,
+    "mười một": 11, "mười hai": 12, "mười ba": 13, "mười bốn": 14,
+    "mười lăm": 15, "mười sáu": 16, "mười bảy": 17, "mười tám": 18,
+    "mười chín": 19, "hai mươi": 20, "hai mươi lăm": 25, "hai lăm": 25,
+    "ba mươi": 30, "bốn mươi": 40, "bốn lăm": 45, "năm mươi": 50,
+}
+
+
+def _to_num(val_str: Optional[str]) -> Optional[int]:
+    """Chuyển chuỗi số hoặc chữ số tiếng Việt sang int."""
+    if not val_str:
+        return None
+    s = val_str.strip().lower()
+    if s.isdigit():
+        return int(s)
+    return WORD_TO_NUM.get(s)
 
 
 def now_vn() -> datetime:
@@ -32,6 +50,13 @@ def parse_date(text: str) -> Tuple[Optional[str], bool]:
     """
     text = text.lower().strip()
     today = now_vn().date()
+
+    # 0. Năm sau / Sang năm
+    if any(k in text for k in ["ngày này sang năm", "ngày này năm sau", "hôm nay sang năm", "hôm nay năm sau", "sang năm", "năm sau", "năm tới"]):
+        try:
+            return (date_cls(today.year + 1, today.month, today.day)).strftime("%Y-%m-%d"), False
+        except ValueError:
+            return (date_cls(today.year + 1, today.month, today.day - 1)).strftime("%Y-%m-%d"), False
 
     # 1. Các từ chỉ ngày tương đối
     if any(k in text for k in ["hôm nay", "tối nay", "trưa nay", "sáng nay", "chiều nay"]):
@@ -145,26 +170,47 @@ def parse_time(text: str, pending_ambiguous_hour: Optional[int] = None) -> Tuple
     is_evening = any(k in text for k in ["tối", "buổi tối", "đêm", "khuya"])
 
     # Regex bắt các kiểu giờ: 7h30, 7:30, 19h, 19:00, 7 giờ 30, 7 giờ, 7h rưỡi, lúc 18...
-    time_patterns = [
-        r'(\d{1,2})\s*(?:h|g|:|\s*giờ\s*)\s*(\d{2})',
-        r'(\d{1,2})\s*(?:h|g|\s*giờ)?\s*(?:rưỡi|ruoi)',
-        r'(\d{1,2})\s*(?:h|g|\s*giờ)(?!\d)',
-        r'\b(\d{1,2}):(\d{2})\b',
-        r'^(?:lúc|vào|tầm|khoảng)?\s*([1-9]|1\d|2[0-3])\s*(?:h|g|giờ)?$',
-    ]
-
+    # 1. Mẫu giờ kém: "bảy giờ kém mười lăm", "7h kém 15", "8 giờ kém 20", "7 giờ kém mười lăm"
     hour: Optional[int] = None
     minute = 0
 
-    for pat in time_patterns:
-        m = re.search(pat, text)
-        if m:
-            hour = int(m.group(1))
-            if "rưỡi" in text or "ruoi" in text:
+    kem_pattern = r'(\d{1,2}|một|hai|ba|bốn|tư|năm|sáu|bảy|bẩy|tám|chín|mười|mười một|mười hai)\s*(?:giờ|h|g)?\s*kém\s*(\d{1,2}|mười lăm|hai mươi lăm|hai mươi|mười|năm)'
+    m_kem = re.search(kem_pattern, text)
+    if m_kem:
+        h_val = _to_num(m_kem.group(1))
+        min_kem = _to_num(m_kem.group(2))
+        if h_val is not None and min_kem is not None:
+            hour = h_val - 1 if h_val > 0 else 23
+            minute = 60 - min_kem
+
+    # 2. Mẫu rưỡi: "7 rưỡi", "7h rưỡi", "bảy rưỡi"
+    if hour is None:
+        ruoi_pattern = r'(\d{1,2}|một|hai|ba|bốn|tư|năm|sáu|bảy|bẩy|tám|chín|mười|mười một|mười hai)\s*(?:h|g|\s*giờ)?\s*(?:rưỡi|ruoi)'
+        m_ruoi = re.search(ruoi_pattern, text)
+        if m_ruoi:
+            h_val = _to_num(m_ruoi.group(1))
+            if h_val is not None:
+                hour = h_val
                 minute = 30
-            elif len(m.groups()) >= 2 and m.group(2):
-                minute = int(m.group(2))
-            break
+
+    # 3. Các mẫu giờ thông thường (số hoặc chữ)
+    if hour is None:
+        time_patterns = [
+            r'(\d{1,2})\s*(?:h|g|:|\s*giờ\s*)\s*(\d{2})',
+            r'(\d{1,2})\s*(?:h|g|\s*giờ)(?!\d)',
+            r'\b(\d{1,2}):(\d{2})\b',
+            r'\b(một|hai|ba|bốn|tư|năm|sáu|bảy|bẩy|tám|chín|mười|mười một|mười hai)\s*(?:h|g|\s*giờ)(?!\d)',
+            r'^(?:lúc|vào|tầm|khoảng)?\s*([1-9]|1\d|2[0-3])\s*(?:h|g|giờ)?$',
+        ]
+        for pat in time_patterns:
+            m = re.search(pat, text)
+            if m:
+                h_val = _to_num(m.group(1))
+                if h_val is not None:
+                    hour = h_val
+                    if len(m.groups()) >= 2 and m.group(2) and m.group(2).isdigit():
+                        minute = int(m.group(2))
+                    break
 
     # Nếu không tìm thấy số giờ trong câu, nhưng có pending_ambiguous_hour từ turn trước
     # và câu này chỉ là câu trả lời buổi (VD: "tối", "buổi tối", "tối nha", "sáng", "chiều")
@@ -197,9 +243,18 @@ def parse_time(text: str, pending_ambiguous_hour: Optional[int] = None) -> Tuple
         return f"00:{minute:02d}", False, None
 
     # Với các giờ từ 1 đến 11:
-    if is_evening:
-        hour += 12
+    is_explicit_morning = bool(re.search(r'(\d{1,2}|một|hai|ba|bốn|tư|năm|sáu|bảy|bẩy|tám|chín|mười|mười một)\s*(?:h|g|:|\s*giờ)?\s*sáng\b', text)) or ("sáng" in text and "tối" not in text and "chiều" not in text and "đêm" not in text and "khuya" not in text)
+    if is_explicit_morning:
         return f"{hour:02d}:{minute:02d}", False, None
+
+    if is_evening:
+        # 1h..5h đêm/khuya là rạng sáng (01:00..05:00)
+        if 1 <= hour <= 5:
+            return f"{hour:02d}:{minute:02d}", False, None
+        else:
+            if hour < 12:
+                hour += 12
+            return f"{hour:02d}:{minute:02d}", False, None
 
     if is_afternoon:
         if hour < 12:
@@ -342,20 +397,26 @@ def validate_reservation_time(
         last_seating_str = f"{last_seating_mins // 60:02d}:{last_seating_mins % 60:02d}"
 
         if not (open_mins <= req_time_mins <= last_seating_mins):
+            h_int = dt_requested.hour
+            h_desc = f"{h_int}h ({time_str})"
             return (
                 False,
                 "OUTSIDE_OPERATING_HOURS",
-                f"Nhà hàng phục vụ đón khách từ **{open_str}** đến **{last_seating_str}** (đóng cửa lúc {close_str}). "
-                f"Bạn vui lòng chọn giờ trong khung giờ này giúp Aria nhé!"
+                f"Dạ, SmartRestaurant phục vụ đón khách trong giờ mở cửa từ 10:00 sáng đến 22:30 tối (đóng cửa lúc 22:30, đón khách muộn nhất 22:00) hàng ngày ạ. "
+                f"Khung giờ {h_desc} nhà hàng không phục vụ / đã đóng cửa nghỉ ngơi. "
+                f"Quý khách vui lòng chọn lại khung giờ hoạt động hợp lệ từ 10:00 sáng mai nhé!"
             )
     except Exception:
         # Fallback an toàn nếu format giờ bị lỗi
-        if not (8 * 60 <= req_time_mins <= 21 * 60 + 30):
+        if not (10 * 60 <= req_time_mins <= 22 * 60):
+            h_int = dt_requested.hour
+            h_desc = f"{h_int}h ({time_str})"
             return (
                 False,
                 "OUTSIDE_OPERATING_HOURS",
-                f"Nhà hàng phục vụ đón khách từ **08:00** đến **21:30** (đóng cửa lúc 22:00). "
-                f"Bạn vui lòng chọn giờ trong khung giờ này giúp Aria nhé!"
+                f"Dạ, SmartRestaurant phục vụ đón khách trong giờ mở cửa từ 10:00 sáng đến 22:30 tối (đóng cửa lúc 22:30, đón khách muộn nhất 22:00) hàng ngày ạ. "
+                f"Khung giờ {h_desc} nhà hàng không phục vụ / đã đóng cửa nghỉ ngơi. "
+                f"Quý khách vui lòng chọn lại khung giờ hoạt động hợp lệ từ 10:00 sáng mai nhé!"
             )
 
     return True, "", ""

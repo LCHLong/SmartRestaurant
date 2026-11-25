@@ -967,6 +967,66 @@ exports.cancelByToken = async (req, res) => {
 };
 
 /**
+ * POST /api/reservations/cancel-by-code
+ * Hủy đặt bàn trực tiếp bằng mã booking_code (TC-RES-09)
+ */
+exports.cancelByCode = async (req, res) => {
+  try {
+    const { booking_code, reason } = req.body;
+    if (!booking_code) {
+      return res.status(400).json({ success: false, error: { code: 'MISSING_CODE', message: 'Thiếu mã đặt bàn' } });
+    }
+
+    const cleanCode = booking_code.replace(/^#/, '').trim();
+    const { data: reservation, error: fetchErr } = await supabase
+      .from('reservations')
+      .select('*')
+      .ilike('booking_code', `%${cleanCode}%`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fetchErr) throw fetchErr;
+
+    if (!reservation) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'NOT_FOUND', message: `Không tìm thấy thông tin đặt bàn với mã #${cleanCode}` }
+      });
+    }
+
+    if (reservation.status === 'cancelled') {
+      return res.status(200).json({
+        success: true,
+        message: 'Đặt bàn đã được hủy trước đó',
+        data: reservation
+      });
+    }
+
+    const { data: updated, error: updateErr } = await supabase
+      .from('reservations')
+      .update({
+        status: 'cancelled',
+        cancellation_reason: reason || 'Khách hủy qua chat Aria',
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', reservation.id)
+      .select()
+      .single();
+
+    if (updateErr) throw updateErr;
+
+    return res.status(200).json({
+      success: true,
+      message: 'Đã hủy đặt bàn thành công',
+      data: updated
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: { code: 'SERVER_ERROR', message: err.message } });
+  }
+};
+
+/**
  * GET /api/reservations/overstay-alerts
  * Lấy danh sách bàn có nguy cơ Overstay (bàn đang occupied + có reservation sắp tới trong 15 phút)
  */

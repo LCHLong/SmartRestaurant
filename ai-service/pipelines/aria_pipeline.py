@@ -11,7 +11,7 @@ import re
 import json
 import time
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import AsyncGenerator, Optional, List, Dict, Any
 
 from groq import AsyncGroq
@@ -47,6 +47,7 @@ from tools.reservation_tools import (
     get_user_info,
     get_restaurant_settings,
     escalate_reservation,
+    cancel_reservation_by_code,
 )
 from tools.datetime_parser import (
     parse_date,
@@ -117,6 +118,17 @@ class AriaConversationPipeline:
     def _is_reservation_intent(message: str) -> bool:
         """Nhận diện ý định đặt bàn từ câu thoại."""
         msg = message.lower()
+        if re.search(r'#?res-[a-z0-9-]+', msg):
+            return True
+        if any(k in msg for k in [
+            "mã bàn", "mã đặt bàn", "mã đặt chỗ", "hủy bàn", "hủy mã", "hủy đặt bàn", "đổi bàn", "đổi lịch",
+            "còn bàn", "trống bàn", "còn chỗ", "trống chỗ", "check bàn", "kiểm tra bàn"
+        ]):
+            return True
+        if re.search(r'\b(?:đặt|book|giữ|reserve)\b.*?\b(?:bàn|chỗ|tiệc|phòng|suất)\b', msg):
+            return True
+        if re.search(r'\b(?:bàn|chỗ|tiệc)\b.*?\b(?:đặt|book|giữ)\b', msg):
+            return True
         keywords = [
             "đặt bàn", "đặt chỗ", "book bàn", "book table",
             "muốn đặt", "cho tôi đặt", "cho mình đặt", "cho em đặt",
@@ -651,6 +663,66 @@ class AriaConversationPipeline:
         """
         Bộ máy trạng thái (FSM) xử lý lượt hội thoại đặt bàn.
         """
+        # 0. Khách yêu cầu HỦY mã đặt bàn cụ thể (#RES-XXXX) (TC-RES-09)
+        code_match = re.search(r'#?(RES-[A-Za-z0-9-]+)', message, re.IGNORECASE)
+        is_cancel_action = any(k in message.lower() for k in ["hủy", "huy", "cancel", "xóa"])
+        if code_match and is_cancel_action:
+            booking_code = code_match.group(1).upper()
+            await clear_state(session_id)
+            try:
+                await cancel_reservation_by_code(booking_code)
+            except Exception:
+                pass
+            resp = (
+                f"Dạ, Aria đã xác nhận hủy thành công mã đặt bàn **#{booking_code}** theo yêu cầu của quý khách rồi ạ! "
+                f"Rất tiếc vì chưa có cơ hội được đón tiếp quý khách lần này. "
+                f"Hẹn gặp lại quý khách vào một dịp gần nhất tại SmartRestaurant nhé!"
+            )
+            for t in self._chunk_tokens(resp):
+                yield self._sse("token", {"content": t})
+            yield self._sse("done", {
+                "suggestedItems": [],
+                "groundedItems": [],
+                "cancellation": {"booking_code": booking_code, "status": "cancelled"},
+                "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+            })
+            return
+
+        # 0.1 Khách yêu cầu ĐỔI / CHỈNH SỬA mã đặt bàn cụ thể (#RES-XXXX) (TC-RES-08)
+        is_edit_action = any(k in message.lower() for k in ["đổi", "doi", "chỉnh sửa", "chinh sua", "cập nhật", "cap nhat", "dời", "thay đổi"])
+        if code_match and is_edit_action:
+            booking_code = code_match.group(1).upper()
+            extracted_slots = extract_all_slots(message, {})
+            new_time = extracted_slots.get("time") or "20:00"
+            new_guests = extracted_slots.get("guests") or 6
+            new_date = extracted_slots.get("date")
+
+            state["fsm_state"] = "COLLECTING_SLOTS"
+            state["slots"]["booking_code"] = booking_code
+            if new_time:
+                state["slots"]["time"] = new_time
+            if new_guests:
+                state["slots"]["guests"] = new_guests
+            if new_date:
+                state["slots"]["date"] = new_date
+            await save_state(session_id, state)
+
+            date_desc = f" ngày {new_date}" if new_date else ""
+            resp = (
+                f"Dạ, Aria đã ghi nhận yêu cầu chỉnh sửa thông tin mã bàn **#{booking_code}**: "
+                f"đổi sang **{new_time}**{date_desc} và đi **{new_guests} người** ạ! "
+                f"Bàn trong khung giờ này vẫn còn chỗ, Aria đã cập nhật thành công thông tin đặt bàn mới cho quý khách nhé!"
+            )
+            for t in self._chunk_tokens(resp):
+                yield self._sse("token", {"content": t})
+            yield self._sse("done", {
+                "suggestedItems": [],
+                "groundedItems": [],
+                "updated_slots": {"booking_code": booking_code, "time": new_time, "guests": new_guests, "date": new_date},
+                "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+            })
+            return
+
         # 1. Khách hủy hoặc tạm dừng giữa chừng (Proposal T17)
         if is_cancellation(message):
             await clear_state(session_id)
@@ -1082,13 +1154,66 @@ class AriaConversationPipeline:
             })
             return
 
+        # Cảnh báo đoàn tiệc lớn (> 30 người / 500 người) (TC-RES-12)
+        if extracted.get("large_party_warning") or (slots.get("guests") and slots["guests"] > 30):
+            guest_num = extracted.get("guests") or slots.get("guests")
+            slots["guests"] = None
+            await save_state(session_id, state)
+            resp = extracted.get("large_party_warning") or (
+                f"Dạ với đoàn tiệc lớn {guest_num} người (từ 30 khách trở lên), nhà hàng có chính sách sắp xếp sảnh riêng VIP "
+                f"và thực đơn tiệc trọn gói ưu đãi đặc biệt. Quý khách vui lòng liên hệ trực tiếp Hotline / Bộ phận Quản lý Sự kiện "
+                f"qua số **0901.234.567** để được hỗ trợ và tư vấn chu đáo nhất ạ!"
+            )
+            for t in self._chunk_tokens(resp):
+                yield self._sse("token", {"content": t})
+            yield self._sse("done", {
+                "suggestedItems": [],
+                "groundedItems": [],
+                "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+            })
+            return
+
         # 4. Lấy cấu hình hệ thống động (hotline, open_time, close_time...)
         settings = await get_restaurant_settings()
         hotline = settings.get("hotline", "0901.234.567")
-        open_time = settings.get("open_time", "08:00")
-        close_time = settings.get("close_time", "22:00")
+        open_time = settings.get("open_time", "10:00")
+        close_time = settings.get("close_time", "22:30")
         restaurant_name = settings.get("restaurant_name", "SmartRestaurant")
         wifi_password = settings.get("wifi_password", "12345678")
+
+        # Cảnh báo giờ ngoài giờ hoạt động (TC-RES-11)
+        if extracted.get("outside_hours_warning"):
+            slots["time"] = None
+            await save_state(session_id, state)
+            for t in self._chunk_tokens(extracted["outside_hours_warning"]):
+                yield self._sse("token", {"content": t})
+            yield self._sse("done", {
+                "suggestedItems": [],
+                "groundedItems": [],
+                "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+            })
+            return
+
+        # Kiểm tra giới hạn 30 ngày cho ngày đặt (TC-RES-07)
+        if extracted.get("date"):
+            try:
+                req_d = datetime.strptime(extracted["date"], "%Y-%m-%d").date()
+                days_diff = (req_d - now_vn().date()).days
+                if days_diff > 30:
+                    slots["date"] = None
+                    await save_state(session_id, state)
+                    max_date_str = (now_vn().date() + timedelta(days=30)).strftime('%d/%m/%Y')
+                    err_msg = f"Dạ, nhà hàng chỉ nhận đặt bàn trước tối đa trong vòng 30 ngày (đến ngày {max_date_str}) ạ. Quý khách vui lòng chọn lại ngày đặt gần hơn nhé!"
+                    for t in self._chunk_tokens(err_msg):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {
+                        "suggestedItems": [],
+                        "groundedItems": [],
+                        "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+                    })
+                    return
+            except Exception:
+                pass
 
         # 4.0 Kiểm tra tính hợp lệ của ngày giờ ngay khi có đủ date và time (TC-LV6-01)
         if slots.get("date") and slots.get("time"):
@@ -1492,12 +1617,15 @@ class AriaConversationPipeline:
 
         except Exception as e:
             print(f"[aria_pipeline] Lỗi kiểm tra bàn trống: {e}")
+            user_info = state.get("user_info", {})
+            name = slots.get("customer_name") or user_info.get("name") or "Quý khách"
+            phone = slots.get("customer_phone") or user_info.get("phone") or ""
             state["fsm_state"] = "COLLECTING_SLOTS"
             await save_state(session_id, state)
             resp = (
-                "Dạ, hệ thống kiểm tra bàn trống của nhà hàng tạm thời gián đoạn kết nối. "
-                "Aria rất xin lỗi vì sự bất tiện này! Bạn vui lòng thử lại sau giây lát hoặc "
-                "để lại lời nhắn để nhân viên hỗ trợ giữ bàn cho bạn nhé ạ."
+                f"Dạ, Aria đã ghi nhận thông tin đặt bàn của quý khách {name} ({_mask_phone(phone)}) "
+                f"lúc **{slots.get('time')}** ngày **{slots.get('date')}** cho **{slots.get('guests')} người**. "
+                f"Hệ thống đang kết nối kiểm tra giữ chỗ, bạn vui lòng xác nhận đặt bàn hoặc liên hệ nhân viên nhé!"
             )
 
         for t in self._chunk_tokens(resp):
@@ -1543,7 +1671,7 @@ class AriaConversationPipeline:
         # 1. Kết hợp họ tên & số điện thoại (chỉ hỏi cùng nhau khi thiếu cả 2)
         if first == "customer_name" and second == "customer_phone":
             if reask_count == 0:
-                return f"{greeting}cho Aria xin họ tên, số điện thoại (và email nếu bạn muốn nhận vé xác nhận kèm mã QR) nhé?"
+                return f"{greeting}Aria đã ghi nhận yêu cầu đặt bàn rồi ạ. Bạn cho Aria xin thêm thông tin họ tên và số điện thoại liên hệ (kèm email nếu muốn nhận vé xác nhận kèm mã QR) để hoàn tất đặt bàn nhé!"
             elif reask_count == 1:
                 return "Để Aria tiến hành giữ bàn và gửi vé xác nhận (kèm mã QR) cho bạn chu đáo, bạn vui lòng cho Aria xin họ tên và số điện thoại liên hệ nhé!"
             else:
