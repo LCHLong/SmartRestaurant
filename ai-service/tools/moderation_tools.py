@@ -16,12 +16,12 @@ TOXICITY_MODERATION_ANSWER = (
     "để Aria có thể lắng nghe và hỗ trợ quý khách tốt nhất ạ!"
 )
 
-# Phản hồi khẩn cấp giải cứu trải nghiệm dịch vụ & chuyển tiếp Quản lý (SPEC-MOD-06)
+# Phản hồi khẩn cấp giải cứu trải nghiệm dịch vụ & chuyển tiếp Quản lý (SPEC-MOD-05 & SPEC-MOD-06)
 MANAGER_ESCALATION_ANSWER = (
-    "Dạ, Aria vô cùng xin lỗi quý khách vì sự chậm trễ và trải nghiệm phục vụ không tốt lần này ạ! "
-    "Aria đã kích hoạt tín hiệu cảnh báo đỏ (Red Alert) khẩn cấp tới tài khoản Quản lý ca trực. "
-    "Quản lý đang di chuyển đến bàn của quý khách ngay lập tức để trực tiếp kiểm tra sự cố, xử lý món ăn "
-    "và hỗ trợ quý khách chu đáo nhất ạ. Kính mong quý khách thông cảm cho sự bất tiện này của nhà hàng ạ! 🔔"
+    "Aria thành thật xin lỗi vì sự chậm trễ này ạ! Aria đã báo khẩn cấp tới Quản lý nhà hàng, "
+    "Quản lý sẽ tới bàn của bạn trong ít phút để kiểm tra và xử lý ngay lập tức! "
+    "Tín hiệu cảnh báo đỏ (Red Alert / Priority Alert) khẩn cấp đã được phát tới thiết bị của Quản lý ca trực. "
+    "Quản lý đang di chuyển đến bàn hỗ trợ ngay. Kính mong bạn thông cảm cho sự bất tiện này của nhà hàng ạ! 🔔"
 )
 
 # Danh sách từ khóa và mẫu chửi bới, tục tĩu, khiêu khích (Toxicity Keywords)

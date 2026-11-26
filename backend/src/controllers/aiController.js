@@ -241,6 +241,74 @@ exports.consult = async (req, res) => {
   };
 
   try {
+    // 4.1. Kiểm tra sự cố dịch vụ khẩn cấp & chuyển tiếp Quản lý (SPEC-MOD-05: TC-SUP-10)
+    const lowerMsg = (message || '').toLowerCase().trim();
+    const hasMgr = /quản lý|quan ly|manager|chủ quán|chu quan/i.test(lowerMsg);
+    const hasAction = /gặp|gap|gọi|goi|cần|can|yêu cầu|yeu cau|nói chuyện|noi chuyen|đâu/i.test(lowerMsg);
+    const hasDelay = /40\s*(?:phút|p)|30\s*(?:phút|p)|chưa có món|chua co mon|chờ quá lâu|cho qua lau|chờ lâu|đợi lâu|quá lâu|nửa tiếng|cả tiếng/i.test(lowerMsg);
+    const hasComplaint = /phục vụ quá tệ|quá tệ|qua te|quá kém|làm ăn|bức xúc|thất vọng|khiếu nại|tệ hại|không có món/i.test(lowerMsg);
+    const hasUrgent = /ngay lập tức|ngay lap tuc|khẩn cấp|khan cap|gấp|gap|ngay bây giờ|liền/i.test(lowerMsg);
+
+    const isManagerEscalation = (hasMgr && (hasAction || hasDelay || hasComplaint || hasUrgent)) ||
+                                (hasComplaint && hasDelay && hasUrgent) ||
+                                (hasComplaint && hasDelay);
+
+    if (isManagerEscalation) {
+      const escalationAnswer =
+        "Aria thành thật xin lỗi vì sự chậm trễ này ạ! Aria đã báo khẩn cấp tới Quản lý nhà hàng, " +
+        "Quản lý sẽ tới bàn của bạn trong ít phút để kiểm tra và xử lý ngay lập tức! " +
+        "Tín hiệu cảnh báo đỏ (Red Alert / Priority Alert) khẩn cấp đã được phát tới thiết bị của Quản lý ca trực. " +
+        "Quản lý đang di chuyển đến bàn hỗ trợ ngay. Kính mong bạn thông cảm cho sự bất tiện này của nhà hàng ạ! 🔔";
+
+      const handoffPayload = {
+        sessionId,
+        tableId: tableId || 'T01',
+        reason: 'MANAGER_ESCALATION',
+        severity: 'RED_ALERT',
+        priority: 'HIGH',
+        isRedAlert: true,
+        isPriorityAlert: true,
+        summary: message,
+        timestamp: new Date().toISOString()
+      };
+
+      // 1. Stream token tới client
+      emitToClient('ai_stream_token', { sessionId, token: escalationAnswer, abVariant });
+
+      // 2. Bắn thông báo ưu tiên đặc biệt (Priority Alert / Red Alert) tới thiết bị cầm tay Quản lý & Waiter
+      io.to('waiter').emit('ai_handoff_alert', handoffPayload);
+      io.to('admin').emit('ai_handoff_alert', handoffPayload);
+      io.to('waiter').emit('manager_escalation_alert', handoffPayload);
+      io.to('admin').emit('manager_escalation_alert', handoffPayload);
+      io.to('waiter').emit('priority_alert', handoffPayload);
+      io.to('admin').emit('priority_alert', handoffPayload);
+
+      // 3. Emit ai_response
+      emitToClient('ai_response', {
+        sessionId,
+        content: escalationAnswer,
+        suggestedItems: [],
+        reservation: null,
+        cartAction: null,
+        isHandoff: true,
+        handoffPayload
+      });
+
+      // Lưu history vào Redis
+      const history = await getSessionHistory(sessionId);
+      const updatedHistory = [
+        ...history,
+        { role: 'user', content: message },
+        { role: 'assistant', content: escalationAnswer }
+      ].slice(-MAX_HISTORY_TURNS * 2);
+
+      try {
+        await redis.set(`ai_session:${sessionId}`, JSON.stringify(updatedHistory), { EX: SESSION_TTL });
+      } catch (_) {}
+
+      return;
+    }
+
     // 5. RAG & MemGPT — Lấy thực đơn, lịch sử đơn hàng, hội thoại & hồ sơ dài hạn song song
     const [ragResult, orderHistory, history, guestProfile, recallMemories] = await Promise.all([
       retrieveMenuContext(message, resolvedRestaurantId),

@@ -617,7 +617,9 @@ export default function ChatMessage({ message }) {
     ) &&
     !(
       message.handoffPayload?.severity === 'RED_ALERT' ||
-      message.handoffPayload?.reason === 'MANAGER_ESCALATION'
+      message.handoffPayload?.severity === 'PRIORITY_ALERT' ||
+      message.handoffPayload?.reason === 'MANAGER_ESCALATION' ||
+      message.content?.includes('Quản lý sẽ tới bàn')
     )
   );
 
@@ -728,15 +730,24 @@ export default function ChatMessage({ message }) {
           </div>
         )}
 
-        {/* Thẻ Cảnh Báo Đỏ (Red Alert) Quản Lý Ca Trực (SPEC-MOD-06) */}
-        {!message.isStreaming && (message.handoffPayload?.severity === 'RED_ALERT' || message.handoffPayload?.reason === 'MANAGER_ESCALATION' || message.content?.includes('Red Alert') || message.content?.includes('cảnh báo đỏ')) && (
+        {/* Thẻ Cảnh Báo Đỏ (Red Alert / Priority Alert) Quản Lý Ca Trực (SPEC-MOD-05 & SPEC-MOD-06) */}
+        {!message.isStreaming && (
+          message.handoffPayload?.severity === 'RED_ALERT' ||
+          message.handoffPayload?.severity === 'PRIORITY_ALERT' ||
+          message.handoffPayload?.reason === 'MANAGER_ESCALATION' ||
+          message.content?.includes('Red Alert') ||
+          message.content?.includes('Priority Alert') ||
+          message.content?.includes('cảnh báo đỏ') ||
+          message.content?.includes('Quản lý nhà hàng') ||
+          message.content?.includes('Quản lý sẽ tới bàn')
+        ) && (
           <div data-testid="manager-escalation-card" className="mt-2.5 bg-rose-50 border border-rose-300 rounded-2xl p-3 shadow-xs max-w-[95%]">
             <div className="flex items-center gap-2 text-rose-800 font-bold text-xs pb-1.5 border-b border-rose-200">
               <span className="material-symbols-outlined text-rose-600 text-base animate-pulse">crisis_alert</span>
-              <span>Cảnh Báo Đỏ (Red Alert) — Quản Lý Đang Đến Bàn</span>
+              <span>Cảnh Báo Đỏ / Khẩn Cấp (Priority Alert) — Quản Lý Đang Đến Bàn</span>
             </div>
             <p className="text-[11px] text-rose-700 mt-1.5 leading-relaxed">
-              Tín hiệu khẩn cấp đã được gửi trực tiếp tới tài khoản Quản lý ca trực. Quản lý đang di chuyển đến bàn của bạn để giải quyết sự cố và hỗ trợ bạn ngay lập tức.
+              Thông báo ưu tiên đặc biệt (Priority Alert) đã được gửi tới thiết bị cầm tay của Quản lý ca trực. Quản lý sẽ tới bàn của bạn trong ít phút để kiểm tra và xử lý ngay lập tức!
             </p>
           </div>
         )}
