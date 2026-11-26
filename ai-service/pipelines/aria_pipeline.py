@@ -801,7 +801,9 @@ class AriaConversationPipeline:
             for t in self._chunk_tokens(postfix_message):
                 yield self._sse("token", {"content": t})
 
-        suggested_items = extract_suggested_items(full_text, grounded_candidates)
+        corpus_pool = getattr(getattr(self.retriever, "index_manager", None), "corpus_items", None) or menu_context or []
+        candidates_to_match = list(grounded_candidates) + [c for c in corpus_pool if c not in grounded_candidates]
+        suggested_items = extract_suggested_items(full_text, candidates_to_match)
         total_time_ms = (time.perf_counter() - t_start) * 1000
 
         yield self._sse("done", {

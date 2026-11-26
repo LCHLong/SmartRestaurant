@@ -63,7 +63,7 @@ const CustomerSidebar = () => {
                     >
                         <span className={`material-symbols-outlined text-2xl ${addingToOrder && getCartCount() === 0 ? 'animate-pulse' : ''}`}>shopping_cart</span>
                         {getCartCount() > 0 ? (
-                            <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm animate-pulse">
+                            <span data-testid="cart-count" className="cart-badge absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm animate-pulse">
                                 {getCartCount()}
                             </span>
                         ) : addingToOrder ? (

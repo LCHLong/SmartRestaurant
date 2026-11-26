@@ -315,9 +315,54 @@ exports.consult = async (req, res) => {
       // onDone: emit final response + suggested items + reservation
       async (result) => {
         const finalText = result.text || fullResponse;
-        const suggestedItems = result.suggestedItems || [];
+        let suggestedItems = result.suggestedItems || [];
         const reservation = result.reservation || null;
         const cartAction = result.cartAction || null;
+
+        // Fallback trích xuất món ăn gợi ý từ text nếu suggestedItems bị rỗng (SPEC-MOD-02)
+        if ((!suggestedItems || suggestedItems.length === 0) && finalText && !result.isHandoff) {
+          try {
+            const allItems = (context && context.length ? context : await getMenuFromCache(resolvedRestaurantId)) || [];
+            const regex = /(?:gợi\s*ý\s+|thử\s+(?:thêm\s+)?|\*\*\[?)(.*?)(?:\]?\*\*|\s*)\s*[·•\-]\s*([\d\.,]+)\s*(?:đ|₫|vnd|vnđ)/gi;
+            let match;
+            const extracted = [];
+            const seen = new Set();
+            while ((match = regex.exec(finalText)) !== null) {
+              const name = match[1]
+                .replace(/^\*+|\*+$/g, '')
+                .replace(/^\[+|\]+$/g, '')
+                .replace(/^(dạ,?\s*)?(aria\s*xin\s*gợi\s*ý\s*|aria\s*gợi\s*ý\s*)/i, '')
+                .trim();
+              const price = parseInt(match[2].replace(/[,\.]/g, ''), 10);
+              if (name && !seen.has(name.toLowerCase())) {
+                seen.add(name.toLowerCase());
+                const found = allItems.find(it =>
+                  it.name && (it.name.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(it.name.toLowerCase()))
+                );
+                if (found) {
+                  extracted.push({
+                    id: found.id,
+                    name: found.name,
+                    price: found.price || price,
+                    image_url: found.image_url || (Array.isArray(found.images) ? found.images[0] : ''),
+                    description: found.description || ''
+                  });
+                } else {
+                  extracted.push({
+                    id: `dish-${name}`,
+                    name,
+                    price,
+                    image_url: '',
+                    description: ''
+                  });
+                }
+              }
+            }
+            if (extracted.length > 0) {
+              suggestedItems = extracted;
+            }
+          } catch (_) {}
+        }
 
         emitToClient('ai_response', {
           sessionId,

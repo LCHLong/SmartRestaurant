@@ -223,9 +223,19 @@ export default function MenuPage() {
 
                     // Append items for infinite scroll
                     if (page === 1) {
-                        setMenuItems(response.data.data || []);
+                        const items = response.data.data || [];
+                        setMenuItems(items);
+                        try {
+                            localStorage.setItem('cached_menu_catalog', JSON.stringify(items));
+                        } catch (_) {}
                     } else {
-                        setMenuItems(prev => [...prev, ...(response.data.data || [])]);
+                        setMenuItems(prev => {
+                            const updated = [...prev, ...(response.data.data || [])];
+                            try {
+                                localStorage.setItem('cached_menu_catalog', JSON.stringify(updated));
+                            } catch (_) {}
+                            return updated;
+                        });
                     }
 
                     // Update hasMore flag
@@ -313,7 +323,7 @@ export default function MenuPage() {
                                 <div className="relative">
                                     <span className={`material-symbols-outlined text-[24px] group-hover:scale-110 transition-transform ${addingToOrder && getCartCount() === 0 ? 'animate-pulse text-amber-500' : ''}`}>shopping_cart</span>
                                     {getCartCount() > 0 ? (
-                                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
+                                        <span data-testid="cart-count" className="cart-badge absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
                                             {getCartCount()}
                                         </span>
                                     ) : addingToOrder ? (

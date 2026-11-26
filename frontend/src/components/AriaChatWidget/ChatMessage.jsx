@@ -24,35 +24,177 @@ function extractDishesFromMarkdown(text) {
     .filter(name => !name.includes('Aria') && !name.includes('Lưu ý') && !name.includes('Bàn'));
 }
 
-// Mini card cho món được gợi ý
-function SuggestedItemCard({ item, onAdd }) {
+// Trích xuất món ăn từ văn bản phản hồi nếu suggestedItems bị rỗng (SPEC-MOD-02)
+function extractDishesFromText(text) {
+  if (!text) return [];
+
+  let catalog = [];
+  try {
+    const raw = localStorage.getItem('cached_menu_catalog');
+    if (raw) catalog = JSON.parse(raw);
+  } catch (_) {}
+
+  const items = [];
+  const seenNames = new Set();
+
+  // Pattern 1: [Tên món] · [Giá] hoặc **[Tên món]** · [Giá]
+  const regex = /(?:gợi\s*ý\s+|thử\s+(?:thêm\s+)?|\*\*\[?)(.*?)(?:\]?\*\*|\s*)\s*[·•\-]\s*([\d\.,]+)\s*(?:đ|₫|vnd|vnđ)/gi;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    let name = match[1]
+      .replace(/^\*+|\*+$/g, '')
+      .replace(/^\[+|\]+$/g, '')
+      .replace(/^(dạ,?\s*)?(aria\s*xin\s*gợi\s*ý\s*|aria\s*gợi\s*ý\s*)/i, '')
+      .trim();
+    let priceStr = match[2].replace(/[,\.]/g, '');
+    let price = parseInt(priceStr, 10);
+    if (name && price > 0 && !name.toLowerCase().includes('aria') && !seenNames.has(name.toLowerCase())) {
+      seenNames.add(name.toLowerCase());
+      const found = catalog.find(c =>
+        c.name && (c.name.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(c.name.toLowerCase()))
+      );
+      items.push({
+        id: found?.id || `item-${name}`,
+        name: found?.name || name,
+        price: found?.price || price,
+        image_url: found?.image_url || (Array.isArray(found?.images) ? found.images[0] : ''),
+        description: found?.description || ''
+      });
+    }
+  }
+
+  // Pattern 2: Dạng **[Tên món]**
+  if (items.length === 0) {
+    const boldMatches = [...text.matchAll(/\*\*([^*]+)\*\*/g)];
+    for (const m of boldMatches) {
+      let name = m[1].replace(/^\[+|\]+$/g, '').trim();
+      if (
+        name &&
+        !name.includes('Aria') &&
+        !name.includes('Lưu ý') &&
+        !name.includes('Bàn') &&
+        !seenNames.has(name.toLowerCase())
+      ) {
+        const found = catalog.find(c =>
+          c.name && (c.name.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(c.name.toLowerCase()))
+        );
+        if (found) {
+          seenNames.add(name.toLowerCase());
+          items.push({
+            id: found.id,
+            name: found.name,
+            price: found.price || 0,
+            image_url: found.image_url || (Array.isArray(found.images) ? found.images[0] : ''),
+            description: found.description || ''
+          });
+        }
+      }
+    }
+  }
+
+  return items;
+}
+
+// Thẻ Món Ăn Tương Tác Trong Chat (Interactive Product Card - SPEC-MOD-02 & FR-CHAT-06)
+function FoodCard({ item, onAdd }) {
+  const [quantity, setQuantity] = useState(1);
+  const [imgError, setImgError] = useState(false);
+
+  const fallbackImg = "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=400&q=80";
+
+  const handleDecrease = (e) => {
+    e.stopPropagation();
+    setQuantity(prev => Math.max(1, prev - 1));
+  };
+
+  const handleIncrease = (e) => {
+    e.stopPropagation();
+    setQuantity(prev => prev + 1);
+  };
+
+  const handleAdd = (e) => {
+    e.stopPropagation();
+    onAdd(item, quantity);
+  };
+
   return (
-    <div className="flex items-center gap-2.5 bg-white/90 border border-orange-100 rounded-xl p-2.5 mt-2 shadow-xs hover:border-orange-200 hover:shadow-sm transition-all">
-      {item.image_url && (
-        <img
-          src={item.image_url}
-          alt={item.name}
-          className="w-12 h-12 rounded-lg object-cover flex-shrink-0"
-        />
-      )}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-gray-800 truncate">{item.name}</p>
-        {item.description && (
-          <p className="text-xs text-gray-500 truncate">{item.description}</p>
-        )}
-        <p className="text-xs font-bold text-orange-500 mt-0.5">{formatPrice(item.price)}</p>
+    <div
+      data-testid="interactive-product-card"
+      data-food-card="true"
+      className="food-card interactive-product-card flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white/95 border border-orange-100 hover:border-orange-200 rounded-2xl p-3 mt-2 shadow-xs hover:shadow-md transition-all duration-200"
+    >
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        {/* Ảnh chụp món ăn sắc nét */}
+        <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-orange-50 flex-shrink-0 border border-orange-100/60 shadow-2xs">
+          <img
+            src={(!imgError && item.image_url) ? item.image_url : fallbackImg}
+            alt={item.name}
+            onError={() => setImgError(true)}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
+            loading="lazy"
+          />
+        </div>
+
+        {/* Thông tin món ăn: Tên in đậm & Giá tiền định dạng chuẩn VNĐ */}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-bold text-gray-900 truncate tracking-tight">{item.name}</p>
+          {item.description && (
+            <p className="text-[11px] text-gray-500 line-clamp-1 mt-0.5">{item.description}</p>
+          )}
+          <p className="text-xs font-bold text-orange-600 mt-1">{formatPrice(item.price)}</p>
+        </div>
       </div>
-      <button
-        onClick={() => onAdd(item)}
-        className="flex-shrink-0 bg-orange-500 hover:bg-orange-600 active:scale-95 text-white rounded-lg px-2.5 py-1.5 text-xs font-semibold transition-all duration-150 flex items-center gap-1 cursor-pointer"
-        aria-label={`Thêm ${item.name} vào giỏ`}
-      >
-        <span className="material-symbols-outlined text-sm">add</span>
-        <span className="hidden sm:inline">Thêm</span>
-      </button>
+
+      {/* Bộ điều khiển số lượng Stepper [-] [1] [+] & Nút [+ Thêm vào giỏ] */}
+      <div className="flex items-center gap-2 w-full sm:w-auto justify-end pt-2 sm:pt-0 border-t sm:border-t-0 border-orange-50">
+        {/* Stepper [-] [1] [+] */}
+        <div
+          data-testid="quantity-stepper"
+          className="flex items-center bg-orange-50/80 border border-orange-200 rounded-lg p-0.5 shadow-2xs"
+        >
+          <button
+            type="button"
+            data-testid="btn-decrease"
+            onClick={handleDecrease}
+            className="w-6 h-6 flex items-center justify-center rounded text-orange-700 hover:bg-white active:scale-95 text-xs font-bold transition-all cursor-pointer"
+            aria-label="Giảm số lượng"
+          >
+            -
+          </button>
+          <span
+            data-testid="quantity-value"
+            className="w-7 text-center text-xs font-bold text-gray-800 select-none"
+          >
+            {quantity}
+          </span>
+          <button
+            type="button"
+            data-testid="btn-increase"
+            onClick={handleIncrease}
+            className="w-6 h-6 flex items-center justify-center rounded text-orange-700 hover:bg-white active:scale-95 text-xs font-bold transition-all cursor-pointer"
+            aria-label="Tăng số lượng"
+          >
+            +
+          </button>
+        </div>
+
+        {/* Nút bấm [+ Thêm vào giỏ] */}
+        <button
+          type="button"
+          data-testid="add-to-cart-btn"
+          onClick={handleAdd}
+          className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 active:scale-95 text-white rounded-lg px-3 py-1.5 text-xs font-bold transition-all shadow-xs flex items-center gap-1 cursor-pointer flex-shrink-0"
+          aria-label={`Thêm ${item.name} vào giỏ`}
+        >
+          <span className="material-symbols-outlined text-sm">add_shopping_cart</span>
+          <span>+ Thêm vào giỏ</span>
+        </button>
+      </div>
     </div>
   );
 }
+
+const SuggestedItemCard = FoodCard;
 
 // Thẻ Giỏ Hàng Thu Nhỏ (Mini Cart Card) trực quan (SPEC-MOD-02)
 function MiniCartCard({ cartAction }) {
@@ -272,6 +414,10 @@ export default function ChatMessage({ message }) {
   const [feedbackPending, setFeedbackPending] = useState(false);
   const isUser = message.role === 'user';
 
+  const displaySuggestedItems = (message.suggestedItems && message.suggestedItems.length > 0)
+    ? message.suggestedItems
+    : extractDishesFromText(message.content);
+
   const handleFeedback = async (feedbackType) => {
     if (feedbackPending || message.userFeedback) return;
     setFeedbackPending(true);
@@ -300,15 +446,18 @@ export default function ChatMessage({ message }) {
     }
   };
 
-  const handleAddToCart = (item) => {
-    addToCart({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      image_url: item.image_url,
-      description: item.description,
-    });
-    toast.success(`Đã thêm "${item.name}" vào giỏ! 🛒`, { duration: 2000 });
+  const handleAddToCart = (item, quantity = 1) => {
+    addToCart(
+      {
+        id: item.id,
+        name: item.name,
+        price: item.price,
+        image_url: item.image_url,
+        description: item.description,
+      },
+      quantity
+    );
+    toast.success(`Đã thêm ${quantity > 1 ? `${quantity}x ` : ''}"${item.name}" vào giỏ! 🛒`, { duration: 2000 });
   };
 
   if (isUser) {
@@ -363,12 +512,12 @@ export default function ChatMessage({ message }) {
           <MiniCartCard cartAction={message.cartAction} />
         )}
 
-        {/* Mini cards gợi ý món */}
-        {!message.isStreaming && message.suggestedItems?.length > 0 && (
-          <div className="mt-1 max-w-[90%]">
-            {message.suggestedItems.map(item => (
-              <SuggestedItemCard
-                key={item.id}
+        {/* Thẻ Món Ăn Tương Tác Trong Chat (Interactive Food Cards - SPEC-MOD-02 & FR-CHAT-06) */}
+        {!message.isStreaming && displaySuggestedItems?.length > 0 && (
+          <div data-testid="interactive-product-cards-container" className="mt-2 space-y-2 max-w-[95%]">
+            {displaySuggestedItems.map(item => (
+              <FoodCard
+                key={item.id || item.name}
                 item={item}
                 onAdd={handleAddToCart}
               />
