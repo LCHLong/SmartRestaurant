@@ -94,6 +94,21 @@ const initSocket = (httpServer) => {
       console.log(`✅ User ${socket.id} (${user?.role || 'guest'}) joined room: ${room}`);
     });
 
+    // 🛎️ Gọi nhân viên bàn (SPEC-MOD-05: TC-SUP-06..08)
+    socket.on('call_staff', (data) => {
+      const tableId = data?.tableId || 'T01';
+      const reason = data?.reason || 'Gọi nhân viên bàn';
+      const payload = {
+        tableId,
+        reason,
+        summary: `Bàn ${tableId} gọi nhân viên: ${reason}`,
+        timestamp: new Date().toISOString()
+      };
+      io.to('waiter').emit('ai_handoff_alert', payload);
+      io.to('admin').emit('ai_handoff_alert', payload);
+      console.log(`🛎️ [call_staff] Bàn ${tableId} yêu cầu: ${reason}`);
+    });
+
     socket.on('disconnect', () => {
       console.log(`❌ Client disconnected: ${socket.id}`);
     });

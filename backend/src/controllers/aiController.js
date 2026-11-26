@@ -633,6 +633,43 @@ exports.clearSession = async (req, res) => {
   }
 };
 
+/**
+ * POST /api/ai/call-staff
+ * Hỗ trợ tại bàn & gọi nhân viên (SPEC-MOD-05: TC-SUP-06..08)
+ */
+exports.callStaff = async (req, res) => {
+  try {
+    const { tableId, reason, note } = req.body;
+    let io;
+    try {
+      const socketModule = require('../config/socket');
+      io = socketModule.getIO ? socketModule.getIO() : req.app?.get('io');
+    } catch (_) {}
+
+    const payload = {
+      tableId: tableId || 'T01',
+      reason: reason || 'Gọi nhân viên bàn',
+      note: note || '',
+      summary: `Bàn ${tableId || 'T01'} gọi nhân viên: ${reason || 'Gọi nhân viên bàn'}`,
+      timestamp: new Date().toISOString()
+    };
+
+    if (io) {
+      io.to('waiter').emit('ai_handoff_alert', payload);
+      io.to('admin').emit('ai_handoff_alert', payload);
+    }
+
+    return res.json({
+      success: true,
+      message: 'Đã gửi tín hiệu tới nhân viên phụ trách bàn của bạn!',
+      data: payload
+    });
+  } catch (err) {
+    console.error('[callStaff] error:', err);
+    return res.status(500).json({ success: false, message: err.message });
+  }
+};
+
 // Re-export để các module khác có thể dùng trực tiếp từ aiController (backward compat)
 exports.getAbVariant = getAbVariant;
 exports.triggerBackgroundSummarizer = triggerBackgroundSummarizer;

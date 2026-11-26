@@ -5,9 +5,11 @@
  * - Assistant message: bubble trái + streaming cursor + mini card món
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCart } from '../../contexts/CartContext';
 import { useAiChat } from '../../contexts/AiChatContext';
+import { useSocket } from '../../contexts/SocketContext';
+import api from '../../services/api';
 import toast from 'react-hot-toast';
 
 function formatPrice(price) {
@@ -390,6 +392,190 @@ function BookingConfirmationCard({ reservation }) {
   );
 }
 
+// Khay Gọi Nhân Viên Bàn & Chọn Nhanh Lý Do (SPEC-MOD-05: TC-SUP-06..08)
+function CallStaffCard({ message }) {
+  const socket = useSocket();
+  const [cooldown, setCooldown] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('staff_call_cooldown');
+      if (saved) {
+        const remaining = Math.ceil((parseInt(saved, 10) - Date.now()) / 1000);
+        return remaining > 0 ? remaining : 0;
+      }
+    } catch (_) {}
+    return 0;
+  });
+
+  const [showReasons, setShowReasons] = useState(() => cooldown > 0);
+  const [selectedReason, setSelectedReason] = useState(null);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown(prev => {
+        if (prev <= 1) {
+          try {
+            sessionStorage.removeItem('staff_call_cooldown');
+          } catch (_) {}
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  const triggerCallStaff = (reason = 'Gọi nhân viên bàn') => {
+    if (cooldown > 0) {
+      toast(`Vui lòng đợi ${cooldown}s trước khi gửi yêu cầu tiếp theo! ⏳`, { id: 'call-staff-cooldown' });
+      return;
+    }
+
+    // 1. Kích hoạt bộ đếm ngược Cooldown 45s (SPEC-MOD-05 / FR-CHAT-15)
+    const targetTime = Date.now() + 45 * 1000;
+    try {
+      sessionStorage.setItem('staff_call_cooldown', targetTime.toString());
+    } catch (_) {}
+    setCooldown(45);
+
+    // 2. Mở khay chọn nhanh lý do (SPEC-MOD-05 / FR-CHAT-14)
+    setShowReasons(true);
+    setSelectedReason(reason !== 'Gọi nhân viên bàn' ? reason : null);
+
+    // 3. Hiển thị Toast thông báo chuẩn theo kỳ vọng (SPEC-MOD-05 / FR-CHAT-13)
+    toast.success('Đã gửi tín hiệu tới nhân viên phụ trách bàn của bạn!', {
+      id: 'call-staff-toast',
+      duration: 4000
+    });
+
+    // 4. Phát tín hiệu qua Socket & API
+    const tableId = localStorage.getItem('qr_table_number') || localStorage.getItem('qr_table_id') || 'T01';
+    if (socket) {
+      socket.emit('call_staff', {
+        tableId,
+        reason,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    api.post('/api/ai/call-staff', { tableId, reason }).catch(() => {});
+  };
+
+  const handleReasonClick = (reasonLabel) => {
+    setSelectedReason(reasonLabel);
+    toast.success('Đã gửi tín hiệu tới nhân viên phụ trách bàn của bạn!', {
+      id: 'call-staff-toast',
+      duration: 4000
+    });
+
+    const tableId = localStorage.getItem('qr_table_number') || localStorage.getItem('qr_table_id') || 'T01';
+    if (socket) {
+      socket.emit('call_staff', {
+        tableId,
+        reason: reasonLabel,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    api.post('/api/ai/call-staff', { tableId, reason: reasonLabel }).catch(() => {});
+  };
+
+  const isTrayOpen = showReasons || cooldown > 0;
+
+  const reasons = [
+    { id: 'ice', label: 'Xin đá', icon: 'ac_unit' },
+    { id: 'dishes', label: 'Chén đĩa', icon: 'restaurant' },
+    { id: 'payment', label: 'Thanh toán', icon: 'receipt_long' },
+    { id: 'more_ice', label: 'Xin thêm đá', icon: 'local_drink' }
+  ];
+
+  return (
+    <div
+      data-testid="call-staff-container"
+      className="relative z-20 pointer-events-auto mt-2.5 bg-gradient-to-br from-rose-50/90 via-white to-amber-50/80 border border-rose-200 rounded-2xl p-3 shadow-xs max-w-[95%]"
+    >
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="flex items-center gap-1.5 text-rose-800 font-bold text-xs">
+          <span className="material-symbols-outlined text-sm text-rose-600">room_service</span>
+          <span>Hỗ Trợ Tại Bàn (SPEC-MOD-05)</span>
+        </div>
+        {cooldown > 0 ? (
+          <span
+            data-testid="cooldown-timer"
+            className="text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-full animate-pulse"
+          >
+            Đợi {cooldown}s
+          </span>
+        ) : (
+          <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+            Sẵn sàng hỗ trợ
+          </span>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {/* Nút bấm Gọi nhân viên bàn (FR-CHAT-13) */}
+        <button
+          type="button"
+          data-testid="call-staff-btn"
+          onClick={() => triggerCallStaff('Gọi nhân viên bàn')}
+          disabled={cooldown > 0}
+          className={`call-staff-btn relative z-20 pointer-events-auto w-full py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-xs cursor-pointer select-none active:scale-95 ${
+            cooldown > 0
+              ? 'bg-gray-100 text-gray-500 border border-gray-300 cursor-not-allowed opacity-80'
+              : 'bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white border border-rose-400'
+          }`}
+          aria-label="Gọi nhân viên bàn"
+        >
+          <span className="text-sm">🛎️</span>
+          <span>
+            {cooldown > 0 ? `🛎️ Gọi nhân viên bàn (${cooldown}s)` : '🛎️ Gọi nhân viên bàn'}
+          </span>
+        </button>
+
+        {/* Khay chọn nhanh lý do (Quick Reason Tags - FR-CHAT-14) */}
+        {isTrayOpen && (
+          <div
+            data-testid="quick-reason-tags-tray"
+            className="mt-1 pt-2 border-t border-rose-100 animate-fadeIn"
+          >
+            <p className="text-[11px] font-semibold text-gray-600 mb-1.5 flex items-center justify-between">
+              <span className="flex items-center gap-1">
+                <span className="material-symbols-outlined text-xs text-orange-500">label</span>
+                <span>Chọn nhanh lý do cần phục vụ:</span>
+              </span>
+              {cooldown > 0 && (
+                <span className="text-[10px] text-amber-600 font-medium">
+                  Đang đếm ngược ({cooldown}s)
+                </span>
+              )}
+            </p>
+            <div className="grid grid-cols-2 gap-1.5">
+              {reasons.map((r) => (
+                <button
+                  key={r.id}
+                  type="button"
+                  data-testid={`tag-${r.id}`}
+                  onClick={() => handleReasonClick(r.label)}
+                  className={`relative z-20 pointer-events-auto py-1.5 px-2 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 border transition-all cursor-pointer active:scale-95 ${
+                    selectedReason === r.label
+                      ? 'bg-rose-100 border-rose-300 text-rose-800 font-bold shadow-2xs'
+                      : 'bg-white hover:bg-orange-50 border-orange-200 text-gray-700 hover:text-orange-700'
+                  }`}
+                  aria-label={r.label}
+                >
+                  <span className="material-symbols-outlined text-[13px] text-orange-500">{r.icon}</span>
+                  <span>{r.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Render markdown-light: **bold** và dòng mới
 function renderText(text) {
   if (!text) return null;
@@ -417,6 +603,23 @@ export default function ChatMessage({ message }) {
   const displaySuggestedItems = (message.suggestedItems && message.suggestedItems.length > 0)
     ? message.suggestedItems
     : extractDishesFromText(message.content);
+
+  const isCallStaff = Boolean(
+    !message.isStreaming &&
+    (
+      message.isHandoff ||
+      message.handoffPayload?.reason === 'CUSTOMER_REQUESTED' ||
+      message.content?.includes('🔔') ||
+      message.content?.toLowerCase().includes('gọi nhân viên') ||
+      message.content?.toLowerCase().includes('gặp nhân viên') ||
+      message.content?.toLowerCase().includes('nhân viên đến bàn') ||
+      message.content?.toLowerCase().includes('gọi phục vụ')
+    ) &&
+    !(
+      message.handoffPayload?.severity === 'RED_ALERT' ||
+      message.handoffPayload?.reason === 'MANAGER_ESCALATION'
+    )
+  );
 
   const handleFeedback = async (feedbackType) => {
     if (feedbackPending || message.userFeedback) return;
@@ -538,15 +741,9 @@ export default function ChatMessage({ message }) {
           </div>
         )}
 
-        {/* Nút gọi nhân viên (human handoff) */}
-        {message.content?.includes('🔔') && !message.isStreaming && (
-          <button
-            className="mt-2 flex items-center gap-1.5 text-xs text-rose-600 border border-rose-300 rounded-lg px-3 py-1.5 hover:bg-rose-50 transition-colors"
-            onClick={() => toast('Quản lý và nhân viên đã nhận được cảnh báo! 🔔', { icon: '🛎️' })}
-          >
-            <span className="material-symbols-outlined text-sm">notifications_active</span>
-            Quản lý / Nhân viên đang đến hỗ trợ
-          </button>
+        {/* Khay Gọi Nhân Viên & Chọn Nhanh Lý Do (SPEC-MOD-05: TC-SUP-06..08) */}
+        {isCallStaff && (
+          <CallStaffCard message={message} />
         )}
 
         {/* Thanh nút đánh giá Thumbs Up / Down (Bước 4.3 Kế Hoạch 05) */}
