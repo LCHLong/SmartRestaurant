@@ -83,6 +83,9 @@ function streamFromPipecat(payload, onToken, onDone, onError) {
             if (parsedEvent.reservation) {
               finalResult.reservation = parsedEvent.reservation;
             }
+            if (parsedEvent.cartAction) {
+              finalResult.cartAction = parsedEvent.cartAction;
+            }
             if (parsedEvent.isHandoff) {
               finalResult.isHandoff = true;
               finalResult.handoffPayload = parsedEvent.handoffPayload || null;

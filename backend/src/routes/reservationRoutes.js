@@ -65,6 +65,10 @@ router.get('/lookup', lookupRateLimiter, reservationController.lookupReservation
 /** Hủy đặt bàn qua link email (Signed JWT Token) */
 router.post('/cancel-by-token', reservationController.cancelByToken);
 
+/** Hủy đặt bàn bằng mã booking_code trực tiếp trong chat (TC-RES-09) */
+router.post('/cancel-by-code', reservationController.cancelByCode);
+router.post('/cancel', reservationController.cancelByCode);
+
 // ─── Semi-Public Routes (optional auth) ────────────────────────────────────
 
 /** Đặt bàn mới (guest hoặc logged-in user) — Rate limited */

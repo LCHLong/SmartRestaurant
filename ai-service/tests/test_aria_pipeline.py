@@ -202,6 +202,33 @@ class TestAriaPipeline(unittest.IsolatedAsyncioTestCase):
         self.assertIn('"type": "token"', content)
         self.assertIn('"type": "done"', content)
 
+    async def test_10_seasoning_allergy_protocol_tc_rec_06(self):
+        """TC-REC-06: Phát hiện và lọc dị nguyên ẩn trong gia vị nêm nếm (Nước mắm cá, Dầu hào)."""
+        from unittest.mock import patch
+        queries = [
+            "Tôi bị dị ứng cá biển rất nặng, các món xào của quán có nêm nước mắm hay dầu hào chiết xuất từ cá/hàu không?",
+            "Tôi dị ứng cá biển nặng, các món xào của quán có nêm nước mắm cá hay dầu hào không? Cho tôi món an toàn."
+        ]
+        with patch("pipelines.aria_pipeline._get_client", return_value=None):
+            for q in queries:
+                tokens = []
+                suggested_items = []
+                async for sse in self.pipeline.process(message=q, menu_context=None):
+                    if sse.startswith("data: "):
+                        data = json.loads(sse[6:])
+                        if data.get("type") == "token":
+                            tokens.append(data.get("content", ""))
+                        elif data.get("type") == "done":
+                            suggested_items = data.get("suggestedItems", [])
+
+                full_text = "".join(tokens).lower()
+                self.assertIn("cá", full_text)
+                self.assertIn("nước mắm", full_text)
+                self.assertIn("dầu hào", full_text)
+                self.assertTrue(any(k in full_text for k in ["muối", "xì dầu"]))
+                self.assertTrue(any(k in full_text for k in ["bếp", "chảo", "nhiễm chéo"]))
+                self.assertGreater(len(suggested_items), 0)
+
 
 if __name__ == "__main__":
     unittest.main()

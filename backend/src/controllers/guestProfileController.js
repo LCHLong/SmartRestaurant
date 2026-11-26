@@ -376,3 +376,48 @@ exports.ingestSessionSummary = async (req, res) => {
     return res.status(500).json({ success: false, message: 'Lỗi ghi nhận tóm tắt phiên' });
   }
 };
+
+/**
+ * Xóa sạch toàn bộ lịch sử ăn uống & hồ sơ khẩu vị theo GDPR Right to be Forgotten (TC-MEM-09)
+ * DELETE /api/guest-profile/me
+ * POST   /api/guest-profile/purge
+ */
+exports.purgeProfile = async (req, res) => {
+  const userId = req.user?.id || req.body?.userId;
+  if (!userId) {
+    return res.status(400).json({ success: false, message: 'Yêu cầu định danh người dùng (userId)' });
+  }
+
+  try {
+    // 1. Xóa toàn bộ ký ức trong guest_memories
+    await supabase.from('guest_memories').delete().eq('user_id', userId);
+
+    // 2. Reset hồ sơ trong guest_profiles về trạng thái sạch (privacy_opt_out: true)
+    await supabase.from('guest_profiles').upsert({
+      user_id: userId,
+      allergies: [],
+      dietary_preferences: {},
+      favorite_dishes: [],
+      spice_preference: 'vừa',
+      preferred_zone: null,
+      special_notes: null,
+      visit_count: 1,
+      privacy_opt_out: true,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    // 3. Xóa Redis cache
+    const cacheKey = `guest_profile:${userId}`;
+    if (redis && typeof redis.del === 'function') {
+      await redis.del(cacheKey).catch(() => {});
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Đã xóa hoàn toàn mọi thông tin lịch sử khẩu vị của bạn theo chính sách bảo mật riêng tư'
+    });
+  } catch (err) {
+    console.error('[guestProfile] purgeProfile error:', err);
+    return res.status(500).json({ success: false, message: 'Lỗi máy chủ khi xóa dữ liệu cá nhân' });
+  }
+};

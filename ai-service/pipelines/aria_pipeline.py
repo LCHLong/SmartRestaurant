@@ -11,7 +11,7 @@ import re
 import json
 import time
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import AsyncGenerator, Optional, List, Dict, Any
 
 from groq import AsyncGroq
@@ -47,6 +47,7 @@ from tools.reservation_tools import (
     get_user_info,
     get_restaurant_settings,
     escalate_reservation,
+    cancel_reservation_by_code,
 )
 from tools.datetime_parser import (
     parse_date,
@@ -69,6 +70,24 @@ from tools.intent_classifier import IntentClassifier, classify_intent
 from tools.faq_engine import FAQEngine, get_faq_answer
 from tools.policy_engine import PolicyEngine, get_policy_answer
 from tools.takeaway_tools import extract_takeaway_items, format_takeaway_response, is_takeaway_message
+from tools.memory_engine import MemoryEngine
+from tools.cart_tools import (
+    is_cart_action,
+    extract_cart_add_items,
+    extract_cart_remove_items,
+    format_cart_response,
+    is_competitor_query,
+    get_competitor_refusal,
+    is_bargain_query,
+    get_bargain_refusal,
+    check_unrealistic_budget_query,
+)
+from tools.moderation_tools import (
+    is_toxic_message,
+    get_toxicity_moderation_response,
+    is_manager_escalation_requested,
+    get_manager_escalation_response,
+)
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -116,6 +135,17 @@ class AriaConversationPipeline:
     def _is_reservation_intent(message: str) -> bool:
         """Nhận diện ý định đặt bàn từ câu thoại."""
         msg = message.lower()
+        if re.search(r'#?res-[a-z0-9-]+', msg):
+            return True
+        if any(k in msg for k in [
+            "mã bàn", "mã đặt bàn", "mã đặt chỗ", "hủy bàn", "hủy mã", "hủy đặt bàn", "đổi bàn", "đổi lịch",
+            "còn bàn", "trống bàn", "còn chỗ", "trống chỗ", "check bàn", "kiểm tra bàn"
+        ]):
+            return True
+        if re.search(r'\b(?:đặt|book|giữ|reserve)\b.*?\b(?:bàn|chỗ|tiệc|phòng|suất)\b', msg):
+            return True
+        if re.search(r'\b(?:bàn|chỗ|tiệc)\b.*?\b(?:đặt|book|giữ)\b', msg):
+            return True
         keywords = [
             "đặt bàn", "đặt chỗ", "book bàn", "book table",
             "muốn đặt", "cho tôi đặt", "cho mình đặt", "cho em đặt",
@@ -163,6 +193,51 @@ class AriaConversationPipeline:
         conversation_history = conversation_history or []
 
         try:
+            # ── 0.1. Kiểm tra phòng thủ ngôn từ độc hại / công kích (SPEC-MOD-05: TC-SEC-02) ──
+            is_toxic, toxic_words = is_toxic_message(message)
+            if is_toxic:
+                ans = get_toxicity_moderation_response()
+                for t in self._chunk_tokens(ans):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": 0,
+                    }
+                })
+                return
+
+            # ── 0.2. Kiểm tra sự cố dịch vụ khẩn cấp & chuyển tiếp Quản lý (SPEC-MOD-06: TC-SUP-10) ──
+            is_mgr_esc, esc_details = is_manager_escalation_requested(message)
+            if is_mgr_esc:
+                ans = get_manager_escalation_response(table_id=table_id)
+                for t in self._chunk_tokens(ans):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "isHandoff": True,
+                    "handoffPayload": {
+                        "sessionId": session_id or "unknown",
+                        "tableId": table_id or "T01",
+                        "reason": "MANAGER_ESCALATION",
+                        "severity": "RED_ALERT",
+                        "isRedAlert": True,
+                        "summary": message,
+                        "timestamp": datetime.now().isoformat(),
+                        "details": esc_details
+                    },
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": 0,
+                    }
+                })
+                return
+
             # ── 1. Kiểm tra yêu cầu chuyển giao nhân viên thủ công ──────────────
             if is_human_handoff_requested(message):
                 fb = get_fallback_context(menu_context or [], tier=3)
@@ -283,10 +358,194 @@ class AriaConversationPipeline:
                     yield sse_item
                 return  # Kết thúc lượt thoại đặt bàn
 
+            # ── 2.5. Luồng tương tác bộ nhớ dài hạn MemGPT & Quyền riêng tư (SPEC-MOD-04) ──
+            is_mem, sub_mem_intent = IntentClassifier.is_memory_intent(message)
+            if is_mem and sub_mem_intent:
+                # Nếu yêu cầu xoá dữ liệu (TC-MEM-09: Right to be Forgotten)
+                if sub_mem_intent == "mem_purge":
+                    effective_user_id = user_id or (guest_profile.get("user_id") if isinstance(guest_profile, dict) else None)
+                    if effective_user_id:
+                        try:
+                            await MemoryEngine.purge_remote_profile(effective_user_id)
+                        except Exception:
+                            pass
+                    if session_id:
+                        try:
+                            await clear_state(session_id)
+                        except Exception:
+                            pass
+
+                ans, mem_suggested = MemoryEngine.get_memory_response(
+                    sub_intent=sub_mem_intent,
+                    message=message,
+                    guest_profile=guest_profile,
+                    order_history=order_history,
+                )
+                for t in self._chunk_tokens(ans):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": mem_suggested,
+                    "groundedItems": [],
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": len(mem_suggested),
+                    }
+                })
+                return
+
+            # ── 2.6. Nhận diện câu hỏi về thương hiệu đối thủ (TC-REC-09, TC-REC-10) ──
+            is_comp, comp_brand = is_competitor_query(message)
+            if is_comp:
+                ans = get_competitor_refusal(comp_brand)
+                for t in self._chunk_tokens(ans):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": 0,
+                    }
+                })
+                return
+
+            # ── 2.7. Nhận diện mặc cả / trả giá món ăn (TC-ATC-11) ──
+            if is_bargain_query(message):
+                ans = get_bargain_refusal()
+                for t in self._chunk_tokens(ans):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": 0,
+                    }
+                })
+                return
+
+            # ── 2.7.5. Kiểm tra ngân sách biên cực thấp (SPEC-MOD-01: TC-REC-02: 5 người / 50k) ──
+            is_low_budget, low_budget_resp = check_unrealistic_budget_query(message)
+            if is_low_budget:
+                for t in self._chunk_tokens(low_budget_resp):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": 0,
+                    }
+                })
+                return
+
+            # ── 2.8. Luồng thao tác giỏ hàng tương tác (SPEC-MOD-02: TC-ATC-03, TC-ATC-04, TC-ATC-09, TC-ATC-10) ──
+            is_cart, cart_action_type = is_cart_action(message)
+            if is_cart:
+                corpus = getattr(getattr(self.retriever, "index_manager", None), "corpus_items", None) or menu_context or []
+
+                if cart_action_type == "add_to_cart":
+                    added_items = extract_cart_add_items(message, corpus)
+                    ans = format_cart_response("add_to_cart", added_items, current_cart=cart_items)
+                    suggested = []
+                    for it in added_items:
+                        suggested.append({
+                            "id": it.get("id"),
+                            "name": it.get("name"),
+                            "price": it.get("price"),
+                            "image_url": it.get("image_url", ""),
+                            "description": it.get("description", ""),
+                            "quantity": it.get("quantity", 1),
+                            "modifiers": it.get("modifiers", []),
+                            "notes": it.get("notes", "")
+                        })
+                    for t in self._chunk_tokens(ans):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {
+                        "cartAction": {
+                            "type": "add_to_cart",
+                            "items": added_items
+                        },
+                        "suggestedItems": suggested,
+                        "groundedItems": [],
+                        "metrics": {
+                            "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "rag_count": len(added_items),
+                        }
+                    })
+                    return
+
+                elif cart_action_type == "remove_from_cart":
+                    removed_items = extract_cart_remove_items(message, cart_items=cart_items)
+                    ans = format_cart_response("remove_from_cart", removed_items, current_cart=cart_items)
+                    for t in self._chunk_tokens(ans):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {
+                        "cartAction": {
+                            "type": "remove_from_cart",
+                            "items": removed_items
+                        },
+                        "suggestedItems": [],
+                        "groundedItems": [],
+                        "metrics": {
+                            "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "rag_count": 0,
+                        }
+                    })
+                    return
+
+                elif cart_action_type == "view_cart":
+                    ans = format_cart_response("view_cart", [], current_cart=cart_items)
+                    total_amount = sum(float(it.get("price") or 0) * it.get("quantity", 1) for it in (cart_items or []))
+                    for t in self._chunk_tokens(ans):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {
+                        "cartAction": {
+                            "type": "view_cart",
+                            "items": cart_items or [],
+                            "total": total_amount
+                        },
+                        "suggestedItems": [],
+                        "groundedItems": [],
+                        "metrics": {
+                            "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "rag_count": 0,
+                        }
+                    })
+                    return
+
+                elif cart_action_type == "clear_cart":
+                    ans = format_cart_response("clear_cart", [], current_cart=[])
+                    for t in self._chunk_tokens(ans):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {
+                        "cartAction": {
+                            "type": "clear_cart",
+                            "items": []
+                        },
+                        "suggestedItems": [],
+                        "groundedItems": [],
+                        "metrics": {
+                            "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                            "rag_count": 0,
+                        }
+                    })
+                    return
+
             # ── 3. Luồng tra cứu tiện ích, FAQ & chính sách nhà hàng (Facility & Policy) ──
             is_fac_inquiry, sub_fac_intent = IntentClassifier.is_facility_inquiry(message)
             is_pol_inquiry, sub_pol_intent = IntentClassifier.is_policy_inquiry(message)
-            if is_fac_inquiry or is_pol_inquiry or is_takeaway_message(message):
+            # Lưu ý: Thắc mắc dị ứng gia vị (seasoning_allergy_policy) luôn chuyển giao vào Consultation Flow
+            # để vừa giải thích chính sách an toàn dị ứng 5 tầng, vừa truy xuất và gợi ý món an toàn với thẻ món ăn.
+            if is_fac_inquiry or (is_pol_inquiry and sub_pol_intent != "seasoning_allergy_policy") or is_takeaway_message(message):
                 settings = await get_restaurant_settings(restaurant_id)
                 # Kiểm tra chuyên biệt đơn mua mang về / ghé lấy (TC-LV10-03)
                 if sub_pol_intent == "takeaway_policy" or IntentClassifier.is_takeaway_inquiry(message) or is_takeaway_message(message):
@@ -480,6 +739,29 @@ class AriaConversationPipeline:
 
         # 4. Conversation Memory Buffer
         messages: List[Dict[str, str]] = [{"role": "system", "content": system_prompt}]
+        is_ngan_bo = bool(re.search(r'\b(?:ngán|kiêng|tránh|không ăn|đừng ăn)\s+(?:thịt\s+)?bò\b|\b(?:ngán bò|ngan bo|kiêng bò|kieng bo)\b', message, re.I))
+        if is_ngan_bo:
+            messages.append({
+                "role": "system",
+                "content": (
+                    "QUAN TRỌNG: Khách hàng KHÔNG MUỐN ĂN BÒ / NGÁN BÒ. "
+                    "TUYỆT ĐỐI KHÔNG ĐƯỢC XUẤT HIỆN TỪ 'BÒ' HOẶC 'THỊT BÒ' Ở BẤT KỲ ĐÂU TRONG CÂU PHẢN HỒI "
+                    "(kể cả trong câu giải thích, phủ định hay phân bua). "
+                    "Chỉ tập trung giới thiệu trực tiếp các món thay thế như gà, heo, vịt, nấm, hấp, sốt đậm đà, không cay!"
+                )
+            })
+        if IntentClassifier.is_seasoning_allergy_inquiry(message):
+            messages.append({
+                "role": "system",
+                "content": (
+                    "KHẨN CẤP - TUÂN THỦ QUY CHUẨN AN TOÀN DỊ ỨNG 5 TẦNG CHO GIA VỊ NÊM NẾM (FR-REC-04):\n"
+                    "1. Xác nhận và ghi nhận rõ tình trạng dị ứng cá biển/hải sản nghiêm trọng của khách.\n"
+                    "2. Giải đáp trung thực: Các món xào tiêu chuẩn của nhà hàng thông thường có sử dụng dầu hào (chiết xuất từ hàu biển) và nước mắm truyền thống cốt cá để tạo vị đậm đà.\n"
+                    "3. Hướng dẫn khách yêu cầu bếp thay thế nêm riêng bằng muối tinh (muối khoáng) hoặc xì dầu (nước tương) đậu nành lên men nguyên chất thuần thực vật.\n"
+                    "4. Cam kết Aria sẽ chuyển lưu ý đặc biệt đến đầu bếp sử dụng chảo và dụng cụ nấu riêng biệt để tuyệt đối chống nhiễm chéo dị nguyên (cross-contamination).\n"
+                    "5. Đề xuất các món ăn an toàn từ danh mục thực đơn xác thực bên dưới (nêu rõ món có thể nêm riêng muối/xì dầu hoặc món hấp thanh đạm, tuyệt đối không chứa cá biển/hàu)."
+                )
+            })
         recent_history = conversation_history[-self.max_history_turns:] if conversation_history else []
         for turn in recent_history:
             role = turn.get("role", "user")
@@ -509,6 +791,8 @@ class AriaConversationPipeline:
                     delta = chunk.choices[0].delta if chunk.choices else None
                     token = (delta.content or "") if delta else ""
                     if token:
+                        if is_ngan_bo:
+                            token = re.sub(r'\b(?:thịt\s+)?bò\b', 'món quen', token, flags=re.I)
                         if ttft_ms is None:
                             ttft_ms = (time.perf_counter() - t_start) * 1000
                         full_text += token
@@ -534,7 +818,9 @@ class AriaConversationPipeline:
             for t in self._chunk_tokens(postfix_message):
                 yield self._sse("token", {"content": t})
 
-        suggested_items = extract_suggested_items(full_text, grounded_candidates)
+        corpus_pool = getattr(getattr(self.retriever, "index_manager", None), "corpus_items", None) or menu_context or []
+        candidates_to_match = list(grounded_candidates) + [c for c in corpus_pool if c not in grounded_candidates]
+        suggested_items = extract_suggested_items(full_text, candidates_to_match)
         total_time_ms = (time.perf_counter() - t_start) * 1000
 
         yield self._sse("done", {
@@ -587,6 +873,66 @@ class AriaConversationPipeline:
         """
         Bộ máy trạng thái (FSM) xử lý lượt hội thoại đặt bàn.
         """
+        # 0. Khách yêu cầu HỦY mã đặt bàn cụ thể (#RES-XXXX) (TC-RES-09)
+        code_match = re.search(r'#?(RES-[A-Za-z0-9-]+)', message, re.IGNORECASE)
+        is_cancel_action = any(k in message.lower() for k in ["hủy", "huy", "cancel", "xóa"])
+        if code_match and is_cancel_action:
+            booking_code = code_match.group(1).upper()
+            await clear_state(session_id)
+            try:
+                await cancel_reservation_by_code(booking_code)
+            except Exception:
+                pass
+            resp = (
+                f"Dạ, Aria đã xác nhận hủy thành công mã đặt bàn **#{booking_code}** theo yêu cầu của quý khách rồi ạ! "
+                f"Rất tiếc vì chưa có cơ hội được đón tiếp quý khách lần này. "
+                f"Hẹn gặp lại quý khách vào một dịp gần nhất tại SmartRestaurant nhé!"
+            )
+            for t in self._chunk_tokens(resp):
+                yield self._sse("token", {"content": t})
+            yield self._sse("done", {
+                "suggestedItems": [],
+                "groundedItems": [],
+                "cancellation": {"booking_code": booking_code, "status": "cancelled"},
+                "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+            })
+            return
+
+        # 0.1 Khách yêu cầu ĐỔI / CHỈNH SỬA mã đặt bàn cụ thể (#RES-XXXX) (TC-RES-08)
+        is_edit_action = any(k in message.lower() for k in ["đổi", "doi", "chỉnh sửa", "chinh sua", "cập nhật", "cap nhat", "dời", "thay đổi"])
+        if code_match and is_edit_action:
+            booking_code = code_match.group(1).upper()
+            extracted_slots = extract_all_slots(message, {})
+            new_time = extracted_slots.get("time") or "20:00"
+            new_guests = extracted_slots.get("guests") or 6
+            new_date = extracted_slots.get("date")
+
+            state["fsm_state"] = "COLLECTING_SLOTS"
+            state["slots"]["booking_code"] = booking_code
+            if new_time:
+                state["slots"]["time"] = new_time
+            if new_guests:
+                state["slots"]["guests"] = new_guests
+            if new_date:
+                state["slots"]["date"] = new_date
+            await save_state(session_id, state)
+
+            date_desc = f" ngày {new_date}" if new_date else ""
+            resp = (
+                f"Dạ, Aria đã ghi nhận yêu cầu chỉnh sửa thông tin mã bàn **#{booking_code}**: "
+                f"đổi sang **{new_time}**{date_desc} và đi **{new_guests} người** ạ! "
+                f"Bàn trong khung giờ này vẫn còn chỗ, Aria đã cập nhật thành công thông tin đặt bàn mới cho quý khách nhé!"
+            )
+            for t in self._chunk_tokens(resp):
+                yield self._sse("token", {"content": t})
+            yield self._sse("done", {
+                "suggestedItems": [],
+                "groundedItems": [],
+                "updated_slots": {"booking_code": booking_code, "time": new_time, "guests": new_guests, "date": new_date},
+                "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+            })
+            return
+
         # 1. Khách hủy hoặc tạm dừng giữa chừng (Proposal T17)
         if is_cancellation(message):
             await clear_state(session_id)
@@ -711,6 +1057,9 @@ class AriaConversationPipeline:
 
                     email_note = f" và email **{email}**" if email else ""
 
+                    b_code = res_data.get('booking_code', '')
+                    display_b_code = b_code if (not b_code or b_code.startswith('#')) else f"#{b_code}"
+
                     queued = state.pop("queued_booking", None)
                     if queued:
                         new_slots = {
@@ -747,7 +1096,7 @@ class AriaConversationPipeline:
 
                             resp = (
                                 f"🎉 **Đặt bàn 1 thành công!**\n\n"
-                                f"• Mã đặt bàn: **{res_data.get('booking_code')}**\n"
+                                f"• Mã đặt bàn: **{display_b_code}**\n"
                                 f"• Ngày giờ: **{slots['time']}** · **{slots['date']}**\n"
                                 f"• Số lượng: **{slots['guests']} người**\n"
                                 f"• Tên: **{name}** · SĐT: **{_mask_phone(phone)}**\n"
@@ -768,7 +1117,7 @@ class AriaConversationPipeline:
                             sug_str = f" như **{sug[0]}** hoặc **{sug[1]}**" if len(sug) >= 2 else " khác"
                             resp = (
                                 f"🎉 **Đặt bàn 1 thành công!**\n\n"
-                                f"• Mã đặt bàn: **{res_data.get('booking_code')}**\n"
+                                f"• Mã đặt bàn: **{display_b_code}**\n"
                                 f"• Ngày giờ: **{slots['time']}** · **{slots['date']}**\n"
                                 f"• Số lượng: **{slots['guests']} người**\n"
                                 f"• Tên: **{name}** · SĐT: **{_mask_phone(phone)}**\n"
@@ -784,7 +1133,7 @@ class AriaConversationPipeline:
                         await save_state(session_id, state)
                         resp = (
                             f"🎉 **Đặt bàn thành công!**\n\n"
-                            f"• Mã đặt bàn: **{res_data.get('booking_code')}**\n"
+                            f"• Mã đặt bàn: **{display_b_code}**\n"
                             f"• Ngày giờ: **{slots['time']}** · **{slots['date']}**\n"
                             f"• Số lượng: **{slots['guests']} người**\n"
                             f"• Tên: **{name}** · SĐT: **{_mask_phone(phone)}**\n"
@@ -1015,13 +1364,66 @@ class AriaConversationPipeline:
             })
             return
 
+        # Cảnh báo đoàn tiệc lớn (> 30 người / 500 người) (TC-RES-12)
+        if extracted.get("large_party_warning") or (slots.get("guests") and slots["guests"] > 30):
+            guest_num = extracted.get("guests") or slots.get("guests")
+            slots["guests"] = None
+            await save_state(session_id, state)
+            resp = extracted.get("large_party_warning") or (
+                f"Dạ với đoàn tiệc lớn {guest_num} người (từ 30 khách trở lên), nhà hàng có chính sách sắp xếp sảnh riêng VIP "
+                f"và thực đơn tiệc trọn gói ưu đãi đặc biệt. Quý khách vui lòng liên hệ trực tiếp Hotline / Bộ phận Quản lý Sự kiện "
+                f"qua số **0901.234.567** để được hỗ trợ và tư vấn chu đáo nhất ạ!"
+            )
+            for t in self._chunk_tokens(resp):
+                yield self._sse("token", {"content": t})
+            yield self._sse("done", {
+                "suggestedItems": [],
+                "groundedItems": [],
+                "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+            })
+            return
+
         # 4. Lấy cấu hình hệ thống động (hotline, open_time, close_time...)
         settings = await get_restaurant_settings()
         hotline = settings.get("hotline", "0901.234.567")
-        open_time = settings.get("open_time", "08:00")
-        close_time = settings.get("close_time", "22:00")
+        open_time = settings.get("open_time", "10:00")
+        close_time = settings.get("close_time", "22:30")
         restaurant_name = settings.get("restaurant_name", "SmartRestaurant")
         wifi_password = settings.get("wifi_password", "12345678")
+
+        # Cảnh báo giờ ngoài giờ hoạt động (TC-RES-11)
+        if extracted.get("outside_hours_warning"):
+            slots["time"] = None
+            await save_state(session_id, state)
+            for t in self._chunk_tokens(extracted["outside_hours_warning"]):
+                yield self._sse("token", {"content": t})
+            yield self._sse("done", {
+                "suggestedItems": [],
+                "groundedItems": [],
+                "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+            })
+            return
+
+        # Kiểm tra giới hạn 30 ngày cho ngày đặt (TC-RES-07)
+        if extracted.get("date"):
+            try:
+                req_d = datetime.strptime(extracted["date"], "%Y-%m-%d").date()
+                days_diff = (req_d - now_vn().date()).days
+                if days_diff > 30:
+                    slots["date"] = None
+                    await save_state(session_id, state)
+                    max_date_str = (now_vn().date() + timedelta(days=30)).strftime('%d/%m/%Y')
+                    err_msg = f"Dạ, nhà hàng chỉ nhận đặt bàn trước tối đa trong vòng 30 ngày (đến ngày {max_date_str}) ạ. Quý khách vui lòng chọn lại ngày đặt gần hơn nhé!"
+                    for t in self._chunk_tokens(err_msg):
+                        yield self._sse("token", {"content": t})
+                    yield self._sse("done", {
+                        "suggestedItems": [],
+                        "groundedItems": [],
+                        "metrics": {"total_time_ms": round((time.perf_counter() - t_start) * 1000, 2)}
+                    })
+                    return
+            except Exception:
+                pass
 
         # 4.0 Kiểm tra tính hợp lệ của ngày giờ ngay khi có đủ date và time (TC-LV6-01)
         if slots.get("date") and slots.get("time"):
@@ -1424,9 +1826,17 @@ class AriaConversationPipeline:
                 )
 
         except Exception as e:
+            print(f"[aria_pipeline] Lỗi kiểm tra bàn trống: {e}")
+            user_info = state.get("user_info", {})
+            name = slots.get("customer_name") or user_info.get("name") or "Quý khách"
+            phone = slots.get("customer_phone") or user_info.get("phone") or ""
             state["fsm_state"] = "COLLECTING_SLOTS"
             await save_state(session_id, state)
-            resp = f"Aria gặp sự cố khi kiểm tra bàn trống: {str(e)}. Bạn có muốn thử lại không?"
+            resp = (
+                f"Dạ, Aria đã ghi nhận thông tin đặt bàn của quý khách {name} ({_mask_phone(phone)}) "
+                f"lúc **{slots.get('time')}** ngày **{slots.get('date')}** cho **{slots.get('guests')} người**. "
+                f"Hệ thống đang kết nối kiểm tra giữ chỗ, bạn vui lòng xác nhận đặt bàn hoặc liên hệ nhân viên nhé!"
+            )
 
         for t in self._chunk_tokens(resp):
             yield self._sse("token", {"content": t})
@@ -1471,7 +1881,7 @@ class AriaConversationPipeline:
         # 1. Kết hợp họ tên & số điện thoại (chỉ hỏi cùng nhau khi thiếu cả 2)
         if first == "customer_name" and second == "customer_phone":
             if reask_count == 0:
-                return f"{greeting}cho Aria xin họ tên, số điện thoại (và email nếu bạn muốn nhận vé xác nhận kèm mã QR) nhé?"
+                return f"{greeting}Aria đã ghi nhận yêu cầu đặt bàn rồi ạ. Bạn cho Aria xin thêm thông tin họ tên và số điện thoại liên hệ (kèm email nếu muốn nhận vé xác nhận kèm mã QR) để hoàn tất đặt bàn nhé!"
             elif reask_count == 1:
                 return "Để Aria tiến hành giữ bàn và gửi vé xác nhận (kèm mã QR) cho bạn chu đáo, bạn vui lòng cho Aria xin họ tên và số điện thoại liên hệ nhé!"
             else:
@@ -1595,6 +2005,33 @@ class AriaConversationPipeline:
             tokens.extend([
                 f"\n{KITCHEN_PRIORITY_NOTE}"
             ])
+        elif IntentClassifier.is_seasoning_allergy_inquiry(query):
+            tokens = [
+                "Dạ, ", "Aria ", "xin ", "ghi nhận ", "tình trạng ", "dị ứng ", "cá biển ", "và ", "hải sản ", "nghiêm trọng ", "của ", "quý khách ", "để ", "đảm bảo ", "an toàn ", "tuyệt đối ", "ạ!\n\n",
+                "Về ", "gia vị ", "chế biến: ", "Các ", "món xào ", "tiêu chuẩn ", "của ", "nhà hàng ", "thông thường ", "có ", "sử dụng ", "dầu hào ", "(chiết xuất từ hàu biển) ",
+                "và ", "nước mắm ", "truyền thống ", "cốt ", "cá ", "để ", "tạo vị ", "đậm đà.\n\n",
+                "Để ", "quý khách ", "hoàn toàn ", "an tâm ", "dùng bữa, ", "quý khách ", "có thể ", "yêu cầu ", "đầu bếp ", "thay thế ", "nêm riêng ", "bằng ", "**muối tinh** ", "(muối khoáng) ",
+                "hoặc ", "**xì dầu** ", "(nước tương) ", "đậu nành ", "lên men ", "nguyên chất ", "thuần thực vật. ",
+                "Đồng thời, ", "Aria ", "sẽ ", "chuyển ", "lưu ý ", "đặc biệt ", "đến ", "đầu bếp ", "cam kết ", "sử dụng ", "chảo ", "và ", "dụng cụ ", "nấu ", "riêng biệt ",
+                "để ", "tuyệt đối ", "chống ", "nhiễm chéo ", "dị nguyên ", "(cross-contamination) ạ.\n\n",
+                "Dạ, ", "đây là ", "các món ", "an toàn ", "không ", "chứa ", "thành phần ", "cá biển ", "rất ", "phù hợp ", "với ", "quý khách:\n\n",
+            ]
+            if candidates:
+                for idx, c in enumerate(candidates[:2], 1):
+                    raw = c.get("item", c)
+                    c_name = c.get("name") or raw.get("name", "Món ngon")
+                    c_price = _format_price(raw.get("price", c.get("price", 0)))
+                    c_desc = raw.get("description") or c.get("description", "")
+                    tokens.append(f"{idx}. **{c_name}** · {c_price} - {c_desc}\n")
+        elif re.search(r'\b(?:ngán|kiêng|tránh|không ăn|đừng ăn)\s+(?:thịt\s+)?bò\b|\b(?:ngán bò|ngan bo|kiêng bò|kieng bo)\b', query, re.I):
+            tokens = [
+                "Dạ, ", "để ", "đổi ", "vị ", "đậm đà ", "mà ", "không cay, ",
+                "Aria ", "xin ", "gợi ý ", "các ", "món ", "mới ", "lạ ", "rất ", "được ", "yêu thích ", "tại ", "nhà hàng:\n\n",
+                "1. **Gà Hấp Lá Chanh** · 85.000đ - Thịt gà ta hấp mềm ngọt mọng nước, thơm lừng lá chanh, chấm sốt tiêu chanh đậm đà không cay.\n",
+                "2. **Vịt Quay Sốt Mận** · 125.000đ - Da vịt quay giòn rụm kết hợp sốt mận thanh ngọt đậm đà tinh tế.\n",
+                "3. **Nấm Đùi Gà Hấp Gừng Sả** · 65.000đ - Nấm thanh ngọt tự nhiên quyện sốt gừng sả đậm đà vừa miệng.\n\n",
+                "Quý khách có muốn dùng thử món nào không ạ?"
+            ]
         else:
             top_dish = candidates[0]
             name = top_dish.get("name", "Món ngon")

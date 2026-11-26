@@ -40,10 +40,14 @@ def extract_suggested_items(
     suggested = []
     seen_ids = set()
 
-    # Pattern 1: Format **[Tên món]** (format chính thức trong prompt)
-    bold_pattern = re.compile(r'\*\*([^\*]+)\*\*')
-    for match in bold_pattern.finditer(ai_text):
-        candidate = match.group(1).strip()
+    # Pattern 1: Format có kèm giá tiền [Tên món] · [Giá]đ hoặc **[Tên món]** · [Giá]đ
+    price_pattern = re.compile(
+        r'(?:gợi\s*ý\s+|thử\s+(?:thêm\s+)?|\*\*\[?)(.*?)(?:\]?\*\*|\s*)\s*[·•\-]\s*([\d\.,]+)\s*(?:đ|₫|vnd|vnđ)',
+        re.IGNORECASE
+    )
+    for match in price_pattern.finditer(ai_text):
+        candidate = match.group(1).replace("*", "").replace("[", "").replace("]", "").strip()
+        candidate = re.sub(r'^(dạ,?\s*)?(aria\s*xin\s*gợi\s*ý\s*|aria\s*gợi\s*ý\s*)', '', candidate, flags=re.IGNORECASE).strip()
         item = _find_menu_item(candidate, menu_lookup)
         if item:
             item_id = item.get("id") or item.get("name")
@@ -51,7 +55,18 @@ def extract_suggested_items(
                 suggested.append(_to_suggestion(item))
                 seen_ids.add(item_id)
 
-    # Pattern 2: Tên món xuất hiện trực tiếp trong text (fuzzy match)
+    # Pattern 2: Format **[Tên món]** (format chính thức trong prompt)
+    bold_pattern = re.compile(r'\*\*([^\*]+)\*\*')
+    for match in bold_pattern.finditer(ai_text):
+        candidate = match.group(1).replace("[", "").replace("]", "").strip()
+        item = _find_menu_item(candidate, menu_lookup)
+        if item:
+            item_id = item.get("id") or item.get("name")
+            if item_id not in seen_ids:
+                suggested.append(_to_suggestion(item))
+                seen_ids.add(item_id)
+
+    # Pattern 3: Tên món xuất hiện trực tiếp trong text (fuzzy match)
     if not suggested:
         for name_lower, item in menu_lookup.items():
             item_id = item.get("id") or item.get("name")
@@ -65,7 +80,7 @@ def extract_suggested_items(
 
 def _find_menu_item(candidate: str, menu_lookup: dict) -> Optional[dict]:
     """
-    Tìm menu item bằng exact match hoặc contains match.
+    Tìm menu item bằng exact match, contains match hoặc word overlap.
     Đảm bảo "Closed World" — không tạo item giả.
     """
     candidate_lower = candidate.lower().strip()
@@ -78,6 +93,21 @@ def _find_menu_item(candidate: str, menu_lookup: dict) -> Optional[dict]:
     for name_lower, item in menu_lookup.items():
         if name_lower in candidate_lower or candidate_lower in name_lower:
             return item
+
+    # Word overlap match (ít nhất 50% từ của candidate xuất hiện trong tên món)
+    c_words = set(candidate_lower.split())
+    if len(c_words) >= 2:
+        best_item = None
+        best_score = 0.0
+        for name_lower, item in menu_lookup.items():
+            n_words = set(name_lower.split())
+            overlap = len(c_words.intersection(n_words))
+            score = overlap / len(c_words)
+            if score > best_score and score >= 0.5:
+                best_score = score
+                best_item = item
+        if best_item:
+            return best_item
 
     return None
 

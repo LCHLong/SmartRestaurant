@@ -29,5 +29,13 @@ router.get('/memories', verifyToken, guestProfileController.getMyMemories);
 router.post('/session-summary', verifyInternalOrUserAuth, guestProfileController.ingestSessionSummary);
 router.post('/ingest-summary', verifyInternalOrUserAuth, guestProfileController.ingestSessionSummary);
 
+/**
+ * DELETE /api/guest-profile/me
+ * POST   /api/guest-profile/purge (Internal service or user)
+ * Xóa sạch hồ sơ & ký ức theo GDPR Right to be Forgotten (TC-MEM-09)
+ */
+router.delete('/me', verifyToken, guestProfileController.purgeProfile);
+router.post('/purge', verifyInternalOrUserAuth, guestProfileController.purgeProfile);
+
 module.exports = router;
 

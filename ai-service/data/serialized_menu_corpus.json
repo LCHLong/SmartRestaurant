@@ -2841,5 +2841,31 @@
     "category": {
       "name": "Đồ uống (Drinks)"
     }
+  },
+  {
+    "id": "item-nuoc-chanh-day-tuoi-01",
+    "category_id": "dc1fe5e7-0eb4-4bea-aac1-256cff19bda0",
+    "name": "Nước Chanh Dây Tươi Mát Lạnh",
+    "description": "Nước cốt chanh dây tươi nguyên chất thơm lừng, kết hợp đường phèn thanh mát và đá lạnh sảng khoái.",
+    "price": 35000,
+    "image_url": "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=800&q=80",
+    "is_available": true,
+    "status": "available",
+    "prep_time": 5,
+    "spice_level": 0,
+    "calories": 110,
+    "ingredients": [
+      "Chanh dây tươi",
+      "Đường phèn",
+      "Đá viên"
+    ],
+    "allergens": [],
+    "dietary_tags": [
+      "Giải nhiệt",
+      "Vitamin C"
+    ],
+    "ai_description": "Thức uống giải nhiệt sảng khoái từ chanh dây tươi nguyên chất, vị chua ngọt hài hòa tự nhiên.",
+    "category": "Đồ uống (Drinks)",
+    "row_serialized": "Món: Nước Chanh Dây Tươi Mát Lạnh | Danh mục: Đồ uống (Drinks) | Giá: 35.000 VND | Thành phần: Chanh dây tươi, Đường phèn, Đá viên | Dị nguyên: Không | Độ cay: 0/5 | Calo: 110 kcal | Thời gian chuẩn bị: 5 phút | Mô tả: Nước cốt chanh dây tươi nguyên chất thơm lừng giải nhiệt."
   }
 ]

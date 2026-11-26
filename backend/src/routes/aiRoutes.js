@@ -23,6 +23,12 @@ router.post('/consult', optionalAuth, aiController.consult);
 router.post('/feedback', optionalAuth, feedbackController.submitFeedback);
 
 /**
+ * POST /api/ai/call-staff
+ * Hỗ trợ tại bàn & gọi nhân viên phục vụ (SPEC-MOD-05: TC-SUP-06..08)
+ */
+router.post('/call-staff', optionalAuth, aiController.callStaff);
+
+/**
  * GET /api/ai/feedback/stats
  */
 router.get('/feedback/stats', feedbackController.getFeedbackStats);

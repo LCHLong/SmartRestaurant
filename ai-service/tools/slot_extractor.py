@@ -109,7 +109,7 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
         low = int(m_range.group(1))
         high = int(m_range.group(2))
         val = max(low, high)
-        if 1 <= val <= 100:
+        if 1 <= val <= 10000:
             return val, None
 
     # 3. Trường hợp số âm độc lập: "-2", "-2 người", "-5 khách", "–3"
@@ -154,23 +154,23 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
             return 0, None
 
     # 7. Trường hợp câu trả lời chỉ có số dương: "2", "4", "4 ng", "khoảng 4", "tầm 4"
-    single_num = re.search(r'^(?:dạ|khoảng|tầm|đi|đặt|cho)?\s*(\d{1,2})\s*(?:người|khách|pax|chỗ|bạn|ng|ạ|nhe|nhé|nha)?$', text_lower)
+    single_num = re.search(r'^(?:dạ|khoảng|tầm|đi|đặt|cho)?\s*(\d{1,4})\s*(?:người|khách|pax|chỗ|bạn|ng|ạ|nhe|nhé|nha)?$', text_lower)
     if single_num:
         val = int(single_num.group(1))
-        if 1 <= val <= 100:
+        if 1 <= val <= 10000:
             return val, None
 
     # 7.1 Trường hợp chia bàn: "cho 8 người chia làm 2 bàn 4 người" hoặc "chia làm 2 bàn 4 người"
     total_split_m = re.search(r'(\d+)\s*(?:người|khách|pax)\s*.*?(?:chia|tách)\s*(?:làm|thành)?\s*(\d+)\s*bàn', text_lower)
     if total_split_m:
         val = int(total_split_m.group(1))
-        if 1 <= val <= 100:
+        if 1 <= val <= 10000:
             return val, None
 
     split_table_m = re.search(r'(?:chia|tách)\s*(?:làm|thành)?\s*(\d+)\s*bàn(?:\s*(?:mỗi\s*bàn\s*)?(\d+)\s*(?:người|khách))', text_lower)
     if split_table_m:
         val = int(split_table_m.group(1)) * int(split_table_m.group(2))
-        if 1 <= val <= 100:
+        if 1 <= val <= 10000:
             return val, None
 
     # 8. Các mẫu số lượng khách thông thường
@@ -186,7 +186,7 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
         m = re.search(pat, text_lower)
         if m:
             val = int(m.group(1))
-            if 1 <= val <= 100:
+            if 1 <= val <= 10000:
                 return val, None
 
     # 9. Mẫu đổi ý: "đi X người thôi", "đổi thành X người"
@@ -197,7 +197,7 @@ def extract_guests(text: str) -> Tuple[Optional[int], Optional[str]]:
         m = re.search(pat, text_lower)
         if m:
             val = int(m.group(1))
-            if 1 <= val <= 100:
+            if 1 <= val <= 10000:
                 return val, None
 
     return None, None
@@ -323,9 +323,20 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
             return formatted
         return None
 
-    # Pattern rõ ràng: "mình là...", "tên là...", "tên: ...", "tôi tên...", "đặt cho...", "anh/chị..."
+    # 1. Pattern tên rõ ràng có từ "tên": "tên Nam", "tên là...", "tên: ...", "tôi tên...", "tên mình là..."
+    explicit_name_pattern = r'(?:tên\s*(?:khách|người\s*đặt)?\s*(?:là|:|\s)\s*|tôi\s*tên\s*(?:là|:)?\s*|mình\s*tên\s*(?:là|:)?\s*|em\s*tên\s*(?:là|:)?\s*|anh\s*tên\s*(?:là|:)?\s*|chị\s*tên\s*(?:là|:)?\s*|tên\s*mình\s*là\s*|tên\s*tôi\s*là\s*)([A-ZÀ-Ỹa-zà-ỹ\s]{2,30})'
+    m_exp = re.search(explicit_name_pattern, text_clean, re.IGNORECASE)
+    if m_exp:
+        raw_name = m_exp.group(1).strip()
+        parts = re.split(r'[,.\d]|\b(?:đặt|bàn|sđt|số|điện\s*thoại|phone|email|mail|nhé|nha|ạ|vào|ngày|lúc)\b', raw_name, flags=re.IGNORECASE)
+        name = _sanitize(parts[0])
+        if name and name.lower() not in ("khách", "người", "bàn"):
+            return name
+
+    # 2. Pattern xưng hô: "mình là...", "tôi là...", "đặt cho [tên cụ thể]"
     intro_patterns = [
-        r'(?:tên\s*(?:khách|người\s*đặt)?\s*(?:là|:|\s)\s*|tôi\s*tên\s*(?:là|:)?\s*|mình\s*tên\s*(?:là|:)?\s*|em\s*tên\s*(?:là|:)?\s*|anh\s*tên\s*(?:là|:)?\s*|chị\s*tên\s*(?:là|:)?\s*|tên\s*mình\s*là\s*|tên\s*tôi\s*là\s*|mình\s*là\s*|tôi\s*là\s*|em\s*là\s*|anh\s*là\s*|chị\s*là\s*|đặt\s*cho\s+)([A-ZÀ-Ỹa-zà-ỹ\s]{2,30})',
+        r'(?:mình\s*là\s*|tôi\s*là\s*|em\s*là\s*|anh\s*là\s*|chị\s*là\s*)([A-ZÀ-Ỹa-zà-ỹ\s]{2,30})',
+        r'đặt\s*cho\s+(?!mình\b|tôi\b|em\b|anh\b|chị\b|chúng\b|nhóm\b|bàn\b)([A-ZÀ-Ỹa-zà-ỹ\s]{2,30})',
         r'(?:anh|chị)\s+([A-ZÀ-Ỹa-zà-ỹ]{2,20})',
     ]
     for pat in intro_patterns:
@@ -335,7 +346,7 @@ def extract_name(text: str, current_state: dict, phone_found: Optional[str] = No
             # Cắt trước dấu phẩy, chấm hoặc các từ bắt đầu phần đặt bàn / sđt / email
             parts = re.split(r'[,.\d]|\b(?:đặt|bàn|sđt|số|điện\s*thoại|phone|email|mail|nhé|nha|ạ|vào|ngày|lúc)\b', raw_name, flags=re.IGNORECASE)
             name = _sanitize(parts[0])
-            if name:
+            if name and name.lower() not in ("mình", "tôi", "em", "anh", "chị", "bàn"):
                 return name
 
     # Mẫu họ tên đứng đầu câu trước dấu phẩy và SĐT/email (VD: "Lê Chí Hoàng Long, 0987654321...")
@@ -662,6 +673,9 @@ def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
         if not is_val and err_code == "PAST_TIME":
             extracted["past_time_warning"] = err_msg
             extracted["time_in_past"] = True
+        elif not is_val and err_code == "OUTSIDE_OPERATING_HOURS":
+            extracted["outside_hours_warning"] = err_msg
+            extracted["is_outside_hours"] = True
         else:
             extracted["time_in_past"] = False
 
@@ -675,6 +689,13 @@ def extract_all_slots(message: str, current_state: dict) -> Dict[str, Any]:
             extracted["is_valid_guests"] = False
         elif guests < 0:
             extracted["guests_warning"] = "Dạ, số lượng khách đặt bàn phải từ 1 người trở lên ạ. Quý khách vui lòng cho Aria biết chính xác số người trong nhóm nhé!"
+            extracted["is_valid_guests"] = False
+        elif guests > 30:
+            extracted["large_party_warning"] = (
+                f"Dạ với đoàn tiệc lớn {guests} người (từ 30 khách trở lên), nhà hàng có chính sách sắp xếp sảnh riêng VIP "
+                f"và thực đơn tiệc trọn gói ưu đãi đặc biệt. Quý khách vui lòng liên hệ trực tiếp Hotline / Bộ phận Quản lý Sự kiện "
+                f"qua số **0901.234.567** để được hỗ trợ và tư vấn chu đáo nhất ạ!"
+            )
             extracted["is_valid_guests"] = False
         else:
             extracted["is_valid_guests"] = True

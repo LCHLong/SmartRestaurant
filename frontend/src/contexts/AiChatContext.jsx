@@ -31,8 +31,12 @@ export const useAiChat = () => {
 
 export const AiChatProvider = ({ children }) => {
   const socket = useSocket();
-  const { cart } = useCart();
+  const { cart, addToCart, removeFromCart, updateQuantity, clearCart } = useCart();
   const { user } = useAuth();
+  const cartRef = useRef(cart);
+  useEffect(() => {
+    cartRef.current = cart;
+  }, [cart]);
 
   // ---- State ----
   const [isOpen, setIsOpen] = useState(false);
@@ -164,10 +168,39 @@ export const AiChatProvider = ({ children }) => {
       });
     };
 
-    // Nhận final response với suggestedItems và reservation
-    const onResponse = ({ sessionId: sid, content, suggestedItems, reservation }) => {
+    // Nhận final response với suggestedItems, reservation, cartAction và handoffPayload
+    const onResponse = ({ sessionId: sid, content, suggestedItems, reservation, cartAction, isHandoff, handoffPayload }) => {
       if (sid !== sessionId) return;
       setIsLoading(false);
+
+      // Cập nhật State giỏ hàng tự động từ AI (SPEC-MOD-02)
+      if (cartAction) {
+        try {
+          if (cartAction.type === 'add_to_cart' && Array.isArray(cartAction.items)) {
+            cartAction.items.forEach(item => {
+              addToCart(item, item.quantity || 1, item.modifiers || [], item.notes || '');
+            });
+          } else if (cartAction.type === 'remove_from_cart' && Array.isArray(cartAction.items)) {
+            cartAction.items.forEach(removeReq => {
+              const reqName = (removeReq.name || '').toLowerCase();
+              const currentCart = cartRef.current || [];
+              const existing = currentCart.find(c => c.name.toLowerCase().includes(reqName) || reqName.includes(c.name.toLowerCase()));
+              if (existing) {
+                const qtyToRemove = removeReq.quantity || 1;
+                if (existing.quantity > qtyToRemove) {
+                  updateQuantity(existing.cartId, existing.quantity - qtyToRemove);
+                } else {
+                  removeFromCart(existing.cartId);
+                }
+              }
+            });
+          } else if (cartAction.type === 'clear_cart') {
+            clearCart();
+          }
+        } catch (e) {
+          console.warn('[AiChatContext] Lỗi đồng bộ giỏ hàng:', e);
+        }
+      }
 
       setMessages(prev => {
         const streamingId = streamingMsgIdRef.current;
@@ -176,7 +209,16 @@ export const AiChatProvider = ({ children }) => {
         if (streamingId) {
           return prev.map(m =>
             m.id === streamingId
-              ? { ...m, content, suggestedItems: suggestedItems || [], reservation: reservation || null, isStreaming: false }
+              ? {
+                  ...m,
+                  content,
+                  suggestedItems: suggestedItems || [],
+                  reservation: reservation || null,
+                  cartAction: cartAction || null,
+                  isHandoff: Boolean(isHandoff || handoffPayload),
+                  handoffPayload: handoffPayload || null,
+                  isStreaming: false
+                }
               : m
           );
         }
@@ -189,7 +231,17 @@ export const AiChatProvider = ({ children }) => {
 
         return [
           ...prev,
-          { id: uuidv4(), role: 'assistant', content, suggestedItems: suggestedItems || [], reservation: reservation || null, isStreaming: false }
+          {
+            id: uuidv4(),
+            role: 'assistant',
+            content,
+            suggestedItems: suggestedItems || [],
+            reservation: reservation || null,
+            cartAction: cartAction || null,
+            isHandoff: Boolean(isHandoff || handoffPayload),
+            handoffPayload: handoffPayload || null,
+            isStreaming: false
+          }
         ];
       });
 

@@ -114,6 +114,12 @@ const TableMapPage = () => {
             fetchBufferFlags();
             fetchOverstayAlerts();
         });
+        socket.on('manager_escalation_alert', (payload) => {
+            const summary = payload?.summary || 'Sự cố dịch vụ khẩn cấp!';
+            toast.error(`🚨 [CẢNH BÁO ĐỎ - Quản lý] Bàn ${payload?.tableId || ''}: ${summary}`, { duration: 10000 });
+            fetchEscalations();
+            fetchTables(currentPage);
+        });
         socket.on('ai_handoff_alert', (payload) => {
             const reasonText = payload?.summary || (payload?.reason === 'GROUP_SIZE_EXCEEDED' ? 'Nhóm đoàn lớn cần hỗ trợ' : 'Khách cần nhân viên hỗ trợ đặt chỗ');
             toast(`🛎️ [Aria Handoff] ${reasonText}`, { duration: 6000 });

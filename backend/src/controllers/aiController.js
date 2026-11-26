@@ -241,6 +241,146 @@ exports.consult = async (req, res) => {
   };
 
   try {
+    // 4.1. Kiểm tra sự cố dịch vụ khẩn cấp & chuyển tiếp Quản lý (SPEC-MOD-05: TC-SUP-10)
+    const lowerMsg = (message || '').toLowerCase().trim();
+    const hasMgr = /quản lý|quan ly|manager|chủ quán|chu quan/i.test(lowerMsg);
+    const hasAction = /gặp|gap|gọi|goi|cần|can|yêu cầu|yeu cau|nói chuyện|noi chuyen|đâu/i.test(lowerMsg);
+    const hasDelay = /40\s*(?:phút|p)|30\s*(?:phút|p)|chưa có món|chua co mon|chờ quá lâu|cho qua lau|chờ lâu|đợi lâu|quá lâu|nửa tiếng|cả tiếng/i.test(lowerMsg);
+    const hasComplaint = /phục vụ quá tệ|quá tệ|qua te|quá kém|làm ăn|bức xúc|thất vọng|khiếu nại|tệ hại|không có món/i.test(lowerMsg);
+    const hasUrgent = /ngay lập tức|ngay lap tuc|khẩn cấp|khan cap|gấp|gap|ngay bây giờ|liền/i.test(lowerMsg);
+
+    const isManagerEscalation = (hasMgr && (hasAction || hasDelay || hasComplaint || hasUrgent)) ||
+                                (hasComplaint && hasDelay && hasUrgent) ||
+                                (hasComplaint && hasDelay);
+
+    if (isManagerEscalation) {
+      const escalationAnswer =
+        "Aria thành thật xin lỗi vì sự chậm trễ này ạ! Aria đã báo khẩn cấp tới Quản lý nhà hàng, " +
+        "Quản lý sẽ tới bàn của bạn trong ít phút để kiểm tra và xử lý ngay lập tức! " +
+        "Tín hiệu cảnh báo đỏ (Red Alert / Priority Alert) khẩn cấp đã được phát tới thiết bị của Quản lý ca trực. " +
+        "Quản lý đang di chuyển đến bàn hỗ trợ ngay. Kính mong bạn thông cảm cho sự bất tiện này của nhà hàng ạ! 🔔";
+
+      const handoffPayload = {
+        sessionId,
+        tableId: tableId || 'T01',
+        reason: 'MANAGER_ESCALATION',
+        severity: 'RED_ALERT',
+        priority: 'HIGH',
+        isRedAlert: true,
+        isPriorityAlert: true,
+        summary: message,
+        timestamp: new Date().toISOString()
+      };
+
+      // 1. Stream token tới client
+      emitToClient('ai_stream_token', { sessionId, token: escalationAnswer, abVariant });
+
+      // 2. Bắn thông báo ưu tiên đặc biệt (Priority Alert / Red Alert) tới thiết bị cầm tay Quản lý & Waiter
+      io.to('waiter').emit('ai_handoff_alert', handoffPayload);
+      io.to('admin').emit('ai_handoff_alert', handoffPayload);
+      io.to('waiter').emit('manager_escalation_alert', handoffPayload);
+      io.to('admin').emit('manager_escalation_alert', handoffPayload);
+      io.to('waiter').emit('priority_alert', handoffPayload);
+      io.to('admin').emit('priority_alert', handoffPayload);
+
+      // 3. Emit ai_response
+      emitToClient('ai_response', {
+        sessionId,
+        content: escalationAnswer,
+        suggestedItems: [],
+        reservation: null,
+        cartAction: null,
+        isHandoff: true,
+        handoffPayload
+      });
+
+      // Lưu history vào Redis
+      const history = await getSessionHistory(sessionId);
+      const updatedHistory = [
+        ...history,
+        { role: 'user', content: message },
+        { role: 'assistant', content: escalationAnswer }
+      ].slice(-MAX_HISTORY_TURNS * 2);
+
+      try {
+        await redis.set(`ai_session:${sessionId}`, JSON.stringify(updatedHistory), { EX: SESSION_TTL });
+      } catch (_) {}
+
+      return;
+    }
+
+    // 4.2. Kiểm tra vi phạm kiểm soát ngân sách biên cực thấp (SPEC-MOD-01: TC-REC-02: 5 người / 50k)
+    const guestMatch = lowerMsg.match(/(\d+)\s*(?:người|khách|bạn|nguoi|khach|ban)\b/);
+    let guestCount = guestMatch ? parseInt(guestMatch[1], 10) : 0;
+    if (!guestCount) {
+      const wordMatch = lowerMsg.match(/\b(hai|ba|bốn|bon|năm|nam|sáu|sau|bảy|bay|tám|tam|chín|chin|mười|muoi)\s*(?:người|khách|bạn|nguoi|khach|ban)\b/);
+      if (wordMatch) {
+        const wMap = { hai: 2, ba: 3, "bốn": 4, bon: 4, "năm": 5, nam: 5, "sáu": 6, sau: 6, "bảy": 7, bay: 7, "tám": 8, tam: 8, "chín": 9, chin: 9, "mười": 10, muoi: 10 };
+        guestCount = wMap[wordMatch[1]] || 0;
+      }
+    }
+
+    let budgetVal = null;
+    const budgetContext = lowerMsg.match(/(?:ngân sách|chi phí|tầm|khoảng|có|với|tổng)\s*[:=]?\s*(\d+(?:[.,]\d{3})*|\d+)\s*(k|nghìn|nghin|ngàn|ngan|đ|d|đồng|dong|vnd|vnđ)?/i);
+    if (budgetContext) {
+      const rawNumStr = budgetContext[1].replace(/[.,]/g, "");
+      const unit = (budgetContext[2] || "").toLowerCase();
+      const num = parseFloat(rawNumStr);
+      if (["k", "nghìn", "nghin", "ngàn", "ngan"].includes(unit) || num < 1000) {
+        budgetVal = num < 1000 ? num * 1000 : num;
+      } else {
+        budgetVal = num;
+      }
+    }
+
+    if (budgetVal === null) {
+      const directMatch = lowerMsg.match(/(\d+(?:[.,]\d{3})*|\d+)\s*(k|nghìn|nghin|ngàn|ngan|đ|đồng|dong|vnd|vnđ)(?=[^\w]|$)/i);
+      if (directMatch) {
+        const rawNumStr = directMatch[1].replace(/[.,]/g, "");
+        const unit = directMatch[2].toLowerCase();
+        const num = parseFloat(rawNumStr);
+        if (["k", "nghìn", "nghin", "ngàn", "ngan"].includes(unit) || num < 1000) {
+          budgetVal = num < 1000 ? num * 1000 : num;
+        } else {
+          budgetVal = num;
+        }
+      }
+    }
+
+    if (guestCount >= 2 && budgetVal && (budgetVal / guestCount) < 25000) {
+      const pp = Math.round(budgetVal / guestCount);
+      const budgetFormatted = new Intl.NumberFormat("vi-VN").format(budgetVal) + "đ";
+      const ppFormatted = new Intl.NumberFormat("vi-VN").format(pp) + "đ";
+      const budgetAnswer =
+        `Dạ với ngân sách ${budgetFormatted} cho ${guestCount} người ` +
+        `thì chi phí trung bình ${ppFormatted}/khách sẽ khó để có một bàn tiệc no nê trọn vẹn tại nhà hàng ạ. ` +
+        `Aria xin gợi ý quý khách có thể tham khảo các món ăn nhẹ tiết kiệm hoặc cân nhắc nâng ngân sách từ 50.000đ - 70.000đ/người ` +
+        `để quán phục vụ chu đáo nhất nhé!`;
+
+      emitToClient('ai_stream_token', { sessionId, token: budgetAnswer, abVariant });
+      emitToClient('ai_response', {
+        sessionId,
+        content: budgetAnswer,
+        suggestedItems: [],
+        reservation: null,
+        cartAction: null,
+        isHandoff: false
+      });
+
+      const history = await getSessionHistory(sessionId);
+      const updatedHistory = [
+        ...history,
+        { role: 'user', content: message },
+        { role: 'assistant', content: budgetAnswer }
+      ].slice(-MAX_HISTORY_TURNS * 2);
+
+      try {
+        await redis.set(`ai_session:${sessionId}`, JSON.stringify(updatedHistory), { EX: SESSION_TTL });
+      } catch (_) {}
+
+      return;
+    }
+
     // 5. RAG & MemGPT — Lấy thực đơn, lịch sử đơn hàng, hội thoại & hồ sơ dài hạn song song
     const [ragResult, orderHistory, history, guestProfile, recallMemories] = await Promise.all([
       retrieveMenuContext(message, resolvedRestaurantId),
@@ -315,14 +455,63 @@ exports.consult = async (req, res) => {
       // onDone: emit final response + suggested items + reservation
       async (result) => {
         const finalText = result.text || fullResponse;
-        const suggestedItems = result.suggestedItems || [];
+        let suggestedItems = result.suggestedItems || [];
         const reservation = result.reservation || null;
+        const cartAction = result.cartAction || null;
+
+        // Fallback trích xuất món ăn gợi ý từ text nếu suggestedItems bị rỗng (SPEC-MOD-02)
+        if ((!suggestedItems || suggestedItems.length === 0) && finalText && !result.isHandoff) {
+          try {
+            const allItems = (context && context.length ? context : await getMenuFromCache(resolvedRestaurantId)) || [];
+            const regex = /(?:gợi\s*ý\s+|thử\s+(?:thêm\s+)?|\*\*\[?)(.*?)(?:\]?\*\*|\s*)\s*[·•\-]\s*([\d\.,]+)\s*(?:đ|₫|vnd|vnđ)/gi;
+            let match;
+            const extracted = [];
+            const seen = new Set();
+            while ((match = regex.exec(finalText)) !== null) {
+              const name = match[1]
+                .replace(/^\*+|\*+$/g, '')
+                .replace(/^\[+|\]+$/g, '')
+                .replace(/^(dạ,?\s*)?(aria\s*xin\s*gợi\s*ý\s*|aria\s*gợi\s*ý\s*)/i, '')
+                .trim();
+              const price = parseInt(match[2].replace(/[,\.]/g, ''), 10);
+              if (name && !seen.has(name.toLowerCase())) {
+                seen.add(name.toLowerCase());
+                const found = allItems.find(it =>
+                  it.name && (it.name.toLowerCase().includes(name.toLowerCase()) || name.toLowerCase().includes(it.name.toLowerCase()))
+                );
+                if (found) {
+                  extracted.push({
+                    id: found.id,
+                    name: found.name,
+                    price: found.price || price,
+                    image_url: found.image_url || (Array.isArray(found.images) ? found.images[0] : ''),
+                    description: found.description || ''
+                  });
+                } else {
+                  extracted.push({
+                    id: `dish-${name}`,
+                    name,
+                    price,
+                    image_url: '',
+                    description: ''
+                  });
+                }
+              }
+            }
+            if (extracted.length > 0) {
+              suggestedItems = extracted;
+            }
+          } catch (_) {}
+        }
 
         emitToClient('ai_response', {
           sessionId,
           content: finalText,
           suggestedItems,
           reservation,
+          cartAction,
+          isHandoff: Boolean(result.isHandoff),
+          handoffPayload: result.handoffPayload || null,
           abVariant
         });
 
@@ -342,6 +531,15 @@ exports.consult = async (req, res) => {
               io.to('waiter').emit('large_group_escalation', handoffPayload);
               io.to('admin').emit('large_group_escalation', handoffPayload);
             }
+            if (
+              handoffPayload.reason === 'MANAGER_ESCALATION' ||
+              handoffPayload.reason === 'EMERGENCY_ESCALATION' ||
+              handoffPayload.severity === 'RED_ALERT' ||
+              handoffPayload.isRedAlert
+            ) {
+              io.to('waiter').emit('manager_escalation_alert', handoffPayload);
+              io.to('admin').emit('manager_escalation_alert', handoffPayload);
+            }
           } catch (e) {
             console.error('[aiController] Socket emit handoff error:', e.message);
           }
@@ -358,7 +556,7 @@ exports.consult = async (req, res) => {
         if (userId) {
           const turnCount = history.length + 2;
           const isComplaint = Boolean(result.isHandoff) ||
-            Boolean(result.handoffPayload && (result.handoffPayload.reason === 'COMPLAINT' || result.handoffPayload.reason === 'ASSISTANCE_REQUIRED')) ||
+            Boolean(result.handoffPayload && (result.handoffPayload.reason === 'COMPLAINT' || result.handoffPayload.reason === 'ASSISTANCE_REQUIRED' || result.handoffPayload.reason === 'MANAGER_ESCALATION')) ||
             (req.body.feedbackType === 'thumbs_down') ||
             /khiếu nại|phàn nàn|thất vọng|không hài lòng|quá tệ|chất lượng kém/i.test(message);
 
@@ -572,6 +770,43 @@ exports.clearSession = async (req, res) => {
     return res.status(200).json({ success: true, message: 'Session cleared' });
   } catch (err) {
     return res.status(500).json({ success: false, message: 'Failed to clear session' });
+  }
+};
+
+/**
+ * POST /api/ai/call-staff
+ * Hỗ trợ tại bàn & gọi nhân viên (SPEC-MOD-05: TC-SUP-06..08)
+ */
+exports.callStaff = async (req, res) => {
+  try {
+    const { tableId, reason, note } = req.body;
+    let io;
+    try {
+      const socketModule = require('../config/socket');
+      io = socketModule.getIO ? socketModule.getIO() : req.app?.get('io');
+    } catch (_) {}
+
+    const payload = {
+      tableId: tableId || 'T01',
+      reason: reason || 'Gọi nhân viên bàn',
+      note: note || '',
+      summary: `Bàn ${tableId || 'T01'} gọi nhân viên: ${reason || 'Gọi nhân viên bàn'}`,
+      timestamp: new Date().toISOString()
+    };
+
+    if (io) {
+      io.to('waiter').emit('ai_handoff_alert', payload);
+      io.to('admin').emit('ai_handoff_alert', payload);
+    }
+
+    return res.json({
+      success: true,
+      message: 'Đã gửi tín hiệu tới nhân viên phụ trách bàn của bạn!',
+      data: payload
+    });
+  } catch (err) {
+    console.error('[callStaff] error:', err);
+    return res.status(500).json({ success: false, message: err.message });
   }
 };
 

@@ -23,7 +23,16 @@ class IntentType(str, Enum):
     VAT_INVOICE_INQUIRY = "vat_invoice_inquiry"
     RESERVATION = "reservation"
     MENU_CONSULTATION = "menu_consultation"
+    MEMORY_INTENT = "memory_intent"
     HUMAN_HANDOFF = "human_handoff"
+    CART_ACTION = "cart_action"
+    ADD_TO_CART = "add_to_cart"
+    REMOVE_FROM_CART = "remove_from_cart"
+    VIEW_CART = "view_cart"
+    COMPETITOR_QUERY = "competitor_query"
+    PRICE_BARGAINING = "price_bargaining"
+    TOXICITY = "toxicity"
+    MANAGER_ESCALATION = "manager_escalation"
     GREETING = "greeting"
     UNKNOWN = "unknown"
 
@@ -81,11 +90,18 @@ VAT_KEYWORDS = [
     "hóa đơn", "hoá đơn"
 ]
 
+SEASONING_ALLERGY_KEYWORDS = [
+    "nước mắm", "nuoc mam", "dầu hào", "dau hao", "nêm nước mắm", "nêm dầu hào",
+    "chiết xuất từ cá", "chiết xuất từ hàu", "cốt cá", "gia vị món xào", "nêm nếm",
+    "xì dầu đậu nành", "nhiễm chéo", "nước mắm cá", "dầu hào hàu"
+]
+
 POLICY_SUB_INTENTS = {
     "corkage_policy": CORKAGE_KEYWORDS,
     "birthday_policy": BIRTHDAY_KEYWORDS,
     "takeaway_policy": TAKEAWAY_KEYWORDS,
     "vat_invoice_policy": VAT_KEYWORDS,
+    "seasoning_allergy_policy": SEASONING_ALLERGY_KEYWORDS,
 }
 
 FACILITY_SUB_INTENTS = {
@@ -133,6 +149,30 @@ class IntentClassifier:
 
         msg = message.lower().strip()
 
+        # 0.1. Kiểm duyệt ngôn từ công kích / độc hại (SPEC-MOD-05)
+        try:
+            from tools.moderation_tools import is_toxic_message, is_manager_escalation_requested
+            is_toxic, toxic_kw = is_toxic_message(msg)
+            if is_toxic:
+                return {
+                    "intent": IntentType.TOXICITY.value,
+                    "sub_intent": "toxicity_moderation",
+                    "confidence": 0.99,
+                    "matched_keywords": toxic_kw
+                }
+
+            # 0.2. Sự cố dịch vụ khẩn cấp & chuyển tiếp Quản lý (SPEC-MOD-06)
+            is_mgr, mgr_details = is_manager_escalation_requested(msg)
+            if is_mgr:
+                return {
+                    "intent": IntentType.MANAGER_ESCALATION.value,
+                    "sub_intent": "manager_escalation",
+                    "confidence": 0.98,
+                    "matched_keywords": ["manager_escalation"]
+                }
+        except ImportError:
+            pass
+
         # 1. Handoff tới nhân viên
         matched_handoff = [k for k in HANDOFF_KEYWORDS if k in msg]
         if matched_handoff:
@@ -152,6 +192,37 @@ class IntentClassifier:
                 "confidence": 0.90,
                 "matched_keywords": matched_res
             }
+
+        # 2.5. Ý định thao tác giỏ hàng & hỏi thương hiệu đối thủ / mặc cả giá (SPEC-MOD-01 & SPEC-MOD-02)
+        try:
+            from tools.cart_tools import is_competitor_query, is_bargain_query, is_cart_action
+            is_comp, comp_brand = is_competitor_query(msg)
+            if is_comp:
+                return {
+                    "intent": IntentType.COMPETITOR_QUERY.value,
+                    "sub_intent": comp_brand or "competitor",
+                    "confidence": 0.96,
+                    "matched_keywords": [comp_brand] if comp_brand else ["competitor"]
+                }
+
+            if is_bargain_query(msg):
+                return {
+                    "intent": IntentType.PRICE_BARGAINING.value,
+                    "sub_intent": "price_bargaining",
+                    "confidence": 0.95,
+                    "matched_keywords": ["bargain"]
+                }
+
+            is_cart, cart_type = is_cart_action(msg)
+            if is_cart:
+                return {
+                    "intent": IntentType.CART_ACTION.value,
+                    "sub_intent": cart_type,
+                    "confidence": 0.95,
+                    "matched_keywords": [cart_type]
+                }
+        except ImportError:
+            pass
 
         # 3. Chính sách nhà hàng (Policy Inquiry: Corkage fee, Birthday, Takeaway...)
         corkage_matched = [k for k in CORKAGE_KEYWORDS if k in msg]
@@ -209,7 +280,22 @@ class IntentClassifier:
                     "matched_keywords": matched
                 }
 
-        # 5. Mặc định là tư vấn món ăn / thực đơn
+        # 5. Bộ nhớ dài hạn & Quyền riêng tư MemGPT (Right to be Forgotten, Transparency, Isolation, Greeting, Update...)
+        try:
+            from tools.memory_engine import MemoryEngine
+            mem_res = MemoryEngine.detect_memory_intent(msg)
+            if mem_res:
+                sub_mem, conf = mem_res
+                return {
+                    "intent": IntentType.MEMORY_INTENT.value,
+                    "sub_intent": sub_mem,
+                    "confidence": conf,
+                    "matched_keywords": [sub_mem]
+                }
+        except ImportError:
+            pass
+
+        # 6. Mặc định là tư vấn món ăn / thực đơn
         return {
             "intent": IntentType.MENU_CONSULTATION.value,
             "sub_intent": "menu_inquiry",
@@ -274,9 +360,18 @@ class IntentClassifier:
                 "matched_keywords": vat_matched
             }
 
-        # 4. Kiểm tra các chính sách khác
+        # 4. Kiểm tra thắc mắc an toàn dị ứng gia vị nêm nếm (Seasoning Allergen Policy)
+        if cls.is_seasoning_allergy_inquiry(msg):
+            return {
+                "type": "policy",
+                "sub_intent": "seasoning_allergy_policy",
+                "confidence": 0.95,
+                "matched_keywords": ["seasoning_allergy_inquiry"]
+            }
+
+        # 5. Kiểm tra các chính sách khác
         for sub_intent, kw_list in POLICY_SUB_INTENTS.items():
-            if sub_intent in ("corkage_policy", "birthday_policy", "vat_invoice_policy"):
+            if sub_intent in ("corkage_policy", "birthday_policy", "vat_invoice_policy", "seasoning_allergy_policy"):
                 continue
             matched = [k for k in kw_list if k in msg]
             if matched:
@@ -287,7 +382,7 @@ class IntentClassifier:
                     "matched_keywords": matched
                 }
 
-        # 5. Kiểm tra tiện ích / FAQ
+        # 6. Kiểm tra tiện ích / FAQ
         for sub_intent, kw_list in FACILITY_SUB_INTENTS.items():
             matched = [k for k in kw_list if k in msg]
             if matched:
@@ -369,6 +464,42 @@ class IntentClassifier:
         ) and any(k in message.lower() for k in TAKEAWAY_KEYWORDS)
 
     @classmethod
+    def is_seasoning_allergy_inquiry(cls, message: str) -> bool:
+        """
+        Nhận diện thắc mắc an toàn dị ứng gia vị nêm nếm (nước mắm, dầu hào, cá biển, hàu, nhiễm chéo).
+        """
+        if not message:
+            return False
+        msg = message.lower().strip()
+        has_seasoning = any(w in msg for w in [
+            "nước mắm", "nuoc mam", "dầu hào", "dau hao", "gia vị", "gia vi",
+            "nêm", "nem", "nêm nếm", "nem nem", "nước tương", "nuoc tuong",
+            "xì dầu", "xi dau", "hạt nêm", "hat nem"
+        ])
+        has_allergen_or_fish = any(w in msg for w in [
+            "dị ứng", "di ung", "cá", "ca", "cá biển", "ca bien", "hải sản", "hai san",
+            "hàu", "hau", "hàu biển", "hau bien", "kiêng", "kieng", "nhiễm chéo", "nhiem cheo"
+        ])
+        has_context = any(w in msg for w in [
+            "món xào", "mon xao", "xào", "xao", "bếp", "bep", "chế biến", "che bien",
+            "chiết xuất", "chiet xuat", "quán có", "quan co", "an toàn", "an toan",
+            "nấu", "nau", "món", "mon"
+        ])
+        return has_seasoning and has_allergen_or_fish and has_context
+
+    @classmethod
+    def is_memory_intent(cls, message: str) -> Tuple[bool, Optional[str]]:
+        """Kiểm tra xem câu thoại có thuộc nhóm tác vụ bộ nhớ dài hạn MemGPT hay không."""
+        try:
+            from tools.memory_engine import MemoryEngine
+            res = MemoryEngine.detect_memory_intent(message)
+            if res:
+                return True, res[0]
+        except ImportError:
+            pass
+        return False, None
+
+    @classmethod
     def is_takeaway_order(cls, message: str) -> bool:
         """Kiểm tra xem câu thoại có kèm món để đặt mang về hay không."""
         if not cls.is_takeaway_inquiry(message):
@@ -378,9 +509,52 @@ class IntentClassifier:
         return len(items) > 0
 
 
+    @classmethod
+    def is_cart_action(cls, message: str) -> Tuple[bool, Optional[str]]:
+        """Kiểm tra thao tác giỏ hàng (add_to_cart, remove_from_cart, view_cart, clear_cart)."""
+        from tools.cart_tools import is_cart_action
+        return is_cart_action(message)
+
+    @classmethod
+    def is_competitor_query(cls, message: str) -> Tuple[bool, Optional[str]]:
+        """Kiểm tra câu hỏi về thương hiệu đối thủ (KFC, The Pizza Company...)."""
+        from tools.cart_tools import is_competitor_query
+        return is_competitor_query(message)
+
+    @classmethod
+    def is_bargain_query(cls, message: str) -> bool:
+        """Kiểm tra câu hỏi trả giá / mặc cả."""
+        from tools.cart_tools import is_bargain_query
+        return is_bargain_query(message)
+
+
+    @classmethod
+    def is_toxic_message(cls, message: str) -> Tuple[bool, List[str]]:
+        """Kiểm tra câu thoại có chứa ngôn từ độc hại / thô tục hay không."""
+        from tools.moderation_tools import is_toxic_message
+        return is_toxic_message(message)
+
+    @classmethod
+    def is_manager_escalation(cls, message: str) -> Tuple[bool, Dict[str, Any]]:
+        """Kiểm tra câu thoại có yêu cầu khẩn cấp gặp Quản lý ca trực hay không."""
+        from tools.moderation_tools import is_manager_escalation_requested
+        return is_manager_escalation_requested(message)
+
+
 def classify_intent(message: str) -> Dict[str, Any]:
     """Hàm wrapper tiện ích phân loại ý định."""
     return IntentClassifier.classify(message)
+
+
+def is_toxic_message(message: str) -> Tuple[bool, List[str]]:
+    """Wrapper kiểm tra ngôn từ độc hại."""
+    return IntentClassifier.is_toxic_message(message)
+
+
+def is_manager_escalation(message: str) -> Tuple[bool, Dict[str, Any]]:
+    """Wrapper kiểm tra chuyển tiếp khẩn cấp Quản lý."""
+    return IntentClassifier.is_manager_escalation(message)
+
 
 
 def is_corkage_inquiry(message: str) -> bool:
@@ -398,8 +572,34 @@ def is_vat_inquiry(message: str) -> bool:
     return IntentClassifier.is_vat_inquiry(message)
 
 
+def is_seasoning_allergy_inquiry(message: str) -> bool:
+    """Wrapper kiểm tra nhanh câu hỏi dị ứng gia vị nêm nếm."""
+    return IntentClassifier.is_seasoning_allergy_inquiry(message)
+
+
+def is_memory_intent(message: str) -> Tuple[bool, Optional[str]]:
+    """Wrapper kiểm tra nhanh câu hỏi hoặc yêu cầu bộ nhớ MemGPT."""
+    return IntentClassifier.is_memory_intent(message)
+
+
 def is_policy_inquiry(message: str) -> Tuple[bool, Optional[str]]:
     """Wrapper kiểm tra nhanh câu hỏi chính sách."""
     return IntentClassifier.is_policy_inquiry(message)
+
+
+def is_cart_action(message: str) -> Tuple[bool, Optional[str]]:
+    """Wrapper kiểm tra thao tác giỏ hàng."""
+    return IntentClassifier.is_cart_action(message)
+
+
+def is_competitor_query(message: str) -> Tuple[bool, Optional[str]]:
+    """Wrapper kiểm tra hỏi đối thủ."""
+    return IntentClassifier.is_competitor_query(message)
+
+
+def is_bargain_query(message: str) -> bool:
+    """Wrapper kiểm tra mặc cả giá."""
+    return IntentClassifier.is_bargain_query(message)
+
 
 
