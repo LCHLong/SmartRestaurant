@@ -80,6 +80,7 @@ from tools.cart_tools import (
     get_competitor_refusal,
     is_bargain_query,
     get_bargain_refusal,
+    check_unrealistic_budget_query,
 )
 from tools.moderation_tools import (
     is_toxic_message,
@@ -414,6 +415,22 @@ class AriaConversationPipeline:
             if is_bargain_query(message):
                 ans = get_bargain_refusal()
                 for t in self._chunk_tokens(ans):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": 0,
+                    }
+                })
+                return
+
+            # ── 2.7.5. Kiểm tra ngân sách biên cực thấp (SPEC-MOD-01: TC-REC-02: 5 người / 50k) ──
+            is_low_budget, low_budget_resp = check_unrealistic_budget_query(message)
+            if is_low_budget:
+                for t in self._chunk_tokens(low_budget_resp):
                     yield self._sse("token", {"content": t})
                 yield self._sse("done", {
                     "suggestedItems": [],

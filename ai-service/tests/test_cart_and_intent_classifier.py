@@ -242,3 +242,33 @@ async def test_tc_rec_09_10_competitor_brand_rejection():
         assert any(k in text.lower() for k in ["độc quyền", "chỉ phục vụ", "không phục vụ", "thực đơn chính thức"])
         # Không được gợi ý lạc đề lẩu tom yum
         assert "lẩu tom yum" not in text.lower()
+
+
+@pytest.mark.asyncio
+async def test_tc_rec_02_unrealistic_low_budget():
+    """
+    TC-REC-02: Vi phạm kiểm soát ngân sách biên cực thấp (5 người / 50k).
+    Khi khách yêu cầu gợi ý món cho 5 người với 50k (10k/người),
+    Aria phải giải thích lịch thiệp ngân sách chưa đủ và đề xuất khoảng ngân sách hợp lý,
+    tuyệt đối không gợi ý món ăn đơn lẻ gây hiểu nhầm hoặc vượt ngân sách.
+    """
+    pipeline = AriaConversationPipeline()
+    queries = [
+        "Nhóm 5 người ngân sách 50k",
+        "Gợi ý món cho nhóm 5 người với ngân sách 50k",
+        "5 người mà chỉ có 50k ăn gì ạ"
+    ]
+
+    for q in queries:
+        events = []
+        async for sse in pipeline.process(message=q, menu_context=None, cart_items=[]):
+            events.append(sse)
+
+        text, done = extract_sse_data(events)
+        text_lower = text.lower()
+
+        assert any(k in text_lower for k in ["ngân sách", "50.000", "50k"])
+        assert any(k in text_lower for k in ["5 người", "người"])
+        assert any(k in text_lower for k in ["chưa đủ", "quá thấp", "tối thiểu"])
+        assert done is not None
+        assert done.get("suggestedItems") == []

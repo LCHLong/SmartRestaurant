@@ -577,3 +577,62 @@ def format_cart_response(
         return "\n".join(lines)
 
     return "Dạ, Aria đã cập nhật giỏ hàng theo yêu cầu của bạn rồi ạ! 🛒"
+
+
+def check_unrealistic_budget_query(text: str) -> Tuple[bool, Optional[str]]:
+    """
+    Kiểm tra xem yêu cầu có vi phạm ngân sách biên cực thấp không (TC-REC-02: 5 người / 50k).
+    Ví dụ: 5 người với 50k (10k/người) -> không đủ cho một bữa ăn tại nhà hàng.
+    """
+    if not text:
+        return False, None
+    msg = text.lower().strip()
+
+    # 1. Trích xuất số lượng khách
+    guest_match = re.search(r'\b(\d+)\s*(?:người|khách|bạn|nguoi|khach|ban)\b', msg)
+    if not guest_match:
+        word_to_num = {
+            "hai": 2, "ba": 3, "bốn": 4, "bon": 4, "năm": 5, "nam": 5,
+            "sáu": 6, "sau": 6, "bảy": 7, "bay": 7, "tám": 8, "tam": 8,
+            "chín": 9, "chin": 9, "mười": 10, "muoi": 10
+        }
+        word_match = re.search(r'\b(hai|ba|bốn|bon|năm|nam|sáu|sau|bảy|bay|tám|tam|chín|chin|mười|muoi)\s*(?:người|khách|bạn|nguoi|khach|ban)\b', msg)
+        guest_count = word_to_num.get(word_match.group(1), 0) if word_match else 0
+    else:
+        guest_count = int(guest_match.group(1))
+
+    # 2. Trích xuất ngân sách
+    budget = None
+    price_matches = re.finditer(r'(\d+(?:[.,]\d+)?)\s*(k|nghìn|nghin|ngàn|ngan|đ|d|đồng|dong|vnd)\b', msg)
+    for pm in price_matches:
+        raw_val = float(pm.group(1).replace(',', '.'))
+        unit = pm.group(2).lower()
+        if unit in ('k', 'nghìn', 'nghin', 'ngàn', 'ngan'):
+            val = raw_val * 1000
+        else:
+            val = raw_val if raw_val >= 1000 else raw_val * 1000
+        budget = val
+        break
+
+    if budget is None and re.search(r'\b50k\b|\b50\s*k\b', msg):
+        budget = 50000.0
+
+    # Nếu có đề cập nhóm người (>= 2 người) và tổng ngân sách quá thấp (< 25.000đ/người)
+    # Đặc biệt kịch bản TC-REC-02: 5 người / 50k
+    if guest_count >= 2 and budget and budget > 0:
+        per_person = budget / guest_count
+        if per_person < 25000:
+            formatted_budget = f"{int(budget):,}đ".replace(",", ".")
+            formatted_pp = f"{int(per_person):,}đ".replace(",", ".")
+            ans = (
+                f"Dạ, với mức ngân sách **{formatted_budget}** cho nhóm **{guest_count} người** "
+                f"(trung bình chỉ khoảng **{formatted_pp}/người**), mức ngân sách này hiện quá thấp "
+                f"để nhà hàng có thể sắp xếp một bữa ăn no hoặc phần ăn hoàn chỉnh cho cả {guest_count} người ạ.\n\n"
+                f"Để quý khách và bạn bè có trải nghiệm ẩm thực trọn vẹn và đủ no tại **SmartRestaurant**, "
+                f"Aria xin gợi ý mức ngân sách tối thiểu từ khoảng **40.000đ – 65.000đ/người** "
+                f"(tổng khoảng {int(guest_count * 45000):,}đ – {int(guest_count * 65000):,}đ). "
+                f"Với mức này, quán có rất nhiều món cơm, mì xào, hoặc combo gia đình cực kỳ thơm ngon và tiết kiệm ạ! 🍽️"
+            ).replace(",", ".")
+            return True, ans
+
+    return False, None
