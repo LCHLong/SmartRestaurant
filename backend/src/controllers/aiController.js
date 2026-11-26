@@ -309,32 +309,53 @@ exports.consult = async (req, res) => {
       return;
     }
 
-    // 4.2. Kiểm tra vi phạm kiểm soát ngân sách biên cực thấp (TC-REC-02: 5 người / 50k)
-    const guestMatch = lowerMsg.match(/\b(\d+)\s*(?:người|khách|bạn|nguoi|khach|ban)\b/);
+    // 4.2. Kiểm tra vi phạm kiểm soát ngân sách biên cực thấp (SPEC-MOD-01: TC-REC-02: 5 người / 50k)
+    const guestMatch = lowerMsg.match(/(\d+)\s*(?:người|khách|bạn|nguoi|khach|ban)\b/);
     let guestCount = guestMatch ? parseInt(guestMatch[1], 10) : 0;
-    if (!guestCount && /\b(?:hai|ba|bốn|năm|sáu|bảy|tám|chín|mười)\s*(?:người|khách)/i.test(lowerMsg)) {
-      guestCount = 5;
+    if (!guestCount) {
+      const wordMatch = lowerMsg.match(/\b(hai|ba|bốn|bon|năm|nam|sáu|sau|bảy|bay|tám|tam|chín|chin|mười|muoi)\s*(?:người|khách|bạn|nguoi|khach|ban)\b/);
+      if (wordMatch) {
+        const wMap = { hai: 2, ba: 3, "bốn": 4, bon: 4, "năm": 5, nam: 5, "sáu": 6, sau: 6, "bảy": 7, bay: 7, "tám": 8, tam: 8, "chín": 9, chin: 9, "mười": 10, muoi: 10 };
+        guestCount = wMap[wordMatch[1]] || 0;
+      }
     }
 
-    const priceMatch = lowerMsg.match(/(\d+(?:[.,]\d+)?)\s*(?:k|nghìn|nghin|ngàn|ngan|đ|đồng|vnd)\b/) || lowerMsg.match(/\b50k\b/);
     let budgetVal = null;
-    if (priceMatch) {
-      if (priceMatch[0].includes('50k')) {
-        budgetVal = 50000;
+    const budgetContext = lowerMsg.match(/(?:ngân sách|chi phí|tầm|khoảng|có|với|tổng)\s*[:=]?\s*(\d+(?:[.,]\d{3})*|\d+)\s*(k|nghìn|nghin|ngàn|ngan|đ|d|đồng|dong|vnd|vnđ)?/i);
+    if (budgetContext) {
+      const rawNumStr = budgetContext[1].replace(/[.,]/g, "");
+      const unit = (budgetContext[2] || "").toLowerCase();
+      const num = parseFloat(rawNumStr);
+      if (["k", "nghìn", "nghin", "ngàn", "ngan"].includes(unit) || num < 1000) {
+        budgetVal = num < 1000 ? num * 1000 : num;
       } else {
-        const rawNum = parseFloat((priceMatch[1] || '50').replace(',', '.'));
-        budgetVal = rawNum < 1000 ? rawNum * 1000 : rawNum;
+        budgetVal = num;
+      }
+    }
+
+    if (budgetVal === null) {
+      const directMatch = lowerMsg.match(/(\d+(?:[.,]\d{3})*|\d+)\s*(k|nghìn|nghin|ngàn|ngan|đ|đồng|dong|vnd|vnđ)(?=[^\w]|$)/i);
+      if (directMatch) {
+        const rawNumStr = directMatch[1].replace(/[.,]/g, "");
+        const unit = directMatch[2].toLowerCase();
+        const num = parseFloat(rawNumStr);
+        if (["k", "nghìn", "nghin", "ngàn", "ngan"].includes(unit) || num < 1000) {
+          budgetVal = num < 1000 ? num * 1000 : num;
+        } else {
+          budgetVal = num;
+        }
       }
     }
 
     if (guestCount >= 2 && budgetVal && (budgetVal / guestCount) < 25000) {
-      const budgetFormatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(budgetVal);
-      const ppFormatted = new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Math.round(budgetVal / guestCount));
+      const pp = Math.round(budgetVal / guestCount);
+      const budgetFormatted = new Intl.NumberFormat("vi-VN").format(budgetVal) + "đ";
+      const ppFormatted = new Intl.NumberFormat("vi-VN").format(pp) + "đ";
       const budgetAnswer =
-        `Dạ, với mức ngân sách **${budgetFormatted}** cho nhóm **${guestCount} người** ` +
-        `(trung bình chỉ khoảng **${ppFormatted}/người**), mức ngân sách này hiện quá thấp để nhà hàng có thể sắp xếp một bữa ăn no hoặc phần ăn hoàn chỉnh cho cả ${guestCount} người ạ.\n\n` +
-        `Để quý khách có trải nghiệm ẩm thực trọn vẹn và đủ no tại SmartRestaurant, Aria xin gợi ý mức ngân sách tối thiểu từ khoảng 40.000đ – 65.000đ/người. ` +
-        `Với mức này, quán có rất nhiều món cơm, mì xào, hoặc combo gia đình thơm ngon và tiết kiệm ạ! 🍽️`;
+        `Dạ với ngân sách ${budgetFormatted} cho ${guestCount} người ` +
+        `thì chi phí trung bình ${ppFormatted}/khách sẽ khó để có một bàn tiệc no nê trọn vẹn tại nhà hàng ạ. ` +
+        `Aria xin gợi ý quý khách có thể tham khảo các món ăn nhẹ tiết kiệm hoặc cân nhắc nâng ngân sách từ 50.000đ - 70.000đ/người ` +
+        `để quán phục vụ chu đáo nhất nhé!`;
 
       emitToClient('ai_stream_token', { sessionId, token: budgetAnswer, abVariant });
       emitToClient('ai_response', {

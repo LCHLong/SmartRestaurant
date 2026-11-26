@@ -589,7 +589,7 @@ def check_unrealistic_budget_query(text: str) -> Tuple[bool, Optional[str]]:
     msg = text.lower().strip()
 
     # 1. Trích xuất số lượng khách
-    guest_match = re.search(r'\b(\d+)\s*(?:người|khách|bạn|nguoi|khach|ban)\b', msg)
+    guest_match = re.search(r'(\d+)\s*(?:người|khách|bạn|nguoi|khach|ban)\b', msg)
     if not guest_match:
         word_to_num = {
             "hai": 2, "ba": 3, "bốn": 4, "bon": 4, "năm": 5, "nam": 5,
@@ -603,19 +603,28 @@ def check_unrealistic_budget_query(text: str) -> Tuple[bool, Optional[str]]:
 
     # 2. Trích xuất ngân sách
     budget = None
-    price_matches = re.finditer(r'(\d+(?:[.,]\d+)?)\s*(k|nghìn|nghin|ngàn|ngan|đ|d|đồng|dong|vnd)\b', msg)
-    for pm in price_matches:
-        raw_val = float(pm.group(1).replace(',', '.'))
-        unit = pm.group(2).lower()
-        if unit in ('k', 'nghìn', 'nghin', 'ngàn', 'ngan'):
-            val = raw_val * 1000
-        else:
-            val = raw_val if raw_val >= 1000 else raw_val * 1000
-        budget = val
-        break
+    budget_context_match = re.search(r'(?:ngân sách|chi phí|tầm|khoảng|có|với|tổng)\s*[:=]?\s*(\d+(?:[.,]\d{3})*|\d+)\s*(k|nghìn|nghin|ngàn|ngan|đ|d|đồng|dong|vnd|vnđ)?', msg)
+    if budget_context_match:
+        raw_num_str = budget_context_match.group(1).replace('.', '').replace(',', '')
+        unit = (budget_context_match.group(2) or '').lower()
+        if raw_num_str:
+            num = float(raw_num_str)
+            if unit in ('k', 'nghìn', 'nghin', 'ngàn', 'ngan') or num < 1000:
+                budget = num * 1000 if num < 1000 else num
+            else:
+                budget = num
 
-    if budget is None and re.search(r'\b50k\b|\b50\s*k\b', msg):
-        budget = 50000.0
+    if budget is None:
+        for m in re.finditer(r'(\d+(?:[.,]\d{3})*|\d+)\s*(k|nghìn|nghin|ngàn|ngan|đ|đồng|dong|vnd|vnđ)(?=[^\w]|$)', msg):
+            raw_num_str = m.group(1).replace('.', '').replace(',', '')
+            unit = m.group(2).lower()
+            if raw_num_str:
+                num = float(raw_num_str)
+                if unit in ('k', 'nghìn', 'nghin', 'ngàn', 'ngan') or num < 1000:
+                    budget = num * 1000 if num < 1000 else num
+                else:
+                    budget = num
+                break
 
     # Nếu có đề cập nhóm người (>= 2 người) và tổng ngân sách quá thấp (< 25.000đ/người)
     # Đặc biệt kịch bản TC-REC-02: 5 người / 50k
@@ -625,14 +634,11 @@ def check_unrealistic_budget_query(text: str) -> Tuple[bool, Optional[str]]:
             formatted_budget = f"{int(budget):,}đ".replace(",", ".")
             formatted_pp = f"{int(per_person):,}đ".replace(",", ".")
             ans = (
-                f"Dạ, với mức ngân sách **{formatted_budget}** cho nhóm **{guest_count} người** "
-                f"(trung bình chỉ khoảng **{formatted_pp}/người**), mức ngân sách này hiện quá thấp "
-                f"để nhà hàng có thể sắp xếp một bữa ăn no hoặc phần ăn hoàn chỉnh cho cả {guest_count} người ạ.\n\n"
-                f"Để quý khách và bạn bè có trải nghiệm ẩm thực trọn vẹn và đủ no tại **SmartRestaurant**, "
-                f"Aria xin gợi ý mức ngân sách tối thiểu từ khoảng **40.000đ – 65.000đ/người** "
-                f"(tổng khoảng {int(guest_count * 45000):,}đ – {int(guest_count * 65000):,}đ). "
-                f"Với mức này, quán có rất nhiều món cơm, mì xào, hoặc combo gia đình cực kỳ thơm ngon và tiết kiệm ạ! 🍽️"
-            ).replace(",", ".")
+                f"Dạ với ngân sách {formatted_budget} cho {guest_count} người "
+                f"thì chi phí trung bình {formatted_pp}/khách sẽ khó để có một bàn tiệc no nê trọn vẹn tại nhà hàng ạ. "
+                f"Aria xin gợi ý quý khách có thể tham khảo các món ăn nhẹ tiết kiệm hoặc cân nhắc nâng ngân sách từ 50.000đ - 70.000đ/người "
+                f"để quán phục vụ chu đáo nhất nhé!"
+            )
             return True, ans
 
     return False, None

@@ -254,6 +254,7 @@ async def test_tc_rec_02_unrealistic_low_budget():
     """
     pipeline = AriaConversationPipeline()
     queries = [
+        "Tư vấn bàn tiệc cho 5 người ăn no nê với ngân sách 50.000 VNĐ",
         "Nhóm 5 người ngân sách 50k",
         "Gợi ý món cho nhóm 5 người với ngân sách 50k",
         "5 người mà chỉ có 50k ăn gì ạ"
@@ -269,6 +270,6 @@ async def test_tc_rec_02_unrealistic_low_budget():
 
         assert any(k in text_lower for k in ["ngân sách", "50.000", "50k"])
         assert any(k in text_lower for k in ["5 người", "người"])
-        assert any(k in text_lower for k in ["chưa đủ", "quá thấp", "tối thiểu"])
+        assert any(k in text_lower for k in ["chi phí trung bình 10.000đ/khách sẽ khó để có một bàn tiệc no nê trọn vẹn", "khó để có một bàn tiệc", "quá thấp", "chưa đủ"])
         assert done is not None
         assert done.get("suggestedItems") == []
