@@ -325,6 +325,8 @@ exports.consult = async (req, res) => {
           suggestedItems,
           reservation,
           cartAction,
+          isHandoff: Boolean(result.isHandoff),
+          handoffPayload: result.handoffPayload || null,
           abVariant
         });
 
@@ -344,6 +346,15 @@ exports.consult = async (req, res) => {
               io.to('waiter').emit('large_group_escalation', handoffPayload);
               io.to('admin').emit('large_group_escalation', handoffPayload);
             }
+            if (
+              handoffPayload.reason === 'MANAGER_ESCALATION' ||
+              handoffPayload.reason === 'EMERGENCY_ESCALATION' ||
+              handoffPayload.severity === 'RED_ALERT' ||
+              handoffPayload.isRedAlert
+            ) {
+              io.to('waiter').emit('manager_escalation_alert', handoffPayload);
+              io.to('admin').emit('manager_escalation_alert', handoffPayload);
+            }
           } catch (e) {
             console.error('[aiController] Socket emit handoff error:', e.message);
           }
@@ -360,7 +371,7 @@ exports.consult = async (req, res) => {
         if (userId) {
           const turnCount = history.length + 2;
           const isComplaint = Boolean(result.isHandoff) ||
-            Boolean(result.handoffPayload && (result.handoffPayload.reason === 'COMPLAINT' || result.handoffPayload.reason === 'ASSISTANCE_REQUIRED')) ||
+            Boolean(result.handoffPayload && (result.handoffPayload.reason === 'COMPLAINT' || result.handoffPayload.reason === 'ASSISTANCE_REQUIRED' || result.handoffPayload.reason === 'MANAGER_ESCALATION')) ||
             (req.body.feedbackType === 'thumbs_down') ||
             /khiếu nại|phàn nàn|thất vọng|không hài lòng|quá tệ|chất lượng kém/i.test(message);
 

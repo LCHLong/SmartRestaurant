@@ -81,6 +81,12 @@ from tools.cart_tools import (
     is_bargain_query,
     get_bargain_refusal,
 )
+from tools.moderation_tools import (
+    is_toxic_message,
+    get_toxicity_moderation_response,
+    is_manager_escalation_requested,
+    get_manager_escalation_response,
+)
 
 # ─── Cấu hình Groq ──────────────────────────────────────────────────────────
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "")
@@ -186,6 +192,51 @@ class AriaConversationPipeline:
         conversation_history = conversation_history or []
 
         try:
+            # ── 0.1. Kiểm tra phòng thủ ngôn từ độc hại / công kích (SPEC-MOD-05: TC-SEC-02) ──
+            is_toxic, toxic_words = is_toxic_message(message)
+            if is_toxic:
+                ans = get_toxicity_moderation_response()
+                for t in self._chunk_tokens(ans):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": 0,
+                    }
+                })
+                return
+
+            # ── 0.2. Kiểm tra sự cố dịch vụ khẩn cấp & chuyển tiếp Quản lý (SPEC-MOD-06: TC-SUP-10) ──
+            is_mgr_esc, esc_details = is_manager_escalation_requested(message)
+            if is_mgr_esc:
+                ans = get_manager_escalation_response(table_id=table_id)
+                for t in self._chunk_tokens(ans):
+                    yield self._sse("token", {"content": t})
+                yield self._sse("done", {
+                    "suggestedItems": [],
+                    "groundedItems": [],
+                    "isHandoff": True,
+                    "handoffPayload": {
+                        "sessionId": session_id or "unknown",
+                        "tableId": table_id or "T01",
+                        "reason": "MANAGER_ESCALATION",
+                        "severity": "RED_ALERT",
+                        "isRedAlert": True,
+                        "summary": message,
+                        "timestamp": datetime.now().isoformat(),
+                        "details": esc_details
+                    },
+                    "metrics": {
+                        "ttft_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "total_time_ms": round((time.perf_counter() - t_start) * 1000, 2),
+                        "rag_count": 0,
+                    }
+                })
+                return
+
             # ── 1. Kiểm tra yêu cầu chuyển giao nhân viên thủ công ──────────────
             if is_human_handoff_requested(message):
                 fb = get_fallback_context(menu_context or [], tier=3)

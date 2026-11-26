@@ -168,8 +168,8 @@ export const AiChatProvider = ({ children }) => {
       });
     };
 
-    // Nhận final response với suggestedItems, reservation và cartAction
-    const onResponse = ({ sessionId: sid, content, suggestedItems, reservation, cartAction }) => {
+    // Nhận final response với suggestedItems, reservation, cartAction và handoffPayload
+    const onResponse = ({ sessionId: sid, content, suggestedItems, reservation, cartAction, isHandoff, handoffPayload }) => {
       if (sid !== sessionId) return;
       setIsLoading(false);
 
@@ -209,7 +209,16 @@ export const AiChatProvider = ({ children }) => {
         if (streamingId) {
           return prev.map(m =>
             m.id === streamingId
-              ? { ...m, content, suggestedItems: suggestedItems || [], reservation: reservation || null, cartAction: cartAction || null, isStreaming: false }
+              ? {
+                  ...m,
+                  content,
+                  suggestedItems: suggestedItems || [],
+                  reservation: reservation || null,
+                  cartAction: cartAction || null,
+                  isHandoff: Boolean(isHandoff || handoffPayload),
+                  handoffPayload: handoffPayload || null,
+                  isStreaming: false
+                }
               : m
           );
         }
@@ -222,7 +231,17 @@ export const AiChatProvider = ({ children }) => {
 
         return [
           ...prev,
-          { id: uuidv4(), role: 'assistant', content, suggestedItems: suggestedItems || [], reservation: reservation || null, cartAction: cartAction || null, isStreaming: false }
+          {
+            id: uuidv4(),
+            role: 'assistant',
+            content,
+            suggestedItems: suggestedItems || [],
+            reservation: reservation || null,
+            cartAction: cartAction || null,
+            isHandoff: Boolean(isHandoff || handoffPayload),
+            handoffPayload: handoffPayload || null,
+            isStreaming: false
+          }
         ];
       });
 

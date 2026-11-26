@@ -36,11 +36,13 @@ const WaiterSidebar = () => {
         socket.on('large_group_escalation', handleUpdate);
         socket.on('new_reservation', handleUpdate);
         socket.on('ai_handoff_alert', handleUpdate);
+        socket.on('manager_escalation_alert', handleUpdate);
 
         return () => {
             socket.off('large_group_escalation', handleUpdate);
             socket.off('new_reservation', handleUpdate);
             socket.off('ai_handoff_alert', handleUpdate);
+            socket.off('manager_escalation_alert', handleUpdate);
         };
     }, [socket, fetchEscalationCount]);
 

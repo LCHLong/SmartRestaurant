@@ -121,11 +121,13 @@ const ReservationManagement = () => {
         socket.on('new_reservation', onNewRes);
         socket.on('ai_handoff_alert', onHandoff);
         socket.on('large_group_escalation', onEscalation);
+        socket.on('manager_escalation_alert', onEscalation);
 
         return () => {
             socket.off('new_reservation', onNewRes);
             socket.off('ai_handoff_alert', onHandoff);
             socket.off('large_group_escalation', onEscalation);
+            socket.off('manager_escalation_alert', onEscalation);
         };
     }, [socket, fetchReservations, fetchEscalations]);
 

@@ -31,6 +31,8 @@ class IntentType(str, Enum):
     VIEW_CART = "view_cart"
     COMPETITOR_QUERY = "competitor_query"
     PRICE_BARGAINING = "price_bargaining"
+    TOXICITY = "toxicity"
+    MANAGER_ESCALATION = "manager_escalation"
     GREETING = "greeting"
     UNKNOWN = "unknown"
 
@@ -146,6 +148,30 @@ class IntentClassifier:
             }
 
         msg = message.lower().strip()
+
+        # 0.1. Kiểm duyệt ngôn từ công kích / độc hại (SPEC-MOD-05)
+        try:
+            from tools.moderation_tools import is_toxic_message, is_manager_escalation_requested
+            is_toxic, toxic_kw = is_toxic_message(msg)
+            if is_toxic:
+                return {
+                    "intent": IntentType.TOXICITY.value,
+                    "sub_intent": "toxicity_moderation",
+                    "confidence": 0.99,
+                    "matched_keywords": toxic_kw
+                }
+
+            # 0.2. Sự cố dịch vụ khẩn cấp & chuyển tiếp Quản lý (SPEC-MOD-06)
+            is_mgr, mgr_details = is_manager_escalation_requested(msg)
+            if is_mgr:
+                return {
+                    "intent": IntentType.MANAGER_ESCALATION.value,
+                    "sub_intent": "manager_escalation",
+                    "confidence": 0.98,
+                    "matched_keywords": ["manager_escalation"]
+                }
+        except ImportError:
+            pass
 
         # 1. Handoff tới nhân viên
         matched_handoff = [k for k in HANDOFF_KEYWORDS if k in msg]
@@ -502,9 +528,33 @@ class IntentClassifier:
         return is_bargain_query(message)
 
 
+    @classmethod
+    def is_toxic_message(cls, message: str) -> Tuple[bool, List[str]]:
+        """Kiểm tra câu thoại có chứa ngôn từ độc hại / thô tục hay không."""
+        from tools.moderation_tools import is_toxic_message
+        return is_toxic_message(message)
+
+    @classmethod
+    def is_manager_escalation(cls, message: str) -> Tuple[bool, Dict[str, Any]]:
+        """Kiểm tra câu thoại có yêu cầu khẩn cấp gặp Quản lý ca trực hay không."""
+        from tools.moderation_tools import is_manager_escalation_requested
+        return is_manager_escalation_requested(message)
+
+
 def classify_intent(message: str) -> Dict[str, Any]:
     """Hàm wrapper tiện ích phân loại ý định."""
     return IntentClassifier.classify(message)
+
+
+def is_toxic_message(message: str) -> Tuple[bool, List[str]]:
+    """Wrapper kiểm tra ngôn từ độc hại."""
+    return IntentClassifier.is_toxic_message(message)
+
+
+def is_manager_escalation(message: str) -> Tuple[bool, Dict[str, Any]]:
+    """Wrapper kiểm tra chuyển tiếp khẩn cấp Quản lý."""
+    return IntentClassifier.is_manager_escalation(message)
+
 
 
 def is_corkage_inquiry(message: str) -> bool:
