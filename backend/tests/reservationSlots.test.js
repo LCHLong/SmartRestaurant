@@ -6,8 +6,10 @@
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
-require('dotenv').config();
+const path = require('node:path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
+const supabase = require('../src/config/supabaseClient');
 const reservationController = require('../src/controllers/reservationController');
 
 test.describe('Phân Hệ 3: Backend Reservation Slots & Resiliency Test Suite (TC-RES-05)', () => {
@@ -96,21 +98,45 @@ test.describe('Phân Hệ 3: Backend Reservation Slots & Resiliency Test Suite (
   });
 
   test('5. Tự động phục hồi qua Fallback Tables khi xảy ra sự cố mạng (chống HTTP 500 Fatal)', async () => {
-    // Gọi với tham số hợp lệ mà không có kết nối cơ sở dữ liệu hoặc giả lập query lỗi
-    const res = createMockRes();
-    const req = {
-      query: {
-        date: '2026-11-22',
-        time: '19:00',
-        guest_count: '4',
-      },
-    };
+    // Lưu hàm gốc và giả lập sự cố mất kết nối mạng / CSDL Supabase (fetch failed)
+    const originalFrom = supabase.from;
+    try {
+      supabase.from = () => {
+        throw new Error('TypeError: fetch failed (Mocked Supabase network connection failure)');
+      };
 
-    await reservationController.getAvailableSlots(req, res);
-    const { statusCode, jsonResult } = res.get();
+      const res = createMockRes();
+      const req = {
+        query: {
+          date: '2026-11-22',
+          time: '19:00',
+          guest_count: '4',
+        },
+      };
 
-    assert.equal(statusCode, 200);
-    assert.equal(jsonResult.success, true);
-    assert.ok(jsonResult.data.tables.length > 0);
+      await reservationController.getAvailableSlots(req, res);
+      const { statusCode, jsonResult } = res.get();
+
+      // Kiểm tra tính tự phục hồi: không sập HTTP 500 mà trả về HTTP 200 OK qua Fallback Tables
+      assert.equal(statusCode, 200);
+      assert.equal(jsonResult.success, true);
+      assert.ok(jsonResult.data);
+      assert.equal(jsonResult.data.guest_count, 4);
+      assert.ok(jsonResult.data.tables.length > 0);
+
+      // Xác minh các bàn trả về đúng là từ danh sách bàn dự phòng (DEFAULT_FALLBACK_TABLES)
+      const fallbackTableNumbers = [
+        'A1', 'A2', 'A3', 'A4', 'A5',
+        'B1', 'B2', 'B3', 'B4', 'B5',
+        'C1', 'C2', 'C3', 'C4', 'C5',
+      ];
+      assert.ok(
+        jsonResult.data.tables.every((t) => fallbackTableNumbers.includes(t.table_number)),
+        'Tất cả các bàn trả về phải thuộc danh sách Fallback Tables'
+      );
+    } finally {
+      // Đảm bảo luôn khôi phục lại hàm gốc sau bài test
+      supabase.from = originalFrom;
+    }
   });
 });
