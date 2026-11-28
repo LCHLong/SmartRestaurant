@@ -1,0 +1,1026 @@
+[
+  {
+    "testCaseId": "TC_SYNC_PAY_BASE_001",
+    "module": "Payment",
+    "scenario": "Customer submits Cash payment on /checkout; Waiter confirms in /waiter/orders; Customer /orders/:id updates to Paid < 1500ms",
+    "preConditions": "Order on Table A1 in processing & marked served; Waiter on /waiter/orders",
+    "steps": [
+      "1. Seed order on A1, approve processing, mark item ready, mark order served",
+      "2. Open Waiter /waiter/orders (processing filter) and Guest /checkout with order state",
+      "3. Guest selects Cash -> Call Staff for Payment (redirects to /orders/:id showing Waiting for staff confirmation)",
+      "4. Waiter clicks Customer requesting payment! -> Xác nhận đã thu tiền mặt",
+      "5. Assert Guest /orders/:id shows Payment Successful within < 1500ms without F5 reload"
+    ],
+    "testData": {
+      "table": "A1",
+      "paymentMethod": "cash"
+    },
+    "expectedBehavior": "Guest OrderTrackingPage updates to Payment Successful < 1500ms after Waiter confirms cash",
+    "actualResult": "Customer Cash request -> Waiter confirm -> Customer OrderTrackingPage synced to Payment Successful < 1500ms",
+    "status": "PASS",
+    "defectId": null,
+    "severity": "LOW",
+    "rootCause": null,
+    "proposedFix": null,
+    "affectedComponents": {
+      "frontend": "CustomerCheckoutPage.jsx, OrderListPage.jsx, OrderDetailModal.jsx, OrderTrackingPage.jsx",
+      "backend": "paymentController.js:createPaymentIntent,confirmCashPayment"
+    },
+    "evidenceFiles": [],
+    "durationMs": 9475
+  },
+  {
+    "testCaseId": "TC_SYNC_FE_A06",
+    "module": "Cart/Aria",
+    "scenario": "Aria cart_tools.py injects synthetic modifier IDs (mod-sugar-50) breaking POST /api/orders, and CartContext drops notes on merge",
+    "preConditions": "Guest on QR Menu for Table A1; AI Service live on :8000",
+    "steps": [
+      "1. Open Guest /menu?table=<A1>, add the same dish twice via UI with distinct notes (\"No ice\", \"Extra sweet\"), and verify CartContext keeps 2 separate entries",
+      "2. Open Aria chat widget and send \"Thêm 1 Trà Đào Cam Sả 50% đường 70% đá vào giỏ hàng\"",
+      "3. Verify Aria cart item modifiers have valid Supabase UUIDs (not synthetic mod-sugar-50/mod-ice-70)",
+      "4. Navigate to /cart and click Checkout; verify POST /api/orders returns HTTP 201"
+    ],
+    "testData": {
+      "table": "A1",
+      "notes": [
+        "No ice",
+        "Extra sweet"
+      ],
+      "ariaPrompt": "Thêm 1 Trà Đào Cam Sả 50% đường 70% đá vào giỏ hàng"
+    },
+    "expectedBehavior": "CartContext preserves distinct notes as 2 items, Aria modifiers use valid UUIDs, and Checkout POST /api/orders returns 201",
+    "actualResult": "CartContext merged distinct-note items into 1 entry, Aria injected synthetic modifier IDs (mod-sugar-50/mod-ice-70), and Checkout POST /api/orders failed ([#1] Error: CartContext must preserve distinct item notes (\"No ice\", \"Extra sweet\") as 2 separate cart entries | expect(received).toBe(expected) // Object.is equality | Expected: 2 | Received: 1 || [#2] Error: Aria modifier ID must be a valid Supabase UUID | expect(received).toMatch(expected) | Expected pattern: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i | Received string:  \"mod-sugar-50\" || [#3] Error: Aria modifier ID must be a valid Supabase UUID | expect(received).toMatch(expected) | Expected pattern: /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i | Received string:  \"mod-ice-70\" || [#4] Error: Checkout POST /api/orders with Aria cart item must return 201 | expect(received).toBe(expected) // Object.is equality | Expected: 201 | Received: 500)",
+    "status": "FAIL",
+    "defectId": "BUG-FE-A06",
+    "severity": "CRITICAL",
+    "rootCause": "ai-service/tools/cart_tools.py:243-273 emits synthetic IDs (mod-sugar-50, price_modifier: 0); CartContext.jsx:48-77 ignores notes in merge and mutates quantity in-place; orderController.js:458-463 queries UUID column with synthetic strings",
+    "proposedFix": "Map AI modifiers to real Supabase modifier UUIDs/prices and include notes + immutable cloning in CartContext.addToCart",
+    "affectedComponents": {
+      "aiService": "cart_tools.py:243-273,310-316",
+      "frontend": "CartContext.jsx:48-77, AiChatContext.jsx:177-203,308-313",
+      "backend": "orderController.js:458-463"
+    },
+    "evidenceFiles": [
+      "tests/realtime-audit/evidence/BUG_FE-A06_AriaSyntheticModifiersCartDesync.png",
+      "tests/realtime-audit/evidence/BUG_FE-A06_AriaSyntheticModifiersCartDesync.webm"
+    ],
+    "durationMs": 7314
+  },
+  {
+    "testCaseId": "TC_SYNC_FE_A09",
+    "module": "Cart/Aria",
+    "scenario": "CartPage fires unauthorized GET /api/admin/tables (401) for guests and CartPage.jsx:306 lacks defensive Math.max(0, ...) Total clamp",
+    "preConditions": "Temp coupon AUDIT_FE_A09 (fixed 500,000đ); unauthenticated Guest adds 1 dish and visits /cart",
+    "steps": [
+      "1. Insert temp coupon AUDIT_FE_A09 (fixed 500,000đ, min_order_value 0)",
+      "2. Guest adds 1 item on /menu?table=<A1> and navigates to /cart while monitoring 401 responses",
+      "3. Apply voucher AUDIT_FE_A09",
+      "4. Assert zero 401 responses on /api/admin/tables and displayed Total >= 0"
+    ],
+    "testData": {
+      "coupon": "AUDIT_FE_A09",
+      "discount_value": 500000
+    },
+    "expectedBehavior": "Zero 401 errors for guest and Total clamped to >= 0đ",
+    "actualResult": "Guest /cart triggered 401 on GET /api/admin/tables (couponService capped discountAmount at subtotal so displayed Total was >= 0; CartPage.jsx:306 still lacks Math.max(0, ...)) (Error: CartPage must not fire unauthorized GET /api/admin/tables (401) for guests | expect(received).toBe(expected) // Object.is equality | Expected: 0 | Received: 2)",
+    "status": "FAIL",
+    "defectId": "BUG-FE-A09",
+    "severity": "HIGH",
+    "rootCause": "frontend/src/pages/customer/CartPage.jsx:49 calls /api/admin/tables without auth check, and line 306 computes total = totalBeforeDiscount - voucherDiscount without Math.max(0, ...)",
+    "proposedFix": "Guard /api/admin/tables fetch behind user token (or use public table endpoint) and clamp total = Math.max(0, totalBeforeDiscount - voucherDiscount)",
+    "affectedComponents": {
+      "frontend": "CartPage.jsx:49,282-283,304-306"
+    },
+    "evidenceFiles": [
+      "tests/realtime-audit/evidence/BUG_FE-A09_CartPageGuest401AndNegativeTotal.png",
+      "tests/realtime-audit/evidence/BUG_FE-A09_CartPageGuest401AndNegativeTotal.webm"
+    ],
+    "durationMs": 6549
+  },
+  {
+    "testCaseId": "TC_SYNC_FE_A05",
+    "module": "Payment",
+    "scenario": "CustomerCheckoutPage has zero Socket.IO listeners, leaving payment button active after Waiter already confirmed cash payment",
+    "preConditions": "Order on Table A1 in processing; Customer viewing /checkout on Cash tab",
+    "steps": [
+      "1. Create & approve order on Table A1",
+      "2. Open Customer /checkout with order state and switch to Cash tab",
+      "3. Waiter confirms cash payment via POST /api/payment/confirm-cash",
+      "4. Assert Call Staff for Payment button becomes disabled/hidden within < 1500ms"
+    ],
+    "testData": {
+      "route": "/checkout",
+      "table": "A1"
+    },
+    "expectedBehavior": "CustomerCheckoutPage listens to payment_success/order_paid and prevents double payment within 1500ms",
+    "actualResult": "CustomerCheckoutPage had zero socket listeners; Call Staff for Payment remained enabled after order was paid (Error: expect(locator).toBeHidden() failed | Locator:  getByRole('button', { name: /Call Staff for Payment/i }) | Expected: hidden | Received: visible | Timeout:  1500ms | Call log: |   - Expect \"toBeHidden\" getByRole('button', { name: /Call Staff for Payment/i }) with timeout 1500ms |   - waiting for getByRole('button', { name: /Call Staff for Payment/i }))",
+    "status": "FAIL",
+    "defectId": "BUG-FE-A05",
+    "severity": "CRITICAL",
+    "rootCause": "frontend/src/pages/customer/CustomerCheckoutPage.jsx has zero useSocket() subscriptions and relies on static location.state.order",
+    "proposedFix": "Subscribe CustomerCheckoutPage to table_${order.table_id} payment_success/order_paid events and redirect/lock UI immediately when paid",
+    "affectedComponents": {
+      "frontend": "CustomerCheckoutPage.jsx:19-25,103-140"
+    },
+    "evidenceFiles": [
+      "tests/realtime-audit/evidence/BUG_FE-A05_CheckoutZeroSocketDoublePayRisk.png",
+      "tests/realtime-audit/evidence/BUG_FE-A05_CheckoutZeroSocketDoublePayRisk.webm"
+    ],
+    "durationMs": 6519
+  },
+  {
+    "testCaseId": "TC_SYNC_FE_B02",
+    "module": "Cart/Aria",
+    "scenario": "React 19 StrictMode triggers AiChatContext useEffect cleanup on mount, immediately firing DELETE /api/ai/session/<uuid>",
+    "preConditions": "Guest visits /menu with QR params",
+    "steps": [
+      "1. Attach request listener for DELETE /api/ai/session/*",
+      "2. Navigate to /menu?table=<A1>",
+      "3. Assert zero DELETE /api/ai/session/ requests fired during initial boot"
+    ],
+    "testData": {
+      "route": "/menu",
+      "endpoint": "DELETE /api/ai/session/:id"
+    },
+    "expectedBehavior": "Zero DELETE /api/ai/session/ calls during initial mount",
+    "actualResult": "StrictMode mount-unmount-remount immediately fired DELETE /api/ai/session/<uuid> on boot (Error: expect(received).toBe(expected) // Object.is equality | Expected: 0 | Received: 1)",
+    "status": "FAIL",
+    "defectId": "BUG-FE-B02",
+    "severity": "HIGH",
+    "rootCause": "frontend/src/contexts/AiChatContext.jsx:380-386 deletes session in useEffect cleanup without pagehide/unmount guard, triggered by React.StrictMode (main.jsx:14)",
+    "proposedFix": "Move session deletion to explicit resetSession/beforeunload or track active mount ref instead of unconditional useEffect cleanup",
+    "affectedComponents": {
+      "frontend": "AiChatContext.jsx:379-386, main.jsx:14"
+    },
+    "evidenceFiles": [
+      "tests/realtime-audit/evidence/BUG_FE-B02_StrictModeDeletesAiSessionOnBoot.png",
+      "tests/realtime-audit/evidence/BUG_FE-B02_StrictModeDeletesAiSessionOnBoot.webm"
+    ],
+    "durationMs": 6597
+  },
+  {
+    "testCaseId": "TC_SYNC_ORD_BASE_001",
+    "module": "Order",
+    "scenario": "End-to-end multi-context order lifecycle: Guest QR Menu -> Waiter POS -> Kitchen KDS -> Served",
+    "preConditions": "Waiter and Kitchen contexts pre-authenticated; Table A1 available",
+    "steps": [
+      "1. Open Waiter (/waiter/orders), Kitchen (/kitchen), and Guest (/menu QR A1) contexts",
+      "2. Guest adds 1 dish to cart and submits Checkout -> redirects to /orders/:id",
+      "3. Verify Waiter sees new order < 1500ms without reload, then clicks Accept",
+      "4. Verify Kitchen sees order < 1500ms without reload, clicks Start Cooking -> Complete",
+      "5. Verify Waiter processing view shows Mark as Served < 1500ms and marks order served"
+    ],
+    "testData": {
+      "table": "A1",
+      "roles": [
+        "guest",
+        "waiter",
+        "kitchen"
+      ]
+    },
+    "expectedBehavior": "Waiter and Kitchen UIs update across contexts within < 1500ms without F5 reload",
+    "actualResult": "Guest order -> Waiter Accept -> Kitchen Ready -> Waiter Served all synced < 1500ms without reload",
+    "status": "PASS",
+    "defectId": null,
+    "severity": "LOW",
+    "rootCause": null,
+    "proposedFix": null,
+    "affectedComponents": {
+      "backend": "orderController.js, kitchenController.js",
+      "frontend": "MenuPage.jsx, CartPage.jsx, OrderListPage.jsx, KitchenDisplayPage.jsx"
+    },
+    "evidenceFiles": [],
+    "durationMs": 11397
+  },
+  {
+    "testCaseId": "TC_SYNC_FE_A01",
+    "module": "Order",
+    "scenario": "AuthContext omits token so SocketContext stays unauthenticated after SPA login; Waiter misses new_order until F5",
+    "preConditions": "Fresh browser context logs in via /login UI as waiter02 without page reload",
+    "steps": [
+      "1. Open fresh context and log in via /login UI as waiter02@restaurant.com (NO reload)",
+      "2. Verify /waiter/orders is open on Pending tab",
+      "3. Create guest order on Table A1 via POST /api/orders",
+      "4. Assert Waiter UI displays new order #<6chars> within < 1500ms without F5 reload"
+    ],
+    "testData": {
+      "role": "waiter",
+      "email": "waiter02@restaurant.com",
+      "table": "A1"
+    },
+    "expectedBehavior": "SocketContext reconnects with JWT after login() and Waiter receives new_order < 1500ms",
+    "actualResult": "AuthContext omitted token; SocketContext stayed guest socket, join_room(\"waiter\") failed, and order never appeared without F5 (Error: expect(locator).toBeVisible() failed | Locator: locator('div.rounded-2xl, div.rounded-xl').filter({ hasText: '#8a6db2' }).first() | Expected: visible | Timeout: 1500ms | Error: element(s) not found | Call log: |   - Expect \"toBeVisible\" locator('div.rounded-2xl, div.rounded-xl').filter({ hasText: '#8a6db2' }).first() with timeout 1500ms |   - waiting for locator('div.rounded-2xl, div.rounded-xl').filter({ hasText: '#8a6db2' }).first())",
+    "status": "FAIL",
+    "defectId": "BUG-FE-A01",
+    "severity": "CRITICAL",
+    "rootCause": "frontend/src/contexts/AuthContext.jsx:34 omits token from Provider value; SocketContext.jsx:15,67 depends on [token] (always undefined)",
+    "proposedFix": "Expose token state in AuthContext.jsx and pass it to SocketContext useEffect dependency array",
+    "affectedComponents": {
+      "frontend": "AuthContext.jsx:33-37, SocketContext.jsx:15,21,67",
+      "backend": "socket.js:52-72"
+    },
+    "evidenceFiles": [
+      "tests/realtime-audit/evidence/BUG_FE-A01_AuthTokenOmittedSocketDesync.png",
+      "tests/realtime-audit/evidence/BUG_FE-A01_AuthTokenOmittedSocketDesync.webm"
+    ],
+    "durationMs": 6255
+  },
+  {
+    "testCaseId": "TC_SYNC_FE_A02",
+    "module": "Order",
+    "scenario": "OrderTrackingPage reads order.order_items while GET /api/orders/:id returns order.items",
+    "preConditions": "Order on Table A1 is processing and all items are marked ready by Kitchen",
+    "steps": [
+      "1. Seed order on A1, approve to processing, mark item ready via Kitchen API",
+      "2. Open /orders/:orderId in Guest browser context",
+      "3. Assert dish name/item row is rendered and Pay Now button is visible"
+    ],
+    "testData": {
+      "route": "/orders/:orderId",
+      "apiField": "order.items",
+      "uiField": "order.order_items"
+    },
+    "expectedBehavior": "Order items render with status Ready and Pay Now button is enabled/visible",
+    "actualResult": "OrderTrackingPage rendered 0 items and never displayed Pay Now button (reading undefined order.order_items) ([#1] Error: OrderTrackingPage must render 1 order item | expect(locator).toHaveCount(expected) failed | Locator:  locator('div.space-y-6 > div') | Expected: 1 | Received: 0 || [#2] Error: OrderTrackingPage must render Pay Now button when ready | expect(locator).toBeVisible() failed | Locator: getByRole('button', { name: /Pay Now/i }) | Expected: visible | Timeout: 1500ms)",
+    "status": "FAIL",
+    "defectId": "BUG-FE-A02",
+    "severity": "CRITICAL",
+    "rootCause": "frontend/src/pages/customer/OrderTrackingPage.jsx:65,96,275,400 reads order.order_items instead of order.items returned by GET /api/orders/:id",
+    "proposedFix": "Replace order.order_items with order.items across OrderTrackingPage.jsx and allow ready/served items for canPay",
+    "affectedComponents": {
+      "frontend": "OrderTrackingPage.jsx:65,96,275,400",
+      "backend": "orderController.js:659"
+    },
+    "evidenceFiles": [
+      "tests/realtime-audit/evidence/BUG_FE-A02_OrderTrackingItemsAndPayNowMissing.png",
+      "tests/realtime-audit/evidence/BUG_FE-A02_OrderTrackingItemsAndPayNowMissing.webm"
+    ],
+    "durationMs": 6808
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A01_E2E",
+    "module": "Kitchen",
+    "scenario": "Guest adds a second dish to an active processing order; Kitchen KDS UI must show it < 1500ms",
+    "preConditions": "Order on Table A1 in processing status visible on Kitchen KDS",
+    "steps": [
+      "1. Seed processing order with item1 on Table A1",
+      "2. Open Kitchen KDS (/kitchen) and verify order card is visible",
+      "3. Guest sends POST /api/orders/:id/items adding item2",
+      "4. Assert Kitchen KDS order card renders item2 within < 1500ms without reload"
+    ],
+    "testData": {
+      "table": "A1",
+      "endpoint": "POST /api/orders/:id/items"
+    },
+    "expectedBehavior": "Kitchen KDS receives new_order socket event and renders newly added dish < 1500ms",
+    "actualResult": "Kitchen KDS card did not show newly added dish without F5 reload (Error: expect(locator).toBeVisible() failed | Locator: locator('div.rounded-3xl').filter({ hasText: '#9a745eb7' }).first().getByText('Cà Phê Đen Đá Buôn Ma Thuột') | Expected: visible | Timeout: 1500ms | Error: element(s) not found | Call log: |   - Expect \"toBeVisible\" locator('div.rounded-3xl').filter({ hasText: '#9a745eb7' }).first().getByText('Cà Phê Đen Đá Buôn Ma Thuột') with timeout 1500ms |   - waiting for locator('div.rounded-3xl').filter({ hasText: '#9a745eb7' }).first().getByText('Cà Phê Đen Đá Buôn Ma Thuột'))",
+    "status": "FAIL",
+    "defectId": "BE-A01",
+    "severity": "CRITICAL",
+    "rootCause": "orderController.js:825 omits status from .select(), so currentOrder.status === \"processing\" is always false and Kitchen receives no new_order event",
+    "proposedFix": "Include status and customer_id in .select() at orderController.js:825",
+    "affectedComponents": {
+      "backend": "orderController.js:823-827,890-897",
+      "frontend": "KitchenDisplayPage.jsx:67-76"
+    },
+    "evidenceFiles": [
+      "tests/realtime-audit/evidence/BUG_BE-A01_AddItemsKitchenKdsDesync.png",
+      "tests/realtime-audit/evidence/BUG_BE-A01_AddItemsKitchenKdsDesync.webm"
+    ],
+    "durationMs": 6760
+  },
+  {
+    "testCaseId": "TC_SYNC_FE_A03",
+    "module": "Kitchen",
+    "scenario": "KitchenDisplayPage listens to order_paid only and misses order_status_updated emitted by checkoutOrder",
+    "preConditions": "Processing order on Table A1 visible on Kitchen KDS (/kitchen)",
+    "steps": [
+      "1. Seed processing order on Table A1 and verify it appears on /kitchen",
+      "2. Complete order via POST /api/orders/:id/checkout (emits order_status_updated to kitchen)",
+      "3. Assert order card disappears from /kitchen within < 1500ms without reload"
+    ],
+    "testData": {
+      "route": "/kitchen",
+      "event": "order_status_updated"
+    },
+    "expectedBehavior": "Kitchen KDS removes completed/cancelled order within 1500ms on order_status_updated",
+    "actualResult": "Completed order remained stuck on Kitchen KDS until F5 reload (Error: expect(locator).toBeHidden() failed | Locator:  locator('div.rounded-3xl').filter({ hasText: '#55cfb300' }).first() | Expected: hidden | Received: visible | Timeout:  1500ms | Call log: |   - Expect \"toBeHidden\" locator('div.rounded-3xl').filter({ hasText: '#55cfb300' }).first() with timeout 1500ms |   - waiting for locator('div.rounded-3xl').filter({ hasText: '#55cfb300' }).first())",
+    "status": "FAIL",
+    "defectId": "BUG-FE-A03",
+    "severity": "CRITICAL",
+    "rootCause": "frontend/src/pages/kitchen/KitchenDisplayPage.jsx:104-106 lacks socket.on(\"order_status_updated\") and socket.on(\"additional_items_rejected\")",
+    "proposedFix": "Subscribe to order_status_updated (remove completed/cancelled orders) and additional_items_rejected in KitchenDisplayPage.jsx",
+    "affectedComponents": {
+      "frontend": "KitchenDisplayPage.jsx:104-106",
+      "backend": "orderController.js:277,1145"
+    },
+    "evidenceFiles": [
+      "tests/realtime-audit/evidence/BUG_FE-A03_KitchenMissesOrderStatusUpdated.png",
+      "tests/realtime-audit/evidence/BUG_FE-A03_KitchenMissesOrderStatusUpdated.webm"
+    ],
+    "durationMs": 6779
+  },
+  {
+    "testCaseId": "TC_SYNC_FE_A07",
+    "module": "Order",
+    "scenario": "Admin OrderManagement has zero Socket.IO listeners so new orders never appear without Refresh/F5",
+    "preConditions": "Temp admin user logged into /admin/orders",
+    "steps": [
+      "1. Open /admin/orders authenticated as role=admin",
+      "2. Create new guest order on Table A1 via POST /api/orders",
+      "3. Assert new order row #<8chars> appears in /admin/orders table within < 1500ms"
+    ],
+    "testData": {
+      "route": "/admin/orders",
+      "table": "A1",
+      "role": "admin"
+    },
+    "expectedBehavior": "Admin OrderManagement receives realtime event and renders new order row < 1500ms",
+    "actualResult": "Admin OrderManagement table did not update without manual Refresh/F5 (zero socket listeners) (Error: expect(locator).toBeVisible() failed | Locator: locator('tbody tr').filter({ hasText: '#6d164868' }).first() | Expected: visible | Timeout: 1500ms | Error: element(s) not found | Call log: |   - Expect \"toBeVisible\" locator('tbody tr').filter({ hasText: '#6d164868' }).first() with timeout 1500ms |   - waiting for locator('tbody tr').filter({ hasText: '#6d164868' }).first())",
+    "status": "FAIL",
+    "defectId": "BUG-FE-A07",
+    "severity": "HIGH",
+    "rootCause": "frontend/src/pages/admin/OrderManagement.jsx has zero useSocket() subscriptions; backend also omits admin room emits (BE-A07)",
+    "proposedFix": "Subscribe OrderManagement.jsx to admin room socket events and emit order events to admin room on backend",
+    "affectedComponents": {
+      "frontend": "OrderManagement.jsx:269,337,492,496,539-543",
+      "backend": "orderController.js"
+    },
+    "evidenceFiles": [
+      "tests/realtime-audit/evidence/BUG_FE-A07_AdminOrderManagementNoRealtime.png",
+      "tests/realtime-audit/evidence/BUG_FE-A07_AdminOrderManagementNoRealtime.webm"
+    ],
+    "durationMs": 6469
+  },
+  {
+    "testCaseId": "TC_SYNC_BASE_001",
+    "module": "Order",
+    "scenario": "Guest creates order via QR; Waiter & Guest table rooms receive sync events < 1500ms",
+    "preConditions": "Table A1 available; Waiter & Guest sockets joined to waiter and table_<A1> rooms",
+    "steps": [
+      "1. Connect Waiter socket (waiter room) and Guest socket (table_<A1> room)",
+      "2. Guest sends POST /api/orders with valid table_id, qr_token, and 1 menu item",
+      "3. Verify Waiter receives new_order & table_status_update and Guest receives order_status_update < 1500ms"
+    ],
+    "testData": {
+      "table": "A1",
+      "endpoint": "POST /api/orders"
+    },
+    "expectedBehavior": "HTTP 201 and all 3 Socket.IO events received within 1500ms",
+    "actualResult": "HTTP 201; new_order, table_status_update (occupied), and order_status_update (pending) all received < 1500ms",
+    "status": "PASS",
+    "defectId": null,
+    "severity": "LOW",
+    "rootCause": null,
+    "proposedFix": null,
+    "affectedComponents": {
+      "backend": "orderController.js:createOrder",
+      "socket": "waiter, table_<id>"
+    },
+    "evidenceFiles": [],
+    "durationMs": 1102
+  },
+  {
+    "testCaseId": "TC_SYNC_BASE_002",
+    "module": "Payment",
+    "scenario": "Customer requests cash payment and Waiter confirms cash; all rooms and DB sync < 1500ms",
+    "preConditions": "Order on Table A1 in processing status; Waiter, Kitchen, Guest sockets connected",
+    "steps": [
+      "1. Create & approve order on Table A1",
+      "2. POST /api/payment/create-intent with paymentMethod=cash",
+      "3. Waiter sends POST /api/payment/confirm-cash",
+      "4. Assert order_paid, payment_success, table_status_update < 1500ms and DB updated"
+    ],
+    "testData": {
+      "table": "A1",
+      "paymentMethod": "cash"
+    },
+    "expectedBehavior": "All rooms receive payment sync < 1500ms; DB order=completed/paid, table=available, items=served",
+    "actualResult": "All rooms received cash payment events < 1500ms and DB state verified clean",
+    "status": "PASS",
+    "defectId": null,
+    "severity": "LOW",
+    "rootCause": null,
+    "proposedFix": null,
+    "affectedComponents": {
+      "backend": "paymentController.js:createPaymentIntent,confirmCashPayment"
+    },
+    "evidenceFiles": [],
+    "durationMs": 1494
+  },
+  {
+    "testCaseId": "TC_SYNC_BASE_003",
+    "module": "Reservation",
+    "scenario": "Create reservation on free slot and lookup by booking_code + last 4 phone digits",
+    "preConditions": "Slot 2026-12-24 18:00 free for 2 guests",
+    "steps": [
+      "1. POST /api/reservations for 2026-12-24 18:00 (2 guests)",
+      "2. GET /api/reservations/lookup with booking_code & phone_last4=4999",
+      "3. Verify 201 create, assigned table_id in DB, and masked phone in lookup"
+    ],
+    "testData": {
+      "date": "2026-12-24",
+      "time": "18:00",
+      "guest_count": 2
+    },
+    "expectedBehavior": "Reservation created with table_id & booking_code; lookup returns masked phone",
+    "actualResult": "Reservation created (201), DB table_id assigned, and lookup returned 200 with masked phone 0901***999",
+    "status": "PASS",
+    "defectId": null,
+    "severity": "LOW",
+    "rootCause": null,
+    "proposedFix": null,
+    "affectedComponents": {
+      "backend": "reservationController.js:createReservation,lookupReservation"
+    },
+    "evidenceFiles": [],
+    "durationMs": 257
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A01",
+    "module": "Order",
+    "scenario": "Guest adds items to an active processing order; Kitchen socket must receive new_order < 1500ms",
+    "preConditions": "Order on Table A1 approved (status=processing); Kitchen socket joined to kitchen room",
+    "steps": [
+      "1. Create order on A1 and approve to processing",
+      "2. Connect Kitchen socket to kitchen room and clear buffer",
+      "3. POST /api/orders/:id/items with additional menu item",
+      "4. Assert Kitchen socket receives new_order within 1500ms"
+    ],
+    "testData": {
+      "table": "A1",
+      "endpoint": "POST /api/orders/:id/items"
+    },
+    "expectedBehavior": "Kitchen room receives new_order event within 1500ms for added items",
+    "actualResult": "Kitchen room received ZERO events when items were added to processing order (Error: Timeout (1500ms) waiting for socket event \"new_order\" in rooms [kitchen]. Captured events: [])",
+    "status": "FAIL",
+    "defectId": "BE-A01",
+    "severity": "CRITICAL",
+    "rootCause": "backend/src/controllers/orderController.js:825 omits status & customer_id from .select(), making currentOrder.status === \"processing\" always false at line 890",
+    "proposedFix": "Include status and customer_id in .select() at orderController.js:825",
+    "affectedComponents": {
+      "backend": "orderController.js:823-827,890-897",
+      "database": "orders"
+    },
+    "evidenceFiles": [],
+    "durationMs": 2358
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A02",
+    "module": "Payment",
+    "scenario": "Stripe payment_intent.succeeded webhook updates order, notifies table_<table_id>, releases table & sets items served",
+    "preConditions": "Order on Table A1 in processing status; Guest socket joined to table_<A1.id>",
+    "steps": [
+      "1. Create & approve order on Table A1",
+      "2. Connect Guest socket to table_<A1.id>",
+      "3. POST /api/payment/webhook with payment_intent.succeeded payload",
+      "4. Assert HTTP 200, payment_success on table_<A1.id> < 1500ms, table available, items served"
+    ],
+    "testData": {
+      "endpoint": "POST /api/payment/webhook",
+      "eventType": "payment_intent.succeeded"
+    },
+    "expectedBehavior": "HTTP 200, payment_success emitted to table_<tableId> < 1500ms, table available, items served",
+    "actualResult": "Webhook crashed with HTTP 500 (ReferenceError: orderInfo is not defined) and emitted to wrong room table_<orderId> ([#1] Error: Webhook must return HTTP 200 | expect(received).toBe(expected) // Object.is equality | Expected: 200 | Received: 500 || [#2] Error: table_<tableId> must receive payment_success < 1500ms | expect(received).toBeNull() | Received: \"Timeout (1500ms) waiting for socket event \\\"payment_success\\\" in rooms [table_8aa96f4a-3128-4c5e-87ef-06dc6f010a1a]. Captured events: []\" || [#3] Error: Table must be released to available after webhook | expect(received).toBe(expected) // Object.is equality | Expected: \"available\" | Received: \"occupied\")",
+    "status": "FAIL",
+    "defectId": "BE-A02",
+    "severity": "CRITICAL",
+    "rootCause": "backend/src/controllers/paymentController.js:266 emits to table_${orderId} instead of table_${tableId}, and line 270 references undeclared variable orderInfo",
+    "proposedFix": "Fetch order.table_id before emitting, emit to table_${order.table_id}, and wrap webhook in try/catch with strict signature verification",
+    "affectedComponents": {
+      "backend": "paymentController.js:203-283",
+      "database": "orders, payments, tables, order_items"
+    },
+    "evidenceFiles": [],
+    "durationMs": 2485
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A03",
+    "module": "Order",
+    "scenario": "POST /api/orders/:id/checkout notifies table_<table_id> and updates order_items to served",
+    "preConditions": "Order on Table A1 in processing status; Guest socket in table_<A1.id>",
+    "steps": [
+      "1. Create & approve order on Table A1",
+      "2. Connect Guest socket to table_<A1.id>",
+      "3. POST /api/orders/:id/checkout { payment_method: \"cash\" }",
+      "4. Assert table_<A1.id> receives payment_success/order_status_update < 1500ms and items are served"
+    ],
+    "testData": {
+      "endpoint": "POST /api/orders/:id/checkout",
+      "payment_method": "cash"
+    },
+    "expectedBehavior": "Guest room receives completion/payment socket event < 1500ms and all order_items become served",
+    "actualResult": "Customer room received zero events and order_items remained preparing ([#1] Error: table_<tableId> must receive payment_success/order_status_update < 1500ms | expect(received).toBeNull() | Received: \"Timeout (1500ms) waiting for socket event \\\"payment_success\\\" in rooms [table_8aa96f4a-3128-4c5e-87ef-06dc6f010a1a]. Captured events: []\" || [#2] Error: All order_items must be updated to served | expect(received).toBe(expected) // Object.is equality | Expected: true | Received: false)",
+    "status": "FAIL",
+    "defectId": "BE-A03",
+    "severity": "CRITICAL",
+    "rootCause": "backend/src/controllers/orderController.js:1087-1161 (checkoutOrder) emits only to waiter/kitchen rooms, omitting table_${order.table_id} and order_items status update",
+    "proposedFix": "Emit payment_success & order_status_update to table_${order.table_id} and update order_items to served",
+    "affectedComponents": {
+      "backend": "orderController.js:1087-1161",
+      "database": "orders, order_items, tables"
+    },
+    "evidenceFiles": [],
+    "durationMs": 2471
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A04",
+    "module": "Table",
+    "scenario": "Updating table status via PATCH /api/admin/tables/:id/status emits realtime event to waiter/admin",
+    "preConditions": "Table A1 available; Waiter socket joined to waiter room; authenticated as waiter02",
+    "steps": [
+      "1. Connect Waiter socket to waiter room",
+      "2. PATCH /api/admin/tables/:id/status { status: \"reserved\" } using waiter02 token",
+      "3. Assert table_status_update or table_updated event arrives < 1500ms"
+    ],
+    "testData": {
+      "table": "A1",
+      "status": "reserved",
+      "endpoint": "PATCH /api/admin/tables/:id/status"
+    },
+    "expectedBehavior": "Waiter socket receives table_status_update or table_updated within 1500ms",
+    "actualResult": "HTTP 200 returned, but zero Socket.IO events emitted to waiter or admin rooms (Error: Timeout (1500ms) waiting for socket event \"table_status_update\" in rooms [waiter]. Captured events: [])",
+    "status": "FAIL",
+    "defectId": "BE-A04",
+    "severity": "CRITICAL",
+    "rootCause": "backend/src/controllers/tableController.js:564-585 (updateTableStatus) updates Supabase without calling getIO().emit(...)",
+    "proposedFix": "Emit canonical table_status_update to waiter and admin rooms after updating tables.status",
+    "affectedComponents": {
+      "backend": "tableController.js:564-585",
+      "frontend": "TableMapPage.jsx, TableManagement.jsx"
+    },
+    "evidenceFiles": [],
+    "durationMs": 2067
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A05",
+    "module": "Reservation",
+    "scenario": "Two simultaneous POST /api/reservations for 9 guests when only table C5 (cap 10) is free must allow at most 1 booking",
+    "preConditions": "Table C4 (cap 10) pre-booked at 2026-12-25 19:00, leaving only C5 free for 9 guests",
+    "steps": [
+      "1. Seed confirmed reservation on C4 for 2026-12-25 19:00",
+      "2. Fire Promise.all of two POST /api/reservations (guest_count=9, 2026-12-25 19:00)",
+      "3. Assert at most 1 succeeds (201) and the other fails (409), with <= 1 active reservation on C5"
+    ],
+    "testData": {
+      "date": "2026-12-25",
+      "time": "19:00",
+      "guest_count": 9,
+      "capacity10Tables": [
+        "C4",
+        "C5"
+      ]
+    },
+    "expectedBehavior": "Atomic exclusion: 1 succeeds (201) and 1 returns 409 RESERVATION_CONFLICT",
+    "actualResult": "Both concurrent requests returned HTTP 201 and double-booked the exact same table_id (C5) ([#1] Error: At most 1 concurrent reservation request may succeed (201) | expect(received).toBeLessThanOrEqual(expected) | Expected: <= 1 | Received:    2 || [#2] Error: Table C5 must have at most 1 active reservation | expect(received).toBeLessThanOrEqual(expected) | Expected: <= 1 | Received:    2)",
+    "status": "FAIL",
+    "defectId": "BE-A05",
+    "severity": "CRITICAL",
+    "rootCause": "backend/src/controllers/reservationController.js:337-437 performs non-atomic check-then-insert in Node.js without PostgreSQL lock or EXCLUDE constraint",
+    "proposedFix": "Use PostgreSQL RPC with advisory lock / SELECT FOR UPDATE and add EXCLUDE USING gist constraint on reservations",
+    "affectedComponents": {
+      "backend": "reservationController.js:337-437",
+      "database": "30_add_reservations_and_shifts.sql"
+    },
+    "evidenceFiles": [],
+    "durationMs": 343
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A07",
+    "module": "Socket/Security",
+    "scenario": "Admin room socket receives realtime events across order, kitchen, and payment lifecycle",
+    "preConditions": "SuperAdmin socket authenticated and joined to admin room",
+    "steps": [
+      "1. Connect superAdmin socket to admin room",
+      "2. Create order -> approve processing -> kitchen ready -> confirm cash payment",
+      "3. Assert admin room receives at least one realtime event < 1500ms"
+    ],
+    "testData": {
+      "room": "admin",
+      "role": "super_admin"
+    },
+    "expectedBehavior": "Admin room receives order/kitchen/payment/table socket events < 1500ms",
+    "actualResult": "Admin room received 0 events across entire order-kitchen-payment lifecycle (Error: expect(received).toBeGreaterThan(expected) | Expected: > 0 | Received:   0)",
+    "status": "FAIL",
+    "defectId": "BE-A07",
+    "severity": "HIGH",
+    "rootCause": "orderController.js, kitchenController.js, paymentController.js, and tableController.js emit only to waiter/kitchen/table_* and never to admin room",
+    "proposedFix": "Emit order, kitchen, table, and payment lifecycle events to io.to(\"admin\") as well",
+    "affectedComponents": {
+      "backend": "orderController.js, kitchenController.js, paymentController.js, tableController.js"
+    },
+    "evidenceFiles": [],
+    "durationMs": 2057
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A08",
+    "module": "Kitchen",
+    "scenario": "When Kitchen rejects an item via PUT /api/kitchen/items/:id, order totals must decrease accordingly",
+    "preConditions": "Processing order with 2 distinct items on Table A1",
+    "steps": [
+      "1. Create order with 2 items and approve to processing",
+      "2. Record initial orders.total_amount",
+      "3. Kitchen calls PUT /api/kitchen/items/:item2Id { status: \"rejected\" }",
+      "4. Assert orders.total_amount decreased to exclude rejected item price"
+    ],
+    "testData": {
+      "endpoint": "PUT /api/kitchen/items/:id",
+      "status": "rejected"
+    },
+    "expectedBehavior": "orders.subtotal, tax_amount, and total_amount decrease to exclude rejected item",
+    "actualResult": "orders.total_amount remained unchanged after kitchen rejected item (Error: expect(received).toBeLessThan(expected) | Expected: < 58320 | Received:   58320)",
+    "status": "FAIL",
+    "defectId": "BE-A08",
+    "severity": "HIGH",
+    "rootCause": "backend/src/controllers/kitchenController.js:49-137 updates order_items.status to rejected without recalculating parent orders financials",
+    "proposedFix": "Recalculate order subtotal, tax, discount, and total_amount when kitchen sets item status=rejected, and guard invalid transitions",
+    "affectedComponents": {
+      "backend": "kitchenController.js:49-137",
+      "database": "orders, order_items"
+    },
+    "evidenceFiles": [],
+    "durationMs": 957
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A10",
+    "module": "Order",
+    "scenario": "Completed/paid order cannot be transitioned to cancelled or mutated",
+    "preConditions": "Order on A1 marked completed/paid via confirm-cash",
+    "steps": [
+      "1. Create order, approve, and confirm cash payment (status=completed)",
+      "2. Waiter sends PUT /api/orders/:id/status { status: \"cancelled\" }",
+      "3. Assert HTTP 400/409 and DB status remains completed"
+    ],
+    "testData": {
+      "endpoint": "PUT /api/orders/:id/status",
+      "targetStatus": "cancelled"
+    },
+    "expectedBehavior": "HTTP 400 or 409 rejecting transition out of terminal completed state",
+    "actualResult": "Returned HTTP 200 and mutated completed order status to cancelled (Error: expect(received).toContain(expected) // indexOf | Expected value: 200 | Received array: [400, 409])",
+    "status": "FAIL",
+    "defectId": "BE-A10",
+    "severity": "HIGH",
+    "rootCause": "backend/src/controllers/orderController.js:164-296 fetches currentOrder.status but never enforces a transition state machine",
+    "proposedFix": "Enforce allowed status transitions (reject mutations on completed/cancelled orders)",
+    "affectedComponents": {
+      "backend": "orderController.js:164-296,699-724"
+    },
+    "evidenceFiles": [],
+    "durationMs": 969
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A11",
+    "module": "Reservation",
+    "scenario": "reallocateTable must check overlapping reservations, not just tables.status === available",
+    "preConditions": "All tables >=6 capacity (C1..C5) booked at 2026-12-26 19:00 while tables.status remains available",
+    "steps": [
+      "1. Seed confirmed reservations on C1, C2, C3, C4, C5 for 2026-12-26 19:00",
+      "2. Waiter calls POST /api/reservations/:c1ResId/reallocate",
+      "3. Assert 409 NO_FREE_TABLE rather than double-booking C2"
+    ],
+    "testData": {
+      "date": "2026-12-26",
+      "time": "19:00",
+      "tables": [
+        "C1",
+        "C2",
+        "C3",
+        "C4",
+        "C5"
+      ]
+    },
+    "expectedBehavior": "HTTP 409 because all capacity>=6 tables already have overlapping bookings",
+    "actualResult": "Returned HTTP 200 and reassigned C1 reservation onto already-booked table C2 (Error: expect(received).toBe(expected) // Object.is equality | Expected: 409 | Received: 200)",
+    "status": "FAIL",
+    "defectId": "BE-A11",
+    "severity": "HIGH",
+    "rootCause": "backend/src/controllers/reservationController.js:851 filters tables by status === available without checking reservations time-window overlaps",
+    "proposedFix": "Exclude tables with overlapping pending/confirmed/seated reservations in the +-90m window inside reallocateTable",
+    "affectedComponents": {
+      "backend": "reservationController.js:824-902"
+    },
+    "evidenceFiles": [],
+    "durationMs": 536
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A12",
+    "module": "Reservation",
+    "scenario": "cancelByCode enforces exact code match, blocks cancelling seated bookings, and notifies waiter/admin via socket",
+    "preConditions": "Seated reservation RES-ZZ9911 and pending reservation RES-YY8822 exist",
+    "steps": [
+      "1. POST /api/reservations/cancel-by-code with partial substring ZZ99 -> expect 404",
+      "2. POST /api/reservations/cancel-by-code with exact seated RES-ZZ9911 -> expect 400",
+      "3. Cancel pending RES-YY8822 and assert waiter socket receives reservation_status_updated < 1500ms"
+    ],
+    "testData": {
+      "seatedCode": "RES-ZZ9911",
+      "pendingCode": "RES-YY8822",
+      "partial": "ZZ99"
+    },
+    "expectedBehavior": "Partial match returns 404, seated cancel returns 400, pending cancel emits socket < 1500ms",
+    "actualResult": "Partial substring matched and cancelled seated reservation without socket notification ([#1] Error: Cancelling seated reservation RES-ZZ9911 must return 400 | expect(received).toBe(expected) // Object.is equality | Expected: 400 | Received: 200 || [#2] Error: Partial wildcard booking_code ZZ99 must return 404 | expect(received).toBe(expected) // Object.is equality | Expected: 404 | Received: 200 || [#3] Error: Waiter room must receive reservation_status_updated < 1500ms | expect(received).toBeNull() | Received: \"Timeout (1500ms) waiting for socket event \\\"reservation_status_updated\\\" in rooms [waiter]. Captured events: []\")",
+    "status": "FAIL",
+    "defectId": "BE-A12",
+    "severity": "HIGH",
+    "rootCause": "reservationController.js:984 uses .ilike(%code%), lacks status guard against seated/completed, and emits no Socket.IO event",
+    "proposedFix": "Use exact .eq(\"booking_code\", cleanCode), reject seated/completed states, and emit reservation_status_updated to waiter & admin",
+    "affectedComponents": {
+      "backend": "reservationController.js:908-1027"
+    },
+    "evidenceFiles": [],
+    "durationMs": 2091
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A14",
+    "module": "Payment",
+    "scenario": "Rejecting items on coupon-applied order must not produce negative total_amount or keep invalid discount",
+    "preConditions": "Temp coupon AUDIT_NEG (fixed 80,000, min_order_value 100,000); order initially >= 100,000 then item rejected",
+    "steps": [
+      "1. Insert active coupon AUDIT_NEG (fixed 80,000, min_order_value 100,000)",
+      "2. Create order with low-price item + high-qty second item totaling >= 100,000 with AUDIT_NEG",
+      "3. Waiter rejects the second pending item via DELETE /api/orders/:id/items",
+      "4. Assert new_total >= 0 and discount cleared when remaining subtotal < min_order_value"
+    ],
+    "testData": {
+      "coupon": "AUDIT_NEG_A14",
+      "discount_value": 80000,
+      "min_order_value": 100000
+    },
+    "expectedBehavior": "new_total >= 0 and discount_amount = 0 when remaining subtotal drops below 100,000",
+    "actualResult": "new_total became negative and 80,000 fixed discount remained applied below min_order_value ([#1] Error: rejectAdditionalItems new_total must be >= 0 | expect(received).toBeGreaterThanOrEqual(expected) | Expected: >= 0 | Received:    -53000 || [#2] Error: discount_amount must reset to 0 below min_order_value | expect(received).toBe(expected) // Object.is equality | Expected: 0 | Received: 80000 || [#3] Error: DB orders.total_amount must be >= 0 | expect(received).toBeGreaterThanOrEqual(expected) | Expected: >= 0 | Received:    -53000)",
+    "status": "FAIL",
+    "defectId": "BE-A14",
+    "severity": "HIGH",
+    "rootCause": "orderController.js:995-1021 recalculates fixed discount without checking min_order_value or clamping discount <= newSubtotal + newTaxAmount",
+    "proposedFix": "Re-verify min_order_value and cap discount_amount <= newSubtotal + newTaxAmount so total_amount >= 0",
+    "affectedComponents": {
+      "backend": "orderController.js:837-857,995-1021"
+    },
+    "evidenceFiles": [],
+    "durationMs": 988
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A16",
+    "module": "Socket/Security",
+    "scenario": "Socket emitting leave_room(table_A1) then join_room(table_A2) must not receive A1 events",
+    "preConditions": "Guest socket joins table_<A1> then emits leave_room(table_<A1>) and joins table_<A2>",
+    "steps": [
+      "1. Connect Guest socket, join table_<A1>",
+      "2. Emit leave_room table_<A1> and join_room table_<A2>",
+      "3. Create order on A1 and assert Guest socket does NOT receive order_status_update for A1"
+    ],
+    "testData": {
+      "fromRoom": "table_A1",
+      "toRoom": "table_A2"
+    },
+    "expectedBehavior": "Socket leaves table_<A1> cleanly and receives zero A1 order events",
+    "actualResult": "Socket still received A1 order_status_update because socket.js lacks leave_room handler ([#1] Error: Unexpected socket event \"order_status_update\" received in rooms [table_8aa96f4a-3128-4c5e-87ef-06dc6f010a1a]: {\"status\":\"pending\",\"order_id\":\"813319d2-8e75-4695-8fdb-2e4b2af131bd\"} || [#2] Error: apiRequestContext.post: Request context disposed. | Call log: |   - → POST http://localhost:5001/api/orders |     - user-agent: Playwright/1.64.0 (x64; ubuntu 24.04) node/24.22 |     - accept: */*)",
+    "status": "FAIL",
+    "defectId": "BE-A16",
+    "severity": "MEDIUM",
+    "rootCause": "backend/src/config/socket.js:44-115 registers join_room without a corresponding leave_room handler",
+    "proposedFix": "Implement socket.on(\"leave_room\", (room) => socket.leave(room)) in socket.js",
+    "affectedComponents": {
+      "backend": "socket.js:44-115"
+    },
+    "evidenceFiles": [],
+    "durationMs": 656
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_B01",
+    "module": "Payment",
+    "scenario": "Unauthenticated client cannot call POST /api/orders/:id/checkout or POST /api/payment/confirm",
+    "preConditions": "Active order exists on Table A1; caller holds no Bearer token and no qr_token",
+    "steps": [
+      "1. Create order on A1",
+      "2. Unauthenticated POST /api/orders/:id/checkout { payment_method: \"cash\" }",
+      "3. Unauthenticated POST /api/payment/confirm { orderId, paymentIntentId: \"pi_fake\" }",
+      "4. Assert HTTP 401 Unauthorized on both"
+    ],
+    "testData": {
+      "endpoints": [
+        "POST /api/orders/:id/checkout",
+        "POST /api/payment/confirm"
+      ]
+    },
+    "expectedBehavior": "Both endpoints reject unauthenticated callers with HTTP 401",
+    "actualResult": "Unauthenticated /checkout succeeded with HTTP 200 and marked the order paid/completed ([#1] Error: Unauthenticated POST /api/orders/:id/checkout must return 401 | expect(received).toBe(expected) // Object.is equality | Expected: 401 | Received: 200 || [#2] Error: Unauthenticated POST /api/payment/confirm must return 401 | expect(received).toBe(expected) // Object.is equality | Expected: 401 | Received: 400)",
+    "status": "FAIL",
+    "defectId": "BE-B01",
+    "severity": "CRITICAL",
+    "rootCause": "orderRoutes.js:44 and paymentRoutes.js:7,23 lack verifyToken/authorizeRoles; confirmPayment never verifies metadata.orderId or amount",
+    "proposedFix": "Require verifyToken + authorizeRoles on /checkout and /payment/confirm, and verify PaymentIntent metadata.orderId & amount",
+    "affectedComponents": {
+      "backend": "orderRoutes.js:44, paymentRoutes.js:7,23, paymentController.js:141-196"
+    },
+    "evidenceFiles": [],
+    "durationMs": 617
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_B03",
+    "module": "Order",
+    "scenario": "Creating an order with negative item quantity must fail validation (400/422)",
+    "preConditions": "Table A1 available with valid qr_code_token",
+    "steps": [
+      "1. POST /api/orders with quantity: -2",
+      "2. Assert HTTP 400 or 422 validation error"
+    ],
+    "testData": {
+      "quantity": -2
+    },
+    "expectedBehavior": "HTTP 400 or 422 rejecting non-positive quantity",
+    "actualResult": "Returned HTTP 201 and created order with negative total_amount (Error: expect(received).toContain(expected) // indexOf | Expected value: 201 | Received array: [400, 422])",
+    "status": "FAIL",
+    "defectId": "BE-B03",
+    "severity": "CRITICAL",
+    "rootCause": "backend/src/controllers/orderController.js:446-470,751-775 never validates item.quantity > 0 integer",
+    "proposedFix": "Validate items[].quantity as integer >= 1 via Joi schema in orderRoutes/orderController",
+    "affectedComponents": {
+      "backend": "orderController.js:446-470,751-775"
+    },
+    "evidenceFiles": [],
+    "durationMs": 547
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_B04",
+    "module": "Socket/Security",
+    "scenario": "Unauthenticated socket cannot join table_*/session_* rooms without proof or spoof call_staff alerts to waiter",
+    "preConditions": "Waiter socket joined to waiter room; unauthenticated socket connected without token",
+    "steps": [
+      "1. Unauthenticated socket emits join_room(table_<A1>) and join_room(session_victim)",
+      "2. Unauthenticated socket emits call_staff { tableId: \"T01\", reason: \"spoof\" }",
+      "3. Assert join_room emits error and waiter does NOT receive spoofed ai_handoff_alert"
+    ],
+    "testData": {
+      "spoofTable": "T01",
+      "sessionRoom": "session_victim"
+    },
+    "expectedBehavior": "Unauthorized room join emits error and unauthenticated call_staff is rejected",
+    "actualResult": "Unauthenticated socket joined open rooms without error and waiter received spoofed ai_handoff_alert ([#1] Error: Unauthenticated table_*/session_* join_room must emit socket error | expect(received).toBeGreaterThan(expected) | Expected: > 0 | Received:   0 || [#2] Error: Unauthenticated call_staff must not deliver ai_handoff_alert to waiter | expect(received).toBeNull() | Received: \"Unexpected socket event \\\"ai_handoff_alert\\\" received in rooms [waiter]: {\\\"tableId\\\":\\\"T01\\\",\\\"reason\\\":\\\"audit_spoof_b04\\\",\\\"summary\\\":\\\"Bàn T01 gọi nhân viên: audit_spoof_b04\\\",\\\"timestamp\\\":\\\"2026-11-27T19:56:14.979Z\\\"}\")",
+    "status": "FAIL",
+    "defectId": "BE-B04",
+    "severity": "HIGH",
+    "rootCause": "backend/src/config/socket.js:82-85,98-110 permits any unauthenticated socket into table_*/session_* rooms and forwards unvalidated call_staff",
+    "proposedFix": "Require signed qr_token/session proof for table_*/session_* rooms and authenticate/rate-limit call_staff",
+    "affectedComponents": {
+      "backend": "socket.js:82-110"
+    },
+    "evidenceFiles": [],
+    "durationMs": 661
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_B06",
+    "module": "Socket/Security",
+    "scenario": "Unauthenticated GET /api/coupons?userId=... and DELETE /api/ai/session/:id?userId=... must reject userId impersonation",
+    "preConditions": "Victim userId obtained from waiter02 profile; caller sends NO Authorization header",
+    "steps": [
+      "1. Send unauthenticated GET /api/coupons?userId=<victim>",
+      "2. Send unauthenticated DELETE /api/ai/session/audit-sess-b06?userId=<victim>",
+      "3. Assert HTTP 401/403 rejecting unauthenticated userId impersonation"
+    ],
+    "testData": {
+      "endpoints": [
+        "GET /api/coupons",
+        "DELETE /api/ai/session/:id"
+      ]
+    },
+    "expectedBehavior": "HTTP 401/403 when unauthenticated request supplies arbitrary userId",
+    "actualResult": "Both endpoints returned HTTP 200 accepting unauthenticated userId parameter ([#1] Error: Unauthenticated GET /api/coupons?userId= must return 401/403 | expect(received).toContain(expected) // indexOf | Expected value: 200 | Received array: [401, 403] || [#2] Error: Unauthenticated DELETE /api/ai/session/:id?userId= must return 401/403 | expect(received).toContain(expected) // indexOf | Expected value: 200 | Received array: [401, 403])",
+    "status": "FAIL",
+    "defectId": "BE-B06",
+    "severity": "HIGH",
+    "rootCause": "couponController.js:8,137 and aiController.js:202,739 trust req.query.userId / req.body.userId without verifyToken",
+    "proposedFix": "Derive userId strictly from verified JWT (req.user.id) and reject unauthenticated userId params",
+    "affectedComponents": {
+      "backend": "aiController.js:202,739, couponController.js:8,137"
+    },
+    "evidenceFiles": [],
+    "durationMs": 192
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_B09",
+    "module": "Payment",
+    "scenario": "POST /api/coupons/create accepts target_type=\"guest\" supported by controller/UI and rejects empty payload with 400",
+    "preConditions": "Authenticated as superAdmin (admin@restaurant.com)",
+    "steps": [
+      "1. POST /api/coupons/create with target_type=\"guest\"",
+      "2. POST /api/coupons/create with empty body {}",
+      "3. Assert 200/201 for valid guest coupon and 400/422 for empty payload"
+    ],
+    "testData": {
+      "target_type": "guest",
+      "code": "AUDIT_GUEST_B09"
+    },
+    "expectedBehavior": "target_type=\"guest\" succeeds (200/201) and {} returns 400/422",
+    "actualResult": "PostgreSQL CHECK constraint rejected target_type=\"guest\" with HTTP 500 and empty {} also returned HTTP 500 ([#1] Error: Coupon create with target_type=\"guest\" must succeed (200/201) | expect(received).toContain(expected) // indexOf | Expected value: 500 | Received array: [200, 201] || [#2] Error: Coupon create with empty body {} must return 400/422 | expect(received).toContain(expected) // indexOf | Expected value: 500 | Received array: [400, 422])",
+    "status": "FAIL",
+    "defectId": "BE-B09",
+    "severity": "MEDIUM",
+    "rootCause": "database/migrations/17_add_coupon_usage.sql:3 CHECK (target_type IN (\"all\",\"new_user\")) conflicts with couponController.js/couponService.js (\"guest\",\"customer\"), and createCoupon lacks Joi validation",
+    "proposedFix": "Update DB CHECK constraint to include guest/customer and add Joi schema validation on createCoupon",
+    "affectedComponents": {
+      "backend": "couponController.js:31-38,165",
+      "database": "17_add_coupon_usage.sql:3"
+    },
+    "evidenceFiles": [],
+    "durationMs": 262
+  },
+  {
+    "testCaseId": "TC_SYNC_RES_BASE_001",
+    "module": "Reservation",
+    "scenario": "Customer creates reservation on /reservations UI and verifies it via /reservations/lookup UI",
+    "preConditions": "Free slot 2026-12-28 18:00 for 2 guests",
+    "steps": [
+      "1. Navigate to /reservations, fill contact info + 2026-12-28 18:00 + 2 guests",
+      "2. Click Check Availability, then Continue to Confirm, then Confirm Reservation",
+      "3. Capture booking_code, navigate to /reservations/lookup with code + last 4 phone digits",
+      "4. Verify lookup displays booking code and masked phone"
+    ],
+    "testData": {
+      "date": "2026-12-28",
+      "time": "18:00",
+      "guest_count": 2,
+      "phone": "0901234888"
+    },
+    "expectedBehavior": "Reservation created via UI with booking_code and lookup returns booking details",
+    "actualResult": "Reservation UI created booking and /reservations/lookup verified details cleanly",
+    "status": "PASS",
+    "defectId": null,
+    "severity": "LOW",
+    "rootCause": null,
+    "proposedFix": null,
+    "affectedComponents": {
+      "frontend": "ReservationPage.jsx, ReservationLookupPage.jsx",
+      "backend": "reservationController.js"
+    },
+    "evidenceFiles": [],
+    "durationMs": 3247
+  },
+  {
+    "testCaseId": "TC_SYNC_FE_A04",
+    "module": "Table",
+    "scenario": "Waiter TableMapPage listens only to table_updated and misses table_status_update / order_paid emitted by confirmCashPayment",
+    "preConditions": "Order on Table A1 in processing (A1 is occupied); Waiter viewing /waiter/map and Admin viewing /admin/tables",
+    "steps": [
+      "1. Create & approve order on Table A1 so A1 is occupied",
+      "2. Open Waiter /waiter/map (shows A1 \"Đang dùng\") and Admin /admin/tables (shows Table A1 \"Occupied\")",
+      "3. Confirm cash payment via POST /api/payment/confirm-cash (emits table_status_update available + order_paid)",
+      "4. Assert Waiter /waiter/map updates Table A1 to \"Trống\" within < 1500ms without reload"
+    ],
+    "testData": {
+      "table": "A1",
+      "routes": [
+        "/waiter/map",
+        "/admin/tables"
+      ]
+    },
+    "expectedBehavior": "Waiter TableMapPage updates A1 from \"Đang dùng\" to \"Trống\" within 1500ms",
+    "actualResult": "Waiter TableMapPage remained stuck on \"Đang dùng\" (occupied) after cash payment freed A1 (Error: expect(locator).toContainText(expected) failed | Locator: locator('div.h-36.rounded-2xl').filter({ has: locator('span.text-3xl').filter({ hasText: /^A1$/ }) }).first() | Expected pattern: /Trống/i | Received string:  \"A1restaurantĐang dùng4person\" | Timeout: 1500ms | Call log: |   - Expect \"toContainText\" locator('div.h-36.rounded-2xl').filter({ has: locator('span.text-3xl').filter({ hasText: /^A1$/ }) }).first() with timeout 1500ms |   - waiting for locator('div.h-36.rounded-2xl').filter({ has: locator('span.text-3xl').filter({ hasText: /^A1$/ }) }).first())",
+    "status": "FAIL",
+    "defectId": "BUG-FE-A04",
+    "severity": "CRITICAL",
+    "rootCause": "frontend/src/pages/waiter/TableMapPage.jsx:101 listens only to table_updated and misses table_status_update & order_paid; TableManagement.jsx:162 listens only to table_status_update",
+    "proposedFix": "Standardize table status socket event name across backend/frontend and handle both table_status_update & order_paid in TableMapPage.jsx",
+    "affectedComponents": {
+      "frontend": "TableMapPage.jsx:96-132, TableManagement.jsx:98,162-163",
+      "backend": "paymentController.js:351, tableController.js:532"
+    },
+    "evidenceFiles": [
+      "tests/realtime-audit/evidence/BUG_FE-A04_WaiterTableMapDesync.png",
+      "tests/realtime-audit/evidence/BUG_FE-A04_WaiterTableMapDesync.webm"
+    ],
+    "durationMs": 9272
+  },
+  {
+    "testCaseId": "TC_SYNC_BE_A04_E2E",
+    "module": "Table",
+    "scenario": "PATCH /api/admin/tables/:id/status emits zero socket events, leaving both Admin TableManagement & Waiter TableMapPage stale",
+    "preConditions": "Table A2 available; Admin on /admin/tables and Waiter on /waiter/map",
+    "steps": [
+      "1. Open Admin /admin/tables and Waiter /waiter/map showing Table A2 available",
+      "2. Send PATCH /api/admin/tables/:id/status { status: \"occupied\" } as waiter02",
+      "3. Assert Admin card updates to Occupied and Waiter card updates to Đang dùng < 1500ms"
+    ],
+    "testData": {
+      "table": "A2",
+      "endpoint": "PATCH /api/admin/tables/:id/status",
+      "status": "occupied"
+    },
+    "expectedBehavior": "Both /admin/tables and /waiter/map reflect Table A2 status=occupied within 1500ms without reload",
+    "actualResult": "Both Admin TableManagement and Waiter TableMapPage stayed Available/Trống because PATCH /status emitted zero socket events (Error: expect(locator).toContainText(expected) failed | Locator: locator('div.rounded-2xl.shadow-sm').filter({ has: locator('h3').filter({ hasText: /Table\\s+A2$/ }) }).first() | Expected pattern: /Occupied/i | Received string:  \"A2TableTable A2No description providedCapacity4 PersonsLocationNot setToken Created3/3/2026AvailableActive\" | Timeout: 1500ms | Call log: |   - Expect \"toContainText\" locator('div.rounded-2xl.shadow-sm').filter({ has: locator('h3').filter({ hasText: /Table\\s+A2$/ }) }).first() with timeout 1500ms |   - waiting for locator('div.rounded-2xl.shadow-sm').filter({ has: locator('h3').filter({ hasText: /Table\\s+A2$/ }) }).first())",
+    "status": "FAIL",
+    "defectId": "BE-A04",
+    "severity": "CRITICAL",
+    "rootCause": "backend/src/controllers/tableController.js:564-585 (updateTableStatus) performs DB update without emitting Socket.IO event",
+    "proposedFix": "Emit table_status_update to waiter and admin rooms from tableController.updateTableStatus",
+    "affectedComponents": {
+      "backend": "tableController.js:564-585",
+      "frontend": "TableManagement.jsx, TableMapPage.jsx"
+    },
+    "evidenceFiles": [
+      "tests/realtime-audit/evidence/BUG_BE-A04_PatchTableStatusNoSocketEmit.png",
+      "tests/realtime-audit/evidence/BUG_BE-A04_PatchTableStatusNoSocketEmit.webm"
+    ],
+    "durationMs": 8277
+  }
+]
